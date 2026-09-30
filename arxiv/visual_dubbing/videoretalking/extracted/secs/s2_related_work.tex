@@ -1,0 +1,61 @@
+% % \clearpage
+
+
+\section{Related Work}
+We review the related methods from two aspects, including the visual dubbing task which aims to edit the input video through audio, and single image animation using the audio as conditions.
+% into two categories based on the type of input visual information:  video-to-video methods and one-shot methods. The visual input of the former methods is a video, and the visual input of the latter methods is a single reference image. 
+
+\subsection{Audio-based Dubbing in Video Editing}
+
+\subsubsection{Arbitrary-subject methods}
+% 1. Arbitrary
+% Speech2Vid; LipGAN,Wav2Lip; Everybody’s Talkin’; MM22; SyncFaceTalk; 
+Arbitrary-subject methods aim at building a general model that does not need to be retrained for different identities.
+Speech2Vid~\cite{Chung17b} can re-dub a source video with a different segment of audio thanks to the context encoder. %which help reproduce the background. 
+%The generated face can be pasted to original video. 
+Reconstructing the lower-half face by inpainting is popular recently~\cite{lipgan, wav2lip, park2022synctalkface}. For example, LipGAN~\cite{lipgan} design a neural network to fill the lower-half face as a pose prior. Wav2Lip~\cite{wav2lip} extends LipGAN using a pre-trained SyncNet as the lip-sync discriminator~\cite{syncnet} to generate accurate lip synchronization. Based on Wav2Lip, SyncTalkFace~\cite{park2022synctalkface} involve the audio-lip memory to store the lip motion features implicitly and retrieve them at inference time. Another category of the methods predicts the intermediate representation first, and then, synthesizes the photo-realistic results by image-to-image translation networks, for example, the facial landmarks~\cite{xie2021towards} and the facial landmarks based on 3D face reconstruction~\cite{song2022everybody}. However, all these methods are struggling to synthesize the high-quality results with editable emotion. 
+
+%Some methods do not reconstruct lip region directly but generate latent representations firstly from audio and then render them to video. 
+% propose a two-stage paradigm employs facial landmarks as latent representations to predict lip movements. \cite{song2022everybody} generates 3DMM expression coefficients and use a arbitrary-subject video rendering network to construct photo-realistic video.
+%But all the above methods can only handle low-resolution videos. It is difficult to collect a large-scale high-resolution talking face dataset. And it is also really challenging to learn robust audio-visual correlation on small-scale HD dataset. Our method extends the audio-visual correlation learned on low-resolution dataset to high-resolution dataset rather than directly learning on it which cleverly avoids this problem. To the best of our knowledge, our proposed system is the first arbitrary-subject audio-driven visual dubbing method that can handle high-resolution videos.
+
+ 
+\subsubsection{Personalized methods}
+% 2. One person one model
+% Audio-driven: SyncObama; Neural Voice Puppetry; Live Speech Portraits;  LipSync3d; AD-Nerf; FACIAL; EVP
+% Video-driven: DVP; Neural-style preserved;
+% text-driven: write-a-speaker;
+
+% landmark-based: EVP; Live Speech Portraits
+% 3d mesh: LipSync3D
+% 3dmm: NVP; FACIAL
+% nerf: AD-Nerf
+%Personalized Visual Dubbing is concerned with generating synchronizing lip motions with arbitrary speech input for one specific target. 
+Personalized visual dubbing is easier than the generic one, since these methods are limited to the certain person in the known environment.
+For example, SynthesizeObama~\cite{obama} can synthesize the mouth region of Obama by the audio-to-landmark network. Inspired by the face reenactment methods~\cite{dvp, thies2019deferred}, recent visual dubbing methods focus on generating the intermediate representation from audio, and then, rendering the photo-realistic results by the image-to-image translation networks. For example, several works~{\cite{NVP, AudioDVP,zhang2021facial}} focus on the expression coefficient from the audio features and render the photo-realistic results by the image generation networks~\cite{thies2019deferred, dvp, vid2vid}. Facial landmarks~\cite{lu2021live} and edges~\cite{EVP} are also popular choices by projecting the 3D rendered faces since it contains sparser information.
+Furthermore, 3D mesh-based~\cite{lipsync3d} and NeRF~\cite{nerf}-based methods~\cite{adnerf} are also powerful.
+% \textcolor{red}{LipSync3D~\cite{lipsync3d} normalizes the input face on pose and lighting, and then utilizes 3D mesh as the intermediate representation to generate video.} 
+% \textcolor{red}{NeRF~\cite{nerf}-based method~\cite{adnerf} feeds audio into a conditional implicit function to generate a dynamic neural radiance field.}
+% Inspired by recently development of Neural Radiance Fields~(NeRF), audio can also be represented as the scene fields. 
+Although these methods can synthesize the photo-realistic results, they have relatively limited applications because they need to retrain the model on the specific person and environment.
+
+\nocite{wang2021hfgi}
+%the 3D face based methods, AudioDVP~\cite{AudioDVP} distangle audio to emotion space and content space, and then predicts landmark motions. The predicted motion is transferred to the edge map and rendered to video. Live Speech Portraits~\cite{lu2021live} learns facial dynamics and motions include head poses and upper body motions from the projected audio features and use an image-to-image translation network to synthesize photo-realistic renderings in real-time. These two methods both use landmarks as latent representations. 3DMM~\cite{3dmm}-based methods~\cite{NVP, zhang2021facial} firstly generate expression or pose parameters and then render them to photo-realistic videos. 
+%NeRF~\cite{nerf}-based method~\cite{adnerf} feeds audio into a conditional implicit function to generate a dynamic neural radiance field and then generate high-fidelity talking-head video using volume rendering. LipSync3D~\cite{lipsync3d} firstly normalize the input face and then utilize 3D mesh as intermediate representation to generate video.
+
+% \cite{obama} uses RNN to predict mouth shapes from audio features. This method requires many hours training data of one person, which is hard to generalize to different targets. NVP~\cite{nvp} generates expression basis from audio and then renders it to video utilizing a person-specific network. \cite{lu2021live} learns facial dynamics and motions include head poses and upper body motions from the projected audio features and use an image-to-image translation network to synthesize photo-realistic renderings in real-time. LipSync3D~\cite{lipsync3d} firstly normalize the input face and then use 3D mesh as intermediate representations to render photo-realistic video. AD-NeRF~\cite{adnerf} feeds audio into a conditional implicit function to generate a dynamic neural radiance field and then generate high-fidelity talking-head video using volume rendering. FACIAL~\cite{zhang2021facial} synthesize the 3D face animation with realistic motions of lips, head poses, and eye blinks with implicit attribute learning. EVP~\cite{AudioDVP} distangles audio to emotion space and content space, and then predicts landmark motions. The predicted motion is transferred to the edge map and rendered to video.
+
+\subsection{Audio-based Single Image Facial Animation}
+% one-shot
+% X2face; ATVG; DAVS; RNN; Speech-Driven Animation; Flow-guided; PC-AVS; MakeItTalk; Audio2Head,AAAI-22; ijcai22; StyleHEAT
+Different from the visual dubbing, single image face animation aims to generate the animation by single driven audio, and it has also been influenced by the video-driven face animation. For example, \cite{song2018talking} generate the motion from audio using the recurrent neural network, \cite{zhou2019talking} disentangle the input to subject-related information and speech-related information by adversarial representation learning. \cite{vougioukas2020realistic, pc-avs} consider the audio as the latent code and drive the face animation by an image generator.
+% propose a temporal GAN and three different discriminators to generate lip movements and facial expressions. PC-AVS~\cite{pc-avs} utilize a style-based generator to reconstruct face and the audio servers as the latent code.
+The intermediate representation is also a popular choice in this task. ATVG~\cite{chen2019hierarchical} and MakeItTalk~\cite{makeittalk} first generate the facial landmarks from audio, and then, render the video using a landmark-to-video network. Dense flow field is another active research direction~\cite{2203.04036, fomm}. \cite{hdtf} predict the 3DMM coefficients from audio and then transfer these parameters into a flow-based warping network. \cite{wang2021one, wang2021audio2head} borrow the idea from video driven face animation~\cite{fomm}.
+
+
+
+
+
+
+
+

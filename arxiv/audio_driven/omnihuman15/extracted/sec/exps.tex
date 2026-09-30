@@ -1,0 +1,224 @@
+\section{Experiments}\label{sec:exp}
+
+\subsection{Experimental Setup}
+
+\myparagraph{Implementation Details.}
+Our model is based on the MMDiT architecture and was pre-trained on a large-scale dataset of text-video/image pairs. For most experiments, the model generates 120-frame clips at 24~fps with a 480p resolution (short side). A separate super-resolution model of the same architecture is used to upscale outputs to 720p or 1080p. Longer videos are generated autoregressively. We used the AdamW optimizer with a learning rate of 5e-5, a global batch size of 256, and gradient clipping at a norm of 1.0. The training was conducted on 256 compute nodes and consisted of three stages: a 3-day audio branch warm-up, a 7-day main training phase, and a 1-day fine-tuning phase on high-quality data.
+
+\myparagraph{Training Data.}
+Our training set consists of 15,000 hours of filtered video data. Following prior work, we used a lip-sync model to identify and discard the audio from videos with poor lip-audio correlation. These samples, comprising 70\% of the data, were used with audio-dropout during training. For the final fine-tuning stage, we ranked our training data by quality metrics and selected the top 100 hours.
+
+\myparagraph{Evaluation Datasets.}
+To rigorously evaluate our model, we noted that current DiT-based methods already perform well in standard human speaking scenarios. To test the true generalization limits of our approach, we therefore constructed two novel and highly challenging test sets. Our first custom benchmark is a diverse single-subject set of 150 cases, including real-world human portraits, AIGC figures, anime characters and animals. Each image was manually paired by experts with a corresponding audio track, such as speech, singing or theatrical performances, to create a demanding generalization test. To assess performance in more complex scenes, we also built a multi-subject set of 57 cases, featuring the same visual diversity and expert-paired audio for multi-character interactions. Furthermore, to evaluate our model's text-conditioning, experts wrote descriptive prompts for all 150 single-subject cases, allowing us to measure adherence to textual guidance. Finally, for fair comparison with prior work, we adopted their experimental settings, using 100 videos from CelebV-HQ~\cite{zhu2022celebv} for the talking-head task and the CyberHost~\cite{lin2025cyberhost} test set (269 videos, 119 identities) for evaluating performance in full-body scenarios.
+
+
+\myparagraph{Evaluation Metrics.}
+To comprehensively assess our method, we employ a multi-faceted evaluation protocol that includes both objective and subjective metrics.
+For objective evaluation, we measure generation quality using the Fr\'echet Inception Distance (FID)~\cite{heusel2017gans} and Fr\'echet Video Distance (FVD)~\cite{unterthiner2019fvd}, alongside no-reference Image Quality (IQA) and Aesthetics (ASE) scores~\cite{wu2023q}. We also evaluate audio-visual synchronization with Sync-C~\cite{syncnet}, hand quality using Hand Keypoint Confidence (HKC) and Hand Keypoint Variance (HKV)~\cite{lin2025cyberhost}.
+\par
+However, as these objective metrics often fail to capture higher-level semantic qualities and overall perceptual realism, we also conducted a comprehensive subjective user study with 40 participants. This study involved two main protocols. The first was a \textbf{pairwise comparison}, where participants viewed two videos from different methods in a randomized order. This comparison was twofold: from a positive perspective, users selected the video with the best overall quality, from which we calculated the Good/Same/Bad (GSB) score, defined as $(\text{Wins} - \text{Loses}) / (\text{Wins} + \text{Loses} + \text{Ties})$; from a critical perspective, they identified specific flaws: Lip-sync Inconsistency (LSI), Motion Unnaturalness (MU), and Image Distortion (ID), allowing us to compute a defect rate for each. The second protocol was a \textbf{best-choice selection task}, where participants selected the single best video from all competing methods. This yielded a Top-1 selection rate, providing a direct measure of overall appeal.
+
+
+
+\subsection{Ablation Studies}
+In this section, we conduct a series of ablation studies to rigorously validate the contributions of our proposed components. The experiments are performed on a custom, single-subject test set of 150 video clips. Our analysis systematically isolates the impact of two key elements: (1) the agentic reasoning module and (2) the proposed conditioning architecture within our diffusion model. For a comprehensive assessment, we employ both quantitative and subjective evaluations. The quantitative metrics provide an objective measure of performance, while the subsequent user studies assess perceptual quality in terms of lip-sync consistency, motion naturalness, image quality, and overall user preference.
+
+\myparagraph{The Effectiveness of Agentic Reasoning.}
+Here, we analyze the contribution of the Agentic Reasoning module by dissecting its intermediate steps. We conduct experiments by first removing the multi-step reasoning process, then ablating the entire Analyzer, and finally, removing the reasoning module altogether, which results in a ``System 1 only'' model. As shown in Table~\ref{tab:full_ablation}, standard metrics for image quality (IQA) and lip-sync (Sync-C) show only minor variations across these ablations. This is expected, as these metrics primarily evaluate low-level fidelity, which remains high in all diffusion-based variants. However, they are not designed to measure higher-level semantic qualities like logical coherence. A more telling objective trend emerges with the HKV metric, which progressively decreases as reasoning capabilities are weakened, indicating that the generated animations become more static and less expressive.
+\par
+To truly evaluate the core contributions of our reasoning module to these semantic qualities, we therefore turn to subjective evaluation. The results, presented in (a) of Table~\ref{tab:subjective_ablation_full}, offer a direct comparison between the models with and without the agentic reasoning module. The overall user preference (GSB score) immediately reveals a substantial advantage for our full model. More specifically, the introduction of reasoning leads to a significant reduction in perceived motion unnaturalness (MU), with over a 20\% improvement in pairwise comparisons. Furthermore, it maintains or slightly improves lip-sync consistency and image quality, as reflected by the LSI and ID metrics. These findings support the effectiveness of our Agentic Reasoning module, particularly in its ability to enhance the plausibility and semantic motion naturalness of the generated animations, which are qualities not fully captured by objective metrics.
+
+\begin{table}[t!]
+    \centering
+    \caption{\textbf{Ablation studies on our proposed framework.} }
+    \label{tab:full_ablation}
+    \begin{tabular}{l|ccccc} 
+        \toprule
+        \textbf{Method} & \textbf{IQA} $\uparrow$ & \textbf{ASE} $\uparrow$ & \textbf{Sync-C} $\uparrow$ & \textbf{HKC} $\uparrow$ & \textbf{HKV} $\uparrow$ \\
+        \midrule
+        \multicolumn{6}{l}{\textit{Ablation on Agentic Reasoning}} \\
+        \midrule
+        Ours w/o Multi-Step Reasoning & 4.795 & 3.901 & 3.853 & 0.576 & 157.638 \\
+        Ours w/o Analyzer             & 4.793 & 3.910 & 4.278 & 0.572 & 148.381 \\
+        Ours w/o Reasoning (System 1 Only) & 4.784 & 3.885 & 3.507 & 0.544 & 122.376 \\
+        \midrule
+        \multicolumn{6}{l}{\textit{Ablation on Conditioning Modules}} \\
+        \midrule
+        Ours w/ Cross-Attention       & 4.745 & 3.856 & 3.263 & 0.558 & 116.317 \\
+        Ours w/o MM-Warmup            & 4.752 & 3.866 & 3.993 & 0.549 & 164.080 \\
+        Ours w/ Ref. Image            & 4.772 & 3.896 & 3.982 & 0.559 & 160.889 \\
+        Ours w/o Ref. \& Pseudo Frame  & 4.682 & 3.878 & 4.141 & 0.564 & 160.986 \\
+        \midrule
+        \textbf{Ours (Full Model)}    & 4.790 & 3.901 & 4.087 & 0.571 & 168.912 \\
+        \bottomrule 
+    \end{tabular}
+\end{table}
+  \input{figs/gsb2}
+\par
+
+\myparagraph{The Effectiveness of Proposed Conditioning Modules.}
+We now ablate our core architectural designs, with results presented alongside the previous study in Table~\ref{tab:full_ablation} and~\ref{tab:subjective_ablation_full}. In these experiments, the Agentic Reasoning module remains fixed, providing identical inputs to all model variants. We test several key variations: using standard cross-attention for audio integration instead of our MM-Attention, removing the MM-Warmup strategy, conditioning on a reference image and omitting the pseudo-last-frame at inference.
+As shown in Table~\ref{tab:full_ablation}, our full model again leads in most objective metrics, with its superior HKC and HKV scores highlighting enhanced motion dynamics. To further validate our approach, (b) of the Table~\ref{tab:subjective_ablation_full} presents a direct subjective comparison against OmniHuman-1~\cite{lin2025omnihuman}, a state-of-the-art method that utilizes a reference attention mechanism and standard cross-attention for audio injection instead of our proposed conditioning implementation. The results show that our method achieves a significant advantage not only in the overall GSB score but also across multiple fine-grained dimensions, including lip-sync accuracy, motion naturalness, and visual quality. This clearly demonstrates the effectiveness of our proposed conditioning technique, which in turn provides a robust foundation for executing the plans generated by the agentic reasoning module.
+
+
+\par
+In addition to the ablation studies, Table~\ref{tab:subjective_ablation_full} presents a direct comparison with the base model under text-only conditioning. For this evaluation, the audio component was disregarded to isolate the assessment of visual fidelity and character motion. We conducted a GSB pairwise comparison to analyze performance across three key areas: text alignment (TA), motion naturalness (Mot), and visual quality (VQ). The results reveal that our model successfully integrates multi-modal inputs while preserving a text-prompt-following capability on par with the pre-trained general model. Critically, our approach also demonstrates a significant lead in both motion naturalness and overall visual quality, as reflected by the Mot. and VQ metrics.
+
+\subsection{Further Exploration on Applications}
+
+
+\begin{table}[t!]
+    \centering
+
+    \setlength{\tabcolsep}{6pt} 
+
+    \caption{\textbf{Comparison with existing methods on multi-person animation.} We report quantitative metrics and pairwise subjective evaluation results, including Driving Accuracy (DA), Lip-sync Inconsistency (LSI), Motion Unnaturalness (MU) and an overall user preference score derived from a Good/Same/Bad (GSB) evaluation.}
+    \label{tab:sota_comparison_multi_final}
+    \label{tab:sota_comparison_multi}
+    
+
+    \begin{tabular}{l|cccc|ccccc} 
+        \toprule
+        \multirow{2}{*}{\textbf{Method}} & \multicolumn{4}{c|}{\textbf{Subjective Evaluation}} & \multicolumn{5}{c}{\textbf{Quantitative Metrics}} \\
+        \cmidrule(lr){2-5} \cmidrule(lr){6-10}
+        & {\small DA$\uparrow$} & {\small LSI}  & {\small MU} & {\small GSB$\uparrow$} & {\small IQA$\uparrow$} & {\small ASE$\uparrow$} & {\small Sync-D} & {\small HKC$\uparrow$} & {\small HKV$\uparrow$} \\
+        \midrule
+        InterActHuman       & {-}   & {-}   & {-}   & {-}      & 4.574 & 3.643 & 8.163 & 0.553 & 103.91 \\
+        Ours w/o Reasoning  & 0.88 & 0.13 &  0.63 & -0.26   & 4.576 & 3.631 & 7.541 & 0.611 & 138.43 \\
+        \midrule
+        \textbf{Ours (Full Model)} & 0.94 & 0.04 & 0.12 & +0.26   & 4.529 & 3.653 & 6.904 & 0.614 & 158.36 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+
+
+\myparagraph{Applications on Diverse Inputs.} 
+As depicted in Figure~\ref{fig:diversity}, we also explore the generalization capabilities of our model on non-human subjects, including anthropomorphic and animal characters. The results demonstrate remarkable robustness, which we attribute to our dual-system framework that effectively integrates high-level understanding with low-level synthesis.
+Furthermore, the fourth row of the Figure~\ref{fig:diversity} highlights the model's capacity for conversational understanding, enabled by the agentic reasoning module. For the top and bottom images, we provide the same conversational dialogue but input the audio track corresponding to a different speaker for each. As shown, the characters seamlessly transition between speaking and idle states, correctly reflecting the turn-taking in the dialogue. This capability, when combined with efficient model acceleration techniques, showcases the potential of our framework for real-time, interactive conversational agent applications.
+
+
+
+\input{figs/diversity}
+
+
+\myparagraph{Applications on Multi-person Scenarios.} 
+  To enable multi-person animation, we extend our model with two modifications. First, we condition the synthesis on a speaker-specific mask that directs audio feature injection exclusively to the masked regions during the multimodal attention process. Following InterActHuman~\cite{wang2025interacthuman}, we employ a lightweight, plug-and-play predictor to dynamically generate these masks, ensuring robust speaker tracking through movement and occlusion without affecting the baseline single-person model. Second, we leverage our framework's inherent agent-based design by augmenting the Planner to also accept this mask to identify the active speaker. With the rest of the reasoning pipeline remaining identical, this simple extension enables the model to generate logically consistent and coordinated actions for all individuals in the scene. 
+    \par
+  As shown in Table~\ref{tab:sota_comparison_multi}, we present a quantitative and subjective comparison on our multi-person test set. Our full model, equipped with the agentic reasoning module, demonstrates significant improvements over two baselines that lack this capability: our model without agentic reasoning (ablation) and InterActHuman. Specifically, our method shows a clear advantage on metrics measuring gesture motion dynamics (HKC and HKV) and achieves better lip-sync accuracy. It is worth noting that we use Sync-D~\cite{syncnet} for evaluation, as the original Sync-C is effective for single-person lip-sync, and is less reliable for non-speaking individuals in multi-person scenarios. Furthermore, in pairwise subjective evaluations against the ablation model, our full model achieves higher driving accuracy (DA), defined as the ratio of correctly animated individuals (either speaking or silent) to the total number of people present. It also produces fewer instances of lip-sync inconsistency (LSI) and motion unnaturalness (MU). These subjective advantages are reflected in the overall win rate (GSB score), collectively validating the effectiveness of our proposed method.
+
+\setlength{\tabcolsep}{3pt} 
+\begin{table}[t]
+    \centering
+    
+    \caption{\textbf{Quantitative comparison with audio-conditioned animation baselines.} 
+    \textbf{(Left)} Portrait animation on the CelebV-HQ test set. 
+    \textbf{(Right)} Full-body animation on the CyberHost test set.}
+    \label{tab:quantitative_comparisons}
+
+    
+    \begin{minipage}[t]{0.41\textwidth}
+        \centering
+        % NO CAPTION HERE
+        \label{tab:portrait_comparison}
+        \resizebox{\linewidth}{!}{
+            \begin{tabular}{l|ccccc}
+                \toprule
+                \textbf{Method} & IQA $\uparrow$ & ASE $\uparrow$ & Sync-C $\uparrow$ & FID  & FVD  \\
+                \midrule
+                SadTalker         & 2.953 & 1.812 & 3.843 & 36.648 & 171.848 \\
+                Hallo             & 3.505 & 2.262 & 4.130 & 35.961 & 53.992 \\
+                EchoMimic         & 3.307 & 2.128 & 3.136 & 35.373 & 54.715 \\
+                Loopy             & 3.780 & 2.492 & 4.849 & 33.204 & 49.153 \\
+                Hallo-3           & 3.451 & 2.257 & 3.933 & 38.481 & 42.125 \\
+                OmniHuman-1 & 3.875 & 2.656 & 5.199 & 31.435 & 46.393 \\
+                \midrule
+                Ours & \underline{3.817} & \textbf{2.663} & \underline{5.053} & \textbf{31.320} & \underline{45.771} \\
+                \bottomrule
+            \end{tabular}%
+        }
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.58\textwidth}
+        \centering
+        % NO CAPTION HERE
+        \label{tab:full_body_comparison} 
+        \resizebox{\linewidth}{!}{%
+            \begin{tabular}{l|ccccccc}
+                \toprule
+                \textbf{Method} & IQA $\uparrow$ & ASE $\uparrow$ & Sync-C $\uparrow$ & FID  & FVD  & HKC $\uparrow$ & HKV $\uparrow$ \\
+                \midrule
+                Skyreel-A1        & 3.889 & 2.525 & 2.983 & 69.619 & 70.678 & 0.786 & 28.840 \\
+                FantasyTalking       & 3.892 & 2.738 & 3.548 & 52.332 & 47.052 & 0.838 & 18.845 \\
+                OmniAvatar        & 3.871 & 2.728 & 6.589 & 42.163 & 43.998 & 0.795 & 56.574 \\
+                MultiTalk         & 3.822 & 2.681 & 6.868 & 37.308 & 32.783 & 0.817 & 62.753 \\
+                OmniHuman-1 & 4.142 & 3.024 & 7.443 & 31.641 & 27.031 & 0.898 & 47.561 \\
+                \midrule
+                Ours & \textbf{4.144} & \textbf{3.030} & \underline{7.243} & \textbf{31.160} & \underline{27.642} & \underline{0.875} & \textbf{72.113} \\
+                \bottomrule 
+            \end{tabular}%
+        }
+    \end{minipage}
+\end{table}
+\setlength{\tabcolsep}{6pt} 
+
+
+\begin{figure}[t!]
+\small
+    \centering
+    \caption{\textbf{Subjective User Preference Study.} We present results from two evaluation settings: (Left) a best-choice selection task comparing our method against academic baselines, and (Right) a GSB pairwise comparison against leading proprietary models.}
+    \label{fig:combined_user_study}
+    \begin{subfigure}[b]{0.35\textwidth}
+        \centering
+        \setlength{\tabcolsep}{4pt} 
+        \begin{tabular}{l|c}
+            \toprule
+            \textbf{Method} & \textbf{Top-1 (\%)}  \\
+            \midrule
+            Skyreel-A1  & 5\% \\
+            FantasyTalking  & 8\% \\
+            OmniAvatar  & 14\%  \\
+            MultiTalk  & 18\% \\
+            OmniHuman-1  & 22\% \\
+            \midrule 
+            \textbf{Ours} & 33\% \\
+            \bottomrule
+        \end{tabular}
+        \caption{Best-Choice Selection.}
+        \label{tab:user_study_single_sub}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.63\textwidth} 
+        \centering
+        \includegraphics[width=\linewidth]{figs/gsb1.png} % Your path
+        \caption{GSB against leading proprietary models.}
+        \label{fig:gsb_comparison_sub}
+    \end{subfigure}
+
+\end{figure}
+
+
+\subsection{Comparison among Recent Methods}
+\myparagraph{Comparisons with State-of-the-Art Methods.}
+We conduct a comprehensive evaluation of our method against leading academic baselines across two distinct scenarios: portrait and full-body generation. For the portrait scenario, we compare our model against both specialized talking-head methods and state-of-the-art DiT-based approaches, including SadTalker~\cite{zhang2023sadtalker}, EchoMimic~\cite{chen2024echomimic}, Hallo~\cite{xu2024hallo}, Hallo3~\cite{hallo3}, Loopy~\cite{jiang2025loopy} and OmniHuman-1~\cite{lin2025omnihuman}, on the CelebV-HQ test set. For the more challenging task of full-body synthesis, our evaluation on the CyberHost test set includes a strong suite of recent DiT-based models: Skyreels-A1~\cite{fei2025skyreels}, FantasyTalking~\cite{wang2025fantasytalking}, OmniAvatar~\cite{gan2025omniavatar}, MultiTalk~\cite{kong2025multitalk} and OmniHuman-1~\cite{lin2025omnihuman}.
+\par
+The quantitative results in Table~\ref{tab:portrait_comparison} show our method consistently ranking in the top two across most metrics. In the portrait scenario, our model performs on par with the strong OmniHuman-1 baseline. We attribute this to the limited motion range in portrait videos, which challenges objective metrics in capturing subtle facial expressiveness. Our advantages become more pronounced in the full-body scenario. While leading in image quality and lip-sync, our model excels in generating dynamic, large-scale movements, evidenced by a high HKV score. Crucially, it achieves this without sacrificing local detail, maintaining a competitive HKC score. Taken together, these evaluation results demonstrate the clear advantages of our method over existing approaches.
+\par
+To provide a more holistic assessment of perceptual quality, we conducted user studies to supplement our quantitative metrics. First, we performed a user preference evaluation against the top academic baselines from our full-body comparison, with results shown in Figure~\ref{tab:user_study_single_sub}.
+Additionally, we benchmarked our method against four leading proprietary models, which we categorized as either end-to-end (E2E) or two-stage (2S) systems (combining I2V and video dubbing). To comply with EULAs and avoid conflicts of interest, these models were anonymized as CS-A (E2E), CS-B (E2E), CS-C (2S), and CS-D (2S). The results of this comparison, shown in Figure~\ref{fig:gsb_comparison_sub}. These user studies demonstrate the superiority of our method, which is particularly evident in its handling of contextual coherence, a factor to which human users are highly sensitive yet one that objective metrics often fail to capture.
+\input{figs/vis1}
+\input{figs/vis2}
+
+\subsection{Extended Experimental Results}
+
+
+\myparagraph{Ablation Study on the Reasoning Process.}
+We visualize the impact of our reflection process in Figure~\ref{fig:vis1}. This optional module is designed to correct errors from the initial action plan. Without reflection (top row), the model generates an action schedule in a single pass. This can lead to logical inconsistencies; for instance, after "Takes out letter," it generates "Rubs the surface," causing the letter to vanish and breaking semantic continuity.
+In contrast, our model with reflection (bottom row) revises the plan after generating the first segment. It observes the outcome of "Takes out letter" and corrects subsequent actions to be relevant to the theme of letter-reading, ensuring logical progression and mitigating error accumulation. However, as this reflection process introduces additional inference overhead, it was disabled for the quantitative comparisons in this paper.
+We also investigated injecting reasoning latents into the synthesis model. While this encouraged more nuanced facial expressions and subtle movements, it also suppressed large, dynamic actions. As this appeared to be more of an aesthetic trade-off than a clear improvement and was not a significant factor in user evaluations, we excluded it from our final model configuration.
+
+\myparagraph{Visual Comparison with Baseline.}
+In Figure~\ref{fig:vis2}, we present a visual comparison with OmniHuman-1, a strong baseline identified in our preceding experiments. The corresponding speech content for each video is provided. As can be seen, our method demonstrates significantly stronger semantic relevance and logical correlation between the audio and the generated actions. For instance, in the first video, the character turns her head when calling out "Mary"; in the second, she performs the specific actions of applying eyeliner and gesturing towards the eyeshadow palette as described; and in the third, the crystal ball glows and changes in response to the wizard's incantation. These high-level, context-aware results are difficult to capture with objective metrics and remain a challenge for existing methods. This qualitative evidence further substantiates the superiority of our approach. We encourage readers to view the examples on our project page for a more intuitive understanding of the correlation between generated motion, speech content and character intent. This alignment is a key aspect often overlooked in prior work.
+
+
+

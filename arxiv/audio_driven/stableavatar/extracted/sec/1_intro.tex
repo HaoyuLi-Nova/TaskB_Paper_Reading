@@ -1,0 +1,40 @@
+% \vspace{-0.6cm}
+
+\begin{figure}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{cover_curve.pdf}
+\end{center}
+\vspace{-0.6cm}
+   \caption{Quantitative comparisons in quality drift.
+   a-b on the x-axis is the frame range from the a-th frame to the b-th frame.
+   }
+\label{fig:cover_curve}
+\vspace{-0.55cm}
+\end{figure}
+
+\vspace{-0.6cm}
+
+\section{Introduction}
+\label{sec:intro}
+Diffusion models~\cite{xing2024simda,xing2024survey,xing2024aid,dhariwal2021diffusion,ho2020denoising,ho2022cascaded,song2020score,song2020denoising,rombach2022high,meng2021sdedit,hertz2022prompt,tumanyan2023plug,weng2024genrec,tu2024motioneditor,tu2024motionfollower,tu2025stableanimator,tu2025stableanimator++,li2025magicmotion} have significantly inspired research in audio-driven avatar video generation~\cite{zhang2023sadtalker, wei2024aniportrait, wang2024v_express, meng2025echomimicv2, cui2025hallo3, wang2025fantasytalking, chen2025hunyuanvideo, kong2025let, gan2025omniavatar, ji2025sonic}. In particular, audio-driven avatar video generation aims to synthesize natural human-centric videos with synchronized facial expressions and body movements based on a reference image and audio, offering diverse applications in film production and virtual assistants. However, current approaches are limited to generating short avatar videos of less than 15 seconds, and when they attempt to generate videos longer than 15 seconds, significant body distortions and appearance inconsistencies occur, particularly in facial regions. This severely restricts their practical applications.
+
+To address this issue, several methods have explored consistency preservation for avatar video generation~\cite{ji2025sonic, cui2025hallo3, kong2025let, gan2025omniavatar}, yet limited effort has been devoted to tackling the underlying essence of the problem. These strategies—whether leveraging motion frames~\cite{xu2024hallo} or adopting various shifted-window mechanisms during inference—only partially improve the smoothness of long videos and fail to fundamentally mitigate quality degradation in infinite-length avatar videos.
+%Such strategies still suffer from severe distortions in avatar videos exceeding 15 seconds.
+One could alternatively split a long audio into segments, process each independently, and then concatenate them to form a continuous video. However, this approach introduces inconsistencies and abrupt transitions between segments. Thus, for audio-driven avatar video generation, end-to-end synthesis of infinite-length avatar videos while ensuring high fidelity remains an extremely challenging task.
+
+In light of this, we propose StableAvatar, consisting of dedicated modules for both training and inference to maintain ID consistency and audio synchronization for audio-driven high-quality and infinite-length avatar video generation, as shown in Fig. \ref{fig:framework}. 
+We first observe that the primary limitation preventing previous models from synthesizing infinite-length videos lies in their audio modeling. They simply use a third-party off-the-shelf extractor~\cite{baevski2020wav2vec} to obtain audio embeddings, and then directly inject them into a Video Diffusion Transformer via cross-attention. As current diffusion backbones lack any audio-related priors, this approach results in severe latent distribution error accumulation across video clips, leading the latent distribution of subsequent segments to gradually drift away from the target distribution.
+To tackle this, StableAvatar feeds audio embeddings to a Video Diffusion Transformer with a novel Timestep-aware Audio Adapter that dramatically reduces error accumulation over clips.
+In particular, initial audio embeddings (Query) sequentially cross-attend with initial patchified latents (Key and Value), followed by affine modulation with timestep embeddings to obtain the refined audio embeddings. 
+As timestep embeddings are strongly correlated with latents, this potentially forces the diffusion to model the joint audio-latent feature distribution at each timestep, effectively mitigating latent distribution error accumulation due to the lack of audio priors.
+Following~\cite{wang2025fantasytalking, kong2025let, gan2025omniavatar}, the refined audio embeddings (Key and Value) are injected into the diffusion model via cross-attention with latents (Query).
+
+During inference, to further enhance the audio synchronization and facial expression, StableAvatar introduces a novel Audio Native Guidance Mechanism to replace the conventional Classify-Free-Guidance (CFG)~\cite{ho2022classifier}. As the refined audio embeddings are also inherently dependent on the latents, rather than solely relying on external audio signals, our guidance directly manipulates the diffusion’s sampling distribution, steering the generation towards the joint audio-latent distribution and enabling the diffusion model to refine its outputs throughout the denoising process.
+StableAvatar further proposes a dynamic weighted sliding-window denoising strategy that fuses latents over time to improve the smoothness in long avatar video generation.
+
+As shown in Fig. \ref{fig:cover} and Fig. \ref{fig:cover_curve}, while the latest audio-driven avatar video generation model OmniAvatar~\cite{gan2025omniavatar} suffers from dramatic face/body distortion and color drift, StableAvatar accurately animates the reference with natural lip synchronization driven by audio while preserving the overall consistency, even in the infinite-length video generation scenario (3500+ frames in a single pass).
+
+In conclusion, our contributions are as follows:
+(1) We propose a novel Timestep-aware Audio Adapter to force the diffusion model to capture joint audio-latent features, thereby significantly reducing latent distribution error accumulation during audio injection, making StableAvatar the first video diffusion transformer that generates infinite-length audio-driven avatar video end-to-end.
+(2) A novel training-free Audio Native Guidance Mechanism replaces the conventional CFG to further enhance audio synchronization, while a dynamic weighted sliding-window denoising strategy improves the smoothness of synthesized long videos.
+(4) Experimental results on benchmark datasets show the superiority of StableAvatar over the SOTA. Notably, based on a Wan2.1-1.3B model \cite{wan2025}, we surpass previous Wan2.1-14B-based models in video quality for long-video generation.

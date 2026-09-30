@@ -1,0 +1,136 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2023_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+\input{commenting_commands}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{xspace}
+\usepackage{ dsfont }
+\usepackage{afterpage}
+\usepackage{enumitem}
+
+% FOR ALGORITHM
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
+% FOR TABLE
+\usepackage[export]{adjustbox}
+\usepackage{makecell}
+\usepackage{siunitx}
+\usepackage{multirow}
+\usepackage{extdash}
+
+% FOR FIGURES
+\usepackage{subcaption}
+\usepackage{graphicx}
+\captionsetup{labelfont={color=black,bf},labelsep=period}
+\usepackage{wrapfig}
+\usepackage[capitalize]{cleveref}
+\usepackage[symbol]{footmisc}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+
+\newcommand{\model}{Phenaki\xspace}
+\newcommand{\phenaki}{\model}
+\newcommand{\website}{\href{https://phenaki.github.io/}{phenaki.github.io}}
+
+\newcommand{\vivit}{ViViT\xspace}
+\newcommand{\cvivit}{C-\vivit\xspace}
+\newcommand{\story}{story\xspace}
+
+\newcommand{\bx}{\mathbf{x}}
+\newcommand{\bz}{\mathbf{z}}
+\newcommand{\bp}{\mathbf{p}}
+\newcommand{\bv}{\mathbf{v}}
+\newcommand{\be}{\mathbf{e}}
+
+
+\title{\model: Variable length video generation\\from open domain textual descriptions} 
+
+\iclrfinalcopy
+
+\author{
+Ruben Villegas\footnote[3]{}\\
+Google Brain \\
+\small{\texttt{rubville@google.com}} \\
+\And
+Mohammad Babaeizadeh\footnote[3]{}\\
+Google Brain \\
+\small{\texttt{mbz@google.com}} \\
+\And
+Pieter-Jan Kindermans\footnote[3]{}\\
+Google Brain \\
+\small{\texttt{pikinder@google.com}} \\
+\AND
+Hernan Moraldo\\
+Google Brain \\
+\small{\texttt{hmoraldo@google.com}} \\
+\And
+Han Zhang\\
+Google Brain \\
+\small{\texttt{zhanghan@google.com}} \\
+\And
+Mohammad Taghi Saffar\\
+Google Brain \\
+\small{\texttt{msaffar@google.com}} \\
+\AND
+Santiago Castro\footnote[1]{}\\
+University of Michigan \\
+\small{\texttt{sacastro@umich.edu}} \\
+\And
+Julius Kunze\footnote[1]{}\\
+University College London \\
+\small{\texttt{kjulius@google.com}} \\
+\And
+Dumitru Erhan\\
+Google Brain \\
+\small{\texttt{dumitru@google.com}} \\
+\AND
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+%\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+
+\maketitle
+\footnotetext[3]{Equal contribution. * Intern at Google Brain while working on this project.}
+
+\input{sections/0_abstract.tex}
+\input{sections/1_introduction.tex}
+\input{sections/3_method.tex}
+\input{sections/4_experiments.tex}
+\input{sections/2_relatedwork.tex}
+\input{sections/5_conclusion.tex}
+
+
+% \subsubsection*{Author Contributions}
+% Everyone was awesome!
+
+\section*{Acknowledgments}
+We would like to thank Niki Parmar for initial discussions. Special thanks to Gabriel Bender and Thang Luong for reviewing the paper and providing constructive feedback. We appreciate the efforts of Kevin Murphy and David Fleet for advising the project and providing feedback throughout. We are grateful to Evan Rapoport, Douglas Eck and Zoubin Ghahramani for supporting this work in a variety of ways. Tim Salimans and Chitwan Saharia helped us with brainstorming and coming up with shared benchmarks. Jason Baldridge was instrumental for bouncing ideas. Alex Rizkowsky was very helpful in keeping things organized, while Erica Moreira and Victor Gomes ensured smooth resourcing for the project. Sarah Laszlo and Kathy Meier-Hellstern have greatly helped us incorporate important responsible AI practices into this project, which we are immensely grateful for. Finally, Blake Hechtman and Anselm Levskaya were generous in helping us debug a number of JAX issues.
+
+\bibliography{_references}
+% \bibliographystyle{iclr2023_conference}
+\bibliographystyle{plainnat}
+
+\newpage
+\appendix
+\input{sections/6_appendix.tex}
+
+\end{document}

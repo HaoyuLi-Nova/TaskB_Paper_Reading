@@ -1,0 +1,33 @@
+\section{Related Work}
+\textbf{Feature extraction with pretrained models.}
+Using pretrained neural network models for extracting visual features \old{is an approach that} has stood the test of time \old{ever} since the AlexNet \citep{alexnet} CNN model pretrained on ImageNet-1k~\citep{russakovsky2015imagenet}. 
+More recent models have upgraded the same setup with modern architectures, such as ResNets (used in, \emph{e.g.}, DETR,~\citealp{carion2020end}) or even Vision Transformers. 
+As Transformers are easily able to handle different modalities during training, off-the-shelf backbones are now commonly trained on label supervision (\emph{e.g.}, DeiT-III on ImageNet-22k,~\citealp{touvron2022deit}) or text supervision (e.g., CLIP~\citep{radford2021learning}), providing strong \textit{visual foundation models}, scaling well with model sizes, and enabling excellent performance on a variety of tasks including detection \citep{carion2020end} and segmentation \citep{zheng2021rethinking,kirillov2023segment}.
+In this context, supervision relies on annotations in the form of labels or text alignment; the dataset biases \citep{torralba2014dataset} are not well characterized, yet they drive learning and shape the learned models. 
+An alternative approach consists of not using supervision and letting the models learn from the data via a pretext task that is designed to require understanding the content of images~\citep{doersch2015unsupervised}. 
+This self-supervised learning paradigm was explored in multiple methods using Vision Transformers: MAE \citep{he2021masked} trains a model at reconstructing pixel values of hidden areas of an image and then applies fine-tuning to address a new task. 
+With a different approach, the self-distillation family of methods \citep{he2020momentum, caron2021emerging, zhou2021ibot} showcase strong performance using frozen backbones, allowing for more robustness to domain shifts for task-specific downstream models.
+In this work, we focused the analysis on self-supervised learning, and more specifically on the DINOv2 approach \citep{oquab2023dinov2}, which has shown to be particularly effective for learning local features.
+We showed that despite excellent benchmark scores, DINOv2 features exhibit undesirable artifacts and that correcting these artifacts in the learning process allows for further improvements in the benchmark performances.
+These phenomenon is even more surprising as DINOv2 builds upon DINO~\citep{caron2021emerging}, which does not show signs of artifacts.
+We then further showed that the correction techniques hold for supervised paradigms by testing on DeiT-III and OpenCLIP.
+
+\textbf{Additional tokens in transformers.}
+Extending the transformer sequence with special tokens was popularized in BERT~\citep{devlin2018bert}. 
+However, most approaches add new tokens either to provide the network with new information as for example \texttt{[SEP]} tokens in BERT, provide opportunity to spend more computation on the input as seen with the tape tokens in AdaTape~\citep{xue2023adaptive}, or to gather information in these tokens, and use their output value as an output of the model:
+for classification, as \texttt{[CLS]} tokens in BERT and ViT \citep{dosovitskiy2020image};
+for generative learning, as \texttt{[MASK]} in BERT and BEiT~\citep{bao2021beit};
+for detection, as object queries in DETR~\citep{carion2020end}, detection tokens in YOLOS~\citep{fang2021you}, and ViDT~\citep{song2021vidt};
+or for accumulating information from possibly multiple modalities before decoding, as latent token arrays in Perceivers ~\citep{jaegle2021perceiver,Jaegle2021PerceiverIO}.
+Different to these works, the tokens we add to the sequence add no information, and their output value is not used for any purpose. 
+They are simply registers where the model can learn to store and retrieve information during the forward pass.
+The Memory Transformer~\citep{burtsev2020memory}, closer to our work, presents a simple approach to improve transformer models using memory tokens added to the token sequence, improving translation performance. 
+In follow-up work, \cite{bulatov2022recurrent} address complex copy-repeat-reverse tasks. 
+\cite{sandler2022fine} extend this line to the vision domain for fine-tuning but observe that such tokens do not transfer well across tasks.
+In contrast, we do not perform fine-tuning and employ additional tokens during pretraining to improve the features obtained for all tasks downstream.
+More importantly, our study contributes the following new insight in Sec.~\ref{sec:problem}: the mechanism implemented through memory tokens already appears naturally in Vision Transformers; our study shows that \textit{such tokens allow us not to create but to isolate this existing behavior}, and thus avoid collateral side-effects.
+
+\textbf{Attention maps of vision transformers.}
+Visualising the attention map from \texttt{[CLS]} token to patch tokens was popularized in DINO~\citep{caron2021emerging}.
+It was shown there that the attention maps of DINO were clean of artifacts, as opposed to the attention maps of previous vision transformers.
+Other works have since reported interesting attention maps using various techniques: by modifying the optimisation procedure~\citep{chen2021vision}, by steering the attention scores towards useful image parts~\citep{shi2023toast}, by modifying the architecture of the transformer layers~\citep{yu2023emergence}, or by introducing a learnable pooling to produce the \texttt{[CLS]} token~\citep{psomas2023keep}.

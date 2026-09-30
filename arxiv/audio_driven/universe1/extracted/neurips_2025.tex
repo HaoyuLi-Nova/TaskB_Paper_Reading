@@ -1,0 +1,122 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2025
+
+
+% ready for submission
+% \usepackage{neurips_2025}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+\usepackage[preprint]{neurips_2025}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2025}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2025}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{tabularx}   % For tables with adjustable-width columns
+\usepackage{siunitx} 
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{amsmath}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{graphicx} 
+\usepackage{subcaption}
+\usepackage{epsfig}
+\usepackage{array}     
+\usepackage{multirow}
+\usepackage{makecell} 
+\usepackage{hhline}
+\usepackage{enumitem}
+\usepackage[dvipsnames]{xcolor}
+
+
+\newcommand{\LHC}[1]{{\color{blue}#1}}
+
+% \title{UniVerse-1: A Unified Audio-Video Synthesis Model via Model-Stitching}
+\title{UniVerse-1: \underline{Uni}fied Audio-\underline{V}ideo Gen\underline{er}ation via \underline{S}titching of \underline{E}xperts}
+% From Snapshot to Spotlight: Multi-Modal Driven Avatar Generation from a Human Image
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+% \author{%
+%   David S.~Hippocampus\thanks{Use footnote for providing further information
+%     about author (webpage, alternative address)---\emph{not} for acknowledging
+%     funding agencies.} \\
+%   Department of Computer Science\\
+%   Cranberry-Lemon University\\
+%   Pittsburgh, PA 15213 \\
+%   \texttt{hippo@cs.cranberry-lemon.edu} \\
+% }
+\author{
+    % \textbf{Duomin Wang}\thanks{Equal contribution}$^{*1}$ \quad 
+    \textbf{Duomin Wang}$^{1}$ \quad 
+    \textbf{Wei Zuo}$^{1}$ \quad 
+    \textbf{Aojie Li}$^{1}$ \quad 
+    \textbf{Ling-Hao Chen}$^{1,4}$ \quad
+    \textbf{Xinyao Liao}$^{1}$ \quad  \\
+    \textbf{Deyu Zhou}$^{1,2}$ \quad 
+    \textbf{Zixin Yin}$^{1,3}$ \quad 
+    \textbf{Xili Dai}$^{2}$ \quad 
+    \textbf{Daxin Jiang}$^{1}$ \quad 
+    \textbf{Gang Yu}$^{1}$ \quad 
+    \\
+    StepFun$^{1}$ \quad \\
+    The Hong Kong University of Science and Technology(GuangZhou)$^{2}$ \quad \\
+    The Hong Kong University of Science and Technology$^{3}$ Tsinghua University$^{4}$\quad \\
+}
+
+% If you wish to post a preprint of your work online, e.g., on arXiv, using the NeurIPS style, please use the \verb+preprint+ option. This will create a nonanonymized version of your work with the text ``Preprint. Work in progress.'' in the footer. This version may be distributed as you see fit, as long as you do not say which conference it was submitted to. Please \textbf{do not} use the \verb+final+ option, which should \textbf{only} be used for papers accepted to NeurIPS.
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+We introduce \textbf{UniVerse-1}, a unified, Veo-3-like model capable of simultaneously generating coordinated audio and video. To enhance training efficiency, we bypass training from scratch and instead employ a \textbf{stitching of experts (SoE)} technique. This approach deeply fuses the corresponding blocks of pre-trained video and music generation experts models, thereby fully leveraging their foundational capabilities. To ensure accurate annotations and temporal alignment for both ambient sounds and speech with video content, we developed an \textbf{online annotation pipeline} that processes the required training data and generates labels during training process. This strategy circumvents the performance degradation often caused by misalignment text-based annotations. Through the synergy of these techniques, our model, after being finetuned on approximately $7,600$ hours of audio-video data, produces results with well-coordinated audio-visuals for ambient sounds generation and strong alignment for speech generation. To systematically evaluate our proposed method, we introduce \textbf{Verse-Bench}, a new benchmark dataset. In an effort to advance research in audio-video generation and to close the performance gap with state-of-the-art models such as Veo3, we make our model and code publicly available. We hope this contribution will benefit the broader research community. Project page: \url{https://dorniwang.github.io/UniVerse-1/}.
+\end{abstract}
+
+\input{sections/1_Introduction}
+\input{sections/2_RelatedWorks}
+\input{sections/3_Methods}
+\input{sections/4_Experiments}
+\input{sections/5_Limitation}
+\input{sections/6_Conclution}
+
+\newpage
+
+{
+    \small
+    \bibliographystyle{unsrt}
+    \bibliography{neurips_2025}
+}
+
+\newpage
+\input{sections/Appendix}
+
+
+\end{document}

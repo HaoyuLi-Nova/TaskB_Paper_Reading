@@ -1,0 +1,37 @@
+\begin{table}[h]
+\centering
+\adjustbox{max width=\textwidth}{%
+\begin{tabular}{ll ccc cc cc}
+    \toprule
+    & & \multicolumn{5}{c}{A net win rate \vs B} \\
+    & & \multicolumn{3}{c}{Quality} & \multicolumn{2}{c}{Video-SFX Alignment} & \multicolumn{2}{c}{Video-Music Alignment} \\
+    \cmidrule(lr){3-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
+    Model & Extension method B & Ovr. & Nat. & Pro. & Corr. & Sync. & Mood & Action \\
+    \midrule
+    \multirow{6}{*}{3B}
+    & \multicolumn{8}{c}{\textit{Extension method A: MD with triangle window}} \\
+    & AR w/ context cond. \& beam            & \meanci{26.7}{12.5} & \meanci{24.7}{11.1} & \meanci{28.6}{13.1} & \meanci{ 8.2}{11.4} & \meanci{ 7.9}{11.3} & \meanci{7.2}{10.2} & \meanci{5.4}{8.4} \\
+    & AR w/ traj. reg. \& tri. win.          & \meanci{18.5}{10.2} & \meanci{16.5}{10.3} & \meanci{18.4}{10.0} & \meanci{ 4.1}{10.5} & \meanci{10.6}{11.8} & \meanci{2.4}{10.4} & \meanci{-4.0}{8.3} \\
+    & AR w/ traj. reg. \& tri. win. \& beam  & \meanci{10.6}{11.0} & \meanci{11.7}{ 9.7} & \meanci{10.6}{11.0} & \meanci{-6.4}{10.8} & \meanci{-1.7}{11.6} & \meanci{10.8}{9.7} & \meanci{10.8}{9.4} \\
+    \cmidrule{2-9}
+    & MD w/ uni. win.                        & \meanci{11.5}{ 7.9} & \meanci{12.4}{ 7.8} & \meanci{10.7}{ 8.2} & \meanci{ 1.1}{ 8.5} & \meanci{ 2.3}{ 9.0} & \meanci{5.2}{8.5} & \meanci{7.2}{8.7} \\
+    \cmidrule{2-9}
+    & One-shot generation (topline)          & \meanci{ 4.9}{12.7} & \meanci{ 9.6}{11.7} & \meanci{ 4.6}{12.8} & \meanci{ 2.4}{ 8.8} & \meanci{-4.6}{10.4} & \meanci{2.7}{9.6} & \meanci{3.7}{7.7} \\
+    \midrule
+    \multirow{6}{*}{13B}
+    & \multicolumn{8}{c}{\textit{Extension method A: MD with triangle window}} \\
+    & AR w/ context cond. \& beam            & \meanci{ 3.4}{11.1} & \meanci{ 4.1}{11.4} & \meanci{ 4.0}{11.0} & \meanci{10.0}{11.1} & \meanci{12.5}{11.3} & \meanci{ 9.8}{10.1} & \meanci{13.9}{ 8.6} \\
+    & AR w/ traj. reg. \& tri. win.          & \meanci{ 3.6}{11.4} & \meanci{ 0.7}{10.3} & \meanci{ 3.0}{11.4} & \meanci{ 7.6}{10.0} & \meanci{ 3.1}{11.6} & \meanci{16.5}{11.4} & \meanci{ 3.7}{ 8.7} \\
+    & AR w/ traj. reg. \& tri. win. \& beam  & \meanci{ 1.5}{10.2} & \meanci{ 6.0}{10.3} & \meanci{ 3.6}{10.3} & \meanci{-2.0}{ 9.0} & \meanci{ 3.0}{10.8} & \meanci{13.9}{ 9.5} & \meanci{15.4}{10.1} \\
+    \cmidrule{2-9}
+    & MD w/ uni. win.                        & \meanci{ 0.7}{11.1} & \meanci{-3.2}{10.2} & \meanci{ 0.7}{11.1} & \meanci{-1.6}{ 9.6} & \meanci{-2.5}{10.7} & \meanci{-1.5}{10.5} & \meanci{ 0.6}{ 8.6} \\
+    \cmidrule{2-9}
+    & One-shot generation (topline)          & \meanci{11.7}{11.6} & \meanci{ 9.3}{10.6} & \meanci{12.3}{11.7} & \meanci{ 0.3}{ 9.9} & \meanci{-1.6}{11.3} & \meanci{-0.5}{10.3} & \meanci{-3.0}{ 8.9} \\
+    \bottomrule
+\end{tabular}
+}
+\caption{\textbf{Ablation study on audio extension methods and configurations.}
+We compare different audio extension methods across two model scales and evaluate the generations.
+}
+\label{tab:audio_abl_ext}
+\end{table}

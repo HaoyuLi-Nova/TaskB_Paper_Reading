@@ -1,0 +1,739 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{62}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Afouras et~al\mbox{.}(2018)]%
+        {lrs2}
+\bibfield{author}{\bibinfo{person}{Triantafyllos Afouras},
+  \bibinfo{person}{Joon~Son Chung}, \bibinfo{person}{Andrew Senior},
+  \bibinfo{person}{Oriol Vinyals}, {and} \bibinfo{person}{Andrew Zisserman}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Deep audio-visual speech recognition}.
+\newblock \bibinfo{journal}{\emph{IEEE transactions on pattern analysis and
+  machine intelligence}} (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[Bulat and Tzimiropoulos(2017)]%
+        {fan}
+\bibfield{author}{\bibinfo{person}{Adrian Bulat} {and}
+  \bibinfo{person}{Georgios Tzimiropoulos}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{How far are we from solving the 2D \& 3D Face
+  Alignment problem? (and a dataset of 230,000 3D facial landmarks)}. In
+  \bibinfo{booktitle}{\emph{International Conference on Computer Vision}}.
+\newblock
+
+
+\bibitem[Burt and Adelson(1983)]%
+        {blend}
+\bibfield{author}{\bibinfo{person}{Peter~J Burt} {and}
+  \bibinfo{person}{Edward~H Adelson}.} \bibinfo{year}{1983}\natexlab{}.
+\newblock \showarticletitle{A multiresolution spline with application to image
+  mosaics}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics (TOG)}}
+  \bibinfo{volume}{2}, \bibinfo{number}{4} (\bibinfo{year}{1983}),
+  \bibinfo{pages}{217--236}.
+\newblock
+
+
+\bibitem[Chan et~al\mbox{.}(2021)]%
+        {eg3d}
+\bibfield{author}{\bibinfo{person}{Eric~R. Chan}, \bibinfo{person}{Connor~Z.
+  Lin}, \bibinfo{person}{Matthew~A. Chan}, \bibinfo{person}{Koki Nagano},
+  \bibinfo{person}{Boxiao Pan}, \bibinfo{person}{Shalini~De Mello},
+  \bibinfo{person}{Orazio Gallo}, \bibinfo{person}{Leonidas Guibas},
+  \bibinfo{person}{Jonathan Tremblay}, \bibinfo{person}{Sameh Khamis},
+  \bibinfo{person}{Tero Karras}, {and} \bibinfo{person}{Gordon Wetzstein}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Efficient Geometry-aware {3D} Generative
+  Adversarial Networks}. In \bibinfo{booktitle}{\emph{arXiv}}.
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2019)]%
+        {chen2019hierarchical}
+\bibfield{author}{\bibinfo{person}{Lele Chen}, \bibinfo{person}{Ross~K Maddox},
+  \bibinfo{person}{Zhiyao Duan}, {and} \bibinfo{person}{Chenliang Xu}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Hierarchical cross-modal talking face generation
+  with dynamic pixel-wise loss}. In \bibinfo{booktitle}{\emph{Proceedings of
+  the IEEE/CVF Conference on Computer Vision and Pattern Recognition}}.
+  \bibinfo{pages}{7832--7841}.
+\newblock
+
+
+\bibitem[Chi et~al\mbox{.}(2020)]%
+        {ffc}
+\bibfield{author}{\bibinfo{person}{Lu Chi}, \bibinfo{person}{Borui Jiang},
+  {and} \bibinfo{person}{Yadong Mu}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Fast Fourier Convolution}. In
+  \bibinfo{booktitle}{\emph{NeurIPS}}.
+\newblock
+
+
+\bibitem[Chung et~al\mbox{.}(2017)]%
+        {Chung17b}
+\bibfield{author}{\bibinfo{person}{J.~S. Chung}, \bibinfo{person}{A.
+  Jamaludin}, {and} \bibinfo{person}{A. Zisserman}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{You said that?}. In
+  \bibinfo{booktitle}{\emph{British Machine Vision Conference}}.
+\newblock
+
+
+\bibitem[Chung and Zisserman(2016)]%
+        {syncnet}
+\bibfield{author}{\bibinfo{person}{Joon~Son Chung} {and}
+  \bibinfo{person}{Andrew Zisserman}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Out of time: automated lip sync in the wild}. In
+  \bibinfo{booktitle}{\emph{ACCV}}.
+\newblock
+
+
+\bibitem[Deng et~al\mbox{.}(2019a)]%
+        {deng2019arcface}
+\bibfield{author}{\bibinfo{person}{Jiankang Deng}, \bibinfo{person}{Jia Guo},
+  \bibinfo{person}{Niannan Xue}, {and} \bibinfo{person}{Stefanos Zafeiriou}.}
+  \bibinfo{year}{2019}\natexlab{a}.
+\newblock \showarticletitle{Arcface: Additive angular margin loss for deep face
+  recognition}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Deng et~al\mbox{.}(2019b)]%
+        {face3d}
+\bibfield{author}{\bibinfo{person}{Yu Deng}, \bibinfo{person}{Jiaolong Yang},
+  \bibinfo{person}{Sicheng Xu}, \bibinfo{person}{Dong Chen},
+  \bibinfo{person}{Yunde Jia}, {and} \bibinfo{person}{Xin Tong}.}
+  \bibinfo{year}{2019}\natexlab{b}.
+\newblock \showarticletitle{Accurate 3d face reconstruction with
+  weakly-supervised learning: From single image to image set}. In
+  \bibinfo{booktitle}{\emph{CVPR Workshops}}.
+\newblock
+
+
+\bibitem[Ekman and Friesen(1978)]%
+        {facs}
+\bibfield{author}{\bibinfo{person}{Paul Ekman} {and} \bibinfo{person}{Wallace~V
+  Friesen}.} \bibinfo{year}{1978}\natexlab{}.
+\newblock \showarticletitle{Facial action coding system}.
+\newblock \bibinfo{journal}{\emph{Environmental Psychology \& Nonverbal
+  Behavior}} (\bibinfo{year}{1978}).
+\newblock
+
+
+\bibitem[Gatys et~al\mbox{.}(2016)]%
+        {gatys2016image}
+\bibfield{author}{\bibinfo{person}{Leon~A Gatys}, \bibinfo{person}{Alexander~S
+  Ecker}, {and} \bibinfo{person}{Matthias Bethge}.}
+  \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Image style transfer using convolutional neural
+  networks}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE conference on
+  computer vision and pattern recognition}}. \bibinfo{pages}{2414--2423}.
+\newblock
+
+
+\bibitem[Guo et~al\mbox{.}(2021)]%
+        {adnerf}
+\bibfield{author}{\bibinfo{person}{Yudong Guo}, \bibinfo{person}{Keyu Chen},
+  \bibinfo{person}{Sen Liang}, \bibinfo{person}{Yongjin Liu},
+  \bibinfo{person}{Hujun Bao}, {and} \bibinfo{person}{Juyong Zhang}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{AD-NeRF: Audio Driven Neural Radiance Fields for
+  Talking Head Synthesis}. In \bibinfo{booktitle}{\emph{ICCV}}.
+\newblock
+
+
+\bibitem[He et~al\mbox{.}(2016)]%
+        {resnet}
+\bibfield{author}{\bibinfo{person}{Kaiming He}, \bibinfo{person}{Xiangyu
+  Zhang}, \bibinfo{person}{Shaoqing Ren}, {and} \bibinfo{person}{Jian Sun}.}
+  \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Deep residual learning for image recognition}. In
+  \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Heusel et~al\mbox{.}(2017)]%
+        {heusel2017fid}
+\bibfield{author}{\bibinfo{person}{Martin Heusel}, \bibinfo{person}{Hubert
+  Ramsauer}, \bibinfo{person}{Thomas Unterthiner}, \bibinfo{person}{Bernhard
+  Nessler}, {and} \bibinfo{person}{Sepp Hochreiter}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Gans trained by a two time-scale update rule
+  converge to a local nash equilibrium}.
+\newblock \bibinfo{journal}{\emph{NIPS}} (\bibinfo{year}{2017}).
+\newblock
+
+
+\bibitem[Huang and Belongie(2017)]%
+        {huang2017adain}
+\bibfield{author}{\bibinfo{person}{Xun Huang} {and} \bibinfo{person}{Serge
+  Belongie}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Arbitrary style transfer in real-time with adaptive
+  instance normalization}. In \bibinfo{booktitle}{\emph{ICCV}}.
+\newblock
+
+
+\bibitem[Isola et~al\mbox{.}(2017)]%
+        {pix2pix}
+\bibfield{author}{\bibinfo{person}{Phillip Isola}, \bibinfo{person}{Jun-Yan
+  Zhu}, \bibinfo{person}{Tinghui Zhou}, {and} \bibinfo{person}{Alexei~A
+  Efros}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Image-to-Image Translation with Conditional
+  Adversarial Networks}.
+\newblock \bibinfo{journal}{\emph{CVPR}} (\bibinfo{year}{2017}).
+\newblock
+
+
+\bibitem[Ji et~al\mbox{.}(2021)]%
+        {EVP}
+\bibfield{author}{\bibinfo{person}{Xinya Ji}, \bibinfo{person}{Hang Zhou},
+  \bibinfo{person}{Kaisiyuan Wang}, \bibinfo{person}{Wayne Wu},
+  \bibinfo{person}{Chen~Change Loy}, \bibinfo{person}{Xun Cao}, {and}
+  \bibinfo{person}{Feng Xu}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Audio-Driven Emotional Video Portraits}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2104.07452}}
+  (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Johnson et~al\mbox{.}(2016)]%
+        {johnson2016perceptual_loss}
+\bibfield{author}{\bibinfo{person}{Justin Johnson}, \bibinfo{person}{Alexandre
+  Alahi}, {and} \bibinfo{person}{Li Fei-Fei}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Perceptual losses for real-time style transfer and
+  super-resolution}. In \bibinfo{booktitle}{\emph{ECCV}}.
+\newblock
+
+
+\bibitem[Karras et~al\mbox{.}(2019)]%
+        {stylegan}
+\bibfield{author}{\bibinfo{person}{Tero Karras}, \bibinfo{person}{Samuli
+  Laine}, {and} \bibinfo{person}{Timo Aila}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{A style-based generator architecture for generative
+  adversarial networks}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Karras et~al\mbox{.}(2020)]%
+        {stylegan2}
+\bibfield{author}{\bibinfo{person}{Tero Karras}, \bibinfo{person}{Samuli
+  Laine}, \bibinfo{person}{Miika Aittala}, \bibinfo{person}{Janne Hellsten},
+  \bibinfo{person}{Jaakko Lehtinen}, {and} \bibinfo{person}{Timo Aila}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Analyzing and improving the image quality of
+  stylegan}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Kim et~al\mbox{.}(2018)]%
+        {dvp}
+\bibfield{author}{\bibinfo{person}{Hyeongwoo Kim}, \bibinfo{person}{Pablo
+  Garrido}, \bibinfo{person}{Ayush Tewari}, \bibinfo{person}{Weipeng Xu},
+  \bibinfo{person}{Justus Thies}, \bibinfo{person}{Matthias Niessner},
+  \bibinfo{person}{Patrick P{\'e}rez}, \bibinfo{person}{Christian Richardt},
+  \bibinfo{person}{Michael Zollh{\"o}fer}, {and} \bibinfo{person}{Christian
+  Theobalt}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Deep video portraits}.
+\newblock \bibinfo{journal}{\emph{TOG}} (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[Kingma and Ba(2014)]%
+        {adam}
+\bibfield{author}{\bibinfo{person}{Diederik~P Kingma} {and}
+  \bibinfo{person}{Jimmy Ba}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Adam: A method for stochastic optimization}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1412.6980}}
+  (\bibinfo{year}{2014}).
+\newblock
+
+
+\bibitem[KR et~al\mbox{.}(2019)]%
+        {lipgan}
+\bibfield{author}{\bibinfo{person}{Prajwal KR}, \bibinfo{person}{Rudrabha
+  Mukhopadhyay}, \bibinfo{person}{Jerin Philip}, \bibinfo{person}{Abhishek
+  Jha}, \bibinfo{person}{Vinay Namboodiri}, {and} \bibinfo{person}{CV
+  Jawahar}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Towards automatic face-to-face translation}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 27th ACM International
+  Conference on Multimedia}}. \bibinfo{pages}{1428--1436}.
+\newblock
+
+
+\bibitem[Lahiri et~al\mbox{.}(2021)]%
+        {lipsync3d}
+\bibfield{author}{\bibinfo{person}{Avisek Lahiri}, \bibinfo{person}{Vivek
+  Kwatra}, \bibinfo{person}{Christian Frueh}, \bibinfo{person}{John Lewis},
+  {and} \bibinfo{person}{Chris Bregler}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{LipSync3D: Data-Efficient Learning of Personalized
+  3D Talking Faces from Video using Pose and Lighting Normalization}. In
+  \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Lu et~al\mbox{.}(2021)]%
+        {lu2021live}
+\bibfield{author}{\bibinfo{person}{Yuanxun Lu}, \bibinfo{person}{Jinxiang
+  Chai}, {and} \bibinfo{person}{Xun Cao}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{{Live Speech Portraits}: Real-Time Photorealistic
+  Talking-Head Animation}.
+\newblock \bibinfo{journal}{\emph{TOG}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Mildenhall et~al\mbox{.}(2020)]%
+        {nerf}
+\bibfield{author}{\bibinfo{person}{Ben Mildenhall}, \bibinfo{person}{Pratul~P
+  Srinivasan}, \bibinfo{person}{Matthew Tancik}, \bibinfo{person}{Jonathan~T
+  Barron}, \bibinfo{person}{Ravi Ramamoorthi}, {and} \bibinfo{person}{Ren Ng}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Nerf: Representing scenes as neural radiance fields
+  for view synthesis}. In \bibinfo{booktitle}{\emph{ECCV}}.
+\newblock
+
+
+\bibitem[Nagrani et~al\mbox{.}(2017)]%
+        {voxceleb}
+\bibfield{author}{\bibinfo{person}{Arsha Nagrani}, \bibinfo{person}{Joon~Son
+  Chung}, {and} \bibinfo{person}{Andrew Zisserman}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Voxceleb: a large-scale speaker identification
+  dataset}. In \bibinfo{booktitle}{\emph{INTERSPEECH}}.
+\newblock
+
+
+\bibitem[Narvekar and Karam(2009)]%
+        {narvekar2009no}
+\bibfield{author}{\bibinfo{person}{Niranjan~D Narvekar} {and}
+  \bibinfo{person}{Lina~J Karam}.} \bibinfo{year}{2009}\natexlab{}.
+\newblock \showarticletitle{A no-reference perceptual image sharpness metric
+  based on a cumulative probability of blur detection}. In
+  \bibinfo{booktitle}{\emph{2009 International Workshop on Quality of
+  Multimedia Experience}}. IEEE, \bibinfo{pages}{87--91}.
+\newblock
+
+
+\bibitem[Park et~al\mbox{.}(2022)]%
+        {park2022synctalkface}
+\bibfield{author}{\bibinfo{person}{Se~Jin Park}, \bibinfo{person}{Minsu Kim},
+  \bibinfo{person}{Joanna Hong}, \bibinfo{person}{Jeongsoo Choi}, {and}
+  \bibinfo{person}{Yong~Man Ro}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{SyncTalkFace: Talking Face Generation with Precise
+  Lip-syncing via Audio-Lip Memory}. In \bibinfo{booktitle}{\emph{36th AAAI
+  Conference on Artificial Intelligence (AAAI 22)}}. Association for the
+  Advancement of Artificial Intelligence.
+\newblock
+
+
+\bibitem[Paszke et~al\mbox{.}(2019)]%
+        {pytorch}
+\bibfield{author}{\bibinfo{person}{Adam Paszke}, \bibinfo{person}{Sam Gross},
+  \bibinfo{person}{Francisco Massa}, \bibinfo{person}{Adam Lerer},
+  \bibinfo{person}{James Bradbury}, \bibinfo{person}{Gregory Chanan},
+  \bibinfo{person}{Trevor Killeen}, \bibinfo{person}{Zeming Lin},
+  \bibinfo{person}{Natalia Gimelshein}, \bibinfo{person}{Luca Antiga},
+  {et~al\mbox{.}}} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Pytorch: An imperative style, high-performance deep
+  learning library}.
+\newblock \bibinfo{journal}{\emph{Advances in neural information processing
+  systems}}  \bibinfo{volume}{32} (\bibinfo{year}{2019}).
+\newblock
+
+
+\bibitem[Prajwal et~al\mbox{.}(2020)]%
+        {wav2lip}
+\bibfield{author}{\bibinfo{person}{KR Prajwal}, \bibinfo{person}{Rudrabha
+  Mukhopadhyay}, \bibinfo{person}{Vinay~P Namboodiri}, {and}
+  \bibinfo{person}{CV Jawahar}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{A lip sync expert is all you need for speech to lip
+  generation in the wild}. In \bibinfo{booktitle}{\emph{ACM Multimedia}}.
+\newblock
+
+
+\bibitem[Pumarola et~al\mbox{.}(2018)]%
+        {ganimation}
+\bibfield{author}{\bibinfo{person}{Albert Pumarola}, \bibinfo{person}{Antonio
+  Agudo}, \bibinfo{person}{Aleix~M Martinez}, \bibinfo{person}{Alberto
+  Sanfeliu}, {and} \bibinfo{person}{Francesc Moreno-Noguer}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Ganimation: Anatomically-aware facial animation
+  from a single image}. In \bibinfo{booktitle}{\emph{Proceedings of the
+  European conference on computer vision (ECCV)}}. \bibinfo{pages}{818--833}.
+\newblock
+
+
+\bibitem[Ren et~al\mbox{.}(2021)]%
+        {pirender}
+\bibfield{author}{\bibinfo{person}{Yurui Ren}, \bibinfo{person}{Ge Li},
+  \bibinfo{person}{Yuanqi Chen}, \bibinfo{person}{Thomas~H Li}, {and}
+  \bibinfo{person}{Shan Liu}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{PIRenderer: Controllable Portrait Image Generation
+  via Semantic Neural Rendering}. In \bibinfo{booktitle}{\emph{ICCV}}.
+\newblock
+
+
+\bibitem[Siarohin et~al\mbox{.}(2019)]%
+        {fomm}
+\bibfield{author}{\bibinfo{person}{Aliaksandr Siarohin},
+  \bibinfo{person}{St{\'e}phane Lathuili{\`e}re}, \bibinfo{person}{Sergey
+  Tulyakov}, \bibinfo{person}{Elisa Ricci}, {and} \bibinfo{person}{Nicu Sebe}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{First order motion model for image animation}.
+\newblock \bibinfo{journal}{\emph{NIPS}} (\bibinfo{year}{2019}).
+\newblock
+
+
+\bibitem[Simonyan and Zisserman(2014)]%
+        {simonyan2014vgg}
+\bibfield{author}{\bibinfo{person}{Karen Simonyan} {and}
+  \bibinfo{person}{Andrew Zisserman}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Very deep convolutional networks for large-scale
+  image recognition}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1409.1556}}
+  (\bibinfo{year}{2014}).
+\newblock
+
+
+\bibitem[Song et~al\mbox{.}(2022)]%
+        {song2022everybody}
+\bibfield{author}{\bibinfo{person}{Linsen Song}, \bibinfo{person}{Wayne Wu},
+  \bibinfo{person}{Chen Qian}, \bibinfo{person}{Ran He}, {and}
+  \bibinfo{person}{Chen~Change Loy}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Everybody’s talkin’: Let me talk as you want}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Information Forensics
+  and Security}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Song et~al\mbox{.}(2018)]%
+        {song2018talking}
+\bibfield{author}{\bibinfo{person}{Yang Song}, \bibinfo{person}{Jingwen Zhu},
+  \bibinfo{person}{Dawei Li}, \bibinfo{person}{Xiaolong Wang}, {and}
+  \bibinfo{person}{Hairong Qi}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Talking face generation by conditional recurrent
+  adversarial network}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1804.04786}}
+  (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[Suvorov et~al\mbox{.}(2021)]%
+        {lama}
+\bibfield{author}{\bibinfo{person}{Roman Suvorov}, \bibinfo{person}{Elizaveta
+  Logacheva}, \bibinfo{person}{Anton Mashikhin}, \bibinfo{person}{Anastasia
+  Remizova}, \bibinfo{person}{Arsenii Ashukha}, \bibinfo{person}{Aleksei
+  Silvestrov}, \bibinfo{person}{Naejin Kong}, \bibinfo{person}{Harshith Goka},
+  \bibinfo{person}{Kiwoong Park}, {and} \bibinfo{person}{Victor Lempitsky}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Resolution-robust Large Mask Inpainting with
+  Fourier Convolutions}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2109.07161}}
+  (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Suwajanakorn et~al\mbox{.}(2017)]%
+        {obama}
+\bibfield{author}{\bibinfo{person}{Supasorn Suwajanakorn},
+  \bibinfo{person}{Steven~M Seitz}, {and} \bibinfo{person}{Ira
+  Kemelmacher-Shlizerman}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Synthesizing obama: learning lip sync from audio}.
+\newblock \bibinfo{journal}{\emph{TOG}} (\bibinfo{year}{2017}).
+\newblock
+
+
+\bibitem[Thies et~al\mbox{.}(2020)]%
+        {NVP}
+\bibfield{author}{\bibinfo{person}{Justus Thies}, \bibinfo{person}{Mohamed
+  Elgharib}, \bibinfo{person}{Ayush Tewari}, \bibinfo{person}{Christian
+  Theobalt}, {and} \bibinfo{person}{Matthias Nie{\ss}ner}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Neural voice puppetry: Audio-driven facial
+  reenactment}. In \bibinfo{booktitle}{\emph{ECCV}}.
+\newblock
+
+
+\bibitem[Thies et~al\mbox{.}(2019)]%
+        {thies2019deferred}
+\bibfield{author}{\bibinfo{person}{Justus Thies}, \bibinfo{person}{Michael
+  Zollh{\"o}fer}, {and} \bibinfo{person}{Matthias Nie{\ss}ner}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Deferred neural rendering: Image synthesis using
+  neural textures}.
+\newblock \bibinfo{journal}{\emph{TOG}} (\bibinfo{year}{2019}).
+\newblock
+
+
+\bibitem[Vaswani et~al\mbox{.}(2017a)]%
+        {attention}
+\bibfield{author}{\bibinfo{person}{Ashish Vaswani}, \bibinfo{person}{Noam
+  Shazeer}, \bibinfo{person}{Niki Parmar}, \bibinfo{person}{Jakob Uszkoreit},
+  \bibinfo{person}{Llion Jones}, \bibinfo{person}{Aidan~N Gomez},
+  \bibinfo{person}{{\L}ukasz Kaiser}, {and} \bibinfo{person}{Illia
+  Polosukhin}.} \bibinfo{year}{2017}\natexlab{a}.
+\newblock \showarticletitle{Attention is all you need}.
+\newblock \bibinfo{journal}{\emph{Advances in neural information processing
+  systems}}  \bibinfo{volume}{30} (\bibinfo{year}{2017}).
+\newblock
+
+
+\bibitem[Vaswani et~al\mbox{.}(2017b)]%
+        {transformer}
+\bibfield{author}{\bibinfo{person}{Ashish Vaswani}, \bibinfo{person}{Noam
+  Shazeer}, \bibinfo{person}{Niki Parmar}, \bibinfo{person}{Jakob Uszkoreit},
+  \bibinfo{person}{Llion Jones}, \bibinfo{person}{Aidan~N Gomez},
+  \bibinfo{person}{{\L}ukasz Kaiser}, {and} \bibinfo{person}{Illia
+  Polosukhin}.} \bibinfo{year}{2017}\natexlab{b}.
+\newblock \showarticletitle{Attention is all you need}.
+\newblock \bibinfo{journal}{\emph{Advances in neural information processing
+  systems}}  \bibinfo{volume}{30} (\bibinfo{year}{2017}).
+\newblock
+
+
+\bibitem[Vougioukas et~al\mbox{.}(2020)]%
+        {vougioukas2020realistic}
+\bibfield{author}{\bibinfo{person}{Konstantinos Vougioukas},
+  \bibinfo{person}{Stavros Petridis}, {and} \bibinfo{person}{Maja Pantic}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Realistic speech-driven facial animation with
+  gans}.
+\newblock \bibinfo{journal}{\emph{International Journal of Computer Vision}}
+  \bibinfo{volume}{128}, \bibinfo{number}{5} (\bibinfo{year}{2020}),
+  \bibinfo{pages}{1398--1413}.
+\newblock
+
+
+\bibitem[Wang et~al\mbox{.}(2021b)]%
+        {wang2021audio2head}
+\bibfield{author}{\bibinfo{person}{Suzhen Wang}, \bibinfo{person}{Lincheng Li},
+  \bibinfo{person}{Yu Ding}, \bibinfo{person}{Changjie Fan}, {and}
+  \bibinfo{person}{Xin Yu}.} \bibinfo{year}{2021}\natexlab{b}.
+\newblock \showarticletitle{Audio2Head: Audio-driven One-shot Talking-head
+  Generation with Natural Head Motion}.
+\newblock \bibinfo{journal}{\emph{IJCAI}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Wang et~al\mbox{.}(2021a)]%
+        {wang2021one}
+\bibfield{author}{\bibinfo{person}{Suzhen Wang}, \bibinfo{person}{Lincheng Li},
+  \bibinfo{person}{Yu Ding}, {and} \bibinfo{person}{Xin Yu}.}
+  \bibinfo{year}{2021}\natexlab{a}.
+\newblock \showarticletitle{One-shot Talking Face Generation from
+  Single-speaker Audio-Visual Correlation Learning}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2112.02749}}
+  (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Wang et~al\mbox{.}(2021e)]%
+        {wang2021hfgi}
+\bibfield{author}{\bibinfo{person}{Tengfei Wang}, \bibinfo{person}{Yong Zhang},
+  \bibinfo{person}{Yanbo Fan}, \bibinfo{person}{Jue Wang}, {and}
+  \bibinfo{person}{Qifeng Chen}.} \bibinfo{year}{2021}\natexlab{e}.
+\newblock \showarticletitle{High-fidelity gan inversion for image attribute
+  editing}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2109.06590}}
+  (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Wang et~al\mbox{.}(2018)]%
+        {vid2vid}
+\bibfield{author}{\bibinfo{person}{Ting-Chun Wang}, \bibinfo{person}{Ming-Yu
+  Liu}, \bibinfo{person}{Jun-Yan Zhu}, \bibinfo{person}{Guilin Liu},
+  \bibinfo{person}{Andrew Tao}, \bibinfo{person}{Jan Kautz}, {and}
+  \bibinfo{person}{Bryan Catanzaro}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Video-to-video synthesis}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1808.06601}}
+  (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[Wang et~al\mbox{.}(2021d)]%
+        {face_vid2vid}
+\bibfield{author}{\bibinfo{person}{Ting-Chun Wang}, \bibinfo{person}{Arun
+  Mallya}, {and} \bibinfo{person}{Ming-Yu Liu}.}
+  \bibinfo{year}{2021}\natexlab{d}.
+\newblock \showarticletitle{One-shot free-view neural talking-head synthesis
+  for video conferencing}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Wang et~al\mbox{.}(2021c)]%
+        {gfpgan}
+\bibfield{author}{\bibinfo{person}{Xintao Wang}, \bibinfo{person}{Yu Li},
+  \bibinfo{person}{Honglun Zhang}, {and} \bibinfo{person}{Ying Shan}.}
+  \bibinfo{year}{2021}\natexlab{c}.
+\newblock \showarticletitle{Towards Real-World Blind Face Restoration with
+  Generative Facial Prior}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Wen et~al\mbox{.}(2020)]%
+        {AudioDVP}
+\bibfield{author}{\bibinfo{person}{Xin Wen}, \bibinfo{person}{Miao Wang},
+  \bibinfo{person}{Christian Richardt}, \bibinfo{person}{Ze-Yin Chen}, {and}
+  \bibinfo{person}{Shi-Min Hu}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Photorealistic Audio-driven Video Portraits}.
+\newblock \bibinfo{journal}{\emph{TVCG}} (\bibinfo{year}{2020}).
+\newblock
+
+
+\bibitem[Xie et~al\mbox{.}(2021)]%
+        {xie2021towards}
+\bibfield{author}{\bibinfo{person}{Tianyi Xie}, \bibinfo{person}{Liucheng
+  Liao}, \bibinfo{person}{Cheng Bi}, \bibinfo{person}{Benlai Tang},
+  \bibinfo{person}{Xiang Yin}, \bibinfo{person}{Jianfei Yang},
+  \bibinfo{person}{Mingjie Wang}, \bibinfo{person}{Jiali Yao},
+  \bibinfo{person}{Yang Zhang}, {and} \bibinfo{person}{Zejun Ma}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Towards Realistic Visual Dubbing with Heterogeneous
+  Sources}. In \bibinfo{booktitle}{\emph{Proceedings of the 29th ACM
+  International Conference on Multimedia}}. \bibinfo{pages}{1739--1747}.
+\newblock
+
+
+\bibitem[Yang et~al\mbox{.}(2021)]%
+        {gpen}
+\bibfield{author}{\bibinfo{person}{Tao Yang}, \bibinfo{person}{Peiran Ren},
+  \bibinfo{person}{Xuansong Xie}, {and} \bibinfo{person}{Lei Zhang}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{GAN Prior Embedded Network for Blind Face
+  Restoration in the Wild}. In \bibinfo{booktitle}{\emph{IEEE Conference on
+  Computer Vision and Pattern Recognition (CVPR)}}.
+\newblock
+
+
+\bibitem[Yin et~al\mbox{.}(2022)]%
+        {2203.04036}
+\bibfield{author}{\bibinfo{person}{Fei Yin}, \bibinfo{person}{Yong Zhang},
+  \bibinfo{person}{Xiaodong Cun}, \bibinfo{person}{Mingdeng Cao},
+  \bibinfo{person}{Yanbo Fan}, \bibinfo{person}{Xuan Wang},
+  \bibinfo{person}{Qingyan Bai}, \bibinfo{person}{Baoyuan Wu},
+  \bibinfo{person}{Jue Wang}, {and} \bibinfo{person}{Yujiu Yang}.}
+  \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{StyleHEAT: One-Shot High-Resolution Editable
+  Talking Face Generation via Pre-trained StyleGAN}.
+\newblock \bibinfo{journal}{\emph{arxiv:2203.04036}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Yu et~al\mbox{.}(2018)]%
+        {face_parser}
+\bibfield{author}{\bibinfo{person}{Changqian Yu}, \bibinfo{person}{Jingbo
+  Wang}, \bibinfo{person}{Chao Peng}, \bibinfo{person}{Changxin Gao},
+  \bibinfo{person}{Gang Yu}, {and} \bibinfo{person}{Nong Sang}.}
+  \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Bisenet: Bilateral segmentation network for
+  real-time semantic segmentation}. In \bibinfo{booktitle}{\emph{Proceedings of
+  the European conference on computer vision (ECCV)}}.
+  \bibinfo{pages}{325--341}.
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2021b)]%
+        {zhang2021facial}
+\bibfield{author}{\bibinfo{person}{Chenxu Zhang}, \bibinfo{person}{Yifan Zhao},
+  \bibinfo{person}{Yifei Huang}, \bibinfo{person}{Ming Zeng},
+  \bibinfo{person}{Saifeng Ni}, \bibinfo{person}{Madhukar Budagavi}, {and}
+  \bibinfo{person}{Xiaohu Guo}.} \bibinfo{year}{2021}\natexlab{b}.
+\newblock \showarticletitle{Facial: Synthesizing dynamic talking face with
+  implicit attribute learning}. In \bibinfo{booktitle}{\emph{Proceedings of the
+  IEEE/CVF International Conference on Computer Vision}}.
+  \bibinfo{pages}{3867--3876}.
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2018)]%
+        {zhang2018lpips}
+\bibfield{author}{\bibinfo{person}{Richard Zhang}, \bibinfo{person}{Phillip
+  Isola}, \bibinfo{person}{Alexei~A Efros}, \bibinfo{person}{Eli Shechtman},
+  {and} \bibinfo{person}{Oliver Wang}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{The unreasonable effectiveness of deep features as
+  a perceptual metric}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2021a)]%
+        {hdtf}
+\bibfield{author}{\bibinfo{person}{Zhimeng Zhang}, \bibinfo{person}{Lincheng
+  Li}, \bibinfo{person}{Yu Ding}, {and} \bibinfo{person}{Changjie Fan}.}
+  \bibinfo{year}{2021}\natexlab{a}.
+\newblock \showarticletitle{Flow-Guided One-Shot Talking Face Generation With a
+  High-Resolution Audio-Visual Dataset}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Zhou et~al\mbox{.}(2019)]%
+        {zhou2019talking}
+\bibfield{author}{\bibinfo{person}{Hang Zhou}, \bibinfo{person}{Yu Liu},
+  \bibinfo{person}{Ziwei Liu}, \bibinfo{person}{Ping Luo}, {and}
+  \bibinfo{person}{Xiaogang Wang}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Talking face generation by adversarially
+  disentangled audio-visual representation}. In
+  \bibinfo{booktitle}{\emph{AAAI}}.
+\newblock
+
+
+\bibitem[Zhou et~al\mbox{.}(2021)]%
+        {pc-avs}
+\bibfield{author}{\bibinfo{person}{Hang Zhou}, \bibinfo{person}{Yasheng Sun},
+  \bibinfo{person}{Wayne Wu}, \bibinfo{person}{Chen~Change Loy},
+  \bibinfo{person}{Xiaogang Wang}, {and} \bibinfo{person}{Ziwei Liu}.}
+  \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Pose-controllable talking face generation by
+  implicitly modularized audio-visual representation}. In
+  \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Zhou et~al\mbox{.}(2020)]%
+        {makeittalk}
+\bibfield{author}{\bibinfo{person}{Yang Zhou}, \bibinfo{person}{Xintong Han},
+  \bibinfo{person}{Eli Shechtman}, \bibinfo{person}{Jose Echevarria},
+  \bibinfo{person}{Evangelos Kalogerakis}, {and} \bibinfo{person}{Dingzeyu
+  Li}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{MakeitTalk: speaker-aware talking-head animation}.
+\newblock \bibinfo{journal}{\emph{TOG}} (\bibinfo{year}{2020}).
+\newblock
+
+
+\end{thebibliography}

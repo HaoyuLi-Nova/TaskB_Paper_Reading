@@ -1,0 +1,49 @@
+
+
+\begin{table}[t]
+\centering
+\caption{
+\textbf{Ablation study on the timestep shifting parameter $\boldsymbol{\alpha}$ for each training phase on the HDTF dataset.} \textbf{Bold} indicates the best within a phase, while \underline{underline} indicates the second best.
+} 
+\label{tab:appendix_alpha}
+\resizebox{0.7\textwidth}{!}{
+\begin{tabular}{@{}ccccccc@{}}
+\toprule
+\textbf{Phase} & $\boldsymbol{\alpha}$ & \textbf{Approximate Peak of $t$} & \textbf{FID } & \textbf{LPIPS } & \textbf{Sync-C $\uparrow$} & \textbf{Choices} \\ \midrule
+\multirow{3}{*}{\textbf{High-noise}} & 5.0 & 0.921 & {\ul 8.25} & \textbf{0.017} & \textbf{7.68} & $\checkmark$ \\
+ & 4.0 & 0.899 & \textbf{8.24} & {\ul 0.018} & 7.64 &  \\
+ & 3.0 & 0.861 & 8.31 & 0.020 & {\ul 7.65} &  \\ \midrule
+\multirow{4}{*}{\textbf{Mid-noise}} & 3.0 & 0.861 & 10.52 & 0.021 & 8.47 &  \\
+ & 2.0 & 0.777 & 8.39 & \textbf{0.017} & {\ul 8.50} &  \\
+ & 1.5 & 0.684 & \textbf{8.26} & {\ul 0.018} & \textbf{8.56} & $\checkmark$ \\
+ & 0.8 & 0.392 & {\ul 8.31} & 0.018 & 7.21 &  \\ \midrule
+\multirow{3}{*}{\textbf{Low-noise}} & 0.8 & 0.392 & 7.25 & 0.015 & 7.98 &  \\
+ & 0.4 & 0.172 & \textbf{7.00} & {\ul 0.015} & {\ul 8.43} &  \\
+ & 0.2 & 0.079 & {\ul 7.03} & \textbf{0.014} & \textbf{8.56} & $\checkmark$ \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+
+
+\begin{table}[t]
+\centering
+\caption{
+\textbf{Ablation study on the activation timestep ranges for LoRA experts during inference on the HDTF dataset.} \textbf{Bold} indicates the best, while \underline{underline} indicates the second best.
+} 
+\label{tab:appendix_lora_range}
+\resizebox{0.63\textwidth}{!}{
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+\textbf{LoRA Expert} & \textbf{Timestep Range} & \textbf{FID } & \textbf{LPIPS } & \textbf{Sync-C $\uparrow$} & \textbf{Choices} \\ \midrule
+\multirow{4}{*}{\textbf{Lip}} & {[}0.0, 1.0{]} & 9.24 & 0.028 & 7.92 &  \\
+ & {[}0.6, 1.0{]} & 8.52 & 0.020 & \textbf{8.61} &  \\
+ & {[}0.4, 0.8{]} & \textbf{7.03} & \textbf{0.014} & {\ul 8.56} & $\checkmark$ \\
+ & {[}0.2, 0.6{]} & {\ul 7.26} & {\ul 0.016} & 8.03 &  \\ \midrule
+\multirow{3}{*}{\textbf{Texture}} & {[}0.0, 1.0{]} & \textbf{6.95} & {\ul 0.015} & 6.74 &  \\
+ & {[}0.1, 0.4{]} & 7.54 & 0.016 & {\ul 7.99} &  \\
+ & {[}0.0, 0.3{]} & {\ul 7.03} & \textbf{0.014} & \textbf{8.56} & $\checkmark$ \\ \bottomrule
+\end{tabular}
+}
+\end{table}

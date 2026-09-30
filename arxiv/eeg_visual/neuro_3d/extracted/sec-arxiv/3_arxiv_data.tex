@@ -1,0 +1,79 @@
+\section{EEG-3D Dataset}
+\label{dataset}
+
+In this section, we introduce the detailed procedures for building the EEG-3D dataset.
+
+
+
+
+\subsection{Participants}
+
+We recruited $12$ healthy adult participants ($5$ males, $7$ females; mean age: $21.08$ years) for the study. All participants have normal or corrected-to-normal vision. Informed written consent was obtained from all individuals after a detailed explanation of the experimental procedures. Participants received monetary compensation for their involvement. The study protocol was reviewed and approved by the Ethics Review Committee.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.73\columnwidth]{figure/picture_data_v4.pdf} 
+	\caption{The data collection process for one participant.}
+	\label{data_acquisition}
+	\vspace{-0.4cm}
+\end{figure}
+
+\subsection{Stimuli}
+
+The stimuli employed in this study were derived from the Objaverse dataset \cite{deitke2023objaverse,xu2023pointllm}, which offers an extensive collection of common 3D object models. We selected 72 categories with different shapes, each containing 10 objects accompanied by text captions. For each category, 8 objects were randomly allocated to the training set, while the remaining 2 were reserved for the test set. 
+Additionally, we assigned objects with color type labels, dividing them into six categories according to their main color style.
+To generate the visual stimuli, we followed the procedure in Zero-123 \cite{liu2023zero} to use Blender to simulate a camera that captured 360-degree views of each object through incremental rotations, yielding 180 high-resolution images (1024 $\times$ 1024 pixels) per object. The objects were tilted at an optimal angle to provide comprehensive perspectives.
+
+Rotating 3D object videos offer multi-perspective views, capturing the overall appearance of 3D objects. However, the prolonged duration of such videos, coupled with factors such as eye movements, blink artifacts, task load and lack of focus, often leads to EEG signals with a lower signal-to-noise ratio. In contrast, static image stimuli provide single-perspective but more stable information, which can serve to complement the dynamic EEG signals by mitigating their noise impact. Therefore, we collected EEG signals for both dynamic video and static image stimulus. The stimulus presentation paradigm is shown in Fig. \ref{data_acquisition}.
+Specifically, the multi-view images were compiled into a 6-second video at 30 Hz. Each object stimulus block consisted of a 8-second sequence of events: a 0.5-second static image stimulus at the beginning and end, a 6-second rotating video, and a brief blank screen transition between each segment. 
+During each experimental session, a 3D object was randomly selected from each category with a 1-second fixation cross between object blocks to direct participants' attention. Participants manually initiated each new object presentation. 
+Training set objects had $2$ measurement repetitions, while test set objects had $4$, resulting in totaling $24$ sessions. 
+Participants took 2-3 minute breaks between sessions.
+Following established protocols \cite{gifford2022large}, 5-minute resting-state data were recorded at the start and end of all sessions to support further analysis. Each participant's total experiment time was approximately 5.5 hours, divided into two acquisitions.
+\vspace{-0.3cm}
+\subsection{Data Acquisition and Preprocessing}
+\vspace{-0.1cm}
+During the experiment, images and videos were presented on a screen with a resolution of 1920 × 1080 pixels. Participants were seated approximately 95 cm from the screen, ensuring that the stimuli occupied a visual angle of approximately 8.4 degrees to optimize perceptual clarity. EEG data were recorded using a 64-channel EASYCAP equipped with active silver chloride electrodes, adhering to the international 10-10 system for electrode placement. Data acquisition was conducted at a sampling rate of 1000 Hz. 
+Data preprocessing was performed using MNE \cite{gramfort2013meg}, and more details are shown in \textbf{Supplementary Material}.
+
+\begin{table}[t]
+	\centering
+	\renewcommand\arraystretch{1.0}
+	\scriptsize
+	\resizebox{1.0\columnwidth}{!}{
+		\begin{tabular}{ p{52pt}<{\centering}  p{12pt}<{\centering}  p{12pt}<{\centering}  p{12pt}<{\centering}  p{12pt}<{\centering}  p{12pt}<{\centering}  p{12pt}<{\centering}  p{12pt}<{\centering}  p{12pt}<{\centering}}
+			\hline
+			\multirow{2}*{\textbf{Dataset}}  & \multicolumn{3}{c}{\multirow{1}{*}{\textbf{Brain Activity}}}
+			& \multicolumn{5}{c}{\multirow{1}{*}{\textbf{\textbf{Analysis Data}}}} \\ 
+			\cmidrule(l{2pt}r{2pt}){2-4} \cmidrule(l{2pt}r{2pt}){5-9}
+			& \multirow{1}{*}{\textbf{Re}} & \multirow{1}{*}{\textbf{St}} & \multirow{1}{*}{\textbf{Dy}} & \multirow{1}{*}{\textbf{Img}} & \multirow{1}{*}{\textbf{Vid}}  & \multirow{1}{*}{\textbf{3D (S)}}  &\multirow{1}{*}{\textbf{3D (C)}} &\multirow{1}{*}{\textbf{Text}}\\
+			\hline
+			GOD \cite{horikawa2017generic}  & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}}  & \textcolor{red}{\ding{55}} \\
+			BOLD5000 \cite{chang2019bold5000}	& \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}}  & \textcolor{red}{\ding{55}} \\
+			\selectfont NSD \cite{allen2022massive}	& \textcolor{green}{\ding{51}}  & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}}  & \textcolor{green}{\ding{51}} \\
+			Video-fMRI \cite{wen2018neural}   & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}}  & \textcolor{red}{\ding{55}} \\
+			Mind-3D \cite{gao2023mind}     & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}}  & \textcolor{green}{\ding{51}} \\
+			\hline
+			ImgNet-EEG \cite{kavasidis2017brain2image}   & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}}  & \textcolor{red}{\ding{55}} \\
+			\selectfont Things-EEG \cite{gifford2022large}   & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}}  & \textcolor{red}{\ding{55}} \\
+			\textbf{EEG-3D}   & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} &  \textcolor{green}{\ding{51}} &  \textcolor{green}{\ding{51}} &  \textcolor{green}{\ding{51}}  & \textcolor{green}{\ding{51}} \\
+			\hline
+		\end{tabular}
+	}
+	\caption{Comparison between \textbf{EEG-3D} and other datasets, categorizing brain activity into resting-state (Re), responses to static stimuli (St) and dynamic stimuli (Dy). The analysis data includes images (Img), videos (Vid), text captions (Text), 3D shape (3D (S)) and color attributes (3D (C)).}
+	\label{dataset_comparison}
+	\vspace{-0.5cm}
+\end{table}
+
+\subsection{Dataset Attributes}
+
+Tab. \ref{dataset_comparison} presents a comparison between \textbf{EEG-3D} and other commonly used datasets \cite{horikawa2017generic,chang2019bold5000,wen2018neural,gao2023mind,kavasidis2017brain2image,gifford2022large,grootswagers2022human,allen2022massive}. Our dataset addresses the gap in the field of extracting 3D information from EEG signals. The EED-3D dataset distinguishes itself from existing datasets by following attributes: 
+\begin{itemize}
+	\item \textbf{Comprehensive EEG signal recordings.} Our dataset includes resting EEG data, EEG responses to static image stimuli and dynamic video stimuli. These signals enable more comprehensive investigations into neural activity, particularly in understanding the brain's response mechanisms to 3D visual stimuli, as well as comparative analyses of how the visual processing system engages with different types of visual input.
+	\item \textbf{Multimodal analysis data and labels.} EEG-3D dataset includes static images, high-resolution videos, text captions and 
+	3D shape with color attributes
+	aligned with EEG. Each 3D object is annotated with category labels and main color style labels. This comprehensive dataset, with multimodal analysis data and labels, supports a broad range of EEG signal decoding and analysis tasks.
+\end{itemize}
+
+These attributes provide a strong basis for exploring brains response mechanisms to dynamic and static stimuli, 
+positioning the dataset as a valuable resource for advancing research in neuroscience and computer vision.

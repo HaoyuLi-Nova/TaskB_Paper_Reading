@@ -1,0 +1,21 @@
+\begin{table}[t]
+\centering
+\caption{Audio intensity evaluation on VGGSound. Baselines are dedicated V2A methods; ours generates both audio and video jointly via a single LoRA. Baseline numbers from~\protect\cite{benita2025cafa}. \textbf{Bold}: best per metric.}
+\label{tab:audio_intensity}
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{lccccc}
+\toprule
+Method & FAD & KL & IS$\uparrow$ & IB$\uparrow$ & Train Data \\
+\midrule
+ReWaS~\cite{jeong2024rewas}      & 14.71 & 2.69 & 8.45  & 0.15 & 160K \\
+CAFA~\cite{benita2025cafa}       & 12.60 & 2.02 & 13.45 & 0.21 & 200K \\
+MMAudio~\cite{cheng2025mmaudio}  & \textbf{5.32}  & \textbf{1.64} & 17.18 & \textbf{0.33} & 180K \\
+\midrule
+Ours & 57.25 & 7.74 & \textbf{34.51} & 0.13 & 7.8K \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+
+\small
+FAD: Fr\'{e}chet Audio Distance (PANNS), KL: KL divergence (PANNS), IS: Inception Score (PANNS), IB: ImageBind audio-visual similarity. ReWaS and CAFA numbers use the TV2A configuration from~\cite{benita2025cafa} Table~2; MMAudio uses the V2A configuration (video input only, no text).
+\end{table}

@@ -1,0 +1,26 @@
+
+
+\begin{table*}[!t]
+\centering
+\caption{\textbf{Quantitative results on \benchname{}.} ``Ref.'' is short for reference.}
+\vspace{-5pt}
+\label{tab:bench_comparison}
+\resizebox{.96\textwidth}{!}{
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+\multicolumn{10}{c}{\textbf{X-DubBench}}                                                                                                                                                                                                                                                                                     \\ \midrule
+                         & \multicolumn{2}{c}{Visual Quality (Ref.)}                   & \multicolumn{3}{c}{Visual Quality (No Ref.)}                                               & Lip Sync                      & \multicolumn{2}{c}{Identity}        &   Generation                                \\ \cmidrule(l){2-3} \cmidrule(l){4-6} \cmidrule(l){7-7} \cmidrule(l){8-9} \cmidrule(l){10-10}
+\multirow{-2}{*}{Method} & FID                & FVD                 & NIQE              & BRISQUE            & HyperIQA $\uparrow$            & Sync-C $\uparrow$              & CSIM $\uparrow$               & CLIPS $\uparrow$              & Sucess Rate $\uparrow$          \\ \midrule
+Wav2Lip                  & 19.330                         & 631.589                          & 6.908                         & 48.397                         & 35.667                         & 5.087                         & 0.738                         & 0.805                         & 62.95\%                         \\
+VideoReTalking           & 17.535                         & 341.951                          & 6.392                         & 43.112                         & \cellcolor[HTML]{FFFFC7}44.826 & 5.126                         & 0.684                         & 0.793                         & 59.09\%                         \\
+TalkLip                  & 21.262                         & 550.658                          & 6.284                          & \cellcolor[HTML]{FFFFC7}38.990  & 34.311                           & 3.213                         & 0.739                         & 0.724                         & \cellcolor[HTML]{FFFFC7}70.45\% \\
+IP-LAP                   & 14.891                         & 328.728                         & 6.576                         & 44.879                         & 38.059                         & 2.292                         & 0.797                         & 0.809                         & 57.73\%                         \\
+Diff2Lip                 & 17.126                         & 378.527                         & 6.554                         & 44.059                         & 36.872                         & 4.702                         & 0.705                         & 0.799                         & \cellcolor[HTML]{FFDA8F}71.82\% \\
+MuseTalk                 & 17.519                         & 294.312                           & 6.552                         & 43.778                         & 42.335                         & 2.205                         & 0.672                         & 0.753                         & 60.00\%                         \\
+LatentSync               & \cellcolor[HTML]{FFFFC7}13.602 & \cellcolor[HTML]{FFFFC7}265.057 & \cellcolor[HTML]{FFFFC7}6.113 & 39.154                         & 41.654                         & \cellcolor[HTML]{FFFFC7}6.282  & \cellcolor[HTML]{FFFFC7}0.801 & \cellcolor[HTML]{FFFFC7}0.812 & 59.77\%                         \\ \midrule
+Ours-$\Gmask^*$                 & \cellcolor[HTML]{FFDA8F}10.824 & \cellcolor[HTML]{FFDA8F}224.893 & \cellcolor[HTML]{FFDA8F}5.920 & \cellcolor[HTML]{FFDA8F}36.840 & \cellcolor[HTML]{FFDA8F}48.120 & \cellcolor[HTML]{FFDA8F}6.514 & \cellcolor[HTML]{FFDA8F}0.814 & \cellcolor[HTML]{FFDA8F}0.818 & 66.05\%                         \\
+\textbf{\textbf{Ours-$\Gfree$}}        & \cellcolor[HTML]{FE996B}9.351  & \cellcolor[HTML]{FE996B}214.298 & \cellcolor[HTML]{FE996B}5.782 & \cellcolor[HTML]{FE996B}29.870 & \cellcolor[HTML]{FE996B}51.960 & \cellcolor[HTML]{FE996B}7.282 & \cellcolor[HTML]{FE996B}0.850 & \cellcolor[HTML]{FE996B}0.839 & \cellcolor[HTML]{FE996B}96.36\% \\ \bottomrule
+\end{tabular}
+}
+\vspace{-10pt}
+\end{table*}

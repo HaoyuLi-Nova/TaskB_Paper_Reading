@@ -1,0 +1,130 @@
+\begin{figure*} %[t]
+% \vspace{-0.1in}
+\centering
+\includegraphics[width=0.95\linewidth]{Figures/challenge_.pdf}\vspace{-1.0em}
+\caption{Challenges of longer video inference. The random noises $\mathbf{\epsilon}_1$ and $\mathbf{\epsilon}_2$ have the same number of frames as the model was trained on. All the results are generated under the same text prompt: ``\textit{a man is boating on a lake}''.}\vspace{-1.0em}
+\label{fig:challenges}
+\end{figure*}
+
+%-----------------------------------------------------------------
+\section{Methodology}
+\label{sec:method}
+%-----------------------------------------------------------------
+
+Given a VideoLDM pre-trained on videos with a fixed number of $N_{train}$ frames, our goal is to generate longer videos (e.g., $M$ frames where $M > N_{train}$) without compromising quality by utilizing it for inference. We require the generated $M$ video frames to be semantically accurate and temporally coherent. In the following sections, we will first study the temporal modeling mechanism that challenges VideoLDM in generating longer videos. Subsequently, we will introduce our efficient, tuning-free approach to overcome these challenges. To further accommodate multi-prompt settings, we propose a motion injection paradigm to ensure visual consistency.
+
+%-----------------------------------------------------------------
+\subsection{Observation and Analysis}
+\label{subsec:observation}
+%-----------------------------------------------------------------
+
+\paragraph{Attentive-Scope Sensitivity.}
+For longer video generation via VideoLDM, a straightforward solution is to feed $M$ frames of random noises to the model for video generation through iterative denoising steps. Unfortunately, it fails to generate desired result, as the example illustrated in Figure~\ref{fig:challenges}(b). The reason is easy to understand: the temporal attention modules perform global cross-frame operations that make all frames attentive to each other, however they are strictly trained to attend on $N_{train}$ neighbor frames and struggle to handle more frames properly. In this case, the generated videos tend to cause semantic incompleteness or temporal jittering.
+
+\paragraph{Noise-Induced Temporal Drift.}%
+\begin{wrapfigure}{r}{0.5\textwidth}
+  \centering
+  \vspace{-1.0em}
+  \includegraphics[width=0.47\textwidth]{Figures/observation_.pdf}\vspace{-1.0em}
+  \caption{Case study on temporal modeling. For the 'w/o $\mathrm{Tconv}$' results in (a) and (b), the frames corresponding to the same initial noise are marked with bottom lines of the same color.}\vspace{-0.5em}
+  \label{fig:observation}
+  % \vspace{-0.5em}
+\end{wrapfigure}
+
+To bypass the issue above, one may argue to employ temporal sliding windows so that the temporal attention module can always process a fixed number of frames. Indeed, this solution makes desired content with a smooth temporal transition. However, it struggles to maintain the long-range visual consistency, as exampled in Figure~\ref{fig:challenges}(d).
+To identify the underlying causes, we explore the temporal modeling mechanism that consists of two kinds of cross-frame operations: temporal attention and temporal convolution.
+%
+Temporal attention is order-independent, whereas temporal convolution is order-dependent. When temporal convolutions are removed, the output video frames hold a strict correspondence with the initial noise frames, irrespective of shuffling. In contrast, depending on the noise frame order, the temporal convolution introduces new content to ensure the output video's temporal continuity. Figure~\ref{fig:observation} demonstrates such a phenomena. It implies the conjecture that the per-frame noises serve as a foundation for determining the overall appearance, while their temporal order influences the content built upon that foundation. So, it is challenging for the temporal modules to achieve global coherence when independently sampled noises are combined for longer video generation.
+%
+
+\begin{figure*} %[t]
+% \vspace{-0.1in}
+\centering
+\includegraphics[width=1.0\linewidth]{Figures/overview.pdf}\vspace{-1.0em}
+\caption{Overview of our proposed method. Given $N_{train}$ frame of random noise, we first extend it to the target $M$ frames as the initial noise $\mathbf{z}_T$ through noise rescheduling. Then, in the iterative denoising process, the multi-prompt injection paradigm is conducted in the spatial cross-attention layers (where $t$ denotes timestep, $l$ denotes layer number, $P$ denotes text prompt) and the sliding window based attention fusion is performed in temporal self-attention layers.}\vspace{-1.0em}
+\label{fig:pipeline}
+\end{figure*}
+
+%-----------------------------------------------------------------
+\subsection{Noise Rescheduling for Long-Range Correlation}
+\label{subsec:noise_rescheduling}
+%-----------------------------------------------------------------
+
+To circumvent the challenges mentioned above, we propose a noise rescheduling paradigm for longer video inference. The key idea is to construct a sequence of noise frames with long-range correlation and perform temporal attention over them by the way of window based fusion.
+%
+To gain semantically meaningful and visually smooth videos, the model inference should satisfy two basic requirements: (i) the temporal attention only accepts fixed $N_{train}$ frames, to bypass the \textit{attentive-scope sensitivity} issue; (ii) every $N_{train}$ frames of features fed to the temporal attention always correspond to $N_{train}$ frames of independent and identically distributed noises, otherwise the generation fails because of the out-of-distribution input.
+Specifically, we propose two effective designs to achieve this goal. 
+
+\paragraph{Local Noise Shuffle Unit.}
+To acquire a video with $M$ frames ($M > N_{train}$), we initialize $N_{train}$ frames of random noise $[\epsilon_1, \epsilon_2, ..., \epsilon_{N_{train}}]$ independently and reschedule them for the remaining length:
+%
+\begin{equation}
+[\epsilon_1, \epsilon_2, ..., \epsilon_{N_{train}}, \mathrm{shuffle}(\epsilon_1, \epsilon_2, ..., \epsilon_S), ..., \mathrm{shuffle}(\epsilon_{\bar{S}_{(i+1)}}, \epsilon_{\bar{S}_{(i+2)}}, ..., \epsilon_{\bar{S}_{(i+S)}}), ...],
+\end{equation}
+%
+where $S$ denotes the size of the local shuffle unit and is a divisor of $N_{train}$. $\bar{S}_i = i \bmod {N_{train}}$, and $i$ is the frame index. The operator $\mathrm{shuffle}(\cdot)$ denotes shuffling the order of the frame sequence. Through such a rescheduling strategy, we achieve a sequence of noise frames with both internal randomness and long-range correlation. Note that, the randomness introduced by temporal shuffle has considerable capacity to bring about content variation, as evidenced by Figure~\ref{fig:observation}.
+
+% \begin{equation}
+% [\epsilon_1, \epsilon_2, ..., \epsilon_{N_{train}}, \mathrm{shuffle}(\epsilon_1, \epsilon_2, ..., \epsilon_S), ..., \mathrm{shuffle}(\epsilon_{\bar{S}_i+1}, \epsilon_{\bar{S}_i+2}, ..., \epsilon_{\bar{S}_i+S}), ...],
+% \end{equation}
+% %
+% where $S$ denotes the size of the local shuffle unit and it takes value of an integer factor of $N_{train}$. $\bar{S}_i = \lfloor \frac{i*S}{N_{train}} \rfloor, i \in \mathbb{N}^+$. The operator $\mathrm{shuffle}(\cdot)$ denotes to shuffle the order of the frame sequence. Through such a rescheduling strategy, we achieve a sequence of noise frames with both internal randomness and long-range correlation. Note that, the randomness introduced by temporal shuffle has considerable capacity to bring about content variation, as evidenced by Figure~\ref{fig:observation}.
+
+\paragraph{Window based Attention Fusion.}
+%
+% \begin{wrapfigure}{r}{0.45\textwidth}
+%   \centering
+%   \vspace{-1.0em}
+%   \includegraphics[width=0.42\textwidth]{Figures/attention_win.pdf}\vspace{-0.5em}
+%   \caption{Diagram of local window based attention fusion. Each window has a size of $N_{train}$ as the training video length.}
+%   \label{fig:win_attention}\vspace{-1.0em}
+% \end{wrapfigure}
+
+Given longer initial noise frames, the spatial modules of VideoLDM process them frame-wisely and the temporal convolution processes the frames in a sliding window, which is the same case as they were trained. Differently, the temporal attention is performed in a global manner and frames longer than $N_{train}$ triggers \textit{attentive-scope sensitivity}. So, we need to deal with the computation of temporal attention so that it can process the longer sequence in the same way as it was trained.
+Specifically, instead of calculating the temporal attention over all frames, we only calculate temporal attention within each local sliding window of size $U=N_{train}$:
+%
+\begin{equation}
+F^{j}_{i:i+U} = \mathrm{Attn}_{\text{temp}}(Q_{i:i+U}, K_{i:i+U}, V_{i:i+U})=\operatorname{Softmax}\left(\frac{Q_{i:i+U} K_{i:i+U}^T}{\sqrt{d}}\right) V_{i:i+U},
+\end{equation}
+where $i$ is the frame index and $j$ is the window index. Here, we take the sliding stride as the same value as $S$ (the size of noise shuffle unit), so that each sliding window just covers $N_{train}$ frames of independent and identically distributed noises, i.e. $\{\epsilon_1, \epsilon_2, ..., \epsilon_{N_{train}}\}$ with a shuffled order. Figure~\ref{fig:pipeline} illustrates the diagram of our attention computation.
+As each frame is involved in the attention computation of multiple local windows, we need to fuse these attentive outputs to achieve a smooth temporal transition. According to our experiments, naively taking the average will cause dramatic variation in the boundaries of windows. Therefore, we propose to fuse the window-based outputs in a temporal smooth manner, namely computing the weighted sum by taking the frame index distance from each window center as weights:
+%
+\begin{gather}
+F^{o}_{i} = \sum_{j} \frac{F^{j}_{i} * (\frac{U}{2} - \lfloor| i-c^{j}|\rfloor)}{\sum_{j} (\frac{U}{2} - \lfloor| i-c^{j}|\rfloor)},
+\end{gather}
+%
+where $|\cdot|$ denotes absolute value, and $c^j$ is the central frame index of the $j$-th window that covers frame $i$. $F^{o}$ is the output of the current temporal attention layer. Note that, the overlapped window slicing and merging operation only happen in temporal attention while introducing no computation overhead to other modules of the U-Net, which benefits the computational efficiency significantly.
+
+
+%-----------------------------------------------------------------
+\subsection{Motion Injection for Multi-Prompt Video Generation}
+\label{subsec:multi-prompt}
+%-----------------------------------------------------------------
+
+Since the aforementioned inference paradigm enables the generation of longer videos, it is natural to explore the potential for synthesizing videos with continuously changing events by utilizing multiple text prompts. This is more challenging because the generation process introduces additional varying factors (i.e. text prompts) that affect the video content mostly. In LDMs, changing a text prompt with only one verb can lead to totally different video content, even with the same initial noises used~\citep{cao2023masactrl}. 
+%
+Regarding this, we propose a \textit{motion injection strategy} to modulate the influence of multiple text prompts on video generation content. The key idea is to generate the whole video with the first prompt at most denoising steps (more correlated to scene layout and appearances) and use the target prompt only at some specific steps (more correlated to object shapes and poses).
+
+In VideoLDM, text prompts are taken through the cross-attention mechanism:
+%
+\begin{gather}
+\widetilde{F} = \mathrm{Attn}_{\text{cross}}(\widetilde{Q}, \widetilde{K}, \widetilde{V}), \widetilde{Q}=l_{\widetilde{Q}}\left(\widetilde{F}_\mathrm{pre}\right), \widetilde{K}=l_{\widetilde{K}}(P), \widetilde{V}=l_{\widetilde{V}}(P),
+\end{gather}
+where $\widetilde{F}_\text{pre}$ is the intermediate features of the network, $P$ is the text embedding by CLIP~\citep{meila2022learning} encoder, and $l_{\widetilde{Q}}$, $l_{\widetilde{K}}$, $l_{\widetilde{V}}$ are learned linear layers. According to recent research works~\citep{balji2022ediff,cao2023masactrl}, LDMs synthesize different levels of visual content---scene layout, shapes of the objects, and fine details, in the early, middle, and late steps of the denoising process respectively. In our scenarios, we expect the overall layout and object appearance to be similar across prompts while the object poses or shapes should follow the target text prompts. To this end, we gradually inject new motion through the cross attention layer during the time steps associated with object shapes, denoted as $[T_{\alpha}, T_{\beta}]$. For the sake of simplicity, we present our method in the case of two text prompts:
+%
+\begin{equation}
+\textbf{Motion Injection}:=\left\{\begin{array}{l}
+\mathrm{Attn}_{\text{cross}}\left(\widetilde{Q}, l_{\widetilde{K}}(\widetilde{P}), l_{\widetilde{V}}(\widetilde{P})\right), \quad \text { if } T_{\alpha} < t < T_{\beta} \text { or } l > L, \\
+\mathrm{Attn}_{\text{cross}}(\widetilde{Q}, l_{\widetilde{K}}(P_1), l_{\widetilde{V}}(P_1)), \quad \text { otherwise }
+\end{array}\right.
+\label{eq:mj_1}
+\end{equation}%
+
+\begin{equation}
+\widetilde{P}=\left\{\begin{array}{l}
+P_1, \quad \text { if } n < N_{\gamma}, \\
+P_1 + \frac{n - N_{\gamma}}{N_{\tau} - N_{\gamma}}(P_2 - P_1), \quad \text { if } N_{\gamma} \leq n < N_{\tau}, \\
+P_2, \quad \text { otherwise }
+\end{array}\right.
+\end{equation}
+where ${P_i}$ denotes the $i$-th prompt; $\widetilde{P}$ denotes the target prompt of motion injection, which depends on the frame index $n$, and the frames between $[N_{\gamma},N_{\tau}]$ will be assigned with the linearly interpolated embedding to achieve smooth transition; $l > L$ denotes the last $L$ cross-attention layers of the U-Net (e.g. the decoder part). It means that the decoder part will always be provided with the target prompt $\widetilde{P}$ across all the denoising steps, because the decoder features are more tightly aligned with the semantic structures as observed in MasaCtrl~\citep{cao2023masactrl}.

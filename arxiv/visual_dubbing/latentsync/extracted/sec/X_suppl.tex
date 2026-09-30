@@ -1,0 +1,42 @@
+\clearpage
+\onecolumn
+\setcounter{page}{1}
+\appendix
+\begin{center}
+    \LARGE\textbf{Appendix}
+\end{center}
+% \maketitlesupplementary
+
+% \FloatBarrier
+
+\section{SyncNet Training Loss Proof}
+\label{suppsec:syncnet_loss_proof}
+
+According to the classic training framework of SyncNet \cite{prajwal2020lip,chung2017out}, we randomly provide SyncNet with positive and negative samples with a 50\% probability during the training stage. The output of SyncNet is a probability distribution of whether the sample is positive or negative. We define $p(x=1)$ as the probability that the sample is positive, and $p(x=0)$ as the probability that the sample is negative. Let $p(x)$ be the true probability distribution and $q(x)$ the predicted probability distribution. We plot some scatter charts to observe the changes in the prediction probabilities of a non-converging SyncNet during the training process.
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\linewidth]{./figures/scatter.pdf}
+    % \vspace{-20pt}
+    \caption{We train a SyncNet on VoxCeleb2 \cite{chung2018voxceleb2} with batch size of 256. We modify its architecture and data to make it non-converging. Every 100 steps, we plot a scatter plot to observe the probability distribution of SyncNet's predicted $q(x_i=1)$, including 256 data points. The x-axis represents the probability $q(x_i=1)$, and we add some random jitter along the y-axis for better visualization.}
+    % \vspace{-10pt}
+    \label{fig:scatter}
+\end{figure}
+
+As shown in \cref{fig:scatter}, in the early stages of training, the probabilities predicted by SyncNet for $q(x_i=1)$ are dispersed, but later in the training, the probabilities for $q(x_i=1) $ are almost all distributed around 0.5 (the scatter charts for $q(x_i=0)$ are similar). Now we have:
+\begin{align}
+    \forall i \in {1, 2, \ldots, N}: ~~ q(x_i=1) \approx q(x_i=0) \approx 0.5
+    \label{eq:q_prob}
+\end{align}
+We speculate that this may be because, the non-converging SyncNet is consistently unable to correctly distinguish whether a sample is positive or negative during the training process. However, to reduce the training loss, it tends to output a probability of 0.5 for all input embeddings to minimize the training loss as much as possible. This is why the training loss decreases somewhat initially and then gets stuck (from 0.8 to 0.69).
+
+We assmue that there are $A$ positive samples and $B$ negative samples in a batch, and then we can derive SyncNet's training loss based on the following steps:
+\begin{align}
+    \mathcal{L}_{\text{syncnet}} & = -\frac{1}{N}\sum_{i=1}^N \sum_{x_i \in \{0,1\}} p(x_i) \,\text{log}\, {q(x_i)}                                                                                                                                                                                  \\
+                                 & = -\frac{1}{N}\sum_{i=1}^N \left[ p(x_i=1) \,\text{log}\, {q(x_i=1)} + p(x_i=0) \,\text{log}\, {q(x_i=0)} \right]                                                                                                                                                 \\
+                                 & = -\frac{1}{N}\sum_{i=1}^N p(x_i=1) \,\text{log}\, {q(x_i=1)} -\frac{1}{N}\sum_{i=1}^N p(x_i=0) \,\text{log}\, {q(x_i=0)}                                                                                                                                         \\
+                                 & = -\frac{1}{N} \left[ \sum_{a=1}^A 1 \times \,\text{log}\, {q(x_a=1)} + \sum_{b=1}^B 0 \times \,\text{log}\, {q(x_b=1)} \right] -\frac{1}{N} \left[ \sum_{a=1}^A 0 \times \,\text{log}\, {q(x_a=1)} + \sum_{b=1}^B 1 \times \,\text{log}\, {q(x_b=1)} \right]     \\
+                                 & = -\frac{1}{N} \left[ \sum_{a=1}^A \,\text{log}\, {q(x_a=1)} + \sum_{b=1}^B \,\text{log}\, {q(x_b=0)} \right]                                                                                                                                                     \\
+                                 & \approx -\frac{1}{N} \left[ A \, \text{log}\, 0.5 + B \, \text{log}\, 0.5 \right]           \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad     \text{Apply \cref{eq:q_prob}} \\
+                                 & = 0.693
+\end{align}
+

@@ -1,0 +1,34 @@
+\subsection{Audio-Visual Foundation Models}
+Building on latent diffusion models~\cite{rombach2022latentdiffusion}, recent foundation models have expanded from text-to-image to text-to-video~\cite{blattmann2023stablevideodiffusion,hacohen2025ltxv,yang2025cogvideox} and joint audio-visual generation~\cite{polyak2024moviegen}. A unified audio-visual backbone can share high-level semantics while learning cross-modal alignment, enabling cross-modal control: generating video from audio, audio from video, or editing one modality while preserving consistency with the other.
+
+\subsection{LoRA and Reference-Guided Generation}
+Low-Rank Adaptation (LoRA)~\cite{hu2022lora} injects trainable low-rank matrices into frozen layers, enabling parameter-efficient fine-tuning. Its flexibility has been leveraged for diverse use-cases, including identity preservation~\cite{ruiz2023dreambooth}, style transfer~\cite{sohn2023styledrop}, motion animation~\cite{guo2024animatediff}, and multi-LoRA fusion for joint spatial--temporal video control~\cite{zhang2025lionlora}.
+
+Reference-guided generation introduces spatial inputs such as depth, pose, and masks to constrain generation beyond text. One dominant strategy is \emph{channel concatenation}~\cite{brooks2023instructpix2pix}, where the conditioning signal is concatenated along the channel dimension of the noisy latents. An alternative family~\cite{batifol2025fluxkontext,zhang2026omnitransfer} provides the reference as additional attention tokens, enabling richer interaction at the cost of a larger token budget.
+
+\textbf{Controllable video generation.}
+Early methods adapt image control to video via ControlNet extensions~\cite{zhao2023controlvideo,zhang2023controlvideo,chen2023controlavideo} or efficient transfer~\cite{cho2025ctrladapter,wang2024easycontrol,peng2024controlnext}. More recent work addresses motion editing~\cite{burgert2025motionv2v}, in-context LoRA for pose~\cite{he2025posegen}, text-driven editing~\cite{liu2023videop2p,liew2023magicedit}, camera and object motion control~\cite{wang2023motionctrl}, and sparse trajectory control~\cite{wang2025ati}.
+
+\textbf{Unified frameworks.}
+UNIC~\cite{ye2025unic} represents multimodal conditions as a single token sequence with task-aware RoPE.
+Phantom~\cite{liu2025phantom} and OminiControl2~\cite{tan2025ominicontrol2} address subject-consistent and efficient multi-conditional generation, respectively.
+OmniTransfer~\cite{zhang2026omnitransfer} unifies spatio-temporal video transfer via task-aware RoPE biases and reference-decoupled causal learning.
+VACE~\cite{jiang2025vace} unifies diverse video tasks into a single model with shared condition units but remains limited to its training-time control set.
+
+\textbf{Camera trajectory control.}
+ReCamMaster~\cite{bai2025recammaster} re-renders videos at new trajectories via frame-dimension concatenation, controlling only camera extrinsics. BulletTime~\cite{wang2025bullettime} decouples time from camera pose via 4D-RoPE, requiring 40K iterations at batch size 64. VerseCrafter~\cite{zheng2026versecrafter} uses 4D geometric control via a GeoAdapter trained for 380 GPU hours. All introduce new architectural components; our camera LoRAs require only 3{,}000--10{,}000 steps and no backbone modifications.
+
+\textbf{Audio-visual control.}
+AV-Link~\cite{hajiali2025avlink} links frozen diffusion models for cross-modal generation but lacks structural controls. EchoMotion~\cite{yang2025echomotion} jointly models video and human motion. Audio ControlNet~\cite{zhu2026audiocontrolnet} provides fine-grained audio control without video generation. Seedance 1.5 Pro~\cite{chen2025seedance} is a joint audio-visual model with lip-sync but no modular control framework.
+For video-to-audio intensity control, ReWaS~\cite{jeong2024rewas} and CAFA~\cite{benita2025cafa} train dedicated adapters on unimodal backbones using ${\sim}$160--200K samples; our framework trains a single LoRA on the joint model with ${\sim}$8K samples.
+
+\textbf{Audio-driven talking video.}
+MultiTalk~\cite{kong2025multitalk} generates multi-person conversational video by adding audio cross-attention layers and Label RoPE binding to a DiT backbone. Our who-is-talking modality addresses a related problem as a single LoRA on the unmodified joint audio-visual backbone, using only an abstract bounding-box activity signal.
+
+\textbf{Concurrent work.}
+VideoCanvas~\cite{cai2025videocanvas} uses in-context conditioning for unified video completion, including inpainting, extension, and interpolation, via Temporal RoPE Interpolation on a frozen backbone. Their approach handles spatiotemporal completion but does not address structural controls such as depth and pose, camera trajectory, or audio-visual modalities.
+LoRA-Edit~\cite{gao2025loraedit} uses mask-aware LoRA fine-tuning for first-frame-guided video inpainting but is limited to editing and does not support structural controls or audio.
+CtrlVDiff~\cite{xi2025ctrlvdiff} trains a unified diffusion model with multiple graphics-based modalities including depth, normals, albedo, and segmentation, but uses a fixed set of controls determined at training time and does not extend to camera trajectory or audio-visual modalities.
+
+\textbf{Our approach.}
+In contrast to monolithic models such as VACE or unified token approaches like UNIC, we train each control modality as a separate LoRA, with no new layers or input projections. Unlike Flux Kontext~\cite{batifol2025fluxkontext}, which introduces RoPE~\cite{su2021rope} offsets, OmniTransfer~\cite{zhang2026omnitransfer}, which uses task-aware RoPE for video, and VideoCanvas~\cite{cai2025videocanvas}, which uses Temporal RoPE Interpolation, we require no positional encoding changes, relying instead on LTX-2's per-token timestep to distinguish reference from generation tokens.

@@ -1,0 +1,35 @@
+   \resizebox{1.0\textwidth}{!}{
+    \begin{threeparttable}
+  \begin{tabular}{lccccc|ccccg}
+      \toprule
+      \multirow{2}{*}{Model} & \multirow{2}{*}{\#Params} &  \multirow{2}{*}{Throughput} &
+      \multicolumn{3}{c}{ Results on 5s $\uparrow$}&
+      \multicolumn{5}{c}{ Results on 50s $\uparrow$}\\
+      
+    \cmidrule(lr){4-10} 
+     & & (FPS) $\uparrow$ & Total & Quality & Semantic & Text & Temporal  & Dynamic &Visual & Framewise\tnote{\dag}\\
+     & &     &        Score          & Score & Score & Alignment & Quality  & Degree& Stability  & Quality \\
+    \midrule
+    \rowcolor{skyblue!30}
+    \multicolumn{11}{l}{\textit{Bidirectional models}}\\
+    LTX-Video     & 1.9B  & 8.98          & 80.00 & 82.30 & 70.79& -&-&-&-&- \\
+    Wan2.1            & 1.3B  & 0.78                   & 84.67 & 85.69 & 80.60 & -&-&-&-&- \\
+    \midrule
+    \rowcolor{skyblue!30}
+    \multicolumn{11}{l}{\textit{Autoregressive models}}\\
+    NOVA             & 0.6B  & 0.88            & 80.12 & 80.39 & 79.05 & 24.58 &86.53& 31.96 &45.94& 34.45 \\
+    Pyramid Flow & 2B   & 6.7            & 81.72 &\textbf{84.74} & 69.62 & - &  - & - & - & - \\
+    MAGI-1                  & 4.5B & 0.19                  & 79.18 & 82.04 & 67.74 & 26.04 & 88.34 &28.49 & 51.25 &  54.20 \\
+    SkyReels-V2  & 1.3B  & 0.49            & 82.67 & 84.70 & 74.53 & 23.73 & 88.78 & 39.15  &60.41 & 54.13 \\
+    CausVid        & 1.3B  & 17.0          & 82.46 & 83.61 & 77.84 & 25.25 & 89.34  &  37.35& 40.47  &61.56\\
+    Self Forcing    & 1.3B  & 17.0          & 83.00 & 83.71 & 80.14 & 24.77 & 88.17 &  34.35 &40.12 &61.06 \\
+    Ours      & 1.3B  & 17.0 & \textbf{83.11} & 83.79 & \textbf{80.37} & \textbf{26.37} & \textbf{91.03}  & \textbf{55.36}& \textbf{90.94} &  60.82 \\
+    \bottomrule
+  \end{tabular}
+  \begin{tablenotes}
+      \footnotesize
+      \item[-] indicates that the model either fails to generate videos at the specified length or that the output collapses into random noise.
+      \item[\dag] As discussed in~\cref{sec.better_metrics}, framewise quality is unreliable for long videos, we include it here for reference.
+    \end{tablenotes}
+  \end{threeparttable}
+  }

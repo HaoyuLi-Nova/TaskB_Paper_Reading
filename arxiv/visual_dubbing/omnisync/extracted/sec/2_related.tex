@@ -1,0 +1,16 @@
+\section{Related Work}
+\vspace{-0.5em}
+
+\subsection{Audio-driven Lip Synchronization}
+\textbf{GAN-based Lip Synchronization.} Traditional GAN-based~\cite{goodfellow2020generative} methods~\cite{prajwal2020lip,wang2023seeing,cheng2022videoretalking,ma2023styletalk,gupta2023towards} have established important foundations in lip synchronization. Wav2Lip~\cite{prajwal2020lip} pioneered the use of pretrained SyncNet to supervise generator training, setting a benchmark for subsequent research. DINet~\cite{zhang2023dinet} enhanced synchronization quality by performing spatial deformation on reference image feature maps, better preserving high-frequency details. IP-LAP~\cite{zhong2023identity} introduced a two-stage approach that first infers landmarks from audio before rendering them into facial images. ReSyncer~\cite{guan2024resyncer} incorporated 3D mesh priors for facial motion, effectively reducing artifacts. 
+
+\textbf{Diffusion-based Lip Synchronization.} Recent advances in diffusion models~\cite{mukhopadhyay2024diff2lip,zhang2024musetalk,li2024latentsync,ma2025sayanything} have enabled significant progress in audio-driven lip synchronization. LatentSync~\cite{li2024latentsync} represents an end-to-end framework based on audio-conditioned latent diffusion models without intermediate motion representation. SayAnything~\cite{ma2025sayanything} employs a denoising UNet architecture that processes video latents with audio conditioning. MuseTalk~\cite{zhang2024musetalk} proposes a novel sampling strategy that selects reference images with head poses closely matching the target.
+
+However, these methods still rely on reference frames combined with masked-frame inpainting, leading to head pose limitations, identity preservation issues, and blurry edge generation. Our OmniSync framework addresses these limitations through a mask-free training paradigm that enables application across diverse visual representations.
+
+\vspace{-0.5em}
+\subsection{Audio-driven Portrait Animation}
+Audio-driven portrait animation~\cite{tian2024emo,xu2024hallo,jiang2024loopy,chen2025echomimic,ji2024sonic} differs fundamentally from lip sync. Portrait animation~\cite{wei2024aniportrait,cui2024hallo2} follows an image-to-video framework without constraints on head poses or facial expressions, eliminating the need to integrate generated content back into original video. This approach is unsuitable for post-generation lip synchronization in video generation pipelines.
+In contrast, lip synchronization~\cite{prajwal2020lip,li2024latentsync} operates within a video-to-video framework, modifying only lip movements while maintaining compatibility with existing footage. This represents a more constrained task, requiring precise modification of lip regions while preserving surrounding facial features.
+
+Recent models like OmniHuman-1~\cite{lin2025omnihuman} and Mocha~\cite{wei2025mocha} use audio directly as a conditioning signal for image-to-video or text-to-video frameworks. However, due to limitations in talking head datasets, their generative capabilities don't match the versatility of advanced video generation models. This gap highlights why specialized lip synchronization for AI-generated videos remains critical.

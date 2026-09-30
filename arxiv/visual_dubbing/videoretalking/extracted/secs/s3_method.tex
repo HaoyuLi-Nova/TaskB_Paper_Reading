@@ -1,0 +1,128 @@
+\section{Framework}
+Technically, our method is a cross-modal video inpainting framework to fill the masked lower-half face under the guidance of the driven audio and the emotion-modulated reference frame. 
+To this end, we design a lip-sync network~($L$-Net in Sec.~\ref{sec:lipsyncnet}), which uses the masked lower-half face frames, the given audio, and the original video frames as input to generate a lip-syncing video. 
+However, there are two major problems if we use the $L$-Net only. The first is the information leak caused by the reference frame, where the generated lip still relies on the reference heavily. The other is the low visual quality since current large-scale talking head datasets are in low resolution.
+
+To this end, except $L$-Net, we propose two additional modules as shown in Figure~\ref{fig:pipeline}. 
+First, to solve the information leak, we generate a video with the frozen face expression by a semantic-guided expression reenactment network~(${D}$-Net in Sec.~\ref{sec:pirender}). 
+The synthesized lips are the reference lips instead of the original ones. 
+Then, the lower-half faces of the edited video will be used as a reference structure for our lip-synthesis network~(${L}$-Net). In ${L}$-Net, our method takes the audio as input and synthesizes the lip-sync results frame-wisely. Furthermore, we design an ${E}$-Net for the identity-aware face restoration in Sec.~\ref{sec:enhance}. Finally, we can paste the generated face back to the original video seamlessly through the post-processing in Sec.~\ref{sec:post}. Below, we give the details of each component.
+
+\input{figs_tex/fig_DNet}
+
+\subsection{Semantic-guided Reenactment Network}
+\label{sec:pirender}
+% \xiaodong{add the motivation of more stable results}
+% One challenge of current audio-based talking head video editing~\cite{wav2lip} is the information leak by the reference face in the test time. To solve this problem, 
+% Editing the lip-related motion in \red{the} video directly is challenging, previous works often omit the original lip motion changes~\cite{wav2lip} or retiming the background~\cite{obama,song2022everybody} to avoid unnatural movements between the head pose and lip.
+It is challenging to edit the lip-related motion in the video directly.
+Previous works often omit the original lip motion changes~\cite{wav2lip} or retiming the background~\cite{obama,song2022everybody} to avoid unnatural movements between the head pose and lip.
+Differently, we directly edit the whole lower-half face, including the facial movements with the help of a face reenactment method. 
+Our key observation is that there is an information leak~\cite{lipgan,wav2lip} in conditional in-painting based methods if we use the original frame as the conditional image for lip synchronization. 
+We give an example to show this phenomenon in Figure~\ref{fig:dnet}. 
+Given the audio and the input frames, if we directly use the original frames as reference~(w/o $D$-Net), the generated lips will be modified according to the original one. 
+Thus, we aim at editing the expression of the whole lower-half face by the proposed semantic-guided reenactment network. 
+Then, the frame with stable expression will serve as the reference for further lip synthesis. 
+
+% Different from previous works which use the original face~\cite{wav2lip} or background retiming~\cite{obama,song2022everybody}, we edit the expressions of the whole lower-half face by the face reenactment network with semantic coefficient guidance.
+As shown in Figure~\ref{fig:pipeline}, after the face detection and crop, we extract the pose and expression coefficients from each frame using monocular face reconstruction~\cite{face3d}. 
+Then, we obtain the new driven signal by replacing the original expression coefficient with the pre-defined expression template. 
+Thus, we can synthesize a video with the frozen expression via the produced dense warp fields of the network and the original frame. 
+Similar to \cite{pirender}, the ${D}$-Net contains two encoder-decoder-like structures for coarse-to-fine training. After the expression editing, we get the stabilized expression across all the frames. Note that, since the quality of the face reenactment network is still limited, we use the edited face as the structure reference of our lip-sync network. To this end, we first detect facial landmarks, smooth them utilizing a temporal Savitzky–Golay filter, and then use the keypoints of the eye center and the nose as anchors for face alignment.
+
+% The difference between source frame and the driving frame in the original video as an identity frame and drive the other frames using the extracted 3DMM parameters. 
+%Then, we align the faces of the original frame and the generated face by the facial key-points based 
+Interestingly, we can also utilize this information leak caused by the lip-sync reference frame through more expression templates~(\emph{e.g.} smile), resulting in an emotional talking-face video as shown in Figure~\ref{fig:teaser}. Since our expression reenactment network only edits the lower-half face of the original video, inspired by the facial action code system~\cite{facs}, we can generate the talking faces in other emotions, \emph{i.e.}, anger and surprise, via the image-based expression editing network~\cite{ganimation} on the upper face.  We consider it as a plugin and show some results in Sec.\ref{sec:result}.
+
+
+
+
+% \xiaodong{\\
+% In semantic-guided video self-decomposition, add a figure about alignment: \\
+% 1. comparison between different face alignment method by visualize the movement of landmarks with the ground truth face edge(0-17 landmarks)] \\
+% 2. add a figure about the effect of D-Net.
+% }
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=\columnwidth]{figs_pdf/align.pdf}
+%     \caption{Facial landmark tracemaps of different alignment methods. (a)use frame crop. (b)5 landmarks. (c)stit. (d)GT }
+%     \label{fig:align}
+% \end{figure}
+
+
+% Previous work~\cite{wav2lip} use a random choice reference for talking-face generation. However, due to the One challenge of previous talking face generation network is that 
+
+% \subsubsection{The comparison of different Face Alignment~(maybe)}
+
+
+\input{figs_tex/fig_lipnet}
+
+\subsection{Lip-Sync Network}
+\label{sec:lipsyncnet}
+Our lip-sync network~($L$-Net) is inspired by a recent conditional inpainting-based framework~\cite{wav2lip}, which edits the original video directly through new audio. 
+Differently, we use the pre-processed frames from ${D}$-Net as the identity and structure reference, the audio and the masked original frames as the condition, to synthesize the lip-syncing video with respect to the input audio. 
+
+In Figure~\ref{fig:pipeline}, we give a brief overview of $L$-Net, which contains two sub-networks, ${L}_{a}$ and ${L}_{v}$, for audio and video processing, respectively. 
+Here, we give the detailed structure of ${L}$-Net in Figure~\ref{fig:lipnet}.
+For the audio processing, we firstly extract the mel-spectrograms from the raw audio and use a ResNet-based encoder~\cite{resnet} to extract the global audio vector $F_{audio}\in\mathbb{R}^{256 \times 1 \times 1}$ of a time window. 
+Following previous works, the time window is set to 0.2s per frame, causing the feature in the dimension of 80$\times$16 to process.
+As for the image generation, we first extract the image features $F_{ref}, F_{orig}\in\mathbb{R}^{256 \times H \times W}$ from the pre-processed referenced images and the original masked image by two different encoders respectively, then, these features are learned to model the relationship between pixels automatically via two cross-attention blocks~\cite{attention}. These cross-attention blocks will calculate the pixel-wise corresponding matrix of two features and enlarge the reception fields. After that, we use nine residual Fast Fourier Convolutional blocks~\cite{ffc} to refine the features inspired by recent general image inpainting framework~\cite{lama}, and we inject the audio features by the AdaIN blocks~\cite{huang2017adain} which normalize visual features channel-wise after each FFC block. Finally, a series of the convolutional up-sampling layers are used to generate the final results.
+
+% We give more details of the network structure in the supplementary materials.
+
+
+\subsection{Identity-aware Enhancement Network}
+\label{sec:enhance}
+The result from ${L}$-Net is still unperfect since it is hard to train the model on high-resolution talking-head datasets. On the one hand, there is no public available large-scale high-resolution talking-head dataset. 
+% To enhance the quality of the final video, we propose an identity-aware enhancement network~($E$-Net). 
+On the other hand, if we directly apply the GAN-prior based face restoration networks~\cite{gfpgan, gpen} as the post-processing tools to improve the results, the results might not be perfect in terms of identity changes~\cite{gfpgan} and blurry teeth and face~\cite{gpen} as shown in Figure~\ref{fig:sr}. 
+
+To this end, we propose an identity-aware enhancement network inspired by recent image generation networks~\cite{stylegan2, eg3d}. In detail, to acquire the high-resolution talking-head dataset and aligned domain for up-sampling, we enhance the low-resolution dataset firstly using a GAN prior-based face restoration network~\cite{gpen}. However, there is a domain gap between the enhanced high-resolution dataset during training and the blurry output of $D$-Net during testing. Then, to avoid this gap, we produce the low-resolution input of $E$-Net by feeding the enhanced frame and its corresponding audio to the $L$-Net. Ideally, $L$-Net should produce the same lip motions as the original frame using the conditional audio. Thus, we can use the high-resolution input as supervision directly. As for the architecture, we learn two style-based blocks~\cite{stylegan2} to up-sample the results four times and we design a ResBlock-based encoder ${E}_i$-Net to generate the identity-aware global modulation in each style block.
+% to acquire the high-resolution talking-head dataset, we seek help from the GAN prior-based face restoration network~\cite{GPEN} to enhance the LRS2 dataset for training $L$-Net. However, we will get flicker results if we train the $E$-Net on the enhanced datasets since the unstable quality of image-based face restoration network. 
+% On the other hand, if
+% Thus, we design a progressive training strategy for identity-aware face upsampling.  In training, we resize the enhanced images to low-resolution network and feed the target frame and the corresponding audio to the network. use the pre-trained ${L}$-Net as the lip-generator, and train the ${E}$-Net by feeding the audio and its corresponding face as input. Ideally, ${L}$-Net will produce the same lip shape as the input itself for a paired learning. As for the structure of ${E}-$Net, which contains two style-based blocks ${E}_u-$Net and an reference encoder ${E}_i-$Net for global modulation. 
+
+\subsection{Post-processing}
+\label{sec:post}
+We also remove several artifacts when pasting back to the original video, including the artifacts of teeth generation and the synthesizing bounding box from the $L$-Net. Synthesizing the photo-realistic teeth for the face video is surprisingly hard~\cite{obama}. Unlike previous approach which uses the teeth proxy~\cite{obama}, we seek help from the pre-trained face restoration network~\cite{gfpgan} for teeth enhancement through face parsing~\cite{face_parser}. As for the face bounding box caused by $L$-Net, we segment~\cite{face_parser} the produced face and paste back to the original video using the Multi-band Laplacian Pyramids Blending~\cite{blend}.
+
+% To reduce the artifacts of face inpainting bounding box, we use a pre-trained face parser network~\cite{face_parser} to segment the generated face and paste it to back to the video using Multi-band Laplacian Pyramids Blending~\cite{blend}. We enhance the teeth the lip region using StyleGAN-based face enhancement network~\cite{gfpgan}.
+
+% \subsubsection{Face Enhancement}
+
+
+% \subsubsection{Mouth Refinement}
+% \xiaodong{\\
+% Add a figure: \\
+% 1. WAV2LIP+ENHANCE v.s. OURS + ENHANCE \\
+% 2. wav2lip method will show noticeable artifacts.
+% }
+% \input{figs_tex/fig_enhancement}
+
+% \xiaodong{\\
+% Add a figure: \\
+% 1. comparison between different enhancement methods on face~(original, GFPGANv1.3, GPEN, ours, ground truth) [half-face and full face] \\
+% 2. GPEN show the too sharp results and GFPGANv1.3 changes ID. \\
+% 3. our method show a more natural results with the mouth from GFPGAN
+% }
+\input{figs_tex/fig_sr}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.9\columnwidth]{figs_pdf/sr_vrt.pdf}
+%     \vspace{-1em}
+%     \caption{Comparison between different face restoration networks on the results, including GFPGAN~\cite{gfpgan}, GPEN~\cite{gpen}, and our hybrid method. Note that, GFPGAN changes identity a lot.}
+%     \vspace{-2em}
+%     \label{fig:sr}
+% \end{figure}
+
+
+
+
+
+
+
+
+
+
+
+

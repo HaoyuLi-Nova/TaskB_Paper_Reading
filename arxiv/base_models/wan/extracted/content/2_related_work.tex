@@ -1,0 +1,31 @@
+\section{Related Work}
+\label{sec:related-work}
+
+Driven by advances in generative modeling, the landscape of large-scale video models has evolved significantly, particularly in diffusion-based frameworks. Our review focuses on two broad categories: closed-source models and contributions from the open-source community.
+
+
+\textbf{Closed-source models.}
+Closed-source models are mainly those developed by major technology companies, which aims at high-quality, professional video generation due to the extensive resources invested. We organize the notable models released over the past year in chronological order.
+In February 2024, OpenAI introduced Sora~\citep{openaisora2024} and marked a significant leap in AI-generated content. In June 2024, Kling~\citep{kuaishou2024kling} by Kuaishou and Luma 1.0~\citep{luma2024dm} by LUMA AI were opened up for public testing, offering powerful video generation capabilities. Meanwhile, Runway unveiled Gen-3~\citep{runway2024gen3}, building upon Gen-2~\citep{runway2024gen2}, to further elevate the standards in video creation. In July 2024, Shengshu AI released Vidu~\citep{bao2024vidu} equipped with self-designed U-ViT~\citep{bao2022all} architecture.
+In September 2024, both Kling and Luma undergone updates to version 1.5.
+During the same period, MiniMax introduced Hailuo Video~\citep{minimax2024hailuo}, delivering impressive visual results to the public. In October 2024, Pika Labs launched Pika 1.5~\citep{pika2024pika}, enabling users to customize visual and physical attributes in videos. In addition, Meta introduced Movie Gen~\citep{polyak2024moviegencastmedia}, a series of video foundation models that detailed their training processes and applications. In December 2024, Kling advanced to version 1.6 and, concurrently, Google released Veo 2~\citep{veo22025} with an improved understanding of real-world physics and human movement nuances.
+
+These developments underscore the intense global competition in the video generation sector. In this context, our open-source \method has shown competitive or even superior performance over these commercial models across both internal and external benchmarks, leading in multiple attributes.
+
+\textbf{Contributions from open-source community.}
+On the other hand, the open-source community has made substantial contributions not only to the holistic video generative models but also to the exploration of essential model components. Diffusion-based video generation models typically build on Stable Diffusion~\citep{rombach2022sd} architecture. It mainly involves three critical modules: an autoencoder to map the original video into a compact latent space, a text encoder to extract text embeddings, and a neural network optimized via the diffusion model to learn the distribution of these video latents.
+For network structure, U-Net~\citep{ronneberger2015u}, initially used in image generation~\citep{ho2020denoising,song2020denoising}, is adapted for video generation by incorporating temporal dimensions.
+VDM~\citep{ho2022video} extends the 2D U-Net to a 3D version, while another paradigm~\citep{zhou2022magicvideo,wang2023modelscope,guo2023animatediff} introduces 1D temporal attention combined with 2D spatial attention block to reduce computation costs. Notably, Diffusion Transformers (DiT~\citep{dit}), which rely solely on transformer blocks, are superior to U-Net in visual generation tasks~\citep{chen2023pixartalpha}. This structure has also been transferred to video models~\citep{ma2024latte}, giving rise to two common variants: the original DiT~\citep{dit,HaCohen2024LTXVideo} that uses cross-attention for text embeddings and MM-DiT~\citep{genmo2024mochi,kong2024hunyuanvideo}, where text embeddings are concatenated to visual embeddings for full-attention processing.
+Regarding autoencoders,
+while the early approach~\citep{rombach2022sd} adopts standard VAE~\citep{kingma2013auto}, recent autoencoders like VQ-VAE~\citep{van2017neural} and VQGAN~\citep{esser2020taming} improve model design for better reconstruction and compression. LTX-Video~\citep{HaCohen2024LTXVideo} modifies the VAE decoder to perform the final denoising step and convert latents into pixels, where the missing high-frequency details are generated during decoding. The text encoder is also critical for text-based video generation. Current powerful video generation models primarily utilize the T5 series~\citep{t5} as the main text encoder, often in conjunction with CLIP~\citep{radford2021learning}.
+In the case of HunyuanVideo~\citep{kong2024hunyuanvideo}, T5 is replaced with a Multimodal Large Language Model~\citep{llava,li2024mgm} to achieve more robust alignment between text embeddings and visual features.
+
+By integrating these key modules with effective diffusion-based optimization techniques~\citep{ho2020denoising,song2019generative,flow-matching}, multiple promising open-source video generation models have emerged~\citep{genmo2024mochi,kong2024hunyuanvideo,HaCohen2024LTXVideo,opensora,lin2024open,jin2024pyramidal,cogvideox}.
+In \method, we have carefully designed or selected each critical component to ensure high-quality video synthesis.
+We provide detailed design information and ablation study, which can facilitate the design of future video generation models.
+
+
+In addition, numerous studies have explored downstream tasks in video generation. These tasks include repainting~\citep{sdinp,propainter}, editing~\citep{sdedit,ip2p,magicbrush,wang2023videocomposer,dreamVideo2}, controllable generation~\citep{controlnet,scedit,wang2024unianimate}, and frame reference generation~\citep{cogvideox,i2vadapter}, often by leveraging adapter-based and ControlNet-like architectures~\citep{controlnet,chu2024diffcomplete} to incorporate user-specified conditions. We also develop various downstream applications based on \method, which have demonstrated excellent performance.
+
+
+

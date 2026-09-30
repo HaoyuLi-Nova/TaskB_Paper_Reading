@@ -1,0 +1,129 @@
+\section{Experiments}
+\label{sec:experiment}
+
+
+ 
+
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Quantitative comparison} with state-of-the-art methods averaging on ambient sound-video, speech-video, and complex scene-video generation. We evaluate performance across three categories: video quality, audio fidelity, and audio-visual synchronization. Best results are in \textbf{bold}, second-best are \underline{underlined}. For more comprehensive and detailed evaluations, please refer to the supplementary material. Some metrics could not be generated for MM-Diffusion, as it is an unconditional generation model.}
+\label{tab:joint_comparison}
+\vspace{-0.1in}
+\resizebox{\linewidth}{!}{
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{l|ccccc|cccccc|cccc}
+    \toprule
+    % --- Main Headers ---
+    \multirow{2}{*}{Method} & \multicolumn{5}{c|}{Video Quality \& Coherence} & \multicolumn{6}{c|}{Audio Fidelity \& Quality} & \multicolumn{4}{c}{Audio-Visual Synchronization} \\
+    \cmidrule(lr){2-6} \cmidrule(lr){7-12} \cmidrule(lr){13-16}
+    % --- Sub-Headers (Metrics) ---
+     & AQ$~\uparrow$ & IQ$~\uparrow$ & DD$~\uparrow$ & MS$~\uparrow$ & ID$~\uparrow$ &  PQ$~\uparrow$ & PC$~\downarrow$ & CE$~\uparrow$ & CU$~\uparrow$ & WER$~\downarrow$ & IB-A$~\uparrow$ & Sync-C$~\uparrow$ & Sync-D$~\downarrow$ & DeSync$~\downarrow$ &  IB$~\uparrow$ \\
+    \midrule
+
+     MM-Diffusion~\cite{ruan2023mmdiffusion} & 0.32 & 0.43 & 0.13 & 0.99  & - & 5.37 & 4.07 & 4.27 & \textbf{5.89} & - & - & - & - & - & 0.12 \\
+    
+    JavisDiT~\cite{liu2025javisdit} & 0.34 & 0.53 & \textbf{0.38} & 0.99 & 0.38  & 5.46 & 2.24 & 3.19 & 4.54 & 1.00 & \textbf{0.14} & 0.89 & 11.62 & 1.13 & \underline{0.18} \\
+
+    UniVerse-1~\cite{wang2025universe} & 0.52 & \textbf{0.67} & 0.24 & 0.99 & 0.89  & 5.52 & \underline{2.13} & 3.63 & 4.84 & \underline{0.24} & 0.07 & 0.97 & 10.71 & \underline{1.10} & 0.12 \\
+
+    Ovi~\cite{low2025ovi}  & \underline{0.57} & \underline{0.65} & 0.34 & 0.99 & \underline{0.90}  & \underline{6.19} & \underline{2.13} & \underline{4.44} & \underline{5.84} & 0.49 & \underline{0.12} & \underline{4.04} & \underline{9.62} & 1.14 & \underline{0.18} \\
+      
+    \rowcolor{CornflowerBlue!20}
+    \textbf{Harmony (Ours)} & \textbf{0.59} & \underline{0.65} & \underline{0.36} & 0.99 & \textbf{0.91}  & \textbf{6.39} & \textbf{2.05} & \textbf{4.73} & 5.67 & \textbf{0.15} & \underline{0.12} & \textbf{5.61} & \textbf{7.53} & \textbf{0.92} & \textbf{0.19}\\
+    
+    \bottomrule
+    \end{tabular}
+}
+\vspace{-0.1in}
+\end{table*}
+
+\subsection{Experimental Settings}
+
+\noindent\textbf{Datasets and Training.}
+Our model is trained on a diverse corpus of over 4 million audio-visual clips, covering both human speech and environmental sounds. The data is aggregated from public sources like OpenHumanVid~\cite{li2025openhumanvid}, AudioCaps~\cite{kim2019audiocaps}, and WavCaps~\cite{mei2024wavcaps}, and supplemented with our own curated high-quality collections. All data is uniformly annotated using Gemini~\cite{gemini_website}. Our training follows a three-stage curriculum: (1) foundational audio pre-training on all audio data, (2) timbre disentanglement finetuning using multi-utterance speech data, and (3) final cross-task joint audio-visual training. The video branch is initialized from Wan2.2~\cite{wan}. The final joint stage is trained for 10,000 iterations with a batch size of 128 and a learning rate of 1e-5. A comprehensive list of datasets, data processing details, and full training hyperparameters are provided in the supplementary material.
+
+
+
+
+\noindent\textbf{Harmony-Bench and Metrics.}
+To facilitate a rigorous evaluation, we introduce \textbf{Harmony-Bench}, a new benchmark of 150 test cases designed to assess core audio-visual generation capabilities. It is structured into three 50-item subsets with increasing complexity:
+\begin{enumerate}
+    \item \textbf{Ambient Sound-Video:} Evaluates temporal alignment of non-speech sounds using AI-generated scenarios conditioned on audio and video captions.
+    \item \textbf{Speech-Video:} Assesses lip-sync and speech quality on a mix of real-world and synthetic multilingual data, conditioned primarily on a transcript.
+    \item \textbf{Complex Scene (Ambient + Speech):} Tests the model's ability to generate and synchronize co-occurring speech and ambient sounds in complex scenes, using a full set of multimodal prompts.
+\end{enumerate}
+We evaluate performance using a comprehensive suite of automated metrics. \textbf{For Video}, we measure \textit{Aesthetic Quality} (aesthetic-predictor-v2-5), \textit{Imaging Quality} (MUSIQ), \textit{Dynamic Degree} (RAFT), \textit{Motion Smoothness} and \textit{Identity Consistency} (DINOv3). \textbf{For Audio}, we report \textit{AudioBox-Aesthetics} (PQ, PC, CE, CU), \textit{WER} (Whisper-large-v3), and \textit{IB-A Score}. \textbf{For AV-Sync}, we use lip-sync metrics (\textit{Sync-C}, \textit{Sync-D}), 
+% temporal misalignment (\textit{DeSync} via Synchformer), 
+and overall consistency (\textit{IB-score}). Further details on the benchmark construction and metric implementations are available in the appendix.
+
+
+
+\subsection{Comparison on audio-video generation}
+To evaluate the performance of our model, we compare it with state-of-the-art audio-video generation methods on the three types of datasets (Ambient Sound-Video, Speech-Video, and Complex Scene), including MM-Diffusion~\cite{ruan2023mmdiffusion}, JavisDiT~\cite{liu2025javisdit}, UniVerse-1~\cite{wang2025universe}, and Ovi~\cite{low2025ovi}. The quantitative results are shown in Tab.~\ref{tab:joint_comparison}. Our model, Harmony, demonstrates a highly competitive performance, achieving state-of-the-art or comparable results in both video quality (e.g., AQ, DD, ID) and audio fidelity (e.g., PC, PQ). Most notably, its primary advantage lies in audio-visual synchronization. Harmony significantly outperforms all baselines on key synchronization metrics, achieving the highest Sync-C score of \textbf{5.61} and the lowest (best) Sync-D score of \textbf{7.53}. This substantial improvement in temporal alignment directly validates the effectiveness of our proposed cross-task synergy mechanism in enhancing cross-modal coherence.
+
+We provide qualitative comparisons with UniVerse-1 and Ovi in Fig.~\ref{fig:comparison}. 
+In the talking head example (left), both competing methods fail to produce synchronized lip movements. 
+For the music-driven case (right), their limitations persist: UniVerse-1 generates irrelevant noise, while Ovi produces audio that, while musically correct, is less dynamic—a fact reflected in its simpler waveform. 
+Visually, both methods yield videos with minimal motion. 
+In contrast, our Harmony generates a fluid video of a person playing the mandolin with motions that are dynamically synchronized with the rich, corresponding music, as evidenced by the more complex audio waveform.
+
+ \begin{figure}[t]
+    \centering
+    \includegraphics[width=0.42\textwidth]{figures/attention_map.pdf}
+    \vspace{-0.1in}
+    \caption{Visualization of the audio-to-video frame-wise cross-attention map, where the audio can accurately capture the sound source from the videos.}
+    \vspace{-0.15in}
+    \label{fig:attention map}
+\end{figure}
+
+\subsection{Visualization of Cross-modal Attention}
+
+To validate the effectiveness of our frame-wise cross-attention mechanism, we visualize the attention maps from the audio-to-video module. 
+As illustrated in Fig.~\ref{fig:attention map}, when synthesizing human speech, the model precisely localizes its attention on the speaker's oral region. 
+Notably, in scenarios with multiple individuals, our model can distinguish between them, focusing exclusively on the active speaker. 
+This capability extends to natural sounds, where the model accurately identifies the primary sound source (e.g., an animal) while also attending to ambient environmental sounds, such as the rain in the cat example and the birdsong in the crocodile case. 
+Collectively, these visualizations underscore our model's superior ability to achieve fine-grained and contextually aware audio-visual alignment.
+
+
+\subsection{Ablation Studies}
+
+We conduct a comprehensive ablation study to validate our core components, with the results presented in Tab.~\ref{tab:ablation}. In this study, we train all ablated models on the human speech dataset and evaluate their audio-visual alignment. Our baseline model replaces the proposed Global-Local Decoupled Interaction (GLDI) module with a standard global cross-attention mechanism, similar to Ovi~\cite{low2025ovi}, and is trained without cross-task synergy (CTS). As shown in the table, progressively integrating our contributions yields consistent improvements. First, introducing the GLDI module demonstrates the benefit of decoupling local and global interactions. This is further enhanced by the RoPE Alignment, which effectively resolves timescale mismatches and boosts fine-grained synchronization (Sync-C from 4.29 to 4.80). Subsequently, the Cross-Task Synergy (CTS) training strategy further refines the model's alignment capabilities. Finally, applying the Synchronization-Enhanced CFG (SyncCFG) during inference provides the most substantial performance gain, catapulting Sync-C from 5.09 to \textbf{6.51}. This systematic improvement validates that each component of Harmony is crucial for achieving the state-of-the-art audio-video synchronization performance.
+
+
+\begin{table}[t]
+\centering
+\caption{Ablation study on the core components of Harmony. We start with a baseline and progressively add each module: Global-local decoupled interaction module (GLDI), RoPE Alignment (RoPE), Cross-Task Synergy (CTS) , and Synchronization-Enhanced CFG (SyncCFG). Note that this experiment is evaluated on the human-speech dataset; therefore, it has different synchronization results compared to Tab.~\ref{tab:joint_comparison}.}
+\vspace{-0.05in}
+\label{tab:ablation}
+\resizebox{0.95\columnwidth}{!}{%
+% \begin{tabular}{@{}cccc | ccc@{}} % <--- 移除了竖线
+\begin{tabular}{cccc|ccc}
+\toprule
+% \multicolumn{4}{c}{Modules}
+\multicolumn{2}{c}{Model Structure}&\multicolumn{2}{c}{Methodology}
+& \multicolumn{3}{c}{Synchronization Metrics} \\ % <--- 移除了竖线
+\cmidrule(lr){1-4} \cmidrule(lr){5-7}
+GLDI  &RoPE &  CTS & SyncCFG &  Sync-C$~\uparrow$ & Sync-D$~\downarrow$ &  IB$~\uparrow$ \\
+\midrule
+% --- Data Rows ---
+% Baseline model
+  &   &   & & 4.20 & 10.93 & 0.13  \\
+% + Cross-Task Synergy
+% + Global Style Alignment
+\checkmark &   & &   & 4.29 & 10.67  & 0.14 \\
+% + RoPE Alignment
+\checkmark  & \checkmark &  &   & 4.80 & 10.30  & 0.14 \\
+% + Frame-wise Attention
+\checkmark  & \checkmark & \checkmark & & 5.09 & 10.16 & 0.15  \\
+% + SyncCFG (Full Model)
+\rowcolor{CornflowerBlue!20} \checkmark  & \checkmark & \checkmark & \checkmark    & \textbf{6.51} & \textbf{8.63} & \textbf{0.18}\\
+
+\bottomrule
+\end{tabular}%
+}
+\vspace{-0.15in}
+\end{table}
+
+
+

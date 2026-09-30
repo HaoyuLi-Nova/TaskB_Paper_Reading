@@ -1,0 +1,39 @@
+\begin{figure}[ht!]  
+    \scriptsize
+    \centering  
+    \includegraphics[width=0.9\textwidth]{figures/camera_motion/framework.pdf}\vspace{-4mm}
+    \caption{Framework of video generation guided by camera motion.} 
+    \label{fig:framework_camera_motion}  
+\end{figure}
+
+\subsection{Camera Motion Controllability}
+\label{sec:camera_motion}
+
+
+The camera motion control module is designed to accurately match the motion and viewpoint of the video by leveraging camera trajectory.
+%
+Specifically, we utilize the extrinsic parameters $[R,t] \in \mathbb{R}^{3 \times 4}$ and intrinsic parameters $K_{f} \in \mathbb{R}^{3 \times 3}$ for each frame.
+Our approach consists of two main components to effectively inject camera motion conditions: camera pose encoder and camera pose adapter, as illustrated in Fig.~\ref{fig:framework_camera_motion}.
+
+\begin{figure}[t]  
+    \scriptsize
+    \centering  
+\includegraphics[width=0.95\textwidth]{figures/camera_motion/motion_showcase.pdf}  
+    \caption{Generated video results guided by camera motion.} 
+    \label{fig:results_camera_motion}  
+\end{figure}
+
+\textbf{Camera pose encoder.} First, for each pixel in each video frame, we use Plücker coordinates to transform the given extrinsic and intrinsic parameters into a sequence of fine-grained positions $P\in \mathbb{R}^{6\times F\times H \times W}$.
+To adjust the compression resolution of video latent features, we apply the PixelUnshuffle operation in Pytorch~\citep{paszke2019pytorch} to reduce the spatial resolution of $P$ while increasing the number of channels. Finally, we encode the output using a series of convolutional modules aligned with the number of DiT blocks to extract multi-level camera motion features.
+
+
+\textbf{Camera pose adapter.} To integrate camera motion features into video latent features,  we adopt an adaptive normalization layer.
+Specifically, we transform the input camera motion feature sequence into scaling factors $\gamma_{i}$ and shifting parameters $\beta_{i}$ using two zero-initialized convolution layers. Then, $\gamma_{i}$ and $\beta_{i}$ are incorporated into each DiT block through a simple linear projection defined by the formula $f_{i} =(\gamma_{i}+1)*f_{i-1}+ \beta_{i}$, where $f_{i}$ represents the video latent features at layer $i$.
+
+
+Regarding the training data, we utilize an advanced camera pose estimation algorithm named VGG-SfM ~\citep{wang2024vggsfm} to extract camera trajectories from our training videos that exhibit significant camera motion.
+This process yields approximately $\mathcal{O}(1)$ thousand video segments.
+We train our module within our text-to-video generation framework using the Adam optimizer.
+Fig.~\ref{fig:results_camera_motion} presents various example results of videos generated under camera motion guidance.
+
+

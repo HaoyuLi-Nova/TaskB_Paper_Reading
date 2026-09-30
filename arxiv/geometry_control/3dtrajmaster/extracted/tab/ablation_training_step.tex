@@ -1,0 +1,29 @@
+\begin{table}[!ht]
+
+\caption{Ablation Study on Training Step $TS$.}
+\label{tab:ablation_ts}
+
+\centering
+\begin{threeparttable}
+\resizebox{.85\textwidth}{!} 
+{
+\begin{tabular}{ccccccccccc}
+\toprule
+&  \multicolumn{3}{c}{ Video Quality } & \multicolumn{2}{c}{ 3D Trajectory Accuracy } \\
+\cmidrule(lr){2-4} 
+\cmidrule(lr){5-6} 
+Train. Steps $TS$ & FVD  & FID  & CLIPSIM $\uparrow$ & TransErr (m)  & RotErr (deg)  \\
+
+\midrule
+$TS=12,000$ & \textbf{1493.68} & \textbf{72.03} & \underline{0.3427} & 0.561 & 0.713 \\
+$TS=36,000$ & \underline{1883.15} & \underline{99.98} & 0.3408 & 0.523 & 0.631 \\
+$TS=72,000$ & 1976.01 & 106.45 & \textbf{0.3429} & 0.546 & 0.493 \\
+$TS=108,000$ & 2068.43 & 111.01 & 0.3388 & \underline{0.446} & \textbf{0.480} \\
+$TS=144,000$ & 2102.28 & 114.84 & 0.3367 & \textbf{0.411} & \underline{0.482} \\
+\bottomrule
+
+\end{tabular}
+}
+
+\end{threeparttable}
+\end{table}

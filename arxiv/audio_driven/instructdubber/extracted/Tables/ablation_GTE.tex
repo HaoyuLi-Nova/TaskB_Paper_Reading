@@ -1,0 +1,20 @@
+\begin{table}[!t]
+\centering
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{c|cccc}
+    \hline
+    Models & DD  & \small{EMO-SIM} (\%) $\uparrow$ & WER(\%)  & UTMOS $\uparrow$\\
+    \toprule
+    VideoLLaMA3-7B & 0.4924 & 70.09 & 9.84 & 3.46\\
+    LLaVA-Next-7B &  0.4933 & 70.94 & 9.79 & 3.44\\
+    \midrule
+    GTE-0.6B& 0.4988 & 70.99 & 10.02 & 3.43 \\
+    GTE-1.5B  & 0.4933 & 70.94 & 9.79 & 3.44 \\
+    GTE-4B & 0.4999 & 70.51 & 10.27 & 3.41 \\
+    \bottomrule
+\end{tabular}}
+% \vspace{-0.2cm}
+\caption{Results of ablation study on different MLLMs and GTE models of varying size.}
+\label{abl_gte}
+% \vspace{-0.4cm}
+\end{table}

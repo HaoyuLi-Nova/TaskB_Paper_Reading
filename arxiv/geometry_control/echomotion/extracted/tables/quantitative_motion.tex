@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering
+\caption{\reb{Quantitative comparison of motion generation quality. The metrics are: Frechet Inception Distance (\textbf{FID}), Pose Plausibility (\textbf{PP}), Prompt Following (\textbf{PF}), and Motion Smoothness (\textbf{MS}).}}
+\label{tab:motion_generation_comparison}
+\begin{tabular}{lcccc}
+\toprule
+
+\textbf{Method} & \textbf{FID}  & \textbf{PP} $\uparrow$ & \textbf{PF} $\uparrow$ & \textbf{MS} $\uparrow$ \\
+\midrule
+MLD & - & 71.4 & 63.7 & 91.5 \\
+MotionGPT & - & \underline{80.1} & 72.3 & \textbf{93.9} \\
+\midrule
+EchoMotion (Wan 1.3B)  & \textbf{10.9} & 79.5 & \underline{78.8} & {92.2} \\
+EchoMotion (Wan 5B)  & 11.3 & \textbf{80.8} & \textbf{82.3} & \underline{92.4} \\
+\bottomrule
+\end{tabular}
+\end{table}

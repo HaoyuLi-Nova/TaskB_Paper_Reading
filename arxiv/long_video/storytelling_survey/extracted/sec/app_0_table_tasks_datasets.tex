@@ -1,0 +1,116 @@
+
+\addtocounter{table}{-1}
+
+\begin{table*}[!t]
+  \centering
+  \caption{Overview of video diffusion models, their applications, and training datasets. We categorize models by tasks, generation statistics, subject capabilities, and video duration.
+      \xmybox[green]{TV}Text-to-Video, 
+    \xmybox[blue]{IV}Image-to-Video, 
+    \xmybox[orange]{VV}Video-to-Video, 
+    \xmybox[yellow]{VE}Vide-Extension.
+    \quad % Adds some space
+    \xmyboxsquare[grass]{S}Single-Subject,
+    \xmyboxsquare[mint]{M}Multi-Subject, 
+    \xmyboxsquare[bluejeans]{S}Greater than 17 seconds, %blue 
+    \xmyboxsquare[yellow]{S}5 up to 16 seconds, %blue 
+    \xmyboxsquare[bittersweet]{S}Less than 5 seconds. %red
+}
+\vspace{-3.5mm}
+  \label{tab:tasks-datases}
+  \small                                  % use a smaller font
+  \setlength{\tabcolsep}{3.5pt}             % tighten horizontal padding
+  \begin{tabularx}{\textwidth}{
+    p{2.4cm}  |   % Col 1: “Paper’s Github” fixed at 3 cm wide (adjust as needed)
+    r       |   % Col 2: Stars (right‐aligned narrow column)
+    c       |   % Col 3: Date (centered)
+    c@{}c@{}c@{}c |  % Cols 4–7: Tasks (4 tiny centered cols, no inter‐space)
+    c@{\hspace{5pt}}r@{\hspace{0.1pt}}r | % Cols 8–10: Gen Stats (one centered + two right with small gaps)
+    c          % Col 11: Subjects (centered)
+    p{2cm}  |   % Col 12: Dataset fixed at 4 cm wide (wider!)
+    p{1.6cm}      % Col 13: Affiliation fixed at 3 cm
+    % H
+  }
+    \toprule
+
+      % --- HEADER ROW 1: Main Headers ---
+      \bfseries Paper's Github 
+      & \bfseries Stars 
+      & \bfseries Date
+      & \multicolumn{4}{c|}{\bfseries Tasks} 
+      & \multicolumn{3}{c|}{\bfseries Generation Statistics}
+      & \bfseries Subjects
+      & \bfseries Dataset
+      & \bfseries Affiliation \\
+      % --- HEADER ROW 2: Sub-headers ---
+      \cmidrule(lr){4-7} \cmidrule(lr){9-11}
+      & & & \bfseries TV & \bfseries IV & \bfseries VV & \bfseries VE & \bfseries Len. & \bfseries FPS & \bfseries \#Frames & & & \\
+    \midrule
+    \href{https://seed.bytedance.com/en/seedance}{Seedance 1.0}~\cite{gao2025seedance} & - & 06'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[yellow]{5} & 30 & 150 & \xmyboxsquare[mint]{M} & - & ByteDance \\
+    \href{https://github.com/Tencent-Hunyuan/HunyuanVideo-Avatar}{HunyuanVideo-Avatar}~\cite{chen2025hunyuanvideoavatar} & 1K & 05'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[bluejeans]{30} & 25 & 750 & \xmyboxsquare[mint]{M} & Koala-36M, CelebV-HQ, HDTF & Tencent \\
+    \href{https://github.com/SandAI-org/MAGI-1}{MAGI-1}~\cite{teng2025magi1} & 3.2K & 05'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & \xmybox[Yellow]{VE} & \xmyboxsquare[yellow]{16} & 24 & 384 & \xmyboxsquare[grass]{S} & Open-perfectblend & Sand AI \\
+    \href{https://github.com/Tencent-Hunyuan/HunyuanCustom}{HunyuanCustom}\\~\cite{hu2025hunyuancustom} & 1K & 05'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & \xmybox[orange]{VV} & & \xmyboxsquare[yellow]{5} & 26 & 129 & \xmyboxsquare[mint]{M} & OpenHumanvid, Panda-2M & Tencent \\
+    \href{https://deepmind.google/models/veo/}{Veo3}~\cite{deepmind2025veo3} & - & 05'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & \xmybox[Yellow]{VE} & \xmyboxsquare[yellow]{8} & 60 & 480 & \xmyboxsquare[mint]{M} & - & Google \\
+    \href{https://github.com/SkyworkAI/SkyReels-V2}{SkyReels-v2}~\cite{chen2025skyreelsv2} & 2.7K & 04'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & \xmybox[Yellow]{VE} & \xmyboxsquare[bluejeans]{30} & 24 & 720 & \xmyboxsquare[mint]{M} & Koala-36M, HumanVid & Skywork AI \\
+    \href{https://github.com/hpcaitech/Open-Sora}{Open-Sora 2.0  
+    }~\cite{peng2025opensora2} & 26.6K & 03'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[yellow]{5} & 24 & 128 & \xmyboxsquare[mint]{M} & WebVid-10M, Panda-70M, HD-VG-130M, MiraData, Vript, Inter4K & HPC-AI Tech \\
+    \href{https://github.com/Wan-Video/Wan2.1}{WAN}~\cite{wan2025} & 11.8K & 03'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & \xmybox[Yellow]{VE} & \xmyboxsquare[yellow]{5} & 16 & 81 & \xmyboxsquare[mint]{M} & - & Alibaba \\
+    \href{https://github.com/ali-vilab/VACE}{VACE}~\cite{vace2025} & 2.3K & 03'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & \xmybox[orange]{VV} & \xmybox[Yellow]{VE} & \xmyboxsquare[yellow]{5} & 16 & 81 & \xmyboxsquare[mint]{M} & - & Alibaba \\
+    \href{https://github.com/Phantom-video/Phantom}{Phantom}~\cite{liu2025phantom} & 1K & 02'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[yellow]{5} & 25 & 125 & \xmyboxsquare[mint]{M} & Panda70M & ByteDance \\
+    \href{https://github.com/stepfun-ai/Step-Video-Ti2V}{StepVideo}~\cite{huang2025stepvideo} & 3K & 02'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[yellow]{8} & 25 & 204 & \xmyboxsquare[mint]{M} & - & Step-Video \\
+    \href{https://yuzhou914.github.io/ConceptMaster/}{ConceptMaster}~\cite{huang2025conceptmaster} & - & 01'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[yellow]{5} & 62 & 310 & \xmyboxsquare[mint]{M} & Panda-2M, MS-COCO & Kuaishou Tech \\
+    \href{https://snap-research.github.io/open-set-video-personalization/}{VideoAlchemist}~\cite{chen2025videoalchemist} & - & 01'25 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[yellow]{5} & 24 & 120 & \xmyboxsquare[mint]{M} & MSRVTT-Personalization & Snap \\
+    \href{https://github.com/Tencent-Hunyuan/HunyuanVideo}{HunyuanVideo}~\cite{kong2024hunyuanvideo} & 10.2K & 12'24 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & \xmybox[Yellow]{VE} & \xmyboxsquare[yellow]{5} & 26 & 129 & \xmyboxsquare[mint]{M} & - & Tencent \\
+    \href{https://github.com/Lightricks/LTX-Video}{LTX-video}~\cite{hacohen2025ltxvideo} & 6.3K & 12'24 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & \xmybox[Yellow]{VE} & \xmyboxsquare[yellow]{5} & 24 & 120 & \xmyboxsquare[mint]{M} & MS-COCO, LAION-5B, MSR-VTT, UCF-101 & Lightricks \\
+    \href{https://ai.meta.com/research/movie-gen/}{MovieGen}~\cite{polyak2024moviegen} & - & 10'24 & \xmybox[green]{TV} & \xmybox[blue]{IV} & \xmybox[orange]{VV} & & \xmyboxsquare[yellow]{16} & 24 & 384 & \xmyboxsquare[bluejeans]{L} & UCF-101, MSR-VTT, Kinetics-400, SAM-2 & Meta \\
+    \href{https://github.com/THUDM/CogVideo}{CogVideoX}~\cite{yang2024cogvideox} & 11.5K & 08'24 & \xmybox[green]{TV} & \xmybox[blue]{IV} & \xmybox[orange]{VV} & & \xmyboxsquare[yellow]{10} & 16 & 160 & \xmyboxsquare[bluejeans]{L} & Panda-70M, COYO-700M, LAION-5B, WebVid & Tsinghua Uni \\
+    \href{https://github.com/PKU-YuanGroup/Open-Sora-Plan}{Open-Sora Plan}~\cite{lin2024opensoraplan} & 12K & 11'24 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[yellow]{6} & 24 & 144 & \xmyboxsquare[bluejeans]{L} & COCO, JourneyDB, Panda70M, VIDAL-10M, WebVid-10M & Peking Uni \\
+  \end{tabularx}
+\end{table*}
+
+\addtocounter{table}{-1}
+
+\begin{table*}[!t]\ContinuedFloat
+  \caption{(Continued)}
+  \small                                  % use a smaller font
+  \setlength{\tabcolsep}{3.5pt}             % tighten horizontal padding
+  \begin{tabularx}{\textwidth}{
+    p{2.6cm}  |   % Col 1: “Paper’s Github” fixed at 3 cm wide (adjust as needed)
+    r       |   % Col 2: Stars (right‐aligned narrow column)
+    c       |   % Col 3: Date (centered)
+    c@{}c@{}c@{}c |  % Cols 4–7: Tasks (4 tiny centered cols, no inter‐space)
+    c@{\hspace{5pt}}r@{\hspace{0.1pt}}r | % Cols 8–10: Gen Stats (one centered + two right with small gaps)
+    c          % Col 11: Subjects (centered)
+    p{2cm}  |   % Col 12: Dataset fixed at 4 cm wide (wider!)
+    p{1.6cm}      % Col 13: Affiliation fixed at 3 cm
+  }
+    \toprule
+      % --- HEADER ROW 1: Main Headers ---
+      \bfseries Paper's Github 
+      & \bfseries Stars 
+      & \bfseries Date
+      & \multicolumn{4}{c|}{\bfseries Tasks} 
+      & \multicolumn{3}{c|}{\bfseries Generation Statistics}
+      & \bfseries Subjects
+      & \bfseries Dataset
+      & \bfseries Affiliation \\
+      % --- HEADER ROW 2: Sub-headers ---
+      \cmidrule(lr){4-7} \cmidrule(lr){9-11}
+      & & & \bfseries TV & \bfseries IV & \bfseries VV & \bfseries VE & \bfseries Len. & \bfseries FPS & \bfseries \#Frames & & & \\
+    \midrule
+    \href{https://yuqingwang1029.github.io/Loong-video/}{Loong}~\cite{wang2024loong} & - & 10'24 & \xmybox[green]{TV} & & & & \xmyboxsquare[bluejeans]{150} & 7 & 1050 & \xmyboxsquare[mint]{M} & LAION-5B, MSR-VTT & ByteDance \\
+    \href{https://github.com/Dawn-LX/CausalCache-VDM}{Ca2-VDM}~\cite{gao2024ca2vdm} & 1K & 06'24 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[bluejeans]{60} & 24 & 1440 & \xmyboxsquare[grass]{S} & MSR-VTT, UCF-101, Sky Timelapse & Zhejiang Uni \\
+    \href{https://openai.com/sora/}{Sora}~\cite{openai2024sora} & - & 06'24 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[bluejeans]{20} & 30 & 600 & \xmyboxsquare[mint]{M} & - & openAI \\
+    \href{https://github.com/HVision-NKU/StoryDiffusion}{StoryDiffusion}~\cite{zhou2024storydiffusion} & 6.3K & 05'24 & \xmybox[green]{TV} & & & & \xmyboxsquare[yellow]{13} & 14 & 182 & \xmyboxsquare[mint]{M} & Webvid10M & ByteDance \\
+    \href{https://github.com/kyegomez/LUMIERE}{Lumiere}~\cite{bartal2024lumiere} & 1K & 01'24 & \xmybox[green]{TV} & \xmybox[blue]{IV} & \xmybox[orange]{VV} & & \xmyboxsquare[yellow]{5} & 16 & 80 & \xmyboxsquare[bluejeans]{L} & UCF101 & Google \\
+    \href{https://sites.research.google/videopoet/}{VideoPoet}~\cite{singer2023videopoet} & - & 12'23 & \xmybox[green]{TV} & \xmybox[blue]{IV} & \xmybox[orange]{VV} & & \xmyboxsquare[yellow]{5} & 8 & 41 & \xmyboxsquare[bluejeans]{L} & MSR-VTT, UCF-101, Kinetics 600, Something-Something V2, DAVIS & Google \\
+    \href{https://github.com/ali-vilab/Vgen}{DreamVideo}~\cite{gao2023dreamvideo} & 3.1K & 12'23 & \xmybox[green]{TV} & \xmybox[blue]{IV} & \xmybox[orange]{VV} & & \xmyboxsquare[bittersweet]{4} & 8 & 32 & \xmyboxsquare[grass]{S} & UCF101, DAVIS & Alibaba \\
+    \href{https://github.com/ali-vilab/Vgen}{I2VGen-XL}~\cite{zhang2023i2vgenxl} & 3.1K & 11'23 & \xmybox[green]{TV} & \xmybox[blue]{IV} & \xmybox[orange]{VV} & & \xmyboxsquare[bluejeans]{30} & 8 & 200 & \xmyboxsquare[grass]{S} & Web-Vid10M, LAION-400M & Alibaba \\
+    \href{https://github.com/Vchitect/SEINE}{SEINE}~\cite{chen2023seine} & 1K & 11'23 & \xmybox[green]{TV} & & & & \xmyboxsquare[bittersweet]{2} & 8 & 16 & \xmyboxsquare[grass]{S} & UCF101 & Shanghai AI \\
+    \href{https://github.com/Stability-AI/generative-models}{SVD}~\cite{ho2023svd} & 25.9K & 11'23 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[bittersweet]{2} & 14 & 25 & \xmyboxsquare[grass]{S} & UCF101, LVD-10M, MVImgNet, Google Scanned Objects & Stability AI \\
+    \href{https://magvit.cs.cmu.edu/v2/}{MAGVIT-v2}~\cite{yu2023magvitv2} & - & 10'23 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[bittersweet]{2} & 8 & 17 & \xmyboxsquare[grass]{S} & UCF-101, Kinetics-600, SSv2 & Google \\
+    \href{https://github.com/guoyww/AnimateDiff}{AnimateDiff}~\cite{gu2023animatediff} & 11.4K & 07'23 & & \xmybox[blue]{IV} & & & \xmyboxsquare[bittersweet]{2} & 16 & 32 & \xmyboxsquare[grass]{S} & WebVid-10M, Civitai & Stanford Uni \\
+    \href{https://video-diffusion.github.io/}{VDM}~\cite{ho2022vdm} & - & 04'22 & \xmybox[green]{TV} & \xmybox[blue]{IV} & & & \xmyboxsquare[bittersweet]{2} & 8 & 16 & \xmyboxsquare[grass]{S} & UCF101, BAIR Robot Pushing, Kinetics-600 & Google \\
+  \end{tabularx}
+\end{table*}
+
+  \vspace{1ex}

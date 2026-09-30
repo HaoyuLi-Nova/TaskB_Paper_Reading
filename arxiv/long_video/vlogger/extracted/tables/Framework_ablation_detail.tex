@@ -1,0 +1,27 @@
+\begin{table*}[t]
+    % \scriptsize
+    \centering
+    \setlength\tabcolsep{4.5pt}
+    \resizebox{1\linewidth}{!}{%
+    \begin{tabular}{l | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c}
+        \toprule
+    \multicolumn{1}{c |}{ } & \multicolumn{3}{| c}{\textbf{Teddy Travel}} & \multicolumn{3}{| c}{\textbf{Alfie Work}} & \multicolumn{3}{| c}{\textbf{Tiger Moon}} & \multicolumn{3}{| c}{\textbf{Pete Skiing}} & \multicolumn{3}{| c}{\textbf{Anna Cooking}} \\
+    \midrule
+        \textbf{Method} & \textbf{CI ($\uparrow$)} & \textbf{CT ($\uparrow$)} & \textbf{VD ($\uparrow$)} & \textbf{CI ($\uparrow$)} & \textbf{CT ($\uparrow$)} & \textbf{VD ($\uparrow$)} & \textbf{CI ($\uparrow$)} & \textbf{CT ($\uparrow$)} & \textbf{VD ($\uparrow$)} & \textbf{CI ($\uparrow$)} & \textbf{CT ($\uparrow$)} & \textbf{VD ($\uparrow$)} & \textbf{CI ($\uparrow$)} & \textbf{CT ($\uparrow$)} & \textbf{VD ($\uparrow$)}  \\
+        
+        \midrule
+        w/o \small{autoregressive}~\cite{Zhu2023MovieFactoryAM} & 0.5659 & 0.2846 & 48s & 0.5537 & 0.2641 & 1min20s & 0.6918 & 0.2819 & 1min10s & 0.4946 & 0.2627 & 54s & 0.5356 & 0.288 & 1min04s \\
+        
+        only \small{autoregressive}~\cite{villegas2023phenaki} & 0.5578 & 0.2554 & 2min47s & 0.5445 & 0.2361 & 5min12s & 0.6859 & 0.262 & 4min17s & 0.5033 & 0.2463 & 3min22s & 0.5295 & 0.2675 & 4min11s \\
+        
+        \textbf{Ours} & \textbf{0.653} & \textbf{0.2847} & \textbf{2min47s} & \textbf{0.6168} & \textbf{0.262} & \textbf{5min12s} & \textbf{0.7848} & \textbf{0.2802} & \textbf{4min17s} & \textbf{0.5393} & \textbf{0.2639} & \textbf{3min22s} & \textbf{0.553} & \textbf{0.2871} & \textbf{4min11s} \\
+        \bottomrule
+        % \vspace{-1.75em}
+    \end{tabular}
+    }
+    \caption{\textbf{Detail ablation for generation process}.
+    CI, CT, and VD refer to CLIP-I, CLIP-T, and Vlog Duration respectively.
+    }
+    \vspace{-1em}
+    \label{tab:framework_ablation_detail}
+\end{table*}

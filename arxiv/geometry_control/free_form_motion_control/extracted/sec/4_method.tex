@@ -1,0 +1,72 @@
+\section{The Proposed Approach}\label{sec:approach}
+Given $N$-length camera poses $\mathcal{C}_{RT}$~=~${RT}_{cam}^{1:N}$, object poses $\mathcal{O}_{RT}$~=~$\{RT_{obj_i}^{1:N}\}_{i=1}^{N_o}$ of $N_o$ objects in the global coordinate system, and content description $\mathbf{C}_p$, we aim to generate the video that reveals correct motion in real world. 
+
+
+As shown in \cref{tab:methods}, most methods cannot independently or jointly control object and camera movements in a 3D-aware manner. For example, AnimateDiff~\cite{AnimateDiff} and CameraCtrl~\cite{CameraCtrl} only support camera control.~Methods~\cite{VideoComposer,DragNUWA,Direct-A-Video,MotionCtrl} using image-space trajectories faces motion entanglement issues and can't control the orientation. Although Direct-a-Video~\cite{Direct-A-Video} introduces several camera types and allows explicit control, it is limited to simple motion patterns. MotionCtrl~\cite{MotionCtrl}, the closest to ours, trains two motion modules separately but lacks comprehensive 6D pose annotations, resulting in suboptimal simultaneous control of camera and object motions. Additionally, it simply applies standard diffusion loss~\cite{Diffusion} when training motion modules, which further hinders its ability to disentangle camera and object motions within a video. \methodname trained on \datasetname introduces \camctrlcompletename (\camctrlname) and \objctrlcompletename (\objctrlname) to address these limitations. \objctrlname receives 6D pose and coarse mask of the object to perceive its spatial location and orientation, achieving a realistic appearance from various viewpoints. The training objectives enable \methodname to disentangle the motion effects of objects and the camera in the video, allowing independent or joint 3D-aware control of camera and object motions.
+
+
+\noindent$\bullet$~\textbf{{Preliminary}.}~{1)} T2V diffusion models~\cite{AnimateDiff,Imagen-Video,I2VGen-XL,MAGVIT,Make-A-Video,VDM} add Gaussian noise $\epsilon$ to image sequence $\mathbf{z}_0^{1:N}$ in training, resulting in noisy latents $\mathbf{z}_t^{1:N}$ at $t$ time step. Network $\varepsilon_{\theta}$ then is trained to infer the injected noise from current latents.~2) LoRAs~\cite{LoRA,AnimateDiff} are used to learn different content styles.~We apply this to bridge the synthetic-real video domain gap. {3)} Following~\cite{CameraCtrl}, we use {pl\"ucker embedding} to represent camera pose for geometric interpretation.
+
+
+\begin{figure}[t]
+\vspace{-1.6mm}
+    \centering
+    \includegraphics[width=0.999\linewidth]{lora.pdf}
+    \vspace{-8.6mm}
+    \caption{Domain LoRA. We sample the first frame of generated videos under without and with Domain LoRA settings.}
+    \label{fig:lora}
+    \vspace{-3.6mm}
+\end{figure}
+
+
+ \begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.999\linewidth]{network_compressed.pdf}
+    \vspace{-6.6mm}
+    \caption{The architecture of \methodname. In the first stage, we randomly sample the images from synthetic videos and update the parameters from injected \textit{Domain LoRA}. Next, the modules from \camctrlname are learned. It consists of two parts: \textit{Camera Encoder} and \textit{Camera Adapter}, where the Camera Adapter is introduced into the temporal modules. Finally, we train the \textit{Object Encoder} from \objctrlname. It receives the 6D object pose features, which are repeated in the corresponding object region. We use Gaussian blur kernel centered at the centroid to prevent the need of precise masks. Then, the output is multiplied by the coarse masks to modulate the features in the main branch.}
+    \label{fig:network}
+    \vspace{-3.6mm}
+\end{figure*}
+
+\subsection{Free-Form Motion Control}\label{sec:method}
+\cref{fig:network} shows the overall architecture of the proposed \methodname method. We train it in 3 stages.~First, Domain LoRA~\cite{LoRA} are injected into spatial blocks to adapt to rendered content, with temporal modules inactive and images randomly sampled from synthetic data. \cref{fig:lora} shows the effectiveness of this stage in bridging the domain gap.~Then, \camctrlname is trained to learn camera motion, introducing temporal modules and loading LoRA from the previous step. Finally, \objctrlname is trained to decouple object dynamics from camera motion, with other parameters frozen. During inference, LoRA modules are dropped to maintain the quality of base model.
+
+
+
+\noindent$\bullet$
+\textbf{\camctrlcompletename (\camctrlname).} 
+It consists of two parts as shown in \cref{fig:network}. 
+Camera Encoder receives pl\"ucker embeddings, where the initial camera pose (translation values are set to 0) and the relative camera poses are used for the first and subsequent frames respectively. The initial pose helps to determine the perspective at the start time. Then, the outputs are processed by Camera Adapter to modulate the features in temporal blocks. Due to the dynamic of the background being only affected by camera motion, \textit{camera loss} $L_{cam}$ is applied in this stage:
+\vspace{-0.6mm}\begin{equation}\vspace{-0.6mm}
+\resizebox{0.432\textwidth}{!}{$
+\begin{aligned}\label{eq:cam-ddpm-loss}
+% \underset{\theta_c}{\arg \min } 
+L_{cam}=E_{\mathbf{z}_0^{1:N},t,\epsilon,\mathbf{C}_p,\mathcal{C}_{RT}}&[\mathcal{M}_{bg}\left\|\varepsilon_{\theta,\theta_c}\left(\mathbf{z}^{1:N}_t, t, \mathbf{C}_p,\mathcal{C}_{RT}\right)-\epsilon\right\|^2 \\
+&+ \lambda_c \left\|\varepsilon_{\theta,\theta_c}\left(\mathbf{z}^{1:N}_t, t, \mathbf{C}_p,\mathcal{C}_{RT}\right)-\epsilon\right\|^2 ],
+\end{aligned}
+$
+}
+\end{equation}
+where $\theta_c$ is the parameters of \camctrlname. $\mathcal{M}_{bg}$ is background mask and $\lambda_c$ is the weighting factor. $L_{cam}$ makes camera motion more accurate by concentrating on the background. 
+
+
+
+\noindent$\bullet$
+\textbf{\objctrlcompletename (\objctrlname).} The Object Encoder of \objctrlname receives 6D object pose information to adjust the features in spatial modules from several downsample blocks~\cite{StableDiffusion,MotionCtrl}. Specifically, the poses relative to the camera in each frame are duplicated within the respective object region while the others are set to 0. Then, the pose features concatenated with the foreground mask are fed to \objctrlname. In this manner, the poses from different objects can be aggregated in a single input. Besides, we leverage the Gaussian blur kernel centered at the object centroid to avoid users offering precise masks. Then, the outputs from \objctrlname are multiplied by the coarse masks and added to the spatial features in the main branch, preventing to impair the background content. During inference, the size of the kernel can be approximated based on the object's size (specified by the user) and its distance from the camera. \textit{object loss} $L_{obj}$ is applied to make \objctrlname focus on the object region:
+\vspace{-1.6mm}\begin{equation}\vspace{-1mm}
+\resizebox{0.332\textwidth}{!}{$
+\begin{aligned}\label{eq:obj-ddpm-loss}
+&L_{obj}=E_{\mathbf{z}_0^{1:N},t,\epsilon,\mathbf{C}_p,\mathcal{C}_{RT},\mathcal{O}_{RT}}[ \\
+&\mathcal{M}_{fg}\left\|\varepsilon_{\theta,\theta_c,\theta_o}\left(\mathbf{z}^{1:N}_t, t, \mathbf{C}_p,\mathcal{C}_{RT},\mathcal{O}_{RT}\right)-\epsilon\right\|^2  \\
+&+\lambda_o \left\|\varepsilon_{\theta,\theta_c,\theta_o}\left(\mathbf{z}^{1:N}_t, t, \mathbf{C}_p,\mathcal{C}_{RT},\mathcal{O}_{RT}\right)-\epsilon\right\|^2 ],
+\end{aligned}
+$}
+\end{equation}
+where $\theta_o$ indicates the parameters from \objctrlname. $\mathcal{M}_{fg}$ is foreground mask and $\lambda_o$ is the weighting factor.~$L_{obj}$ improves the appearance quality of dynamic objects. 
+
+
+
+
+
+
+

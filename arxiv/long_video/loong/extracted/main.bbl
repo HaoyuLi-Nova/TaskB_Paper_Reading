@@ -1,0 +1,343 @@
+\begin{thebibliography}{10}\itemsep=1pt
+
+\bibitem{video-diffusion-models}
+Jonathan Ho, Tim Salimans, Alexey Gritsenko, William Chan, Mohammad Norouzi, and David~J Fleet.
+\newblock Video diffusion models.
+\newblock {\em arXiv preprint arXiv:2204.03458}, 2022.
+
+\bibitem{gen1_paper}
+Patrick Esser, Johnathan Chiu, Parmida Atighehchian, Jonathan Granskog, and Anastasis Germanidis.
+\newblock Structure and content-guided video synthesis with diffusion models.
+\newblock In {\em Proc. IEEE Int. Conf. Comp. Vis.}, pages 7346--7356, 2023.
+
+\bibitem{make-a-video}
+Uriel Singer, Adam Polyak, Thomas Hayes, Xi Yin, Jie An, Songyang Zhang, Qiyuan Hu, Harry Yang, Oron Ashual, Oran Gafni, et~al.
+\newblock Make-a-video: Text-to-video generation without text-video data.
+\newblock In {\em Proc. Int. Conf. Learn. Representations}, 2022.
+
+\bibitem{bar2024lumiere}
+Omer Bar-Tal, Hila Chefer, Omer Tov, Charles Herrmann, Roni Paiss, Shiran Zada, Ariel Ephrat, Junhwa Hur, Yuanzhen Li, Tomer Michaeli, et~al.
+\newblock Lumiere: A space-time diffusion model for video generation.
+\newblock {\em arXiv preprint arXiv:2401.12945}, 2024.
+
+\bibitem{MakePixelsDance}
+Yan Zeng, Guoqiang Wei, Jiani Zheng, Jiaxin Zou, Yang Wei, Yuchen Zhang, and Hang Li.
+\newblock Make pixels dance: High-dynamic video generation.
+\newblock {\em arXiv:2311.10982}, 2023.
+
+\bibitem{girdhar2023emu}
+Rohit Girdhar, Mannat Singh, Andrew Brown, Quentin Duval, Samaneh Azadi, Sai~Saketh Rambhatla, Akbar Shah, Xi Yin, Devi Parikh, and Ishan Misra.
+\newblock Emu video: Factorizing text-to-video generation by explicit image conditioning.
+\newblock {\em arXiv preprint arXiv:2311.10709}, 2023.
+
+\bibitem{zhou2022magicvideo}
+Daquan Zhou, Weimin Wang, Hanshu Yan, Weiwei Lv, Yizhe Zhu, and Jiashi Feng.
+\newblock Magicvideo: Efficient video generation with latent diffusion models.
+\newblock {\em arXiv preprint arXiv:2211.11018}, 2022.
+
+\bibitem{wang2024magicvideo}
+Weimin Wang, Jiawei Liu, Zhijie Lin, Jiangqiao Yan, Shuo Chen, Chetwin Low, Tuyen Hoang, Jie Wu, Jun~Hao Liew, Hanshu Yan, et~al.
+\newblock Magicvideo-v2: Multi-stage high-aesthetic video generation.
+\newblock {\em arXiv preprint arXiv:2401.04468}, 2024.
+
+\bibitem{yan2021videogpt}
+Wilson Yan, Yunzhi Zhang, Pieter Abbeel, and Aravind Srinivas.
+\newblock Videogpt: Video generation using vq-vae and transformers.
+\newblock {\em arXiv preprint arXiv:2104.10157}, 2021.
+
+\bibitem{kondratyuk2023videopoet}
+Dan Kondratyuk, Lijun Yu, Xiuye Gu, Jos{\'e} Lezama, Jonathan Huang, Rachel Hornung, Hartwig Adam, Hassan Akbari, Yair Alon, Vighnesh Birodkar, et~al.
+\newblock Videopoet: A large language model for zero-shot video generation.
+\newblock {\em arXiv preprint arXiv:2312.14125}, 2023.
+
+\bibitem{wang2023gen_L}
+Fu-Yun Wang, Wenshuo Chen, Guanglu Song, Han-Jia Ye, Yu Liu, and Hongsheng Li.
+\newblock Gen-l-video: Multi-text to long video generation via temporal co-denoising.
+\newblock {\em arXiv preprint arXiv:2305.18264}, 2023.
+
+\bibitem{streamingt2v}
+Roberto Henschel, Levon Khachatryan, Daniil Hayrapetyan, Hayk Poghosyan, Vahram Tadevosyan, Zhangyang Wang, Shant Navasardyan, and Humphrey Shi.
+\newblock Streamingt2v: Consistent, dynamic, and extendable long video generation from text.
+\newblock {\em arXiv preprint arXiv:2403.14773}, 2024.
+
+\bibitem{openai2024sora}
+OpenAI.
+\newblock Sora: Creating video from text.
+\newblock \url{https://openai.com/sora}, 2024.
+
+\bibitem{radford2018improving}
+Alec Radford, Karthik Narasimhan, Tim Salimans, Ilya Sutskever, et~al.
+\newblock Improving language understanding by generative pre-training.
+\newblock 2018.
+
+\bibitem{radford2019language}
+Alec Radford, Jeff Wu, Rewon Child, David Luan, Dario Amodei, and Ilya Sutskever.
+\newblock Language models are unsupervised multitask learners.
+\newblock 2019.
+
+\bibitem{gpt3}
+Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared~D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Sastry, et~al.
+\newblock Language models are few-shot learners.
+\newblock In H. Larochelle, M. Ranzato, R. Hadsell, M.F. Balcan, and H. Lin, editors, {\em Proc. Advances in Neural Inf. Process. Syst.}, 2020.
+
+\bibitem{reid2024gemini}
+Machel Reid, Nikolay Savinov, Denis Teplyashin, Dmitry Lepikhin, Timothy Lillicrap, Jean-baptiste Alayrac, Radu Soricut, Angeliki Lazaridou, Orhan Firat, Julian Schrittwieser, et~al.
+\newblock Gemini 1.5: Unlocking multimodal understanding across millions of tokens of context.
+\newblock {\em arXiv preprint arXiv:2403.05530}, 2024.
+
+\bibitem{touvron2023llama}
+Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timoth{\'e}e Lacroix, Baptiste Rozi{\`e}re, Naman Goyal, Eric Hambro, Faisal Azhar, et~al.
+\newblock Llama: Open and efficient foundation language models.
+\newblock {\em arXiv preprint arXiv:2302.13971}, 2023.
+
+\bibitem{touvron2023llama2}
+Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et~al.
+\newblock Llama 2: Open foundation and fine-tuned chat models.
+\newblock {\em arXiv preprint arXiv:2307.09288}, 2023.
+
+\bibitem{goodfellow2014generative}
+Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio.
+\newblock Generative adversarial networks.
+\newblock In {\em Proc. Advances in Neural Inf. Process. Syst.}, volume~27, 2014.
+
+\bibitem{vgan}
+Carl Vondrick, Hamed Pirsiavash, and Antonio Torralba.
+\newblock Generating videos with scene dynamics.
+\newblock In {\em Proc. Advances in Neural Inf. Process. Syst.}, 2016.
+
+\bibitem{mocogan}
+Sergey Tulyakov, Ming-Yu Liu, Xiaodong Yang, and Jan Kautz.
+\newblock Mocogan: Decomposing motion and content for video generation.
+\newblock In {\em Proc. IEEE Conf. Comp. Vis. Patt. Recogn.}, 2018.
+
+\bibitem{ho2020ddpm}
+Jonathan Ho, Ajay Jain, and Pieter Abbeel.
+\newblock Denoising diffusion probabilistic models.
+\newblock In {\em Proc. Advances in Neural Inf. Process. Syst.}, 2020.
+
+\bibitem{ho2022video}
+Jonathan Ho, Tim Salimans, Alexey Gritsenko, William Chan, Mohammad Norouzi, and David~J. Fleet.
+\newblock Video diffusion models.
+\newblock {\em arXiv preprint arXiv:2204.03458}, 2022.
+
+\bibitem{ho2022imagen}
+Jonathan Ho, William Chan, Chitwan Saharia, Jay Whang, Ruiqi Gao, Alexey Gritsenko, Diederik~P Kingma, Ben Poole, Mohammad Norouzi, David~J Fleet, et~al.
+\newblock Imagen video: High definition video generation with diffusion models.
+\newblock {\em arXiv preprint arXiv:2210.02303}, 2022.
+
+\bibitem{SVD}
+Andreas Blattmann, Tim Dockhorn, Sumith Kulal, Daniel Mendelevitch, Maciej Kilian, Dominik Lorenz, Yam Levi, Zion English, Vikram Voleti, Adam Letts, et~al.
+\newblock Stable video diffusion: Scaling latent video diffusion models to large datasets.
+\newblock {\em arXiv preprint arXiv:2311.15127}, 2023.
+
+\bibitem{li2023videogen}
+Xin Li, Wenqing Chu, Ye Wu, Weihang Yuan, Fanglong Liu, Qi Zhang, Fu Li, Haocheng Feng, Errui Ding, and Jingdong Wang.
+\newblock Videogen: A reference-guided latent diffusion approach for high definition text-to-video generation.
+\newblock {\em arXiv preprint arXiv:2309.00398}, 2023.
+
+\bibitem{zhang2023show1}
+David~Junhao Zhang, Jay~Zhangjie Wu, Jia-Wei Liu, Rui Zhao, Lingmin Ran, Yuchao Gu, Difei Gao, and Mike~Zheng Shou.
+\newblock Show-1: Marrying pixel and latent diffusion models for text-to-video generation.
+\newblock {\em arXiv preprint arXiv:2309.15818}, 2023.
+
+\bibitem{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan~N Gomez, \L~ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock In {\em Proc. Advances in Neural Inf. Process. Syst.}, 2017.
+
+\bibitem{villegas2022phenaki}
+Ruben Villegas, Mohammad Babaeizadeh, Pieter-Jan Kindermans, Hernan Moraldo, Han Zhang, Mohammad~Taghi Saffar, Santiago Castro, Julius Kunze, and Dumitru Erhan.
+\newblock Phenaki: Variable length video generation from open domain textual descriptions.
+\newblock In {\em Proc. Int. Conf. Learn. Representations}, 2022.
+
+\bibitem{yu2023language}
+Lijun Yu, Jos{\'e} Lezama, Nitesh~B Gundavarapu, Luca Versari, Kihyuk Sohn, David Minnen, Yong Cheng, Agrim Gupta, Xiuye Gu, Alexander~G Hauptmann, et~al.
+\newblock Language model beats diffusion--tokenizer is key to visual generation.
+\newblock In {\em Proc. Int. Conf. Learn. Representations}, 2024.
+
+\bibitem{rombach2022high}
+Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj{\"o}rn Ommer.
+\newblock High-resolution image synthesis with latent diffusion models.
+\newblock In {\em Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}, pages 10684--10695, 2022.
+
+\bibitem{he2022lvdm}
+Yingqing He, Tianyu Yang, Yong Zhang, Ying Shan, and Qifeng Chen.
+\newblock Latent video diffusion models for high-fidelity video generation with arbitrary lengths.
+\newblock {\em arXiv:2211.13221}, 2022.
+
+\bibitem{AlignYourLatents}
+Andreas Blattmann, Robin Rombach, Huan Ling, Tim Dockhorn, Seung~Wook Kim, Sanja Fidler, and Karsten Kreis.
+\newblock Align your latents: High-resolution video synthesis with latent diffusion models.
+\newblock In {\em Proc. IEEE Conf. Comp. Vis. Patt. Recogn.}, pages 22563--22575, 2023.
+
+\bibitem{peebles2023scalable}
+William Peebles and Saining Xie.
+\newblock Scalable diffusion models with transformers.
+\newblock In {\em Proc. IEEE Int. Conf. Comp. Vis.}, pages 4195--4205, 2023.
+
+\bibitem{vqvae}
+Aaron van~den Oord, Oriol Vinyals, and koray kavukcuoglu.
+\newblock Neural discrete representation learning.
+\newblock In {\em Proc. Advances in Neural Inf. Process. Syst.}, 2017.
+
+\bibitem{esser2020taming}
+Patrick Esser, Robin Rombach, and Bjorn Ommer.
+\newblock Taming transformers for high-resolution image synthesis.
+\newblock In {\em Proc. IEEE Conf. Comp. Vis. Patt. Recogn.}, pages 12873--12883, 2021.
+
+\bibitem{ramesh2021dalle}
+Aditya Ramesh, Mikhail Pavlov, Gabriel Goh, Scott Gray, Chelsea Voss, Alec Radford, Mark Chen, and Ilya Sutskever.
+\newblock Zero-shot text-to-image generation.
+\newblock In {\em Proc. Int. Conf. Mach. Learn.}, pages 8821--8831, 2021.
+
+\bibitem{yu2022scaling}
+Jiahui Yu, Yuanzhong Xu, Jing~Yu Koh, Thang Luong, Gunjan Baid, Zirui Wang, Vijay Vasudevan, Alexander Ku, Yinfei Yang, Burcu~Karagol Ayan, et~al.
+\newblock Scaling autoregressive models for content-rich text-to-image generation.
+\newblock {\em arXiv preprint arXiv:2206.10789}, 2022.
+
+\bibitem{chang2023muse}
+Huiwen Chang, Han Zhang, Jarred Barber, Aaron Maschinot, Jose Lezama, Lu Jiang, Ming-Hsuan Yang, Kevin~Patrick Murphy, William~T. Freeman, Michael Rubinstein, Yuanzhen Li, and Dilip Krishnan.
+\newblock Muse: Text-to-image generation via masked generative transformers.
+\newblock In {\em Proc. Int. Conf. Mach. Learn.}, pages 4055--4075, 2023.
+
+\bibitem{chang2022maskgit}
+Huiwen Chang, Han Zhang, Lu Jiang, Ce Liu, and William~T. Freeman.
+\newblock Maskgit: Masked generative image transformer.
+\newblock In {\em Proc. IEEE Conf. Comp. Vis. Patt. Recogn.}, June 2022.
+
+\bibitem{yu2024spae}
+Lijun Yu, Yong Cheng, Zhiruo Wang, Vivek Kumar, Wolfgang Macherey, Yanping Huang, David Ross, Irfan Essa, Yonatan Bisk, Ming-Hsuan Yang, et~al.
+\newblock Spae: Semantic pyramid autoencoder for multimodal generation with frozen llms.
+\newblock In {\em Proc. Advances in Neural Inf. Process. Syst.}, 2024.
+
+\bibitem{sun2024autoregressive}
+Peize Sun, Yi Jiang, Shoufa Chen, Shilong Zhang, Bingyue Peng, Ping Luo, and Zehuan Yuan.
+\newblock Autoregressive model beats diffusion: Llama for scalable image generation.
+\newblock {\em arXiv preprint arXiv:2406.06525}, 2024.
+
+\bibitem{tian2024visual}
+Keyu Tian, Yi Jiang, Zehuan Yuan, Bingyue Peng, and Liwei Wang.
+\newblock Visual autoregressive modeling: Scalable image generation via next-scale prediction.
+\newblock {\em arXiv preprint arXiv:2404.02905}, 2024.
+
+\bibitem{ge2022long}
+Songwei Ge, Thomas Hayes, Harry Yang, Xi Yin, Guan Pang, David Jacobs, Jia-Bin Huang, and Devi Parikh.
+\newblock Long video generation with time-agnostic vqgan and time-sensitive transformer.
+\newblock In {\em Proc. Eur. Conf. Comp. Vis.}, pages 102--118, 2022.
+
+\bibitem{wu2021godiva}
+Chenfei Wu, Lun Huang, Qianxi Zhang, Binyang Li, Lei Ji, Fan Yang, Guillermo Sapiro, and Nan Duan.
+\newblock Godiva: Generating open-domain videos from natural descriptions.
+\newblock {\em arXiv:2104.14806}, 2021.
+
+\bibitem{hong2022cogvideo}
+Wenyi Hong, Ming Ding, Wendi Zheng, Xinghan Liu, and Jie Tang.
+\newblock Cogvideo: Large-scale pretraining for text-to-video generation via transformers.
+\newblock In {\em Proc. Int. Conf. Learn. Representations}, 2022.
+
+\bibitem{yu2023magvit}
+Lijun Yu, Yong Cheng, Kihyuk Sohn, Jos{\'e} Lezama, Han Zhang, Huiwen Chang, Alexander~G Hauptmann, Ming-Hsuan Yang, Yuan Hao, Irfan Essa, et~al.
+\newblock Magvit: Masked generative video transformer.
+\newblock In {\em Proc. IEEE Conf. Comp. Vis. Patt. Recogn.}, 2023.
+
+\bibitem{brooks2022generating}
+Tim Brooks, Janne Hellsten, Miika Aittala, Ting-Chun Wang, Timo Aila, Jaakko Lehtinen, Ming-Yu Liu, Alexei~A Efros, and Tero Karras.
+\newblock Generating long videos of dynamic scenes.
+\newblock In {\em Proc. Advances in Neural Inf. Process. Syst.}, 2022.
+
+\bibitem{yin2023nuwa}
+Shengming Yin, Chenfei Wu, Huan Yang, Jianfeng Wang, Xiaodong Wang, Minheng Ni, Zhengyuan Yang, Linjie Li, Shuguang Liu, Fan Yang, et~al.
+\newblock Nuwa-xl: Diffusion over diffusion for extremely long video generation.
+\newblock {\em arXiv preprint arXiv:2303.12346}, 2023.
+
+\bibitem{hu2023gaia}
+Anthony Hu, Lloyd Russell, Hudson Yeo, Zak Murez, George Fedoseev, Alex Kendall, Jamie Shotton, and Gianluca Corrado.
+\newblock Gaia-1: A generative world model for autonomous driving.
+\newblock {\em arXiv preprint arXiv:2309.17080}, 2023.
+
+\bibitem{qiu2023freenoise}
+Haonan Qiu, Menghan Xia, Yong Zhang, Yingqing He, Xintao Wang, Ying Shan, and Ziwei Liu.
+\newblock Freenoise: Tuning-free longer video diffusion via noise rescheduling.
+\newblock In {\em Proc. Int. Conf. Learn. Representations}, 2024.
+
+\bibitem{Zheng_2023_CVQ}
+Chuanxia Zheng and Andrea Vedaldi.
+\newblock Online clustered codebook.
+\newblock In {\em Proc. IEEE Int. Conf. Comp. Vis.}, 2023.
+
+\bibitem{2020t5}
+Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter~J. Liu.
+\newblock Exploring the limits of transfer learning with a unified text-to-text transformer.
+\newblock {\em Journal of Machine Learning Research}, 21(140):1--67, 2020.
+
+\bibitem{stable_diff}
+Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj{\"o}rn Ommer.
+\newblock High-resolution image synthesis with latent diffusion models.
+\newblock In {\em Proc. IEEE Conf. Comp. Vis. Patt. Recogn.}, pages 10684--10695, 2022.
+
+\bibitem{guo2023animatediff}
+Yuwei Guo, Ceyuan Yang, Anyi Rao, Zhengyang Liang, Yaohui Wang, Yu Qiao, Maneesh Agrawala, Dahua Lin, and Bo Dai.
+\newblock Animatediff: Animate your personalized text-to-image diffusion models without specific tuning.
+\newblock In {\em Proc. Int. Conf. Learn. Representations}, 2023.
+
+\bibitem{controlnet}
+Lvmin Zhang, Anyi Rao, and Maneesh Agrawala.
+\newblock Adding conditional control to text-to-image diffusion models.
+\newblock In {\em Proc. IEEE Conf. Comp. Vis. Patt. Recogn.}, pages 3836--3847, 2023.
+
+\bibitem{mokady2023null}
+Ron Mokady, Amir Hertz, Kfir Aberman, Yael Pritch, and Daniel Cohen-Or.
+\newblock Null-text inversion for editing real images using guided diffusion models.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 6038--6047, 2023.
+
+\bibitem{VQ_VAE_paper}
+Aaron Van Den~Oord, Oriol Vinyals, et~al.
+\newblock Neural discrete representation learning.
+\newblock volume~30, 2017.
+
+\bibitem{sharma2018conceptual}
+Piyush Sharma, Nan Ding, Sebastian Goodman, and Radu Soricut.
+\newblock Conceptual captions: A cleaned, hypernymed, image alt-text dataset for automatic image captioning.
+\newblock In {\em Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)}, 2018.
+
+\bibitem{schuhmann2022laion}
+Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell Wortsman, et~al.
+\newblock Laion-5b: An open large-scale dataset for training next generation image-text models.
+\newblock In {\em Proc. Advances in Neural Inf. Process. Syst.}, volume~35, 2022.
+
+\bibitem{Bain21}
+Max Bain, Arsha Nagrani, G{\"u}l Varol, and Andrew Zisserman.
+\newblock Frozen in time: A joint video and image encoder for end-to-end retrieval.
+\newblock In {\em Proc. IEEE Int. Conf. Comp. Vis.}, 2021.
+
+\bibitem{videofactory}
+Wenjing Wang, Huan Yang, Zixi Tuo, Huiguo He, Junchen Zhu, Jianlong Fu, and Jiaying Liu.
+\newblock Videofactory: Swap attention in spatiotemporal diffusions for text-to-video generation.
+\newblock {\em arXiv preprint arXiv:2305.10874}, 2023.
+
+\bibitem{unterthiner2018towards}
+Thomas Unterthiner, Sjoerd Van~Steenkiste, Karol Kurach, Raphael Marinier, Marcin Michalski, and Sylvain Gelly.
+\newblock Towards accurate generative models of video: A new metric \& challenges.
+\newblock {\em arXiv preprint arXiv:1812.01717}, 2018.
+
+\bibitem{CLIP_paper}
+Alec Radford, Jong~Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et~al.
+\newblock Learning transferable visual models from natural language supervision.
+\newblock In {\em Proc. Int. Conf. Mach. Learn.}, pages 8748--8763. PMLR, 2021.
+
+\bibitem{imagen_video}
+Jonathan Ho, William Chan, Chitwan Saharia, Jay Whang, Ruiqi Gao, Alexey Gritsenko, Diederik~P Kingma, Ben Poole, Mohammad Norouzi, David~J Fleet, et~al.
+\newblock Imagen video: High definition video generation with diffusion models.
+\newblock {\em arXiv preprint arXiv:2210.02303}, 2022.
+
+\bibitem{Modelscope}
+Jiuniu Wang, Hangjie Yuan, Dayou Chen, Yingya Zhang, Xiang Wang, and Shiwei Zhang.
+\newblock Modelscope text-to-video technical report.
+\newblock {\em arXiv preprint arXiv:2308.06571}, 2023.
+
+\bibitem{xu2016msr}
+Jun Xu, Tao Mei, Ting Yao, and Yong Rui.
+\newblock Msr-vtt: A large video description dataset for bridging video and language.
+\newblock In {\em Proc. IEEE Conf. Comp. Vis. Patt. Recogn.}, pages 5288--5296, 2016.
+
+\end{thebibliography}

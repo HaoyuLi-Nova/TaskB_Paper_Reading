@@ -1,0 +1,34 @@
+\section{Introduction}
+
+Video dubbing is an audio-driven video-to-video generation task that combines an original video with new audio to create localized content \cite{li2024latentsync, musetalk, keysync}. This process requires editing facial movements, head rotations, and body gestures to synchronize with the dubbed speech's timing and emotional tone, while preserving the source video's visual style and camera motion. These capabilities are essential for global media distribution through streaming platforms.
+
+Recent advances in audio-driven generative models have significantly improved lip synchronization capabilities for video dubbing \cite{li2024latentsync}. However, these methods predominantly focus on oral region inpainting, resulting in mismatched head rotations and body gestures that undermine viewer immersion. To address this limitation, we introduce sparse-frame video dubbing, a novel paradigm that preserves only reference keyframes while leveraging modern generative foundation models. As shown in \cref{fig:teaser}, it references only select keyframes to preserve the original video's emotional cadence, symbolic gestures, and camera trajectories, while liberating facial expressions, head motions, and body dynamics to synchronize organically with dubbed audio. As a long video generation task, it demands robust temporal continuation capabilities. A practical solution is employing audio-conditioned video generators with initial and terminal frame guidance.
+
+Unfortunately, naive application of audio-conditioned image-to-video generators produces unsatisfactory dubbing results, as shown in \cref{fig:observation1}. These models fundamentally struggle with identity preservation during extended generation and default to strict motion copying on the conditioning frames. This results in stiff facial expressions, lip and head movements that contradicts speech dynamics. Meanwhile, simply applying initial and terminal frame conditioning creates abrupt inter-chunk transitions. 
+
+% Although streaming techniques like FIFO-diffusion \cite{fifo-diffusion} resolves these discontinuities. It introduces accumulating color tone shifts during long-sequence generation.
+
+% naive application of audio-conditioned image-to-video generators fails to produce satisfying dubbing results. As shown in \cref{fig:discoveries}. Relying solely on initial and terminal image conditioning within every chunk, this approach creates abrupt visual transitions between video segments when using consecutive frame conditioning. While streaming generation techniques like FIFO-diffusion \cite{fifo-diffusion} can mitigate transition artifacts, they introduce accumulating color tone deviations across sequences. Most critically, when initial and terminal frames exhibit high similarity—common in dubbing due to stable scene composition—the model defaults to minimal-motion interpolation, generating stiff facial expressions and robotic head movements that contradict speech dynamics.
+
+% We find the control strength is determined by the similarity between the video context and image condition. 
+
+% 1. i2v video generation identity 
+% 2. i2v accumulated error (color tone), it2v minimal-motion, it2v transition
+
+% 随机帧参考解决minimal-motion问题，然后说我们设计的规则和方法
+% 现有发现/准则，然后有方法设计，再提出了一些方法去解决问题
+To resolve these challenges, we introduce InfiniteTalk, a audio-driven generator for long sequence sparse-frame video dubbing. It has a streaming video generation base that utilize context frames to inject momentum information that creates smooth inter-chunk transitions. To preserve human identity, background, and camera movements of the source video, it controls the output video by referencing keyframes. To achieve the soft reference mechanism in sparse-frame video dubbing, we investigate how and find the control strength is determined by the similarity between the video context and image condition. Based on our investigation, we propose a sampling strategy that balances control strength and motion alignment by fine-grained reference frame positioning, achieving high quality infinite length long sequence video dubbing with full body audio-aligned motion generation. Meanwhile, we explore methods to achieve accurate subtle camera movement preservation.
+% Our approach incorporates transient frame conditioning to eliminate abrupt transitions between video segments. 
+% Investigation, discoveries...
+% We train the model .... % motion frame 
+% To address static motion problem, we propose a motion-provoking sampling strategy that activates natural gestures by strategically perturbing latent representations... 
+% For camera control, we propose 'xxx' to maintain perspective consistency. 
+% Collectively, these innovations enable long-form synthesis of dynamically aligned facial expressions, head motions, and body gestures synchronized to dubbed audio, free from color drift or motion artifacts.
+
+To comprehensively evaluate our method, we conduct quantitative and qualitative experiments on HDTF \cite{hdtf}, CelebV-HQ \cite{celebvhq}, and EMTD \cite{emtd}, including the cases for both face and full body animation. The quantitative results show InfiniteTalk achieves the state-of-the-art performance in audio synchronized motion generation and visual quality. Our human evaluation shows InfiniteTalk successfully produces plausible lip, face, and body movements that align with the speech cadence and the emotional expression. We finish an ablation experiment concerning the sampling strategy and the strength of control, showcasing the effectiveness of our algorithm design.
+
+% We also show in long video dubbing, our method xxx. 
+% Human evaluation shows that with the sparse-frame video dubbing paradigm, our method achieves remarkable lip, head, and body movements that synchronize naturally with dubbed audio. 
+
+We summarize our contributions as follows: (1) We introduce sparse-frame video dubbing, a novel paradigm for human-centric audio-driven video-to-video generation to produce natural facial expressions, head motions, and body dynamics that synchronize organically with dubbed audio. (2) We analyze the reasons why audio-driven image-to-video generators fail to achieve satisfying performance in this task and how the reference frame positioning during training determines the control strength. With these observations, we propose propose InfiniteTalk, a streaming long video generator with soft conditioning training strategy. (3) Extensive experiments show our method achieves the state-of-the-art performance for video dubbing, especially in lip, head, body motion synchronization. 
+

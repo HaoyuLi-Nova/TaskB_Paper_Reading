@@ -1,0 +1,20 @@
+\begin{figure}[!htb]
+    \centering
+    \begin{minipage}{0.98\textwidth}
+    \begin{subfigure}[b]{1.0\textwidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{model/figures/cfg_guidance/prev_cfg_a.pdf}
+        \caption{\(w_{\text{prev}} = 1.0\)}
+        \label{fig:prev_cfg_a}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{1.0\textwidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{model/figures/cfg_guidance/prev_cfg_b.pdf}
+        \caption{\(w_{\text{prev}} = 1.5\)}
+        \label{fig:prev_cfg_b}
+    \end{subfigure}
+    \end{minipage}
+    \caption{This figure demonstrates the impact of \(w_{\text{prev}}\) on the generation results. (a) When \(w_{\text{prev}} = 1.0\), there are perceptible misalignments between adjacent chunks (\emph{e.g.}, the shape of the smoke). (b) When \(w_{\text{prev}} = 1.5\), this phenomenon is significantly alleviated.}
+    \label{fig:prev_cfg}
+\end{figure}

@@ -1,0 +1,34 @@
+\subsection{Training Infrastructure}
+
+
+
+
+Efficient training of large-scale autoregressive denoising models like \magi requires carefully tailored distributed training infrastructure. Existing distributed training frameworks, such as Megatron~\citep{shoeybi2020megatronlm} and DeepSpeed~\citep{rajbhandari2020zeromemoryoptimizationstraining} are primarily designed for large language models (LLMs). However, \magi differs significantly from LLMs in both algorithmic side and data side.
+
+On the algorithmic side, \magi integrates both autoregressive and denoising modeling paradigms, resulting in a model architecture that is notably more complex than that of typical LLMs. It incorporates components such as gating, cross-attention, and block-causal attention that are rarely used in language models.
+
+
+On the data side, a single video training example typically contains tens to hundreds of times more tokens than a text example. Furthermore, ensuring the temporal and semantic integrity of video content imposes strict constraints, making it infeasible to directly apply common data processing strategies from LLMs, such as arbitrary sequence truncation or concatenation of multiple samples into a single training sequence offline, in the context of video generation.
+
+These fundamental differences introduce unique challenges, necessitating a new, purpose-built distributed system design. In this section, we propose novel solutions to address these challenges to enable efficient and scalable training of \magi. 
+
+
+Specifically, the training of \magi leverages a combination of data parallelism (DP), context parallelism (CP), and tensor parallelism (TP). To address the DP load imbalance caused by variable-length video sequence and the insufficient GPU utilization on short token sequences, we introduce a distributed Packing and Padding (PnP) during training, that performs online batching of video data in each training iteration. This strategy mitigates GPU bubbles thereby significantly improving overall training efficiency (Sec.~\ref{sec:train_infra_pnp}).
+
+Due to the use of PnP and the inherent demands of block-causal attention in \magi, we require an efficient attention implementation capable of supporting highly flexible attention masks. Additionally, given the extremely long token sequences typical in video training data, native support for context parallelism is essential. To address these requirements, we propose MagiAttention: a scalable distributed attention mechanism that efficiently handles diverse attention masks and is optimized for ultra-long sequences (Sec.~\ref{sec:magiattn}).
+
+Through the above innovations, we enable the efficient training of \magi. However, while developing the \magi training system, we identified several limitations in existing large-scale training frameworks. For instance, most current frameworks (including ours) do not treat verifiable numerical accuracy in distributed environments as a first-class design concern. Moreover, the tight coupling between algorithm development and infrastructure implementation often creates friction between algorithm researchers and infrastructure engineers, hindering efficient collaboration. To address these challenges, we discuss potential directions and design principles for next-generation training infrastructure in Sec.~\ref{sec:train_infra_odin}, with the goal of providing insights and practical guidance for the broader research and engineering community.
+
+
+
+
+
+
+
+\input{infra/train_infra/pnp}
+
+
+\input{infra/train_infra/dffa/main}
+
+
+\input{infra/train_infra/odin}

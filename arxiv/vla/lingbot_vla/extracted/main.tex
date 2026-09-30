@@ -1,0 +1,87 @@
+\documentclass[onecolumn]{robbyant}           % Single column with abstract logo
+% \documentclass[nologo]{robbyant}            % Single column without abstract logo
+% \documentclass[twocolumn]{robbyant}         % Two columns with abstract logo
+
+\usepackage{longtable} 
+% Footnote without number.
+\newcommand\nonumfootnote[1]{%
+\begingroup%
+    \renewcommand\thefootnote{}\footnote{\hspace{-4pt}#1}%
+    \addtocounter{footnote}{-1}%
+\endgroup%
+}
+
+
+\metadata[Website]{\url{https://technology.robbyant.com/lingbot-vla}}
+\metadata[Github]{\url{https://github.com/robbyant/lingbot-vla}}
+\metadata[Checkpoints]{\url{https://huggingface.co/collections/robbyant/lingbot-vla}}
+\newcommand{\methodname}{LingBot-VLA}
+\newcommand{\method}{\texttt{\methodname}\xspace}
+% \newcommand{\method}{\mbox{\texttt{\methodname}}\xspace}
+
+
+% \title{\methodname: Scaling Multi-Embodiment Robotic Data in the Real World}
+% \title{\methodname: Scalable Cross-Embodiment Vision-Language-Action Model in the Real World}
+% \title{A Pragmatic Cross-Embodiment VLA Model}
+\title{A Pragmatic VLA Foundation Model}
+
+
+\author{
+\begin{center}
+    Wei Wu$^{*}$,
+    Fan Lu$^{*}$,
+    Yunnan Wang$^{*}$,
+    Shuai Yang$^{*}$,
+    Shi Liu$^{*}$,
+    Fangjing Wang$^{*}$,
+    Qian Zhu,
+    He Sun,
+    Yong Wang,
+    \\[3pt]
+    Shuailei Ma,
+    Yiyu Ren,
+    Kejia Zhang,
+    Hui Yu,
+    Jingmei Zhao,    
+    Shuai Zhou,
+    Zhenqi Qiu,
+    Houlong Xiong,
+    \\[3pt]
+    Ziyu Wang,
+    Zechen Wang,
+    Ran Cheng,
+    Yong-Lu Li,
+    Yongtao Huang,
+    Xing Zhu,
+    Yujun Shen,
+    Kecheng Zheng$^{\dagger}$
+    \\[12pt]
+    {$^{*}$Equal Contribution} \qquad
+    {$^{\dagger}$Project Lead}
+\end{center}
+}
+
+
+
+
+\begin{document}
+
+\vspace{-30pt}
+\input{sections/0_abstract.tex}
+
+
+\maketitle
+
+\justifying
+\input{sections/1_introduction.tex}
+
+
+\input{sections/2_related_work.tex}
+\input{sections/3_method.tex}
+\input{sections/4_experiments.tex}
+\input{sections/5_conclusion.tex}
+\input{sections/6_reference.tex}
+\input{sections/7_appendix.tex}
+
+
+\end{document}

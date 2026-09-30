@@ -1,0 +1,6 @@
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\linewidth]{figures/images/training_efficiency.jpg}
+\caption{Training efficiency comparison. Our per-modality LoRAs range from 200 steps (video detailing) to 15{,}000 steps (cut-on-action), with most spatially-aligned controls converging in approximately 3{,}000 steps. Even summing across all 13 trained LoRAs (${\sim}$55K steps total), the training budget is less than one-third of a single VACE training run (200K steps) and comparable to camera-specific methods like BulletTime (40K iterations). This efficiency stems from fine-tuning only existing weights via LoRA adapters on a frozen backbone, with no new layers to train from scratch.}
+\label{fig:training_efficiency}
+\end{figure}

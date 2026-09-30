@@ -1,0 +1,33 @@
+% !TEX root = ./../main.tex
+\section{Introduction}
+\label{sec:introduction}
+Diffusion probabilistic models have achieved remarkable success in generating high-quality images~\citep{ho2020denoising,song2021scorebased,dhariwal2021diffusion,rombach2022high}.
+On top of the success in the image domain, there has been rapid progress in the generation of videos~\citep{ho2022video,singer2022make,zhou2022magic,wang2023modelscope}.
+%
+Despite the progress, long video generation still lags behind compared to image generation.
+One reason is that video diffusion models~(VDMs) often consider a video as a single 4D tensor with an additional axis corresponding to time, which prevents the models from generating videos at scale.
+An intuitive approach to generating a long video is autoregressive generation, which iteratively predicts a future frame given the previous ones.
+However, in contrast to the transformer-based models~\citep{hong2023cogvideo,villegas2023phenaki}, diffusion-based models cannot directly adopt the autoregressive generation strategy due to the heavy computational costs incurred by iterative denoising steps for a single frame generation.
+Instead, several recent works~\citep{ho2022video,he2022latent,voleti2022mcvd,luo2023videofusion,chen2023seine,blattmann2023align} adopt a chunked autoregressive generation strategy, which predicts several frames in parallel conditioned on few preceding ones, consequently reducing computational burden.
+While these approaches are computationally tractable, they often leads to temporal inconsistency and discontinuous motion, especially between the chunks predicted separately, because the model captures a limited temporal context available in the last few---only one or two in practice---frames.
+
+To address the limitation, we propose a novel inference technique, FIFO-Diffusion, which realizes arbitrarily long video generation without training based on a pretrained video generation model for short clips.
+Our approach effectively alleviates the limitations of the chunked autoregressive method by enabling every frame to refer to a sufficient number of preceding frames. 
+Our approach generates frames through diagonal denoising~(\cref{subsec:diagonal}) in a first-in-first-out manner using a queue, which contains a sequence of frames with different---monotonically increasing---noise levels over time.
+At each step, a completely denoised frame at the head is popped out from the queue while a new random noise image is pushed back at the tail.
+Diagonal denoising offers both advantage and disadvantage; noisier frames benefit from referring to cleaner ones while the model may suffer from training-inference gap because video models are generally trained to denoise frames with the same noise level.
+To overcome this trade-off and embrace the advantage of diagonal denoising, we propose latent partitioning~(\cref{subsec:latent_partitioning}) and lookahead denoising~(\cref{subsec:look_ahead_denoising}). 
+Latent partitioning reduces training-inference gap by narrowing the range of noise levels in to-be-denoised frames and enables inference with finer steps.
+Lookahead denoising allows to-be-denoised frames to reference cleaner frames, thereby performing more accurate noise prediction.
+Furthermore, both latent partitioning and lookahead denoising offer parallelizability on multiple GPUs.
+
+
+\vspace{2mm}
+Our main contributions are summarized below.
+\begin{itemize}
+    \item We propose FIFO-Diffusion through diagonal denoising, which is a training-free video generation technique for VDMs pretrained on short clips.
+    Our approach denoises images with different noise levels for seamless video generation, enabling us to generate arbitrarily long videos.
+    \item We introduce latent partitioning and lookahead denoising, which respectively reduce the training-inference gap incurred by diagonal denoising and allow the reference to less noisy frames for denoising, improving generation quality.
+    \item FIFO-Diffusion requires a constant amount of memory regardless of the length of the generated videos given a baseline model. It is straightforward to run FIFO-Diffusion in parallel on multiple GPUs.
+    \item Our experiments on four strong baselines, based on the U-Net~\citep{ronneberger2015unet} or DiT~\citep{peebles2023dit} architectures, show that FIFO-Diffusion generates extremely long videos including natural motion without degradation on quality over time.
+\end{itemize}

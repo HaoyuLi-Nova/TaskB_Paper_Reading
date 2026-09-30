@@ -1,0 +1,114 @@
+\section{Experiments}
+
+\begin{table*}[t]
+    \centering
+    \small
+    \setlength{\cmidrulewidth}{0.01em}
+    \renewcommand{\tabcolsep}{4pt}
+    \renewcommand{\arraystretch}{1.1}
+    \resizebox{0.8\linewidth}{!}{%
+        \begin{tabular}{lcccccccccc}
+            \hline
+            \multirow{2}{*}{Method}                       & \multicolumn{4}{c}{HDTF} & \multicolumn{4}{c}{VoxCeleb2}                                                                                                                                                                                                        \\ \cmidrule[\cmidrulewidth](l){2-6} \cmidrule[\cmidrulewidth](l){7-11}
+                                                          & FID          & SSIM $\uparrow$               & ${\text{Sync}}_{\text{conf}}$ $\uparrow$ & LMD  & FVD  & FID  & SSIM $\uparrow$ & ${\text{Sync}}_{\text{conf}}$ $\uparrow$ & LMD  & FVD  \\ \hline
+            Wav2Lip \cite{prajwal2020lip}                 & 12.5                     & 0.70                          & 8.2                                      & 0.34             & 304.35           & 10.8             & 0.71            & 7.0                                      & 0.53             & 257.85           \\
+            VideoReTalking \cite{cheng2022videoretalking} & 9.5                      & 0.75                          & 7.5                                      & 0.49             & 270.56           & 7.5              & 0.77            & 6.4                                      & 0.60             & 215.67           \\
+            Diff2Lip \cite{mukhopadhyay2024diff2lip}      & 10.3                     & 0.72                          & 7.9                                      & 0.36             & 260.45           & 9.8              & 0.73            & 6.9                                      & 0.54             & 210.45           \\
+            MuseTalk \cite{zhang2024musetalk}             & 9.35                     & 0.74                          & 6.8                                      & 0.56             & 246.75           & 7.1              & 0.80            & 5.9                                      & 0.64             & 203.43           \\ \hline
+            LatentSync (Ours)                             & \textbf{7.22}            & \textbf{0.79}                 & \textbf{8.9}                             & \textbf{0.30}    & \textbf{162.74}  & \textbf{5.7}     & \textbf{0.81}   & \textbf{7.3}                             & \textbf{0.51}    & \textbf{123.27}  \\ \hline
+        \end{tabular}%
+    }
+    \caption{Quantitative comparisons on HDTF and VoxCeleb2.}
+    \vspace{-10pt}
+    \label{table:quantitative_comparisons}
+\end{table*}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{./figures/comparisons.pdf}
+    % \vspace{-20pt}
+    \caption{Qualitative comparisons with SOTA lip-sync methods. We run two cases in the cross generation setting \cite{mukhopadhyay2024diff2lip}. The first row demonstrates the original input video, and the second row is the video from which we extracted the audio as input, the video can be regarded as the target lip movements. Rows 3 $\sim$ 7 display the lip-synced videos. (All the photorealistic portrait images in this paper are from contracted models.)}
+    \vspace{-10pt}
+    \label{fig:comparisons}
+\end{figure*}
+
+\subsection{Experimental Settings}
+\para{Datasets.}
+We used a mixture of VoxCeleb2 \cite{chung2018voxceleb2} and HDTF \cite{zhang2021flow} datasets as our training set. VoxCeleb2 is a large-scale audio-visual dataset containing over 1 million utterances from over 6,000 speakers. It includes speakers from a wide range of ethnicities, accents, and backgrounds. HDTF contains 362 different high-definition (HD) videos, with resolutions typically around 720p to 1080p.
+
+We used HyperIQA \cite{su2020blindly} to filter out videos with low visual quality, specifically blurry or pixelated videos. During evaluation, we randomly selected 30 videos from the test set of HDTF or VoxCeleb2.
+
+\para{Implementation details.}
+When evaluating our model LatentSync, we first converted the videos to 25 FPS, then applied the affine transformation based on facial landmarks detected by face-alignment \cite{bulat2017far} to obtain 256 $\times$ 256 face videos. The audio was resampled to 16kHz. We used 20 steps of DDIM \cite{song2020denoising} sampling for inference.
+
+\para{Evaluation metrics.}
+We evaluate our method in three aspects: (1) Visual quality. We use SSIM \cite{wang2004image} in the reconstruction setting and FID \cite{heusel2017gans} in the cross generation setting to assess visual quality. Following \cite{mukhopadhyay2024diff2lip}, the reconstruction setting refers to using the same audio as the input video, while the cross generation setting refers to using audio different from the input video. (2) Lip-sync accuracy. We use the confidence score of SyncNet (${\text{Sync}}_{\text{conf}}$) \cite{chung2017out} and the landmark distances around the mouth (LMD) \cite{guan2023stylesync}. We found that ${\text{Sync}}_{\text{conf}}$ aligns closely with visual assessments. (3) Temporal consistency. We adopt the widely used FVD metric \cite{unterthiner2018towards}.
+
+\subsection{Comparisons}
+\para{Comparison methods.}
+We selected several SOTA methods that provide open-source inference code and checkpoints for comparison. Wav2Lip \cite{prajwal2020lip} is the classic lip-sync method, introducing the idea of using a pretrained SyncNet for supervision instead of a lip-sync discriminator \cite{kr2019towards}. VideoReTalking \cite{cheng2022videoretalking} divides the lip-sync process into three steps to improve the results. Diff2Lip \cite{mukhopadhyay2024diff2lip} utilized pixel-space diffusion models to achieve generalized lip sync. MuseTalk \cite{zhang2024musetalk} utilizes the architecture of Stable Diffusion for inpainting, but it is not based on the diffusion model framework and appears more like a GAN-based approach.
+
+\para{Quantitative comparisons.}
+As shown in \cref{table:quantitative_comparisons}, the lip-sync accuracy of our method significantly surpasses that of other methods. This is attributed to our 94\% accuracy StbaleSyncNet, as well as the audio cross-attention layers in U-Net, which better captures the relationship between audio and lip movements. In terms of visual quality, our method outperforms others, likely due to the powerful capabilities of the Stable Diffusion model. Owing to temporal layer \cite{guo2023animatediff} and the incorporation of TREPA, our FVD score is also superior to other methods.
+
+\begin{table}[t]
+    \centering
+    \resizebox{0.9\columnwidth}{!}{
+        \begin{tabular}{lcccc}
+            \toprule
+            Method                            & ${\text{Sync}}_{\text{conf}}$ $\uparrow$ & FVD  \\
+            \midrule
+            LatentSync w/o SyncNet            & 4.6                                      & 220.37           \\
+            LatentSync + latent space SyncNet & 7.9                                      & 180.45           \\
+            LatentSync + pixel space SyncNet  & \textbf{8.9}                             & \textbf{162.74}  \\
+            \bottomrule
+        \end{tabular}
+    }
+    \caption{The ablation studies of different SyncNets. HDTF results.}
+    \vspace{-10pt}
+    \label{table:syncnet_ablation}
+\end{table}
+
+\para{Qualitative comparisons.}
+We run two cases in the cross generation setting. According to \cref{fig:comparisons}, Wav2Lip has excellent lip-sync accuracy, but the generated videos are very blurry. VideoReTalking shows strange artifacts. Diff2Lip is limited by pixel-space diffusion models and can only generate low-resolution videos, resulting in noticeable blurriness. MuseTalk does not preserve facial features well, the man's beard becomes sparse. In contrast, our method excels in both clarity and identity preservation, even the mole on the woman's face was preserved. Furthermore, it hardly shows generated box due to the smooth shape of fixed mask.
+
+
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{./figures/space_ablation.pdf}
+    % \vspace{-20pt}
+    \caption{SyncNet training curves of different visual input spaces. Here we use the open-sourced pretrained VAE from Stability AI \cite{sd_vae_ft_mse} for encoding. (VoxCeleb2, Batch size 512, StableSyncNet arch, Dim 1024, 16 frames.)}
+    \vspace{-10pt}
+    \label{fig:space_ablation}
+\end{figure}
+
+\subsection{Ablation studies}
+\label{sec:ablation}
+\para{The effectiveness of SyncNet supervision.}
+As shown in \cref{table:syncnet_ablation}, when the SyncNet supervision is not added, The lip-sync performance of the trained diffusion models is significantly poor. In fact, we found that other end-to-end lipsync methods \cite{prajwal2020lip,mukhopadhyay2024diff2lip} exhibit similar phenomena. As for supervision in two different spaces, diffusion models under pixel space SyncNet supervision perform better in terms of lip-sync accuracy and temporal consistency. This is likely due to the poor convergence of latent space SyncNet (as shown in \cref{fig:space_ablation}), which is reasonable since the input to the latent space SyncNet is the compressed latents obtained from VAE encoding, and some lip information may already be lost.
+
+In addition, we found that improvements in lip-sync accuracy were accompanied by an increase in temporal consistency. This is because the audio window inherently encapsulates rich temporal information. Enhanced utilization of audio information by the model also leads to the improved temporal consistency.
+
+\para{The effectiveness of TREPA.}
+According to \cref{table:trepa_ablation}, both the temporal consistency and visual quality improve after incorporating TREPA. This improvement may be attributed to that the robust representations extracted by VideoMAE-v2 \cite{wang2023videomae} inherently encapsulate both visual and temporal information.
+
+\begin{table}[t]
+    \centering
+    \resizebox{0.9\columnwidth}{!}{
+        \begin{tabular}{lcccc}
+            \toprule
+            Method             & FID  & SSIM $\uparrow$ & FVD  \\
+            \midrule
+            LatentSync         & 7.71              & 0.77            & 176.35           \\
+            LatentSync + TREPA & \textbf{7.22}     & \textbf{0.79}   & \textbf{162.74}  \\
+            \bottomrule
+        \end{tabular}
+    }
+    \caption{The ablation studies of TREPA. HDTF results.}
+    \vspace{-10pt}
+    \label{table:trepa_ablation}
+\end{table}
+
+\section{Conclusion}
+We introduced LatentSync, the first lip-sync method based on audio-conditioned LDMs, which addresses the problems of traditional diffusion-based lip-sync methods: (1) The low sampling speed and inability to generate high-resolution videos of pixel space diffusion. (2) The information loss in two-stage generation methods. We identified the shortcut learning problem in lip-sync task and explored different approaches to incorporate SyncNet supervision to solve this problem. We conducted comprehensive ablation studies to find out several key factors influencing SyncNet converge. In addition, we proposed TREPA to further improve the temporal consistency of our method.

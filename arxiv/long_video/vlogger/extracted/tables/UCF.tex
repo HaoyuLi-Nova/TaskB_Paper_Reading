@@ -1,0 +1,60 @@
+\begin{table}[tp]
+\centering
+\begin{minipage}[t]{0.49\linewidth}
+    \vspace{0pt}
+    \centering
+    \setlength\tabcolsep{7.0pt}
+    \resizebox{0.986\textwidth}{!}{
+        \begin{tabular}{l c}
+        \toprule
+        \textbf{Method} & \textbf{FVD ()}  \\
+        \midrule        
+        VideoFactory~\cite{Wang2023VideoFactorySA} & 410.00 \\
+        % Show-1~\cite{Zhang2023Show1MP} & \cmark & 394.46 \\
+        Make-A-Video~\cite{singer2023makeavideo} & 367.23 \\
+        PYoCo~\cite{Ge2023PreserveYO} & 355.19 \\
+        %% base model~\cite{base model} & \cmark & 526.30 \\
+        \midrule
+        \textbf{Ours} & \textbf{292.43} \\
+        \bottomrule
+        % \vspace{-1.8em}
+    \end{tabular}
+    }
+    \vspace{0.2cm}
+    \subcaption{Hand-crafted prompt.}
+    \label{tab:ucf_manual}
+\end{minipage}
+%
+\begin{minipage}[t]{0.49\linewidth}
+    \vspace{0pt}
+    \centering
+    \centering
+    \setlength\tabcolsep{3.8pt}
+    \resizebox{1.04\textwidth}{!}{
+        \begin{tabular}{l c}
+        \toprule
+        \textbf{Method} & \textbf{FVD ()}  \\
+        \midrule
+        CogVideo (Chinese)~\cite{hong2023cogvideo} & 751.34 \\
+        CogVideo (English)~\cite{hong2023cogvideo} & 701.59 \\
+        MagicVideo~\cite{Zhou2022MagicVideoEV} & 699.00 \\
+        Video LDM~\cite{blattmann2023align} & 550.61 \\
+        % LaVie~\cite{wang2023lavie} & \cmark & 526.30 \\
+        %% base model~\cite{base model} & \cmark & 526.30 \\
+        \midrule
+        \textbf{Ours} & \textbf{525.01} \\
+        \bottomrule
+        % \vspace{-2em}
+    \end{tabular}
+    }
+    \vspace{-0.1cm}
+    \subcaption{Class label.}
+    \label{tab: ucf_class}
+\end{minipage}
+\vspace{-0.3cm}
+\caption{\textbf{Zero-shot comperison with the state-of-the-art methods on UCF-101}.
+Hand-crafted prompt from \cite{Ge2023PreserveYO}.
+}
+\vspace{-0.3cm}
+\label{tab:ucf}
+\end{table}

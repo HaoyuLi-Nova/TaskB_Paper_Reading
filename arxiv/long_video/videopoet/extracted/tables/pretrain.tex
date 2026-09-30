@@ -1,0 +1,25 @@
+\begin{table*}[tp]
+\centering
+\caption{\textbf{Pretraining task analysis on 300M models.} The top rows list models with 300M parameters, trained on a subset of the data, and are comparable to each other. The last row shows an 8B model trained on the entire dataset. \textbf{T2I} (text-to-image), \textbf{T2V} (text-to-video), \textbf{FP} (frame prediction), \textbf{Painting} (inpainting/outpainting), \textbf{Uncond} (unconditional generation), \textbf{AVCont} (audio-video continuation), and \textbf{SSL} (self-supervised learning).
+}
+% \vspace{-2mm}
+\scriptsize
+\begin{tabular}{l|cccccc|ccccc}
+\toprule
+\multicolumn{1}{c}{\multirow{4}{*}{Method}} & \multicolumn{6}{c|}{Pretraining Tasks}                                                                                                             & \multicolumn{5}{c}{Zero-shot Evaluation Benchmark}                                                                                                                                 \\ \cline{2-12} 
+\multicolumn{1}{c}{}                        & \multirow{3}{*}{T2I} & \multirow{3}{*}{T2V} & \multirow{3}{*}{Uncond} & \multirow{3}{*}{FP} & \multirow{3}{*}{Painting} & \multirow{3}{*}{AVCont} & \multicolumn{2}{c}{T2V}                                 & \multicolumn{1}{c}{FP}   & \multicolumn{1}{c}{Inpainting} & \multicolumn{1}{c}{Outpainting}  \\ \cline{8-9}
+\multicolumn{1}{c}{}                        &                      &                      &                         &                     &                           &                         & \multicolumn{1}{c}{MSR-VTT} & \multicolumn{1}{c}{UCF101} & \multicolumn{1}{c}{K600} & \multicolumn{1}{c}{SSv2}       & \multicolumn{1}{c}{SSv2}     \\
+\multicolumn{1}{c}{}                        &                      &                      &                         &                     &                           &    & \multicolumn{1}{c}{CLIPSIM $\uparrow$}   & \multicolumn{1}{c}{FVD }    & \multicolumn{1}{c}{FVD }  & \multicolumn{1}{c}{FVD }        & \multicolumn{1}{c}{FVD }           \\
+\midrule
+T2V  && \checkmark&  &  &  & & 0.244&822&759&2,333&2,310                     \\
+T2V+I & \checkmark & \checkmark &  &&&& 0.247&1,025&794&2,118&1,916                        \\
+SSL & & & \checkmark & \checkmark & \checkmark & \checkmark & 0.226&1,742&700&1,093&1,500 \\
+NO T2I &  & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark & 0.235&1,008&755&95&389 \\
+ALL & \checkmark & \checkmark& \checkmark & \checkmark & \checkmark & \checkmark& 0.240&1,085&729&127&636 \\ 
+\midrule
+ALL (8B) & \checkmark & \checkmark& \checkmark & \checkmark & \checkmark & \checkmark & 0.305	& 355	& 687	& 4.7 &	13.76  \\
+\bottomrule
+\end{tabular}
+\label{tab:pretraining}
+\vspace{-3mm}
+\end{table*}

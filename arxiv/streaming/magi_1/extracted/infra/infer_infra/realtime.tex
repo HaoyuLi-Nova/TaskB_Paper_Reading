@@ -1,0 +1,38 @@
+\subsubsection{Real-Time Streaming Video Generation}
+\label{sec:real_time_infra}
+Our model adopts an auto-regressive architecture that supports real-time streaming video generation. To ensure a seamless user experience, we optimize for two key latency metrics: Time to First Chunk (TTFC), which measures the delay between task submission and starting to see the video, and Time Per Output Chunk (TPOC), which reflects the time required to generate each subsequent chunk. Maintaining a low TTFC enhances responsiveness, while keeping TPOC below 1 second is essential for uninterrupted playback.
+
+We encountered three major challenges when designing the infrastructure:
+
+\begin{itemize} \item \magi consists of multiple sub-models: T5 for text embedding extraction, a VAE encoder for processing user-uploaded images and prefix videos, a VAE decoder for decode the denoised output, and a core auto-regressive denoising model. These components exhibit distinct computational characteristics: T5 and VAE are memory-bound, while the denoising model is compute-bound. Efficiently handling this heterogeneity is essential.
+
+\item To meet the TPOC target of under 1 second, \magi demands approximately 9 PFLOPS of compute per second of video, which far exceeds the capabilities of a single H100/H800 GPU. Achieving this requires serving models on multiple H100/H800 GPUs and a highly optimized parallelism strategy.
+
+\item First-chunk inference differs significantly from subsequent chunks. It is not compute-bound but CPU-bound, due to limited token workloads per GPU, resulting in a long TTFC. 
+\end{itemize}
+
+To address these challenges, we propose a systematically optimized framework, enabling real-time streaming video generation for our largest 24B \magi model on 3-node, 24 H100 GPUs. Here, we briefly introduce our solutions.
+
+\paragraph{Multi-Model Heterogeneous Serving Pipeline}
+We designed a heterogeneous serving architecture that co-locates T5 and \magi on high-performance GPUs, while deploying the VAE to cost-efficient hardware. This approach enables concurrent execution of \magi inference and VAE decoding, minimizing idle time and improving overall throughput. Profiling-driven resource allocation strategies further enhance utilization efficiency. With this design, we could efficiently handling the heterogeneity of different models and achieve the best performance. 
+
+\paragraph{TPOC Optimization}
+Given that the denoising model of \magi is compute-bound, we prioritized aggressive quantization and distributed inference optimizations:
+
+\begin{itemize} \item \emph{Quantization.} We adopted W8A8 SmoothQuant~\cite{xiao2023smoothquant} to quantize both weights and activations to \texttt{FP8} precision, except the first and last layers. The quantization delivered a $30\%$ speedup without compromising generation quality. 
+
+\item \emph{Multi-Node Parallel Inference.} We adopt a Ulysses-based multi-node parallel inference strategy with sufficiently computation and communication overlapping (less than $3\%$ of communication time remaining unoverlapped in the execution timeline). As a result, the TPOC is optimized to be within 1 second when we generating 480p (3:4 aspect ratio) videos using 16 denoising steps and KV range of 5 on 24 H100/H800 GPUs.
+\end{itemize}
+
+\paragraph{TTFC Optimization}
+
+For first-chunk inference, only a few hundred tokens need to be processed. In this scenario, the GPU workload is relatively light, and CPU-side bottlenecks become the primary constraint. To address this issue, we employ CUDA Graphs to minimize kernel launch overhead, reducing 30.4\% latency. Additionally, we accelerate VAE decoding through a tile-based parallel mechanism and \texttt{torch.compile}, bringing latency down from 1 second to around 70 milliseconds. Collectively, these optimizations reduced TTFC to 2.3 seconds, ensuring a smooth real-time streaming experience. Tab. ~\ref{tab:opt_and_gain} summarizes the key optimizations and their corresponding latency gains\footnote{While TPOC latency is expected to be the sum of autoregressive diffusion model and VAE decoder latencies—similar to TTFC—in our serving pipeline where autoregressive diffusion model and VAE run on separate machines, TPOC is instead computed as the maximum of the two.}.
+
+\input{infra/infer_infra/tables/optmization_and_gain}
+
+
+
+
+
+
+

@@ -1,0 +1,23 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t]
+  % \caption{Quantitative comparison with MotionCtrl~\cite{wang2024motionctrl} and CameraCtrl~\cite{he2024cameractrl} on the RealEstate10K test set.
+  % $^*$ denotes zero-shot performance.}
+    \caption{Quantitative comparison with state-of-the-art methods on the RealEstate10K test set (1K).
+  $^*$ denotes zero-shot performance.}
+  \label{tab:quan_compare_camera}
+\resizebox{\linewidth}{!}{
+  % \setlength{\tabcolsep}{2.4pt}
+  \centering
+  \begin{tabular}{lcccccc}
+  \toprule
+    Method  &RotErr &TransErr &CamMC&FVD & FID\\
+    \midrule
+MotionCtrl  & 0.8460& 0.2567& 1.2455& 48.03&11.34\\
+ CameraCtrl  & 0.6355& 0.2332& 0.9532& 39.46& 13.14\\
+ \rowcolor{Gray}
+ Ours$^*$ & \best{0.6334} &\best{0.2188} & \best{0.9453}& \best{34.09}& \best{7.60}\\
+  \bottomrule
+  \end{tabular}
+}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

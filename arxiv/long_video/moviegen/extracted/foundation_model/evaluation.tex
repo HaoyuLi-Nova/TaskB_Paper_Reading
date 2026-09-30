@@ -1,0 +1,144 @@
+\subsection{Evaluation} \label{T2V_model_evaluation}
+In this section, we explain how we evaluate the \textToV quality of \OursVideo and other models.
+Our goal is to establish clear and effective evaluation metrics that identify a model's weaknesses and provide reliable feedback.
+We explain the different \textToV evaluation axes and their design motivations in~\cref{sec:T2V_evaluation_axes}.
+We introduce our new benchmark, \textToVBenchmarkName, in~\cref{sec:t2v_eval_benchmark}.
+Throughout this work, we use human evaluation to assess the quality of generated videos across various evaluation axes.
+When evaluating each axis, we conduct pairwise A/B tests where expert human evaluators assess two videos side-by-side.
+Evaluators are instructed to choose a winner based on the axis being measured, or to declare a tie in case of no clear winner.
+We include a discussion on the motivation and reliability of using human evaluations and on existing automated metrics in~\cref{sec:t2v_eval_discussion}.
+
+\subsubsection{Evaluation Axes} \label{sec:T2V_evaluation_axes}
+
+Evaluating \textToV generation presents unique challenges compared to \textToI tasks, primarily due to the added complexity of the temporal dimension.
+For a video to be considered high quality, it must stay faithful to the provided text prompt, maintain a high visual quality across frames without noticeable flaws, and be visually appealing with a photorealistic style.
+To assess these factors, we evaluate the quality of generated videos across three main axes: (1) \faithfulnessFull, (2) \qualityFull, and (3) realness and aesthetics. Each axis, along with their fine-grained sub-axes, is described in details below and summarized in~\cref{tab:eval_t2v_axes_list}.
+
+\input{tables/t2v_evaluation_axes.tex}
+
+\noindent \textbf{\faithfulnessFull.}
+This axis measures how well a generated video aligns with the provided prompt.
+An input prompt can include wide-ranging descriptions of subject appearance, motion, background, camera motion, lighting and style, visual text, \etc.
+Human evaluators are asked to pay close attention to these specific aspects and select the video that aligns more closely with the prompt.
+To provide more nuanced feedback, evaluators are also asked to specify their reasoning based on two orthogonal sub-axes: \textbf{Subject match}: This measures alignment of subject appearance, background, lighting and style; and \textbf{Motion match}: This measures the alignment of motion-related descriptions.
+
+\noindent \textbf{Visual Quality.}
+Compared to visual quality in \textToI generation, much of the perceived quality in generated videos stems from the quality of motion -- a video-specific dimension.
+Therefore, in \textToV visual quality evaluation, we focus on measuring the model's ability to generate consistent, natural, and sufficient amounts of motion in the output videos.
+To capture these critical aspects, we propose the following four sub-axes, which we outline below.
+
+\begin{itemize}
+    \item \textbf{Frame consistency}:
+    This metric assesses the temporal consistency of generated content. Violations of frame consistency can manifest as morphing-like artifacts, blurred or distorted objects, or content that abruptly appears or disappears.
+    We consider frame consistency a crucial measure of the model's ability to understand object framing and relationships in motion, as inconsistencies or distortions often arise when the model fails to accurately represent interactions between objects or their environment.
+    Additionally, frame consistency reflects the model's capacity to handle challenging tasks, such as prompts that require fast-moving content, \eg, in sports scenarios, where maintaining consistent appearance is especially difficult; or reasoning about occlusions, \eg, objects re-appearing after being occluded.
+
+    \item \textbf{Motion completeness}:
+    This measures whether the output video contains enough motion. A lack of motion completeness may occur when the prompt involves out-of-distribution or unusual subjects (\eg, monsters, ghosts) or real-world objects performing unusual activities (\eg, people flying, pandas playing piano).
+    Due to limited training data for such scenarios, the model may struggle to generate enough amount of motion, resulting in either static videos or those with only camera movement.
+    Motion completeness evaluates the magnitude of motion in the video.
+    A win on this axis indicates a greater amount of motion, even if it includes distortion, fast motion, or appears unnatural.
+
+    \item \textbf{Motion naturalness}:
+    This metric assesses the model's ability to generate natural and realistic motion, demonstrating a solid understanding of real-world physics.
+    It covers aspects such as natural limb movements, facial expressions, and adherence to physical laws. Motion that appears unnatural or uncanny will be penalized.
+
+    \item \textbf{Overall quality}:
+    For a given pair of videos being compared, the above three metrics might not result in the same winner.
+    To resolve this, we introduced the overall quality sub-axis, where human evaluators are asked to pick the winning video that has better ``overall'' quality given the previous three sub-axes.
+    This is a holistic metric that asks the human annotators to use their perception and to balance the previous signals to capture overall how good a generated video is.
+
+\end{itemize}
+
+\noindent \textbf{Realness \& Aesthetics.}
+Realness and aesthetics evaluate the model's ability to generate photorealistic videos with aesthetically pleasing content, lighting, color, style, \etc.
+We ask human evaluators to evaluate along two sub-axes:
+
+
+\begin{itemize}
+    \item \textbf{Realness}:
+    This measures which of the videos being compared most closely resembles a real video. For \textit{fantastical} prompts that are out of the training set distribution (\eg, depicting fantasy creatures or surreal scenes), we define realness as mimicking a clip from a movie following a realistic art-style.
+    We additionally ask the evaluators to select a reason behind their choice \ie, ``subject appearance being more realistic'' or ``motion being more realistic''.
+    \item \textbf{Aesthetics}:
+    This measures which of the generated videos has more interesting and compelling content, lighting, color, and camera effects.
+    Again, we ask the evaluators to provide details justifying their choice from ``content being more appealing/interesting'', and ``lighting/color/style being more pleasing''.
+\end{itemize}
+
+
+\subsubsection{Evaluation benchmark}
+\label{sec:t2v_eval_benchmark}
+In order to thoroughly evaluate video generations, we publicly release a benchmark, \textToVBenchmarkName\footnote{\label{f_note_t2vb_1}\url{https://github.com/facebookresearch/MovieGenBench}}, which consists of 1003 prompts that cover all the different testing aspects summarized above.
+In order to enable fair comparison to \OursVideo by future work, we also release non cherry picked generated videos from \OursVideo on \textToVBenchmarkName.
+Our benchmark is more than $3\times$ larger than the prompt sets used in prior work~\citep{singer2023makeavideo,emuvideo2023} for evaluation.
+We specifically include prompts capturing the following concepts of interest: 1) human activity (limb and mouth motion, emotions, \etc), 2) animals, 3) nature and scenery, 4) physics (fluid dynamics, gravity, acceleration, collisions, explosions, \etc), 5) unusual subjects and unusual activities.
+To test the generation quality at different motion levels, we also tag each prompt with high/medium/low motion.
+We show examples of evaluation prompts used in~\cref{tab:eval_prompts} and show the distribution of evaluation prompts across concepts in~\cref{fig:eval_prompt_distribution_main}.
+\begin{table}[!t]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{ccc}
+        \toprule
+        Prompt & Concept & Motion level \\
+        \midrule
+        A marathon runner crossing the finish line after a grueling race. & human activity & high \\
+        A curious cat peering out from a cozy hiding spot. & animals & medium \\
+        A peaceful countryside with rolling hills and a setting sun. & nature \& scenery & low \\
+        A high-speed video of champagne being poured into a glass, with bubbles rising rapidly. & physics -- fluid dynamics & high \\
+        A cute golden dragon walking like a model on stage, as the audience claps for him. & unusual subjects & low \\
+        \bottomrule
+    \end{tabular}}%
+    \caption{\textbf{Sample evaluation prompts from our proposed \textToVBenchmarkName benchmark.} We sample prompts that cover a wide range of concepts, with varying motion levels.}
+    \label{tab:eval_prompts}
+\end{table}
+\begin{figure}[t!]
+    \centering
+    \setlength{\tabcolsep}{10pt}
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{C{0.5\textwidth}C{0.4\textwidth}}
+        \multirow{3}{*}{
+        \includegraphics[width=0.5\textwidth]{figures/foundation_model/eval_prompt_distribution.pdf}} & (b) Nouns in evaluation set \\
+        & \includegraphics[width=0.36\textwidth,trim={3cm 1cm 2.5cm 1cm},clip]{figures/data/nouns.pdf} \\
+        & \includegraphics[width=0.36\textwidth,trim={3cm 0 2.5cm 1cm},clip]{figures/data/verbs.pdf} \\
+        (a) Prompt concept distribution & (c) Verbs in evaluation set
+    \end{tabular}}
+    \vspace{-8pt}
+    \caption{\textbf{Summary visualization of evaluation prompts in \textToVBenchmarkName.} (a) Since each prompt may encompass multiple testing concepts, we assign one or more concept tags to each prompt. As a result, the total count in the distribution exceeds 1003. (b), (c) Visualization of the common nouns and verbs in the evaluation set, respectively.}
+    \label{fig:eval_prompt_distribution_main}
+  \end{figure}
+We evaluate the model quality on the entire evaluation prompt set as well as break down the quality by individual testing metrics.
+Prompts involving unusual subjects and unusual motion help test model's ability to generalize to out-of-distribution content.
+
+
+\subsubsection{Evaluation Discussion} \label{sec:t2v_eval_discussion}
+Here, we motivate our decision for using human evaluation as opposed to automated metrics.
+
+\noindent \textbf{Necessity of human evaluations for video generation.}
+The motivation for choosing human evaluation stems from the complexity of evaluating video generation.
+For \faithfulnessFull, evaluating the alignment of motion over time requires understanding how actions unfold and evolve in relation to the prompt.
+Humans are particularly skilled at recognizing temporal coherence and handling ambiguities when the context is abstract or complex, whereas automated methods may only capture static frame-level correspondences.
+When evaluating visual quality, such as motion naturalness or detecting inconsistencies in object appearance across frames, humans excel due to their innate understanding of real-world physics and object behavior.
+Similarly, assessing realness and aesthetics heavily depends on human perception and preference.
+Across all three tasks, we find that existing automated metrics struggle to provide reliable results, reinforcing the need for human evaluation.
+
+
+\noindent \textbf{Reliability.}
+An important aspect concerning reliability in evaluations is the randomness introduced both on the modeling side due to the probabilistic nature of the generative models, and the human evaluation side due to the annotation variance.
+Defining objective criteria to measure generations remains challenging and humans can still be influenced by other factors such as personal biases or preferences.
+We describe our efforts to reduce evaluation variance and increase the reliability of the human evaluations.
+We take four key steps towards minimizing evaluation variance:
+(1) We provide human evaluators with detailed evaluation guidelines and video examples, narrowing the definitions of evaluation axes and sub-axes to minimize subjectivity.
+Additionally, inspired by the JUICE metric~\citep{emuvideo2023}, we found that asking evaluators to indicate the reason of their choices helps reduce annotation variance and improve agreement among evaluators.
+(2) We evaluate the models over a large set of prompts (\eg, 1003 for \textToVBenchmarkName, $3\times$ larger than~\citep{singer2023makeavideo,emuvideo2023}) covering a wide variety of concepts.
+(3) We use a majority vote system, with a majority vote from three annotations for each \faithfulnessFull and \qualityFull question, and a majority vote from six annotations for realness and aesthetic questions, as these are more subjective.
+(4) We conduct thorough and frequent audits of human annotations to resolve edge cases and correct mislabelings.
+
+\noindent \textbf{Automated Metrics for text-to-video evaluation.}
+Prior works in text-to-video generation have relied upon automated metrics for assessing video quality.
+Similar to recent studies~\citep{dai2023emu,podell2023sdxl,singer2023makeavideo,emuvideo2023,ho2022imagen,barratt2018note,chong2020effectively,ge2024content,huang2023vbench} we find that automated metrics such as FVD~\citep{unterthiner2019fvd} and IS~\citep{salimans2016improved} do not correlate with human evaluation scores for video quality, and hence do not provide useful signal for model development or comparison.
+Some prior works utilize discriminative models for generated media evaluation axes, including text faithfulness with CLIP~\citep{radford2021learning}.
+One key limitation of such automated metrics is that they are inherently limited by the performance of the underlying discriminative model~\citep{rambhatla2023selfevalleveragingdiscriminativenature}.
+A key challenge in using discriminative models for evaluating text-to-video generation is the inavailability of sufficiently effective and expressive video-text discriminative models.
+We note that other interesting automated metrics for generated video evaluation exist, such as those based on structure-from-motion~\citep{Li2024SoraGV}, that we did not explore the use of here.
+
+
+\noindent \textbf{Enabling fair comparison to \OursVideo.} To enable fair and easy comparison to \OursVideo for future works, we publicly release our non cherry picked generated videos from \OursVideo on the \textToVBenchmarkName prompt set.

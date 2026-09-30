@@ -1,0 +1,57 @@
+\input{_constants}
+% \review % \review OR \arxiv OR \cameraready
+\arxiv
+
+\pdfoutput=1
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\input{cvpr_header}
+% \usepackage[affil-it]{authblk}
+
+\begin{document}
+%% TITLE
+\title{\paperTitle}
+\author{\authorBlock}
+
+% \maketitle
+\twocolumn[{
+\maketitle
+\begin{center}
+    \captionsetup{type=figure}
+    \vspace{-2em}
+    \includegraphics[width=1.\textwidth]{figs/images/sadtalker_teaser.pdf}
+    \vspace{-2em}
+    \captionof{figure}{The proposed SadTalker produces diverse, realistic, synchronized talking videos from an input audio and a single reference image.}
+\end{center}
+}]
+
+{
+  \renewcommand{\thefootnote}%
+    {\fnsymbol{footnote}}
+  \footnotetext[1]{~Equal Contribution}
+  \footnotetext[2]{~Corresponding Author}
+}
+% \maketitle
+%%
+
+
+
+\input{00_abstract}
+
+\input{01_intro}
+
+\input{02_related}
+
+\input{03_method}
+
+\input{04_exp}
+
+\input{10_conclusion}
+
+{\small
+\bibliographystyle{ieee_fullname}
+\bibliography{11_references}
+}
+
+\ifarxiv \clearpage \input{12_appendix} \fi
+
+\end{document}

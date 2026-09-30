@@ -1,0 +1,99 @@
+\section{Method}
+%\textbf{Overview.}
+This paper introduces EchoMotion, a system designed to generate videos with corresponding motion sequences from an input text prompt. 
+We first propose a \textbf{Dual-Modality Diffusion Transformer}, augmented with a parametric motion representation and a \textbf{Motion-Video Synchronized RoPE}, to effectively model the intricate interaction between these two distinct modalities in Sec.~\ref{model_design}. Then, we tailor a \textbf{Multi-Modal Two-Stage Training Strategy} to facilitate mutual promotion and completion within this multi-modal system, as detailed in Section \ref{in-context-learning}. Finally, to support this research and the broader community, we construct and release the 
+\textbf{\textit{HuMoVe}} dataset, a large-scale collection of paired video, 3D human motion parameters, and text data in Section \ref{dataset}.
+
+
+
+\subsection{Diffusion for Joint Visual-Motion Generation.}\label{model_design}
+\textbf{Architecture.} Towards high-fidelity video generation, we select Wan \citep{wan2025wan} as our backbone model, owing to its superior performance. Unlike approaches that model the video-only distribution $p(x|y)$-which can prioritize appearance fidelity at the expense of motion principles, we instead model the joint distribution of human movement and video $p(x,m|y)$. Here, $y$ denotes the given text prompt, while $x$ and $m$ represent the video and human motion parameters, respectively. This unified modeling approach allows our model to effectively learn both visual and motion dynamics. 
+As illustrated in Figure \ref{fig:pipeline}, our Dual-Modality Diffusion Transformer first processes the input video by parameterizing human motion representations, derived from SMPL pose and shape parameters \citep{loper2023smpl}. These motion tokens are concatenated with visual tokens to form a \textbf{unified multi-modal context sequence}, which is then fed into a series of Dual-Modality Diffusion Transformer blocks. Within each block, our proposed MVS-RoPE encodes the precise position of each token within the unified multi-modal context. This ensures that during the joint self-attention process, both intra-modal and cross-modal information is exchanged properly.
+\input{figures/pipeline}
+
+
+\textbf{Parametric Human Motion Representation.} Given a video of a person in motion, we use the SMPL \citep{loper2023smpl} model to parameterize the pose and shape of the human body. It captures articulated human body configurations through a low-dimensional set of pose and shape parameters, making it a widely adopted foundation in computer vision tasks involving human mesh recovery. For a single frame, the SMPL model facilitates the extraction of human body representations. Specifically, it provides shape parameters $\beta \in \R^{10}$ that define the overall body shape, pose parameters  $\theta \in \R^{24 \times 6}$ that capture human joint angles, global body orientation $\gamma \in \R^{6}$, and the human root joint position $v \in \R^{3}$. Following DART \citep{zhao2024dartcontrol}, we further utilize the 3D joint position $\eta \in \R^{24 \times 3}$ to represent each human joint.
+
+
+%\textbf{Human Motion Latents Representation.} 
+To construct a unified representation that integrates human motion modalities, we design multi-head projectors to build a bidirectional mapping between the parameter and the latent spaces. For each frame, we categorize the motion parameters into three groups: $\{v, \eta\}$ for 3D position, $\{\theta,\gamma\}$ for 6D rotation, and $\beta$ for human shape. Three independent MLPs then project these 
+%to map the 3, 6, and 10-dimensional motion 
+parameters sets into the target transformer hidden dimension, generating $51$ motion tokens per frame. Similarly, another three MLPs map the generated motion tokens back to the original parameter space for reconstruction. Crucially, to better model rapidly changing motion patterns, we preserve the temporal structure of these motion tokens. This contrasts with the typical time-level down-sampling applied to visual tokens, and importantly, these refined and compact motion tokens retain crucial temporal motion information with only a minimal increase in computational overhead.
+
+
+\textbf{Dual-Modality Diffusion Transformer Block.}
+This block processes and integrates multi-modal information. It begins by passing the embeddings from the video and human motion modalities through modality-specific projections, implemented as two distinct sets of learnable matrices. The projected features are then concatenated along the sequence dimension to form as:
+\begin{equation}\label{concat}
+Q_{mm},K_{mm},V_{mm} = [Q_v; Q_m],[K_v; K_m],[V_v; V_m],
+\end{equation}
+where $[\cdot;\cdot]$ signifies the sequence-level concatenation operation.  Thereafter, a joint self-attention layer is applied to capture dependencies and correlations across both modalities.
+% \shl{Thereafter, a dual-modality self-attention layer is applied to capture dependencies and correlations across both modalities:
+% \begin{align}\label{scale_dot_attn}
+% [x; m] = \mathrm{Softmax}(\frac{Q_{mm}K_{mm}^T}{\sqrt{d}}) V_{mm}.
+% \end{align}}
+Following self-attention, the attended features are disentangled, with each modality's features subsequently processed independently through separate cross-attention layers (to interact with text information) and FFNs. This architecture enables a detailed interaction between modalities and with textual guidance. 
+Within self-attention layers, we propose a specialized multi-modal positional embedding to inject features with precise position information. This enables the model to effectively reason about token relationships both within and across modalities, as formulated below.
+
+
+\textbf{Motion-Video Synchronized RoPE.} Existing MMDiT \citep{esser2024scaling, kong2024hunyuanvideo} architectures typically incorporate positional information either through inherent positional IDs from the text encoder or by employing M-RoPE \citep{wang2024qwen2}, which extends relative positional encoding to jointly handle both text and visual modalities in a unified sequence. However, neither of these approaches directly accounts for the inherent temporal alignment between human motion and videos. Consequently, they are not directly suitable for representing the positional information of parameterized motion tokens, necessitating a dedicated design to accurately capture this crucial motion positional information.
+
+
+As illustrated in Figure \ref{fig:pipeline}(b), our MVS-RoPE is designed to handle the distinct spatio-temporal nature of our multi-modal context sequence, which is composed of both video and motion latent tokens. \reb{
+Spatially, we partition the coordinate space: video tokens occupy a base $(h, w)$ region, while motion tokens are treated as a "diagonal extension" by offsetting their spatial index. This ensures modality distinction.}
+Temporally, recognizing the direct temporal correspondence between motion tokens and visual tokens (4x temporal compression from video VAE), we assign a scaled indexing scheme. While video tokens are indexed by time $t$, the corresponding coarse-grained motion tokens are assigned a scaled index of $t/4$. This directly embeds their temporal synchrony into the positional encoding. The processed feature after MVS-RoPE is given by:
+\begin{align}
+\hat{\bm{f}}_{t,h,w}^{v}= \text{MVS-RoPE}(\bm{f}_{t,h,w}^{v},t,h,w)=\mathcal{R}(t, h, w)\cdot \bm{f}_{t,h,w}^{v},\\
+\hat{\bm{f}}_{t,i}^{m}=\text{MVS-RoPE}(\bm{f}_{t,i}^{m},t,i)=\mathcal{R}(\frac{1}{4}t, H+i, W+i)\cdot \bm{f}_{t,i}^{m}.
+\end{align}
+Here, $t$ is the temporal index, $i$ is the motion token \reb{index}, and $(h,w)$  represents the spatial indices for visual tokens. $H$ and $W$ denote the spatial range of the visual tokens.  The function $\mathcal{R}(\cdot)$ represents the RoPE encoding, which applies a rotation based on the input temporal and spatial indices. 
+
+This design ensures that 1) Preserves pretrained knowledge: video tokens receive the exact same 3D RoPE as used during pre-training, ensuring that valuable learned representations are not disturbed; 2) Enforces correct temporal alignment: the 1/4 scaling explicitly encodes the multi-rate relationship, resolving ambiguity and ensuring video and motion are perfectly synchronized in time. and 3) Guarantees modality distinguishability: the spatial diagonal extension prevents “positional collisions”, allowing the model to easily differentiate between video and human motion tokens.
+
+
+\input{figures/training_stages}
+\subsection{Motion-Video Two-Stage Training Strategy.}\label{in-context-learning}
+
+Due to the divergent feature representations of visual and motion tokens, a phased training approach is necessary for the model to effectively process and align these two modalities. To achieve this alignment and ensure stable learning, we propose a two-stage strategy initialized from pretrained DiT parameters:
+\begin{itemize}
+\item \textbf{Phase 1: Motion-only Pretraining.} The motion branch is trained independently using motion-only datasets, while the video branch is frozen and deactivated (inputs omitted). This stage focuses on generating motion sequences.
+\item \textbf{\reb{Phase 2: Motion-video Multi-task Training.}} Subsequently, the model is trained on motion-video paired datasets with both branches unfrozen and active, enabling the generation of both visual and motion sequences.
+\end{itemize}
+The rationale for motion-only pretraining is to allow the motion branch to first converge on its own domain, preventing the dominant computationally expensive of video branch. 
+Once stable, the architecture is readily extensible to both joint generation of video and motion, as well as bi-directional cross-modal control. Therefore, in phase 2, we train the model using motion-video paired datasets with a focus on the three complementary interaction paradigms. 
+
+
+As illustrated in Figure \ref{fig:training_stages}, each paradigm is randomly sampled: 1) Joint training: generate both video and motion sequences concurrently. 2) Motion-to-video training: motion sequences serve as the conditioning input for video generation. 3) Video-to-motion training: video sequences are used to condition motion generation. When one modality serves as the conditioning input, its features are preserved and not subjected to noise injection during the forward diffusion process. Additionally, a lightweight MLP projects the task embedding to the latent space. This task hint is then added to the latents to guide conditional token prediction. 
+Under this framework paradigm, the model naturally achieves both pure text-guided motion-video generation and cross-modal conditional generation during inference. 
+
+\textbf{In-Context Classifier-Free Guidance (ICCFG).}
+Our ICCFG implementation employs distinct conditioning strategies tailored to our three training paradigms in Phase 2, differing from standard CFG. 
+During Phase 2, we apply a paradigm-specific conditional dropping strategy. For joint generation, the text condition is randomly dropped. For motion-to-video generation, both text and motion conditions are randomly dropped. For video-to-motion generation, the text condition is always dropped, while the video condition is dropped randomly.
+Accordingly, to leverage this capability during inference, we define $\bm{u}_{\theta}(\cdot)$ as the diffusion model. For the Joint Generation mode:
+\begin{align}
+    \bm{o}^v_t, \bm{o}^m_t = \bm{u}_{\theta}(x_t, m_t, \emptyset) + \omega_1(\bm{u}_{\theta}(x_t, m_t, y)-\bm{u}_{\theta}(x_t, m_t, \emptyset)),
+\end{align}
+where $\bm{o}^v_t$ and $\bm{o}^m_t$ represent the video and motion predictions of timestep $t$, respectively. $\emptyset$ signifies the absence of a specific condition and $\omega_1$ is the guidance scale for text condition. For the Motion-to-Video Generation mode, the output can be expressed as:
+\begin{align}
+\bm{o}_v^t = \bm{u}_{\theta}(x_t, \emptyset, \emptyset) 
+    + \omega_1(\bm{u}_{\theta}(x_t, m_t, y) - \bm{u}_{\theta}(x_t,m_t, \emptyset)) + \omega_2(\bm{u}_{\theta}(x_t, m_t, \emptyset) - \bm{u}_{\theta}(x_t, \emptyset, \emptyset)),
+\end{align}
+ where $\omega_2$ is the guidance scale for motion condition. For the Video-to-Motion Generation mode:
+\begin{align}
+    \bm{o}^m_t = \bm{u}_{\theta}(\emptyset, m_t, \emptyset) 
+    + \omega_2(\bm{u}_{\theta}(x_t, m_t, \emptyset) - \reb{\bm{u}_{\theta}(\emptyset, m_t, \emptyset)}).
+\end{align}
+This allows the model to leverage the rich context provided by various modalities while selectively enabling specific generation capabilities.
+\input{figures/dataset}
+
+
+\subsection{\textit{HuMoVe} Dataset}\label{dataset}
+A significant gap exists in current open-source resources for joint video-motion generation. Datasets from prior work \citep{mahmood2019amass,lin2023motion,fan2025go} are often unsuitable, typically because they are modality-specific (lacking visual context) or 
+% because they 
+consist of low-quality videos with redundant backgrounds and human characters. To address this limitation, we construct \textit{HuMoVe}: a large-scale, high-quality dataset featuring diverse scenes and human characters. Each video in  \textit{HuMoVe} is paired with a descriptive textual caption and its corresponding 3D SMPL motion parameters, forming a tightly aligned, multi-modal corpus for advanced generative modeling.
+
+
+% To ensure high quality and diversity, 
+We implement a comprehensive data processing pipeline that involves automated collection from various sources, followed by rigorous filtering for aesthetic quality and subject focus, and culminates in precise 3D human mesh recovery and annotation, resulting in a final dataset of approximately 80,000 entries. A detailed breakdown of our pipeline is provided in Appendix \ref{build_data}.
+The resulting \textit{HuMoVe} dataset is exceptionally diverse. As visualized by the Voronoi treemap in Figure \ref{fig:dataset}(a), it spans 9 major categories (represented by distinct color groups) and 38 subcategories (represented by shades within each group), ranging from subtle, everyday actions to dynamic, complex performances. A full categorical breakdown is available in the Appendix \ref{build_data}. This careful curation provides a clean, comprehensive, and challenging foundation for developing kinematically-aware generative models.
+
+

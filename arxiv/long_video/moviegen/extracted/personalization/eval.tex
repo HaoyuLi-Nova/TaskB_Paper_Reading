@@ -1,0 +1,10 @@
+\subsection{Evaluation}
+\label{sec:pt2v_eval}
+
+We evaluate the quality of our PT2V models across three axes: identity preservation, video quality, and video-text alignment. The latter two axes are similar to T2V A/B evaluations in Section~\ref{T2V_model_evaluation}, where video quality can be further broken down into overall quality, frame consistency, motion completeness, and motion naturalness. To measure identity preservation, given an identity reference image and the generated video clip, the annotators are asked to rate on how well the generated character's face captures the reference person likeness in both the best and the worst frame (identity score), as well as how visually consistent the faces are among the generated frames containing the reference person (face consistency score). These two scores are measured in an absolute sense with ratings as ``really similar'', ``somewhat similar'', and ``not similar'' for the identity question and ``really consistent'', ``somewhat consistent'', and ``not consistent'' for the face consistency question. Annotators were trained to follow specific guidelines for the labeling on these axes and are constantly audited for quality.
+
+\noindent\textbf{Evaluation Dataset.}
+We selected 50 subjects who were not seen during training as the reference face in the evaluation data.
+These reference face images include both frontal and side views.
+For each image, we pair it with 5-7 unique prompts, and curate 330 image-prompt pairs for evaluation.
+Similar to the T2V evaluation datasets, these prompts cover different human activities and facial expressions. We follow the same prompt rewrite as Section~\ref{sec:t2v_prompt_rewrite} to bridge the gap between our training and inference captions.

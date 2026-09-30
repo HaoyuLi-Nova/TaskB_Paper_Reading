@@ -1,0 +1,25 @@
+\begin{table}[t]
+    \centering
+    \setlength\tabcolsep{9pt}
+    \resizebox{1\linewidth}{!}{%
+    \begin{tabular}{l  c c c}
+        \toprule
+        \textbf{Method} &  \textbf{Zero-Shot} & \textbf{Pre-training Videos} & \textbf{FID ()}  \\
+        \midrule        
+        T2V~\cite{li2017video} & \xmark & \xmark & 82.13 \\
+        SC~\cite{balaji2019Conditional} & \xmark & \xmark & 33.51 \\
+        TFGAN~\cite{balaji2019Conditional} & \xmark & \xmark & 31.76 \\
+        NUWA~\cite{wu2022nwa} & \xmark & 0.97M & 28.46 \\
+        \midrule
+        Phenaki~\cite{villegas2023phenaki} & \cmark & 15M & 37.74 \\
+        \textbf{Ours} & \cmark & 10M & \textbf{37.23} \\
+        \bottomrule
+        \vspace{-2em}
+    \end{tabular}
+    }
+    \caption{\textbf{Comperison with the state-of-the-art methods on Kinetics-400}. 
+Both under a zero-shot setting, our FID is better than that of Phenaki, 
+with only 66.7\% pre-training videos.}
+    \vspace{-1em}
+    \label{tab:k400}
+\end{table}

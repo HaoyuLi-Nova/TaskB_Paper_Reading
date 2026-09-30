@@ -1,0 +1,78 @@
+
+\section{Introduction}
+
+From conveying emotions that break language and cultural barriers to being the most popular medium on social platforms, videos are arguably the most informative, expressive, diverse, and entertaining visual form.
+Video synthesis has been an exciting yet long-standing problem.
+The challenges include not only achieving high visual quality in each frame and a natural transitions between frames, but
+a consistent theme, and even a meaningful storyline throughout the video. 
+The former has been the focus of many existing studies~\cite{vondrick2016generating,saito2017temporal,clark2019adversarial,tian2021a,yan2021videogpt} working with tens of frames. 
+The latter is largely unexplored and requires the ability to model \emph{long-range temporal dependence} in videos with many more frames.
+
+\topic{Prior works and their limitations.} 
+\emph{GAN-based methods}~\cite{vondrick2016generating,saito2017temporal,clark2019adversarial,luc2020transformation} can generate plausible short videos, but extending them to longer videos requires prohibitively high memory and time cost of training and inference.\footnote{Training DVD-GAN~\cite{clark2019adversarial} or DVD-GAN-FP~\cite{luc2020transformation} on 16-frame videos requires 32-512 TPU replicas and 12-96 hours.}
+\emph{Autoregressive methods} alleviate the training cost constraints through \emph{sequential prediction}. 
+For example, RNNs and LSTMs generate temporal noise vectors for an image generator \cite{saito2017temporal,Tulyakov_2018_CVPR,clark2019adversarial,saito2020train,munoz2021temporal,tian2021a};
+ transformers either directly generate pixel values~\cite{kalchbrenner2017video,Weissenborn2020Scaling} or indirectly predict latent tokens~\cite{van2017neural,esser2021taming,rakhimov2020latent,wu2021n,le2021ccvs,yan2021videogpt}.
+These approaches circumvent training on the long videos directly by unrolling the RNN states or using a sliding window during inference. Recent works use \emph{implicit neural representations} to reduce cost by directly mapping temporal positions to either pixels~\cite{yu2021generating} or StyleGAN~\cite{karras2020analyzing} feature map values~\cite{skorokhodov2021stylegan}. 
+However, the visual quality of the generated frames deteriorates quickly when performing generation beyond the training video length for all such methods as shown in Figure~\ref{fig:motivation}.
+
+\topic{Our work.} 
+We tackle the problem of long video generation. 
+Building upon the recent advances of VQGAN~\cite{esser2021taming} for high-resolution \emph{image generation}, we first develop a baseline by extending the 2D-VQGAN to 3D (2D space and 1D time) for modeling videos. 
+This naively extended method, however, fails to produce high-quality, coherent long videos.
+% \jiabin{other issues with vanilla 3D-VQGAN?}
+Our work investigates the model design and identifies simple changes that significantly improve the capability to generate long videos of thousands of frames without quality degradation when conditioning
+% \TFH{it's not really clear what natural flows conditioning means. Maybe something like storyline conditioning makes more sense? Or temporal storyline conditioning?} 
+on no or weak information. 
+Our core insights lie in 1) removing the undesired dependence on time from VQGAN 
+% \TFH{I keep getting stuck on this wording of removing the dependence on time in VQGAN because it's still convolving over time. I think it may be more accurate to say ``removing the undesired dependence on temporal position from VQGAN"..but maybe it's a weird phrase, temporal position. Feel free to ignore this} \sg{I think undesired sort of distinguish the time bias introduced by zero padding from the original ones}
+and 2) enabling the transformer to capture long-range temporal dependence.
+Below we outline these two key ideas.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/introduction/motivation.pdf}
+    \caption{Video generation results with a vanilla video VQGAN and a time-agnostic VQGAN, within and beyond the training length using sliding window attention.
+    }
+    \label{fig:motivation}
+\end{figure}
+
+\topic{Time-agnostic VQGAN.}
+Our model is trained on short video clips, e.g., 16 frames, like the previous methods~\cite{vondrick2016generating,saito2017temporal,Tulyakov_2018_CVPR,clark2019adversarial,saito2020train,tian2021a}.
+At inference time, we use a sliding window approach~\cite{brown2020language} on the transformer to sample tokens for a longer length. 
+The sliding window repeatedly appends the most recently generated tokens to the partial sequence and drops the earliest tokens to maintain a fixed sequence length. 
+However, applying a sliding attention window to 3D-VQVAE (e.g. VideoGPT~\cite{yan2021videogpt}) or 3D-VQGAN fails to preserve the video quality \emph{beyond the training length}, as shown in Figure~\ref{fig:motivation}.
+The reason turns out to be that the zero paddings used in these models \emph{corrupts} the latent tokens and results in token sequences at the inference time that are drastically different from those observed during training when using sliding window.
+The amount of corruption depends on the temporal position of the token.
+\footnote{The large spatial span in image synthesis~\cite{esser2021taming} disguises the issue. 
+When applying sliding window to border tokens, the problem resurfaces in supp. mat. Figure 12.}
+% ~\ref{fig:2dvqgan}
+We address this issue by using \emph{replicate padding} that mitigates the corruption by better approximating the real frames and brings no computational overhead.
+As a result, the transformer trained on the tokens encoded by our time-agnostic VQGAN effectively preserves the visual quality \emph{beyond the training video length}.
+
+
+\topic{Time-sensitive transformer.}
+While removing the temporal dependence in VQGAN is desirable, long video generation certainly needs temporal information! 
+This is necessary to model long-range dependence through the video and follow a sequence of events a storyline might suggest.
+While transformers can generate arbitrarily long sequences, errors tend to accumulate, leading to quality degradation for long video generation. 
+To mitigate this, we introduce a hierarchical architecture where an \emph{autoregressive transformer} first generates a set of sparse latent frames, providing a more global structure. Then an \emph{interpolation transformer} fills in the skipped frames autoregressively while attending to the generated sparse frames on both ends.
+With these modifications, our transformer models long videos more effectively and efficiently. 
+Together with our proposed 3D-VQGAN, we call our model Time-Agnostic VQGAN and Time-Sensitive Transformer (TATS). 
+We highlight the capability of TATS by showing generated video samples of 1024 frames in Figure~\ref{fig:teaser}.
+
+\topic{Our results.}
+We evaluate our model on several video generation benchmarks. 
+We first consider a standard short video generation setting. 
+Then, we carefully analyze its effectiveness for long video generation, comparing it against several recent models. 
+Given that the evaluation of long video generation has not been well studied, we generalize several popular metrics for this task considering important evaluation axes for video generation models, including long term quality and coherence.
+Our model achieves state-of-the-art short and long video generation results on the UCF-101~\cite{soomro2012ucf101}, Sky Time-lapse~\cite{xiong2018learning}, Taichi-HD~\cite{siarohin2019first}, and AudioSet-Drum~\cite{gemmeke2017audio} datasets.
+We further demonstrate the effectiveness of our model by conditioning on temporal information such as text and audio. 
+
+\topic{Our contributions.} 
+\begin{itemize}
+    \item We identify the undesired temporal dependence introduced by the zero paddings in VQGAN as a cause of the ineffectiveness of applying a sliding window for long video generation. We propose a simple yet effective fix.
+    \item We propose a hierarchical transformer that can model longer time dependence and delay the quality degradation, and show that our model can generate meaningful videos according to the story flow provided by text or audio. 
+    \item To our knowledge, we are the first to generate long videos and analyze their quality. We do so by generalizing several popular metrics to a longer video span and showing that our model can generate more diverse, coherent, and higher-quality long videos.
+\end{itemize}
+

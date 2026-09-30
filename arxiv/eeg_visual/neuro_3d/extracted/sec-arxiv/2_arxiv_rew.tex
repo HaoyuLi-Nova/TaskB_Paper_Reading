@@ -1,0 +1,38 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\subsection{2D Visual Decoding from Brain Activity}
+
+
+Visual decoding from brain activity \cite{lahner2024modeling,yi2024learning,chen2023seeing,chen2024eegformer,chen2024cinematic,zhang2022neural} has gained substantial attention in computer vision and neuroscience, emerging as an effective technique for understanding and analyzing human visual perception mechanisms.
+Early approaches predominantly utilized Convolutional Neural Networks (CNNs) and Generative Adversarial Networks (GANs) to model brain activity signals and interpret visual information~\cite{horikawa2017generic,shen2019deep,beliy2019voxels,lin2022mind,ozcelik2022reconstruction,huang2021fmri}. 
+Recently, the utilization of newly-emerged diffusion models \cite{ho2020denoising,nichol2021improved} and vision-language models \cite{li2023blip,zhu2023minigpt} has advanced visual generation from various neural signals including fMRI \cite{chen2023seeing,takagi2023high,scotti2024reconstructing,sun2024contrast,scotti2024mindeye2}
+and EEG \cite{song2023decoding,bai2023dreamdiffusion,li2024visual,singh2023eeg2image}. 
+These methods typically perform contrastive alignment \cite{wang2020understanding} between 
+neural signal embeddings and image or text features derived from the pre-trained CLIP model~\cite{radford2021learning}. Subsequently, the aligned neural embeddings are sent into diffusion model to conditionally reconstruct images that correspond to the visually-evoked brain activity. 
+Apart from static images,
+research has begun to extend these approaches to the reconstruction of video information from fMRI data, further advancing the field \cite{chen2024cinematic,sun2024neurocine,wen2018neural,wang2022reconstructing,kupershmidt2022penny}.
+Though impressive, these methods, limited to 2D visual perception, fall short of capturing the full depth of human 3D perceptual experience in real-world environments. Our method attempts to expand the scope of brain visual decoding to three dimensions by reconstructing 3D objects from real-time EEG signals.
+
+\subsection{3D Reconstruction from fMRI}
+
+Reconstructing 3D objects from brain signals holds significant potential for advancing both brain analysis applications and our understanding of the brain’s visual system. To achieve this goal, several works~\cite{gao2023mind,fMRI-3D} have made initial strides in 3D object reconstruction from fMRI, yielding promising results in interpreting 3D spatial structures. 
+Mind-3D~\cite{gao2023mind} proposes the first dataset of paired fMRI and 3D shape data and develops a diffusion-based framework to decode 3D shape from fMRI signals. A subsequent work, fMRI-3D~\cite{fMRI-3D}, expanded the dataset to include a broader range of categories across five subjects. 
+
+However, there are several limitations in previous task setup, which prevent it from simulating real-time, natural 3D perception scenarios. First, fMRI equipment is unportable, expensive, and difficult to operate, potentially hindering its application in BCIs (Brain-Computer-Interface). Besides its high acquisition cost, fMRI is limited by its inherently low temporal resolution, which hinders real-time responsiveness to dynamic stimuli. Second, existing brain 3D reconstruction methods focus exclusively on reconstructing 3D shape of objects, neglecting color and appearance information that are crucial in real-world perception.
+To address these challenges, 
+we introduce a 3D visual decoding framework based on EEG signals, along with 
+a new dataset for paired EEG and colored objects. 
+To the best of our knowledge, this is the first work to interpret 3D objects from EEG signals, offering a comprehensive dataset, benchmarks, and decoding framework.
+
+
+\vspace{-1mm}
+\subsection{Diffusion Models}
+
+
+
+Diffusion model has recently emerged as a powerful generative framework known for high-quality image synthesis capabilities. Inspired by non-equilibrium thermodynamics, the diffusion models are formulated as Markov chains. The model first progressively corrupts the target data distribution by adding noise until it conforms to a standard Gaussian distribution, and subsequently generates samples by predicting and reversing the noise process through network learning \cite{ho2020denoising,nichol2021improved}. The diffusion model, along with its variants, has been extensively applied to tasks such as image generation \cite{rombach2022high,kim2022diffusionclip,saharia2022photorealistic,ramesh2021zero} and image editing \cite{yu2024accelerating,zhang2023adding}.
+
+
+Building on 2D image generation, \cite{luo2021diffusion} and \cite{zhou20213d} extended pixel-based approaches to 3D coordinates, enabling the generation of point clouds. This has spurred further research into 3D generation \cite{ren2024tiger,vahdat2022lion}, text-to-3D reconstruction \cite{poole2022dreamfusion,nichol2022point}, and 2D-to-3D generation \cite{melas2023pc2,wu2023sketch,long2024wonder3d}, demonstrating their capability to capture intricate spatial structures and textures of 3D objects.
+In our study, we extend the 3D diffusion model to brain activity analysis, reconstructing colored 3D objects from EEG signals.

@@ -1,0 +1,165 @@
+\section{Experiments} \label{sec-experiment}
+
+% TODO: 一些demo演示
+
+
+\subsection{Machine Evaluation}
+Machine evaluation is conducted on two popular benchmarks for video generation, i.e., UCF101~\cite{soomro2012ucf101} and Kinetics-600~\cite{carreira2018short}. Following~\citet{rakhimov2020latent,yu2022generating}, we use 
+%metric 
+Fréchet Video Distance (FVD)~\cite{unterthiner2018towards} and Inception score (IS)~\cite{salimans2016improved} as metrics in the evaluation. FVD is calculated based on I3D model\cite{carreira2017quo} trained on Kinetics-400, and IS is based on C3D model~\cite{tran2015learning} which was first trained on the Sports-1M dataset~\cite{karpathy2014large} and then finetuned on the UCF101 dataset. Our evaluation code is the same as the official TGAN-v2 implementation\footnote{\url{https://github.com/pfnet-research/tgan2}}. 
+
+\textbf{UCF-101} is a human action dataset consisting of 13,320 videos 
+annotated 
+%distributed in 
+with 101 action classes. Due to the gaps of image style and frame rate between CogVideo's training set and UCF-101, we use class labels as the input text and finetune CogVideo on the whole dataset for 10,000 iterations with a batch size of 192. During inference, we generate samples of various classes according to the class distribution.
+%of in the dataset. 
+FVD and IS are evaluated over 2,048 and 10,000 samples respectively, following \citet{yu2022generating}. Results are shown in Table~\ref{tab:machine eval} (Left). 
+
+% // TODO: 多次测量？//用的是train+test，应该怎么report？ 上面数据的来源：DIGAN
+
+\begin{table}
+    \caption{(Left) Video generation performance on UCF-101. Class labels are used as the text inputs. * means that the model is only trained on the training split of UCF-101. (Right) Video generation performance on Kinetics-600. The metrics are based on the 16-frame generated videos priming on first 5 frames, following settings of  \citet{rakhimov2020latent}. ** means that the ground truth used in FVD testing is the reconstruction result of the tokenizer.}
+  \label{tab:machine eval}
+  \centering
+  \begin{minipage}{0.47\columnwidth}
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    Method & IS ($\uparrow$) & FVD ()\\
+    \midrule
+    % MoCoGAN\cite{tulyakov2018mocogan}* & 12.42 & - \\
+    % LDVD-GAN\cite{kahembwe2020lower}* & 22.91 & - \\
+    VideoGPT\cite{yan2021videogpt}  &  24.69 & - \\
+    DVD-GAN\cite{clark2019adversarial} & 27.38 & - \\
+    TGANv2\cite{saito2020train}* & 28.87 & 1209 \\
+    MoCoGAN-HD\cite{tian2021good} & 32.36 & 838  \\
+    DIGAN\cite{yu2022generating}* & 29.71  & 655 \\
+    DIGAN\cite{yu2022generating} & 32.70  & 577\\
+    TATS-base\cite{ge2022long} & 79.28  & 332\\
+    \midrule
+    CogVideo (Ours) & 50.46  & 626\\
+    CogVideo (Ours)** & - & 545 \\
+    \bottomrule
+  \end{tabular}
+\end{minipage}
+% \end{table}
+% \begin{table}
+%   \caption{Video generation performance on Kinetics-600. Metric measured on generated videos of 16 frames primeing on first 5 frames, following settings in \cite{rakhimov2020latent}. ** denotes groundtruth used in FVD testing is blurred with our image tokenizer icetk.}
+%   \label{kinetics-table}
+\begin{minipage}{0.47\columnwidth}
+  \centering
+  \begin{tabular}{lc}
+    \toprule
+    Method & FVD() \\
+    \midrule
+    Latent Video Tranformer\cite{rakhimov2020latent} & 224.73    \\
+    Video Transformer\cite{weissenborn2019scaling}     & 170 \\
+    DVD-GAN-FP\cite{clark2019adversarial}     & 69.15  \\
+    TriVD-GAN-FP\cite{luc2020transformation}  & 25.74  \\
+    \midrule
+    CogVideo (Ours) & 109.23 \\
+    CogVideo (Ours)** & 59.55 \\
+    \bottomrule
+  \end{tabular}
+  \end{minipage}
+\end{table}
+
+
+
+\textbf{Kinetics-600} contains 600 classes of human action videos, with roughly 350,000 train and 50,000 test videos in total. We use the action category as input text, and finetune CogVideo on the training set for 12,000 iterations with a batch size of 640. Following the setup of \citet{weissenborn2019scaling, rakhimov2020latent}, we center-crop and downsample each frame to 64$\times$64 to measure the 
+%metric 
+FVD of the model. Results are shown in Table~\ref{tab:machine eval} (Right). 
+
+\begin{comment}
+// TODO 过VQVAE的要report吗
+\end{comment}
+
+% // TODO: 要有 \pm xxx吗
+
+\subsection{Human Evaluation} \label{subsec:human}
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{images/humaneval.pdf}
+  \caption{Human evaluation results. ``CogVideo 1Stage'' refers to the method in ablation study, which only generates videos sequentially with the CogVideo's Stage 1 to the desired number of frames. }
+  \label{fig:human-evaluation}
+  \vspace{-4mm}
+\end{figure}
+%To better 
+
+To further evaluate CogVideo, we invite 90 anonymous evaluators to rate for CogVideo and other open-source baselines including GAN-based model TGANv2~\cite{saito2020train} and GPT-based model VideoGPT~\cite{yan2021videogpt}. 30 classes in UCF101 are randomly picked as text conditions, and several aspects are rated (See Appendix for details). For VideoGPT, we use the official unconditional pretrained model\footnote{\url{https://github.com/wilson1yan/VideoGPT}} to generate samples. For TGANv2, we use the official source code to train an unconditional generation model under the same setting as that in~\citet{saito2020train}. To assign unconditionally generated samples into corresponding categories, we choose TSM~\cite{lin2019tsm} as the action recognition model for a post-classification. We only keep the samples whose likelihood to a certain class is at least 80\%.
+%are taken. 
+Results in Figure~\ref{fig:human-evaluation} show that CogVideo 
+significantly outperforms baselines
+%by a large margin 
+on multiple important aspects including frame texture, motion realism and semantic relevance, and achieves the top score by the overall quality. 
+%While 
+It can be seen that
+49.53\% evaluators choose CogVideo as the best method, and only 15.42\% and 5.6\% favor VideoGPT and TGANv2, respectively.
+
+\subsection{Ablation Study} \label{subsec:ablation study}
+To verify the effectiveness of hierarchical multi-frame-rate generation and incorporating CogView2, we conduct ablation studies on Kinetics-600 and UCF-101 datasets. We will first briefly introduce the compared methods and analyze the quantitative results in \S~\ref{sec:ab1} and qualitative results in \S~\ref{sec:ab2}
+
+\textbf{Hierarchical multi-frame-rate generation.} In comparison with CogVideo, we finetune a 1-stage video generation model on Kinetics-600 from the sequential generation model in CogVideo, which generates long videos by sliding windows. In each window, we generate the rest frames based on $N_{overlap}$ previous known frames. Larger $N_{overlap}$ means more previous frames can be utilized during the inference, but will increase time overhead. 
+
+\textbf{Dual-channel attention with CogView2's weights.} To highlight the effectiveness of our finetuning strategy, we additionally finetune (1) a randomly initialized model, (2) a model incorporating CogView2's weights but leaving the temporal channel unfixed (equivalent to CogVideo without pretraining on videos) on Kinetics-600 for comparison.
+
+% Quantitative results are shown in Table~\ref{tab:ablation-study}, where FVD is evaluated with I3D model on a 5,000-sample subset of Kinetics-600's testset. 
+\subsubsection{Quantitative Evaluation}\label{sec:ab1}
+\begin{table}
+  \caption{Ablation study on a 5,000-sample subset of Kinetics-600's testset. FVD is evaluated on generated 11-frame samples priming on 5 frames and the recovered ground-truth by the image tokenizer. The setting column indicates the difference between each method and CogVideo. Models of each setting are trained on Kinetics-600 trainset for 11,000 iterations with a batch size of 160. }
+  \label{tab:ablation-study}
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    Method & Setting & FVD ()              \\
+    \midrule
+    CogVideo & None & 108.27\\
+    \midrule
+    1-stage Generation($N_{overlap}=1$) & $-$ hierarchical & 137.13\\
+    1-stage Generation($N_{overlap}=2$) & $-$ hierarchical & 120.82\\
+    \midrule
+    Initialized with CogView2 & $-$ Pretrain & 124.92 \\
+    Randomly Initialized & $-$ Pretrain $-$ CogView2 & 166.13 \\
+    
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{wrapfigure}[10]{r}{0.4\textwidth}
+  \centering
+  \vspace{-12mm}%
+  \includegraphics[width=0.4\textwidth]{images/ablation_loss.pdf}
+    \vspace{-7mm}%
+  \caption{Training loss in ablation study. }
+  \label{fig:ablation-loss}
+\end{wrapfigure}
+
+All aforementioned models 
+%mentioned above is 
+have been trained for 11,000 iterations with a batch size of 160. Quantitative %evaluation 
+results are shown in Table~\ref{tab:ablation-study}. 
+%From the table w
+We can see that the hierarchical method is clearly superior to the 1-stage generation with different $N_{overlap}$, and the model initialized with CogView2's weights has lower FVD than the randomly initialized one. 
+
+Figure~\ref{fig:ablation-loss} plots the training loss curve of (1) finetuning CogVideo; (2) training model from random initialization; (3) training model initialized with CogView2 and partially fixed. We can see that CogView2 endows the model with a good initialization point from which the loss can decrease faster. Moreover, fixing part of the parameters reduces the time and memory cost. 
+
+
+\subsubsection{Qualitative Evaluation}\label{sec:ab2}
+
+\begin{figure}
+\centering
+  \includegraphics[width=\textwidth]{images/ablation-case.pdf}
+  \vspace{-4mm}%
+  \caption{Video samples in ablation study, which are generated priming on the class label and first 5 frames in Kinetics-600. All samples are downsampled by extracting one in every three frames for display purposes. (a) Use finetuned CogVideo to hierarchically generate samples. (b) Train a model on Kinetics-600 which is initialized as and partially fixed to CogView2, and hierarchically generate samples. (c) Train a model on Kinetics-600 which is randomly initialized, and hierarchically generate samples. (d)(e) Use finetuned CogVideo to generate frames in 1 stage with different $N_{overlap}$. }
+  \label{fig:ablation-case}
+\end{figure}
+
+Qualitative comparison is shown in Figure~\ref{fig:ablation-case}. While the model trained from random initialization tends to produce irrational deformation, the model incorporating CogView2 is able to generate realistic objects, and the hierarchical generation performs better on content consistency and motion realism. 
+
+We also conduct human evaluation between 1-stage and hierarchical video generation model under the same setting as in \S~\ref{subsec:human}. As shown in Figure \ref{fig:human-evaluation}, the hierarchical model, i.e. CogVideo, outperforms the 1-stage model on semantic relevance, motion realism as well as texture quality. 
+This is probably because the 1-stage model cannot estimate a proper intensity of change from the previous frames in the window, as shown in Figure~\ref{fig:ablation-case}(d)(e). 
+% tends to constantly generate frames movements which make the whole video unrealistic, and if one generated frame collapses, the subsequent frames often suffer from severe degradation. 
+
+
+
+

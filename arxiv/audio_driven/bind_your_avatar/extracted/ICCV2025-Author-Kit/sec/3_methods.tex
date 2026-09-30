@@ -1,0 +1,142 @@
+
+\section{Methodology}
+% \subsection{Task}
+
+% \subsubsection{Input:}A multi-talking-characters system takes as input:
+%     \begin{enumerate}
+%         \item A text prompt describing the environment, positions, actions (optional), and appearances (optional).
+%         \item Multi-stream speech audio for driving each character's mouth movements, facial expressions, and head poses.
+%         \item Multiple reference character images for preserving characters' facial features, and an inpainting frame containing multiple characters and the environment(optional).
+%     \end{enumerate}
+% \end{subsubsection}
+% \subsubsection{Output:} A video featuring multiple talking characters, where each character's mouth movements are synchronized with their respective input speech audio, and their identities are accurately preserved based on the provided reference images.
+% \end{subsubsection}
+
+
+\subsection{Task and Problem Formulation}
+Given the following inputs:
+A text prompt $\mathbf{x}$ describing the environment and the characters’ positions and actions; 
+Multiple speech audios $\mathbf{a} = \{\mathbf{a}_1, \mathbf{a}_2, \dots, \mathbf{a}_n\}$, where $n$ is the number of characters, for driving each character's lip movements, facial expressions, and head poses; 
+Multiple reference character images $\mathbf{I_r} = \{\mathbf{i_r}_1, \mathbf{i_r}_2, \dots, \mathbf{i_r}_n\}$, where $\mathbf{i_r}_i \in \mathbb{R}^{3 \times H \times W}$, for preserving characters' facial features; 
+An optional inpainting frame $\mathbf{I_i} \in \mathbb{R}^{3 \times H \times W}$; 
+An optional Audio-Character Matrix $\mathbf{A}^{\text{ac}} \in \mathbb{R}^{n \times n}$ indicating the correspondence between audios and characters; 
+The goal is to generate a video sequence $\mathbf{V} \in \mathbb{R}^{T \times 3 \times H \times W}$ featuring multiple talking characters, where each character's lip movements and head poses are synchronized with their respective input speech audio, and their identities are accurately preserved based on the provided reference images.
+
+\subsection{Framework}
+\label{framework}
+Our framework is primarily built upon CogVideoX \cite{yang2024cogvideox}, a multimodal diffusion transformer (MM-DiT) text-to-video foundational model. During the training process at timestep $t$, we first encode the video sequence $\mathbf{V}$ into a latent space $\mathbf{z_{0}} \in \mathbb{R}^{T' \times C' \times H' \times W'}$ using a pre-trained 3D VAE Encoder \cite{yang2024cogvideox}, where $C'$ is the number of channels, $T'$, $H'$, and $W'$ are the number of frames, height, and width of the latent space, respectively. 
+Similarly, we encode the optional inpainting frame $\mathbf{I_i}$ and the concatenated reference images $\mathbf{I_{R}}$ (created by combining multiple reference character images $\mathbf{I_r}$ in the RGB space) into latent spaces. These latent representations are then padded along the time dimension to match the length of $\mathbf{z_{0}}$. Finally, we concatenate these three latent representations to form $\mathbf{z_{0}} \in \mathbb{R}^{T' \times 3C' \times H' \times W'}$.
+Next, we divide the latent representation $\mathbf{z_{0}}$ into patches to obtain a sequence of 
+visual tokens \( \mathbf{v} \in \mathbb{R}^{S \times d} \), where \( S \) is the sequence length and \( d \) is the inner dimension of the transformer block. The sequence length \( S \) is calculated as \( S = T' \cdot H' / \tau \cdot W' / \tau \), where \( \tau \) represents the patch size. 
+These tokens are concatenated with the text embeddings and passed through $L$ layers of diffusion transformer blocks to predict the noise $ \epsilon_\theta $, while $ \epsilon $ is the noise added to $ v $, where $ \epsilon $ is sampled from a standard normal distribution (i.e., $ \epsilon \sim \mathcal{N}(0, 1) $).
+Finally, we compute the diffusion loss to optimize the model:
+\begin{equation}
+    \mathcal{L}_{d} = \mathbb{E}_{v, t, \epsilon, x, I_r, a} \left[ \left\| \epsilon - \epsilon_\theta\left(v, t, \tau_\beta(x), \tau_\theta(I_r), \tau_\gamma(a)\right) \right\|_2^2 \right],
+\end{equation}
+where \( \tau_\beta(\cdot) \) denotes the text encoder, \( \tau_\theta(\cdot) \) denotes the face encoder, and \( \tau_\gamma(\cdot) \) denotes the audio encoder.
+
+\noindent\textbf{Condition Injection}
+% \label{subsubsec:condition injection}
+As illustrated in Figure~\ref{fig1}, to effectively inject conditions into the denoising process, we utilize a T5 Encoder \cite{raffel2020exploring} to encode the text condition. For the audio condition, we first employ a pre-trained Wav2Vec \cite{baevski2020wav2vec} encoder to extract audio features, which are then projected to a higher-dimensional space. To address the temporal resolution misalignment between audio features and visual features, we apply a 2D convolution to down-sample the audio features, ensuring alignment with the temporal resolution of the visual features. The resulting audio representation is denoted as the audio embedding $\mathbf{e_a}$. 
+To preserve character identities, we follow \cite{yuan_identity-preserving_2024}, utilizing a pre-trained CLIP model \cite{radford2021learning} to extract global features and a pre-trained InsightFace model \cite{deepinsight2024insightface} to extract local facial features. These features are then fused using a Q-Former \cite{li2023blip} to obtain refined features, which we denote as the character facial embedding $\mathbf{e_{c}}$.
+Next, we encode both the character reference images and the inpainting frame through the 3D VAE encoder to obtain their latent representations. To better leverage their respective information content, we first apply noise to the facial regions of the inpainting frame and remove the background from the character reference images, both prior to encoding.
+Finally, we apply mask-guided cross-attention to selectively integrate the embeddings into the visual tokens, as detailed in \ref{subsec:embedding_router}.
+\subsection{Embedding Router}
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figure3} % Reduce the figure size so that it is slightly narrower than the column. Don't use precise values for figure width.This setup will avoid overfull boxes.
+    \caption{Architecture of the proposed Intra-Denoise Router. Multi-character facial and audio embeddings (\textcolor[HTML]{82B366}{green} and \textcolor[HTML]{6C8EBF}{blue} square on the left) utilize rich cross-modal representations from pretrained cross-attention, followed by a lightweight transformer to capture global dependencies and refine the mask. The resulting fine mask and audio-visual matrix, computed by matrix multiplication, are used to selectively inject embeddings into the corresponding characters.}
+    \label{fig3}
+\end{figure}
+\label{subsec:embedding_router}
+To address the audio-to-character correspondence control in the same scene, we design an embedding router that binds speaker identity (``who'') with speech content (``what'') together.
+We first present the overall pipeline of the embedding router, as illustrated in Figure \ref{fig2}, highlighting our proposed 3D-mask-based approaches for handling dynamic scenes and close character interactions. We then introduce weakly supervised loss functions grounded in geometric priors to guide accurate mask prediction. Finally, we describe the network architecture and implementation details of the complete embedding router pipeline.
+\subsubsection{Overall Pipeline}
+We believe utilizing a spatiotemporal mask $\mathbf{M} \in [0, 1]^{n \times T' \times H'/ \tau \times W'/ \tau}$ predicted by embedding router to guide the condition injection process is an effective approach for achieving precise audio-to-character correspondence control. This ensures that each character's facial and speech audio embeddings are accurately routed to their respective visual tokens within the DiT blocks.
+We first attempt to obtain a 2D mask by detecting facial regions in the inpainting frame $\mathbf{I_{R}}$, which is a common practice in talkinghead generation~\cite{cuiHallo2LongDurationHighResolution2024}. This mask is then downsampled and temporally replicated to align with the dimensions of the visual tokens \( \mathbf{v} \). Then we utilize a mask-guided cross-attention module to inject the embeddings into the DiT blocks, as shown in Figure~\ref{fig2} (a).
+We refer to this method as the ``Pre-Denoise Router'', since the mask is predicted prior to the denosing process. 
+However, this approach fails to achieve precise audio-to-character binding because the static mask cannot adapt to dynamic scenes where character positions change across frames. Besides, the prior-shaped bounding box detection is not fine-grained enough to handle cases where two characters are close together, leading to inter-character confusion.
+
+To address these shortcoming, we propose a 3D-mask-based embedding router and present two methods for its implementation, as shown in Figure~\ref{fig2} (b,c).
+Method (b), termed as the Post-Denoise Router (coarse-generation then mask-prediction), employs a two-stage strategy: it first performs denoising without conditioning embeddings to generate a coarse, speech-free video; then predicts fine-grained 3D masks from the generated frames for subsequent refinement denoising.
+Although this method achieves more precise audio-to-character binding, it incurs significant computational overhead due to the need for multiple forward passes during inference.
+To further enhance efficiency, we introduce the Intra-Denoise Router (dynamic intra-generation prediction), which trains an embedding router module that dynamically predicts fine-grained 3D masks during the denoising process, eliminating multi-pass computation while maintaining accuracy, as shown in Figure \ref{fig2} (c).
+% \begin{itemize}
+%     \item \textbf{Pre-Denoise Router:} This approach detects each character's face region in the inpainting frame and uses it as a static visual mask throughout the denoising process.
+%     \item \textbf{Post-Denoise Router:} This two-stage approach first Denoises without facial or speech embeddings, then detects face regions in each generated frame to create visual masks for a second denoising forward.
+%     \item \textbf{Intra-Denoise Router:} This method directly trains an embedding router module that dynamically generates visual masks during denoising, using character facial embeddings and transformer block latent representations as inputs.
+% \end{itemize} 
+% (1) "Pre-Denoise Router", which detects each character's face region in the inpainting frame and uses it as a visual mask throughout the denoising process; 
+% (2) "Post-Denoise Router", which employs a two-stage approach where we first Denoise without facial or speech embeddings, then detect face regions in each generated frame to create visual masks for a second denoising pass; 
+% (3) "Intra-Denoise Router", which directly trains an embedding router module that dynamically generates visual masks during denoising by taking character facial embeddings and transformer block latent representations as input.
+\subsubsection{Loss Function for Intra-Denoise Router}
+The Intra-Denoise Router, which predicts masks based on the correlation between high-dimensional facial embeddings and visual tokens, is trained using a combination of cross-entropy loss and weakly supervised losses that incorporate geometric priors.
+Unlike \cite{fei_ingredients_2025}, we reformulate the router module's objective as a multi-class classification task by treating the background as an additional class ($n + 1$). This formulation mitigates the impact of noisy outputs in background regions during inference.
+Given the visual tokens \( \mathbf{v} \) from transformer layer \( l \) and multiple character reference images \( \mathbf{I_r} \), the router module predicts a 3D visual mask \( \mathbf{M}\), indicating the character each visual token corresponds to. The router module is mainly optimized using a cross-entropy loss function:
+
+\begin{equation}
+\mathcal{L}_r = \sum_{l,i,t,h,w=1}^{L, \, n, \, T', \, H'/\tau, \, W'/\tau} -y_{l, i, t, h, w} \log(\hat{y}_{l, i, t, h, w}),
+\end{equation}
+where \( y_{l, i, t, h, w} \) represents the ground truth mask value for Character \( i \) at Layer \( l \), Time \( t \), Height \( h \), and Width \( w \), which is extracted using a pretrained SAM2 \cite{ravi2024sam2} model and downsampled to match the size of \( \mathbf{v} \). The predicted mask value from the router module is denoted as \( \hat{y}_{l, i, t, h, w} \).
+
+Compared to \cite{fei_ingredients_2025}, which treats each visual token as an isolated entity and struggle to produce a smooth mask, we incorporate \textbf{geometric priors} which naturally constrain the shape of 3D mask to enhance mask smoothness and consistency, followed by three constraints: (1) Spatiotemporal Consistency, (2) Layer-wise Consistency, (3) Identity Exclusivity.
+In light of the geometric priors, we further design some weak supervision losses to regularize the training of the router module:
+
+
+\begin{equation}
+\mathcal{L}_{\text{st}} = \sum_{l=1, \, i=1}^{L, \, n} \left\| \nabla_{\text{Spatiotemporal}} M_{l,i, t} \right\|_1,
+\end{equation}
+% \begin{equation}
+% \mathcal{L}_{\text{t}} = \sum_{l=1, \, i=1, \, h=1, \, w=1}^{L, \, n, \, H'/\tau,\,W'/\tau} \left\| \nabla_{\text{temporal}} M_{l,i, h,w} \right\|_1
+% \end{equation}
+\begin{equation}
+\mathcal{L}_{\text{layer}} = \sum_{i=1, \, t=1,\, h=1, \, w=1}^{n, \, T',\, H'/\tau,\,W'/\tau} \text{Var}\left( \{ M_{l,i,t,h,w} \}_{l=1}^{L} \right).
+\end{equation}
+Here, \(\nabla_{\text{Spatiotemporal}} M_{l,i, t}\) denotes the discrete spatiotemporal gradient of the mask M, encompassing variations along the horizontal, vertical, and temporal axes.
+We observed that the loss term \(\mathcal{L}_r\) inherently enforces Identity Exclusivity, ensuring that only one character is predicted at any given temporal-spatial position.
+The overall loss to optimize the router module is defined as \( \mathcal{L}_{\text{router}} \):
+
+\begin{equation}
+\mathcal{L}_{\text{router}} = \mathcal{L}_r + \lambda_{st} \mathcal{L}_{st} + \lambda_l \mathcal{L}_{\text{layer}},
+\end{equation}
+where \( \lambda_{st} \), and \( \lambda_l \) are the loss weights.
+
+\subsubsection{Architecture Implementation}
+As shown in Figure \ref{fig3}, Our router module architecture integrates both Geometric Priors and rich cross-modal representations from facial cross-attention, which is pre-trained in the first stage (Section \ref{subsec:training}). Details about network structure are provided in the Appendix.
+
+During inference, we refine predicted masks by discarding low-confidence predictions and applying semi-supervised clustering for temporal-spatial consistency. Inspired by \cite{leonardis_emo_2025}, to allow more flexibility in character motion, we inflate the audio cross-attention masks by flipping their values and swapping along the character dimension.
+
+After obtaining the mask M of Layer l, which can be viewed as the Character-Visual Matrix $\mathbf{A}^{\text{cv}} \in \mathbb{R}^{n \times s}$ (where $s = T' \cdot H'/\tau \cdot W'/\tau$ is the sequence length of visual tokens), we can derive the Audio-Visual Matrix $\mathbf{A}_{\text{av}}$ through:
+\begin{equation}
+\mathbf{A}^{\text{av}} = \mathbf{A}^{\text{ac}} \cdot \mathbf{A}^{\text{cv}},
+\end{equation}
+where $\mathbf{A}_{\text{ac}} \in \mathbb{R}^{n \times n}$ is the Audio-Character Matrix indicating the correspondence between audios and characters. 
+This matrix can either be provided as an input condition or predicted by our proposed audio router module. In this paper, we implement the audio router by leveraging a pretrained speech-face alignment model \cite{wen_seeking_2021} to compute relevance scores between audio streams and characters, followed by a voting mechanism to derive the final Audio-Character Matrix. Finally, we apply mask-guided cross-attention in two sequential steps to integrate both the facial embeddings and the motion-related speech information into the visual tokens by:
+\begin{equation}
+    \mathbf{v'} = \mathbf{v} + \mathbf{A}^{\text{cv}} \cdot \texttt{FaceCrossAttn}(\mathbf{e_{c}}, \mathbf{v}),
+\end{equation}
+\begin{equation}
+    \mathbf{v''} = \mathbf{v} + \mathbf{A}^{\text{av}} \cdot \texttt{AudioCrossAttn}(\mathbf{e_{a}}, \mathbf{v'}),
+\end{equation}
+where \(\mathbf{e_{c}}\) and \(\mathbf{e_{a}}\) denote the character facial embedding and audio embedding, respectively, as described in Section~\ref{framework}.
+
+
+\subsection{Multi-Stage Training}
+\label{subsec:training}
+We divide the training process into three consecutive stages to progressively enhance the model's capabilities, from identity preservation to audio-driven motion control, and finally to multi-character audio-driven animation.
+
+\textbf{Stage 1:} Excluding speech audio conditions, we focus on identity preservation and the ability to generate from an inpainting frame. The full parameters of the transformer and face embedding extractor are unfrozen. We introduce a 50\% probability of randomly dropping the inpainting frame, forcing the model to generate robust outputs in both conditional and unconditional scenarios. Following \cite{yuan_identity-preserving_2024}, a Dynamic Mask Loss with a 50\% application rate is adopted.
+
+\textbf{Stage 2:} Audio conditions are added, and Low-Rank Adaptation (LORA) \cite{hu_lora_2021} is incorporated into the video DiT architecture as an additional trainable module. All parameters are fixed except for the audio encoder, audio cross-attention, face encoder, face cross-attention, and the DiT's LORA. Random drops of different condition combinations are applied to strengthen classifier-free guidance generation \cite{ho2022classifier}.
+
+\textbf{Stage 3:} The embedding router module is introduced and trained jointly with the entire denoising process. All parameters are fixed except for the embedding router module, audio cross-attention, face cross-attention, and the DiT's LORA. 
+We adopt a two-task hybrid training paradigm by dividing the training process into single-character and multi-character animation tasks. These tasks use distinct training data while sharing the same network parameters. For single-character scenarios, we replicate the input conditions \(n\) times to match the model's expected multi-character input format.
+We also employ a teacher-forcing training strategy to stabilize the training process, as detailed in the appendix.
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figure5} % Reduce the figure size so that it is slightly narrower than the column.
+    \caption{
+    Qualitative comparison with other competing methods on MTCC test set.
+    }
+    \label{fig5}
+\end{figure*}

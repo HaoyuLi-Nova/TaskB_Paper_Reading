@@ -1,0 +1,342 @@
+\begin{thebibliography}{10}
+
+\bibitem{nichol2021glide}
+Alex Nichol, Prafulla Dhariwal, Aditya Ramesh, Pranav Shyam, Pamela Mishkin,
+  Bob McGrew, Ilya Sutskever, and Mark Chen.
+\newblock Glide: Towards photorealistic image generation and editing with
+  text-guided diffusion models.
+\newblock {\em arXiv preprint arXiv:2112.10741}, 2021.
+
+\bibitem{ramesh2022hierarchical}
+Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen.
+\newblock Hierarchical text-conditional image generation with clip latents.
+\newblock {\em arXiv preprint arXiv:2204.06125}, 2022.
+
+\bibitem{saharia2022photorealistic}
+Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily~L
+  Denton, Kamyar Ghasemipour, Raphael Gontijo~Lopes, Burcu Karagol~Ayan, Tim
+  Salimans, et~al.
+\newblock Photorealistic text-to-image diffusion models with deep language
+  understanding.
+\newblock {\em Advances in Neural Information Processing Systems},
+  35:36479--36494, 2022.
+
+\bibitem{rombach2022high}
+Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj{\"o}rn
+  Ommer.
+\newblock High-resolution image synthesis with latent diffusion models.
+\newblock In {\em Proceedings of the IEEE/CVF conference on computer vision and
+  pattern recognition}, pages 10684--10695, 2022.
+
+\bibitem{balaji2022ediffi}
+Yogesh Balaji, Seungjun Nah, Xun Huang, Arash Vahdat, Jiaming Song, Karsten
+  Kreis, Miika Aittala, Timo Aila, Samuli Laine, Bryan Catanzaro, et~al.
+\newblock ediffi: Text-to-image diffusion models with an ensemble of expert
+  denoisers.
+\newblock {\em arXiv preprint arXiv:2211.01324}, 2022.
+
+\bibitem{xue2023raphael}
+Zeyue Xue, Guanglu Song, Qiushan Guo, Boxiao Liu, Zhuofan Zong, Yu~Liu, and
+  Ping Luo.
+\newblock Raphael: Text-to-image generation via large mixture of diffusion
+  paths.
+\newblock {\em arXiv preprint arXiv:2305.18295}, 2023.
+
+\bibitem{witteveen2022investigating}
+Sam Witteveen and Martin Andrews.
+\newblock Investigating prompt engineering in diffusion models.
+\newblock {\em arXiv preprint arXiv:2211.15462}, 2022.
+
+\bibitem{radford2021learning}
+Alec Radford, Jong~Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+  Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark,
+  et~al.
+\newblock Learning transferable visual models from natural language
+  supervision.
+\newblock In {\em International conference on machine learning}, pages
+  8748--8763. PMLR, 2021.
+
+\bibitem{zhang2023adding}
+Lvmin Zhang and Maneesh Agrawala.
+\newblock Adding conditional control to text-to-image diffusion models.
+\newblock {\em arXiv preprint arXiv:2302.05543}, 2023.
+
+\bibitem{xu2023prompt}
+Xingqian Xu, Jiayi Guo, Zhangyang Wang, Gao Huang, Irfan Essa, and Humphrey
+  Shi.
+\newblock Prompt-free diffusion: Taking" text" out of text-to-image diffusion
+  models.
+\newblock {\em arXiv preprint arXiv:2305.16223}, 2023.
+
+\bibitem{mou2023t2i}
+Chong Mou, Xintao Wang, Liangbin Xie, Jian Zhang, Zhongang Qi, Ying Shan, and
+  Xiaohu Qie.
+\newblock T2i-adapter: Learning adapters to dig out more controllable ability
+  for text-to-image diffusion models.
+\newblock {\em arXiv preprint arXiv:2302.08453}, 2023.
+
+\bibitem{zhao2023uni}
+Shihao Zhao, Dongdong Chen, Yen-Chun Chen, Jianmin Bao, Shaozhe Hao, Lu~Yuan,
+  and Kwan-Yee~K Wong.
+\newblock Uni-controlnet: All-in-one control to text-to-image diffusion models.
+\newblock {\em arXiv preprint arXiv:2305.16322}, 2023.
+
+\bibitem{ramesh2021zero}
+Aditya Ramesh, Mikhail Pavlov, Gabriel Goh, Scott Gray, Chelsea Voss, Alec
+  Radford, Mark Chen, and Ilya Sutskever.
+\newblock Zero-shot text-to-image generation.
+\newblock In {\em International Conference on Machine Learning}, pages
+  8821--8831. PMLR, 2021.
+
+\bibitem{ding2021cogview}
+Ming Ding, Zhuoyi Yang, Wenyi Hong, Wendi Zheng, Chang Zhou, Da~Yin, Junyang
+  Lin, Xu~Zou, Zhou Shao, Hongxia Yang, et~al.
+\newblock Cogview: Mastering text-to-image generation via transformers.
+\newblock {\em Advances in Neural Information Processing Systems},
+  34:19822--19835, 2021.
+
+\bibitem{ding2022cogview2}
+Ming Ding, Wendi Zheng, Wenyi Hong, and Jie Tang.
+\newblock Cogview2: Faster and better text-to-image generation via hierarchical
+  transformers.
+\newblock {\em Advances in Neural Information Processing Systems},
+  35:16890--16902, 2022.
+
+\bibitem{gafni2022make}
+Oran Gafni, Adam Polyak, Oron Ashual, Shelly Sheynin, Devi Parikh, and Yaniv
+  Taigman.
+\newblock Make-a-scene: Scene-based text-to-image generation with human priors.
+\newblock In {\em European Conference on Computer Vision}, pages 89--106.
+  Springer, 2022.
+
+\bibitem{van2017neural}
+Aaron Van Den~Oord, Oriol Vinyals, et~al.
+\newblock Neural discrete representation learning.
+\newblock {\em Advances in neural information processing systems}, 30, 2017.
+
+\bibitem{vaswani2017attention}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is all you need.
+\newblock {\em Advances in neural information processing systems}, 30, 2017.
+
+\bibitem{yu2022scaling}
+Jiahui Yu, Yuanzhong Xu, Jing~Yu Koh, Thang Luong, Gunjan Baid, Zirui Wang,
+  Vijay Vasudevan, Alexander Ku, Yinfei Yang, Burcu~Karagol Ayan, et~al.
+\newblock Scaling autoregressive models for content-rich text-to-image
+  generation.
+\newblock {\em arXiv preprint arXiv:2206.10789}, 2022.
+
+\bibitem{sohl2015deep}
+Jascha Sohl-Dickstein, Eric Weiss, Niru Maheswaranathan, and Surya Ganguli.
+\newblock Deep unsupervised learning using nonequilibrium thermodynamics.
+\newblock In {\em International conference on machine learning}, pages
+  2256--2265. PMLR, 2015.
+
+\bibitem{song2020denoising}
+Jiaming Song, Chenlin Meng, and Stefano Ermon.
+\newblock Denoising diffusion implicit models.
+\newblock {\em arXiv preprint arXiv:2010.02502}, 2020.
+
+\bibitem{song2020score}
+Yang Song, Jascha Sohl-Dickstein, Diederik~P Kingma, Abhishek Kumar, Stefano
+  Ermon, and Ben Poole.
+\newblock Score-based generative modeling through stochastic differential
+  equations.
+\newblock {\em arXiv preprint arXiv:2011.13456}, 2020.
+
+\bibitem{dhariwal2021diffusion}
+Prafulla Dhariwal and Alexander Nichol.
+\newblock Diffusion models beat gans on image synthesis.
+\newblock {\em Advances in neural information processing systems},
+  34:8780--8794, 2021.
+
+\bibitem{raffel2020exploring}
+Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael
+  Matena, Yanqi Zhou, Wei Li, and Peter~J Liu.
+\newblock Exploring the limits of transfer learning with a unified text-to-text
+  transformer.
+\newblock {\em The Journal of Machine Learning Research}, 21(1):5485--5551,
+  2020.
+
+\bibitem{chen2022re}
+Wenhu Chen, Hexiang Hu, Chitwan Saharia, and William~W Cohen.
+\newblock Re-imagen: Retrieval-augmented text-to-image generator.
+\newblock {\em arXiv preprint arXiv:2209.14491}, 2022.
+
+\bibitem{xu2022versatile}
+Xingqian Xu, Zhangyang Wang, Eric Zhang, Kai Wang, and Humphrey Shi.
+\newblock Versatile diffusion: Text, images and variations all in one diffusion
+  model.
+\newblock {\em arXiv preprint arXiv:2211.08332}, 2022.
+
+\bibitem{huang2023composer}
+Lianghua Huang, Di~Chen, Yu~Liu, Yujun Shen, Deli Zhao, and Jingren Zhou.
+\newblock Composer: Creative and controllable image synthesis with composable
+  conditions.
+\newblock {\em arXiv preprint arXiv:2302.09778}, 2023.
+
+\bibitem{shazeer2017outrageously}
+Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le,
+  Geoffrey Hinton, and Jeff Dean.
+\newblock Outrageously large neural networks: The sparsely-gated
+  mixture-of-experts layer.
+\newblock {\em arXiv preprint arXiv:1701.06538}, 2017.
+
+\bibitem{fedus2022switch}
+William Fedus, Barret Zoph, and Noam Shazeer.
+\newblock Switch transformers: Scaling to trillion parameter models with simple
+  and efficient sparsity.
+\newblock {\em The Journal of Machine Learning Research}, 23(1):5232--5270,
+  2022.
+
+\bibitem{houlsby2019parameter}
+Neil Houlsby, Andrei Giurgiu, Stanislaw Jastrzebski, Bruna Morrone, Quentin
+  De~Laroussilhe, Andrea Gesmundo, Mona Attariyan, and Sylvain Gelly.
+\newblock Parameter-efficient transfer learning for nlp.
+\newblock In {\em International Conference on Machine Learning}, pages
+  2790--2799. PMLR, 2019.
+
+\bibitem{li2023blip}
+Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi.
+\newblock Blip-2: Bootstrapping language-image pre-training with frozen image
+  encoders and large language models.
+\newblock {\em arXiv preprint arXiv:2301.12597}, 2023.
+
+\bibitem{zhu2023minigpt}
+Deyao Zhu, Jun Chen, Xiaoqian Shen, Xiang Li, and Mohamed Elhoseiny.
+\newblock Minigpt-4: Enhancing vision-language understanding with advanced
+  large language models.
+\newblock {\em arXiv preprint arXiv:2304.10592}, 2023.
+
+\bibitem{zhang2023llama}
+Renrui Zhang, Jiaming Han, Aojun Zhou, Xiangfei Hu, Shilin Yan, Pan Lu,
+  Hongsheng Li, Peng Gao, and Yu~Qiao.
+\newblock Llama-adapter: Efficient fine-tuning of language models with
+  zero-init attention.
+\newblock {\em arXiv preprint arXiv:2303.16199}, 2023.
+
+\bibitem{gao2023llama}
+Peng Gao, Jiaming Han, Renrui Zhang, Ziyi Lin, Shijie Geng, Aojun Zhou, Wei
+  Zhang, Pan Lu, Conghui He, Xiangyu Yue, et~al.
+\newblock Llama-adapter v2: Parameter-efficient visual instruction model.
+\newblock {\em arXiv preprint arXiv:2304.15010}, 2023.
+
+\bibitem{zeng2023matters}
+Yan Zeng, Hanbo Zhang, Jiani Zheng, Jiangnan Xia, Guoqiang Wei, Yang Wei,
+  Yuchen Zhang, and Tao Kong.
+\newblock What matters in training a gpt4-style language model with multimodal
+  inputs?
+\newblock {\em arXiv preprint arXiv:2307.02469}, 2023.
+
+\bibitem{liu2022pseudo}
+Luping Liu, Yi~Ren, Zhijie Lin, and Zhou Zhao.
+\newblock Pseudo numerical methods for diffusion models on manifolds.
+\newblock {\em arXiv preprint arXiv:2202.09778}, 2022.
+
+\bibitem{lu2022dpm}
+Cheng Lu, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu.
+\newblock Dpm-solver: A fast ode solver for diffusion probabilistic model
+  sampling in around 10 steps.
+\newblock {\em Advances in Neural Information Processing Systems},
+  35:5775--5787, 2022.
+
+\bibitem{lu2022dpm++}
+Cheng Lu, Yuhao Zhou, Fan Bao, Jianfei Chen, Chongxuan Li, and Jun Zhu.
+\newblock Dpm-solver++: Fast solver for guided sampling of diffusion
+  probabilistic models.
+\newblock {\em arXiv preprint arXiv:2211.01095}, 2022.
+
+\bibitem{ho2022classifier}
+Jonathan Ho and Tim Salimans.
+\newblock Classifier-free diffusion guidance.
+\newblock {\em arXiv preprint arXiv:2207.12598}, 2022.
+
+\bibitem{ronneberger2015u}
+Olaf Ronneberger, Philipp Fischer, and Thomas Brox.
+\newblock U-net: Convolutional networks for biomedical image segmentation.
+\newblock In {\em Medical Image Computing and Computer-Assisted
+  Intervention--MICCAI 2015: 18th International Conference, Munich, Germany,
+  October 5-9, 2015, Proceedings, Part III 18}, pages 234--241. Springer, 2015.
+
+\bibitem{ba2016layer}
+Jimmy~Lei Ba, Jamie~Ryan Kiros, and Geoffrey~E Hinton.
+\newblock Layer normalization.
+\newblock {\em arXiv preprint arXiv:1607.06450}, 2016.
+
+\bibitem{schuhmann2022laion}
+Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross
+  Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell
+  Wortsman, et~al.
+\newblock Laion-5b: An open large-scale dataset for training next generation
+  image-text models.
+\newblock {\em Advances in Neural Information Processing Systems},
+  35:25278--25294, 2022.
+
+\bibitem{kakaobrain2022coyo-700m}
+Minwoo Byeon, Beomhee Park, Haecheon Kim, Sungjun Lee, Woonhyuk Baek, and
+  Saehoon Kim.
+\newblock Coyo-700m: Image-text pair dataset.
+\newblock \url{https://github.com/kakaobrain/coyo-dataset}, 2022.
+
+\bibitem{ilharco2021openclip}
+Gabriel Ilharco, Mitchell Wortsman, Ross Wightman, Cade Gordon, Nicholas
+  Carlini, Rohan Taori, Achal Dave, Vaishaal Shankar, Hongseok Namkoong, John
+  Miller, Hannaneh Hajishirzi, Ali Farhadi, and Ludwig Schmidt.
+\newblock Openclip.
+\newblock \url{https://github.com/mlfoundations/open_clip}, 2021.
+
+\bibitem{von-platen-etal-2022-diffusers}
+Patrick von Platen, Suraj Patil, Anton Lozhkov, Pedro Cuenca, Nathan Lambert,
+  Kashif Rasul, Mishig Davaadorj, and Thomas Wolf.
+\newblock Diffusers: State-of-the-art diffusion models.
+\newblock \url{https://github.com/huggingface/diffusers}, 2022.
+
+\bibitem{loshchilov2017decoupled}
+Ilya Loshchilov and Frank Hutter.
+\newblock Decoupled weight decay regularization.
+\newblock {\em arXiv preprint arXiv:1711.05101}, 2017.
+
+\bibitem{lin2014microsoft}
+Tsung-Yi Lin, Michael Maire, Serge Belongie, James Hays, Pietro Perona, Deva
+  Ramanan, Piotr Doll{\'a}r, and C~Lawrence Zitnick.
+\newblock Microsoft coco: Common objects in context.
+\newblock In {\em Computer Vision--ECCV 2014: 13th European Conference, Zurich,
+  Switzerland, September 6-12, 2014, Proceedings, Part V 13}, pages 740--755.
+  Springer, 2014.
+
+\bibitem{hessel2021clipscore}
+Jack Hessel, Ari Holtzman, Maxwell Forbes, Ronan~Le Bras, and Yejin Choi.
+\newblock Clipscore: A reference-free evaluation metric for image captioning.
+\newblock {\em arXiv preprint arXiv:2104.08718}, 2021.
+
+\bibitem{li2022blip}
+Junnan Li, Dongxu Li, Caiming Xiong, and Steven Hoi.
+\newblock Blip: Bootstrapping language-image pre-training for unified
+  vision-language understanding and generation.
+\newblock In {\em International Conference on Machine Learning}, pages
+  12888--12900. PMLR, 2022.
+
+\bibitem{meng2021sdedit}
+Chenlin Meng, Yutong He, Yang Song, Jiaming Song, Jiajun Wu, Jun-Yan Zhu, and
+  Stefano Ermon.
+\newblock Sdedit: Guided image synthesis and editing with stochastic
+  differential equations.
+\newblock {\em arXiv preprint arXiv:2108.01073}, 2021.
+
+\bibitem{gal2022image}
+Rinon Gal, Yuval Alaluf, Yuval Atzmon, Or~Patashnik, Amit~H Bermano, Gal
+  Chechik, and Daniel Cohen-Or.
+\newblock An image is worth one word: Personalizing text-to-image generation
+  using textual inversion.
+\newblock {\em arXiv preprint arXiv:2208.01618}, 2022.
+
+\bibitem{ruiz2023dreambooth}
+Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and
+  Kfir Aberman.
+\newblock Dreambooth: Fine tuning text-to-image diffusion models for
+  subject-driven generation.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pages 22500--22510, 2023.
+
+\end{thebibliography}

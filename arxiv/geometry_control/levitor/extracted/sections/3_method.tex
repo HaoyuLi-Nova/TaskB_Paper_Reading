@@ -1,0 +1,94 @@
+\section{Method}\label{sec:method}
+\label{sec::method}
+
+\input{pictures/motivation}
+
+\subsection{Problem Formulation}
+
+To learn realistic object motion, the training dataset should contain high-quality videos with accurate object motions. However, existing datasets that provide 3D motion trajectories are either limited in size or consist solely of synthetic data. The Video Object Segmentation (VOS) datasets~\cite{davis, SAM2}, particularly with the recent release of SAM2~\cite{SAM2}, offer high-quality videos with precise object mask annotations, making it an appropriate choice for our purposes. Nevertheless, two primary challenges remain:
+
+\begin{enumerate}
+    \item The dataset lacks explicit 3D trajectory information, which is essential for training a model to understand and synthesize 3D motions. Therefore, we need to implicitly express the 3D motion information contained in the data.
+    \item The provided mask annotations are too detailed for practical user input, as users cannot be expected to supply such fine-grained masks or dense 3D trajectories for control. Thus it is necessary to design a representation of 3D trajectories that is easy for users to input.
+\end{enumerate}
+
+To address these issues, we propose using K-means points extracted from the object masks along with their depth information as control signals. Specifically, we apply K-means clustering to the pixels of the mask to obtain a set of representative control points:
+\begin{equation}
+\left\{ (x_t^i, y_t^i) \right\}_{i=1}^N = \text{K-means}(M_t, N),
+\end{equation}
+where $M_t$ denotes all object masks at frame $t$, $N$ is the number of clusters (control points), and $(x_t^i, y_t^i)$ is the 2D coordinate of control point $i$ at frame $t$.
+These control points not only simplify user input but also encapsulate implicit 3D information. As illustrated in Figure~\ref{fig:motivation}, the spatial distribution and density of the K-means points reflect changes in the object's depth and motion. For example, as a motorbike moves closer to the camera, the points spread out due to perspective scaling, indicating depth changes. Similarly, during occlusions, the distribution of points on the car shifts, capturing the occlusion dynamics.
+Then we employ a depth estimation network, DepthAnythingV2~\cite{depth_anything_v2}, to predict relative depth maps $\{ D_t \}_{t=1}^L$ for frames in the dataset, where $L$ is the video length. In this way, we avoid the need of absolutely accurate depth information, making it easier for users to interact. We sample the depth at each control point:
+\begin{equation}
+d_t^i = D_t(x_t^i, y_t^i),
+\end{equation}
+where $d_t^i$ is the depth value at control point $i$ in frame $t$. This process enriches the control points with depth information, effectively providing approximate 3D coordinates without requiring explicit 3D annotations. By combining the 2D coordinates and the estimated depth values, we construct the control trajectories:
+\begin{equation}
+    \mathcal{T} = \left\{ \left\{ \left( x_t^i, y_t^i, d_t^i \right) \right\}_{t=1}^L \right\}_{i=1}^N,
+\end{equation}
+This representation allows users to efficiently specify 3D trajectories by simply selecting points on a 2D image and adjusting depth values as needed. We thus design our training and inference pipeline as in \cref{method:training} and \cref{method:inference}.
+
+
+\input{pictures/train}
+\input{pictures/infer_pipeline}
+
+\subsection{Training Pipeline}
+\label{method:training}
+
+Given a VOS format video $V \in \mathbb{R}^{L \times H \times W \times 3}$, it provides the ground truth masks of multiple objects in the video, represented as $\{\{M_i^j\}_{i=1}^X\}_{j=1}^L$, where $X$ denotes the number of object masks in each frame. For each mask $M_i^j$, we conduct K-means algorithm to obtain $k$ center points as control signal. Specifically, we first calculate the area ratio of $M_i^j$ to the entire image and multiply a hyper-parameter $\alpha$ to determine the approximate number of cluster points:
+
+\vspace{-5pt}
+\begin{equation}
+k = (\frac{S_{M_i^j}}{H*W}) * \alpha
+\end{equation}
+
+Then we assess whether there is a significant change of $S_{M_i^j}$, which indicates 3D related situations such as the object being occluded, moving out of the frame, or changing distance from the lens. To achieve this, we go through all video frames and calculate the ratio of the maximum to minimum area of the $i_{th}$ object. If the ratio exceeds 10, we ensure that the value of $k$ is not less than 3 in order to better represent the changes of this object along the temporal dimension:
+
+\vspace{-10pt}
+\begin{equation}
+k = 
+\begin{cases}
+{\rm max}(k, 3), & {\rm if} \;\; \frac{{\rm max}(\{S_{M_i^j}\}_{j=1}^L)}{{\rm min}(\{S_{M_i^j}\}_{j=1}^L)} > 10, \\
+k, & {\rm otherwise},
+\end{cases}
+\end{equation}
+
+We later ensure $k \le 8$ to avoid the issue of having too many control points. We perform K-means clustering with the calculated $k$ value on $M_i^j$ and use the resulting cluster centers as control points. After extracting key points for all objects in each frame, we obtain the 2D coordinate information of all control points and instance information that show which object the point belongs to.
+
+We then use DepthAnythingV2~\cite{depth_anything_v2} to estimate the relative depth of each frame. Thus we can assign depth value to the corresponding 2D coordinate trajectories to get 3D trajectories. Finally, we represent the 2D trajectories with Gaussian heatmap and concatenate the trajectories, instance points, and depth points to serve as control signal, which is injected into the Stable Video Diffusion (SVD)~\cite{SVD} using ControlNet~\cite{controlnet} to generate a video that aligns with the 3D trajectory. Our control signal generation process is shown in \cref{fig:control}.
+
+Our training process can be represented as:
+\vspace{-5pt}
+\begin{equation}
+\mathcal{L}=\mathbb{E}_{z_t, z^0, t, \epsilon \sim \mathcal{N}(0, \mathbf{I})}\left[\left\|\epsilon-\epsilon^{c}_{\theta}\left(z_t; t, z^0, c_{traj}\right)\right\|^2\right],
+\label{eq:conditonal_denoising}
+\end{equation}
+where $z^0$ denotes VAE-encoded latent feature of the first frame, $c_{traj}$ means the control signal and $\epsilon^{c}_{\theta}$ is the combination of the denoising U-Net and the ControlNet branch.
+
+\subsection{Inference Pipeline}
+\label{method:inference}
+
+\input{pictures/3D_render}
+
+We have designed a user-friendly interactive system for inference and the overview is provided in \cref{fig:infer_pipeline}. Take an image as input, the system first automatically extracts depth information and object masks from the image using DepthAnythingV2 and SAM. Then users can utilize the retrieval panel to select the masks of objects to be moved by simply clicking on the image. They can also get relative depth values of clicked points automatically. After that, the user can use the interactive panel to click on more points to form the object trajectory. At the same time, the user can refer to the relative depth values of previously obtained click positions to input depth information of points within the trajectory according to their needs, thereby providing the corresponding 3D trajectories. 
+
+With the sparse 3D trajectories and selected masks provided by user as input, we need to convert it into corresponding multi-points control information. This is because requiring users to input multiple point trajectories that comply with physical laws to represent correct occlusions and depth changes is hard. Generally, they only input a single trajectory to indicate the movement of an object. Thus we need this conversion to represent the 3D movements of objects through the clustering or dispersion of control points.  We achieve this by generating 3D rendered object masks then selecting control points with K-means, as illustrated in \cref{fig:3Drender}. Specifically, we first combine the 2D coordinates of pixels in the starting image with their depth values to obtain 3D spatial points, represented as $\{P_i\}_{i=1}^n = \{x_i, y_i, d_i\}_{i=1}^n$, where $n$ means the number of pixels in selected masks. Then we transform these points into the camera coordinate system. We assume that all camera intrinsic parameters are all the same and the camera to be still, so the rotation matrix is an identity matrix. The first step of transformation is converting 2D pixel points with their depth value into the camera coordinate system and moving the points belonging to user selected masks in this transformed 3D space:
+
+\vspace{-10pt}
+\begin{equation}
+    \begin{split}
+        [X_i, Y_i, Z_i]^T &= \mathbf{K}^{-1} \cdot [x_i, y_i, 1]^T \cdot d_i, \\
+        [X'_i, Y'_i, Z'_i]^T &= [X_i, Y_i, Z_i]^T + \mathbf{T},
+    \end{split}
+\end{equation}
+here $\mathbf{K}$ denotes the perspective projection matrix of camera and $\mathbf{T}$ is the moving vectors assigned by users. After that, we render these points back to 2D images: 
+
+\vspace{-5pt}
+\begin{equation}
+    [x_i, y_i]^T = f\left ( [X'_i, Y'_i, Z'_i]^T, {ID}_i) \right ),
+\end{equation}
+$f$ is a rendering function which we implement with renderer function in PyTorch3D~\cite{pytorch3d} and $ID_i$ is the instance that the $i_{th}$ point belongs to. All the points are assigned the corresponding instance information, so rendering them back results in images with masks of different objects.
+
+In this way, we represent the movements, occlusion, and size changes due to forward and backward movements of objects only with the sparse trajectories input by the user. At the same time, the changes in 2D masks rendered from 3D space also fully comply with the laws of physics.
+
+By mapping points to 3D space and then rendering them back to 2D mask images, we convert sparse user controls into dense mask representations. These masks can accurately reflect the movement and occlusion of objects. Next, we compute cluster centers using K-means based on the masks obtained from rendering. By combining these with user-specified depth changes, we derive an appropriate number of control trajectories to generate the final video using our \method. Further selecting control points with K-means is necessary because the movement process in 3D space cannot represent non-rigid transformations. If we directly use a dense mask for control, it will only result in a straightforward translation of the object, as demonstrated in \cref{fig:ablation2}. By converting the mask into a moderate number of trajectory control signals, the generative model can capture the motion variation of the object while also adding some details of non-rigid movements.

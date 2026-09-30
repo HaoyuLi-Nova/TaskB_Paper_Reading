@@ -1,0 +1,9 @@
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=\columnwidth]{figs/images/pose_net.pdf}
+    \vspace{-2em}
+    \caption{The pipeline of the proposed PoseVAE. We learn the residual of the input head pose $\rho_{0}$ via a conditional VAE structure. Given the conditions: first frame $\rho_{0}$, style identity $Z_{style}$ and the audio clip $a_{\{1,...,t\}}$, our method learns a distribution of the residual head pose $\Delta\rho_{\{1,...,t\}} = \rho_{\{1,...,t\}} -\rho_{0}$. After training, we can generate the stylized results through the pose decoder and the conditions~$(cond.)$ only. 
+    %Since we learn the relative motion of the first frame, the longer video can be generated through the head pose of the previous generated clip as shown in test part.
+    }
+    \label{fig:posenet}
+\end{figure}

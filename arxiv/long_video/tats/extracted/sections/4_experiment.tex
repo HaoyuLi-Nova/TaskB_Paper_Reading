@@ -1,0 +1,259 @@
+\section{Experiments}
+In this section, we evaluate the proposed method on several benchmark datasets for video generation with an emphasis on long video generation.
+\subsection{Experimental Setups}
+\topic{Datasets and evaluation.} We show results on UCF-101~\cite{soomro2012ucf101}, Sky Time-lapse~\cite{xiong2018learning}, and Taichi-HD~\cite{siarohin2019first} for unconditional or class-conditioned video generation with $128\times 128$ resolution following \cite{yu2021generating}, AudioSet-Drum~\cite{gemmeke2017audio} for audio-conditioned video generation with $64\times 64$ resolution following \cite{le2021ccvs}, and MUGEN~\cite{mugen2022mugen} with $256\times256$ resolution 
+for text-conditioned video generation. We follow the previous methods~\cite{tian2021a,yu2021generating} to use Fréchet Video Distance (FVD)~\cite{unterthiner2018towards} and Kernel Video Distance (KVD)~\cite{unterthiner2018towards} as the evaluation metrics on UCF-101, Sky Time-lapse, and Taichi-HD datasets. In addition, we follow the methods evaluated on UCF-101~\cite{clark2019adversarial,le2021ccvs} to report the Inception Score (IS)~\cite{saito2020train} calculated by a trained C3D model~\cite{tran2015learning}. For audio-conditioned generation evaluation, we measure the SSIM and PSNR at the $45^\text{th}$ frame which is the longest videos considered in the previous methods~\cite{chatterjee2020sound2sight,le2021ccvs}. See 
+% Appendix~\ref{sec:dataset_appendix} 
+supp. mat. B.1 for more details about the datasets.
+
+\begin{table*}[t]
+\centering\small
+\caption{Quantitative results of standard video generation on different datasets. We report FVD and KVD on the Taichi-HD and Sky Time-lapse datasets, IS and FVD on the UCF-101 dataset, SSIM and PSNR at the $45^\text{th}$ frame on the AudioSet-Drum dataset.  * denotes training on the entire UCF-101 dataset instead of the train split. The class column indicates whether the class labels are used as conditional information.}
+\label{tab:short-quantitative}
+\begin{subtable}{.44\textwidth}
+\centering\small
+\caption{Sky Time-lapse} 
+\begin{tabular}{lcc}
+    \toprule
+    Method     & FVD $(\downarrow)$  & KVD $(\downarrow)$ \\
+    \midrule
+    MoCoGAN-HD & 183.6\tiny{$\pm 5.2$} & 13.9\tiny{$\pm 0.7$} \\
+    DIGAN  & \textbf{114.6}\tiny{$\pm 4.9$} & 6.8\tiny{$\pm 0.5$} \\ \hline
+    TATS-base & 132.56\tiny{$\pm 2.6$} & \textbf{5.7}\tiny{$\pm 0.3$} \\
+    \bottomrule
+\end{tabular}
+\caption{TaiChi-HD} 
+\begin{tabular}{lcc}
+    \toprule
+    Method     & FVD $(\downarrow)$  & KVD $(\downarrow)$ \\
+    \midrule
+    MoCoGAN-HD & 144.7\tiny{$\pm 6.0$} & 25.4\tiny{$\pm 1.9$} \\
+    DIGAN  & 128.1\tiny{$\pm 4.9$} & 20.6\tiny{$\pm 1.1$} \\ \hline
+    TATS-base & \textbf{94.60}\tiny{$\pm 2.7$} & \textbf{9.8}\tiny{$\pm 1.0$} \\
+    \bottomrule
+\end{tabular}
+\caption{AudioSet-Drum}
+\begin{tabular}{lcc}
+    \toprule
+    Method & SSIM ($\uparrow$) & PSNR ($\uparrow$) \\
+    \midrule
+    SVG-LP & 0.510\tiny{$\pm 0.008$} & 13.5\tiny{$\pm 0.1$} \\
+    \scriptsize{Vougioukas} \tiny{\textit{et al.}}  & 0.896\tiny{$\pm 0.015$} & 23.3\tiny{$\pm 0.3$} \\
+    Sound2Sight & 0.947\tiny{$\pm 0.007$} & 27.0\tiny{$\pm 0.3$} \\
+    CCVS & 0.945\tiny{$\pm 0.008$} & 27.3\tiny{$\pm 0.5$} \\ \hline
+    TATS-base & \textbf{0.964}\tiny{$\pm 0.005$} & \textbf{27.7}\tiny{$\pm 0.4$} \\
+    \bottomrule
+\end{tabular}
+\end{subtable}
+\hfill
+\begin{subtable}{.55\textwidth}
+\centering\small
+\caption{UCF-101}\label{tab:main_ucf} 
+\begin{tabular}{lccc}
+\toprule
+Method & Class & IS $(\uparrow)$  & FVD  $(\downarrow)$  \\
+\midrule
+VGAN & \cmark & 8.31\tiny{$\pm .09$} & - \\
+TGAN  & \xmark & 11.85\tiny{$\pm .07$}   & - \\
+TGAN & \cmark & 15.83\tiny{$\pm .18$} & -  \\
+MoCoGAN & \cmark & 12.42\tiny{$\pm .07$}   & -   \\
+ProgressiveVGAN & \cmark & 14.56\tiny{$\pm .05$}   & -        \\
+LDVD-GAN & \xmark & 22.91\tiny{$\pm .19$}   & - \\
+VideoGPT & \xmark & 24.69\tiny{$\pm .30$}   & - \\
+TGANv2 & \cmark & 28.87\tiny{$\pm .67$} & 1209\tiny{$\pm 28$}  \\
+DVD-GAN*  & \cmark & 27.38\tiny{$\pm .53$} & - \\
+MoCoGAN-HD*  & \xmark & 32.36 & 838 \\
+DIGAN & \xmark & 29.71\tiny{$\pm .53$}   & 655\tiny{$\pm 22$}   \\
+DIGAN*  & \xmark & 32.70\tiny{$\pm .35$}   & 577\tiny{$\pm 21$}   \\
+CCVS*+Real frame & \xmark & 41.37\tiny{$\pm .39$} & 389\tiny{$\pm 14$} \\ 
+CCVS*+StyleGAN  & \xmark & 24.47\tiny{$\pm .13$} & 386\tiny{$\pm 15$} \\
+\cameraready{StyleGAN-V}*  & \xmark & 23.94\tiny{$\pm .73$} & - \\
+\cameraready{CogVideo}*  & \cmark & 50.46 & 626 \\
+\cameraready{Video Diffusion}*  & \xmark & 57.00\tiny{$\pm .62$} & - \\ \hline
+Real data & - & 90.52 & - \\ \hline
+TATS-base & \xmark & 57.63\tiny{$\pm .24$} & 420\tiny{$\pm 18$} \\
+TATS-base & \cmark & \textbf{79.28}\tiny{$\pm .38$} & \textbf{332}\tiny{$\pm 18$} \\
+\bottomrule
+\end{tabular}
+\begin{minipage}{.9\textwidth}
+\end{minipage}
+\end{subtable}
+\end{table*}
+
+\topic{Training details.} To compare our methods with previous ones, we train our VQGAN on videos with $16$ frames. We adopt a compression rate $d=4$ in temporal dimension and $d=8$ in spatial dimensions. For transformer models, we train a decoder-only transformer with size between GPT-1~\cite{radford2018improving} and GPT-2~\cite{radford2019language} for a consideration of computational cost. We refer to our model with a single autoregressive transformer as \textbf{TATS-base} and the proposed hierarchical transformer as \textbf{TATS-hierarchical}. For audio-conditioned model, we train another VQGAN to compress the Short-Time Fourier Transform (STFT) data into a discrete space. For text-conditioned model, we use a BPE tokenizer pretrained by CLIP~\cite{radford2021learning}. See 
+% Appendix~\ref{sec:dataset_training} 
+supp. mat. B.2 for more details about the training and inference, \cameraready{and supp. mat. B.3. for the comparison of computational costs.}
+
+\subsection{Quantitative Evaluation on Short Video Generation}
+
+
+In this section, we demonstrate the effectiveness of our TATS-base model under a standard short video generation setting, where only 16 frames are generated for each video. The quantitative results are shown in Table~\ref{tab:short-quantitative}.
+
+Our model achieves state-of-art FVD and KVD on the UCF-101 and Taichi-HD datasets, and state-of-art KVD on the Sky Time-lapse dataset for unconditional video generation, and improved the quality on the AudioSet-Drum for audio-conditioned video generation. \cameraready{TATS-base improves on IS by $76.2\%$ over previous method with synthetic initial frames~\cite{le2021ccvs} and is competitive against concurrent works~\cite{skorokhodov2021stylegan,hong2022cogvideo,ho2022video}.}
+On the UCF-101 dataset, we also explore generation with class labels as conditional information. Following the previous method~\cite{saito2017temporal}, we sample labels from the prior distribution as the input to the generation. We find that conditioning on the labels significantly eases the transformer modeling task and boosts the generation quality, improving IS from $57.63$ to $79.28$, which is close to the upper bound shown in the ``Real data'' row~\cite{acharya2018towards,kahembwe2020lower}. This has been extensively observed in image generation~\cite{brock2018large,esser2021taming} but not quite yet revealed in the video generation.
+TATS-base significantly advances the IS over the previous methods, demonstrating its power in modeling diverse video datasets.
+
+
+% \begin{table}[h]
+% \caption{Result on UCF-101 dataset.}
+% \centering
+% \begin{tabular}{llllll}
+% \toprule
+% Method          & Resolution       & Split & Class & IS $(\uparrow)$  & FVD  $(\downarrow)$  \\
+% \midrule
+% VGAN~\cite{vondrick2016generating}            & $64 \times 64$   & Train & Yes             & 8.31±.09    & -        \\
+% TGAN~\cite{saito2017temporal}            & $64 \times 64$   & Train & No              & 11.85±.07   & -        \\
+% TGAN~\cite{saito2017temporal}            & $64 \times 64$   & Train & Yes             & 15.83±.18 & -        \\
+% MoCoGAN~\cite{Tulyakov_2018_CVPR}         & $64 \times 64$   & Train & Yes             & 12.42±.07   & -        \\
+% ProgressiveVGAN~\cite{acharya2018towards} & $128 \times 128$ & Train & Yes             & 14.56±.05   & -        \\
+% LDVD-GAN~\cite{kahembwe2020lower}        & $128 \times 128$ & Train & No              & 22.91±.19   & -        \\
+% VideoGPT~\cite{yan2021videogpt}        & $128 \times 128$ & Train & No              & 24.69±.30   & -        \\
+% TGANv2~\cite{saito2020train}          & $192 \times 192$ & Train & Yes             & 28.87±.67   & 1209±28  \\
+% DVD-GAN~\cite{clark2019adversarial}         & $128 \times 128$ & Full  & Yes             & 27.38±.53   & -        \\
+% MoCoGAN-HD~\cite{tian2021a}      & $128 \times 128$ & Full  & No              & 32.36       & 838      \\
+% MoCoGAN-HD~\cite{tian2021a}      & $256 \times 256$ & Full  & No              & 33.95±.25   & 700 ± 24 \\
+% DIGAN~\cite{yu2021generating}           & $128 \times 128$ & Train & No              & 29.71±.53   & 655±22   \\
+% DIGAN~\cite{yu2021generating}           & $128 \times 128$ & Full  & No              & 32.70±.35   & 577±21   \\
+% CCVS            & $128 \times 128$ & Full  & No              & 24.47±.13   & \textbf{386}±15   \\ \hline
+% TATS (ours)            & $128 \times 128$ & Train & No             & 55.14       & 475.44   \\
+% TATS (ours)            & $128 \times 128$ & Train & Yes             & \textbf{75.98}       & 394.17   \\
+% TATS (ours)            & $256 \times 256$ & Train & Yes             & 67.46       & 407.66   \\
+% UCF-101         & - & -     & -               & 90.52       &         \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+
+
+% \begin{table}[h]
+% \caption{Result on Taichi-HD dataset.}
+% \centering
+% \begin{tabular}{llllll}
+% \toprule
+% Method     & Downsample Rate & Top-k & Top-p & FVD $(\downarrow)$  & KVD $(\downarrow)$ \\
+% \midrule
+% MoCoGAN-HD & - & - & - & 144.7±6.0 & 25.4±1.9 \\
+% DIGAN      & - & - & - & 128.1±4.9 & 20.6±1.1 \\
+% TATS (ours)      & $4\times 16 \times 16$ & 2048 & 0.92 & 121.44 & 13.71 \\
+% TATS (ours)      & $4\times 8 \times 8$ & 8192 & 0.92 & 136.31 & 19.33 \\
+% TATS (ours)      & $4\times 8 \times 8$ & 2048 & 0.92 & 108.90 & 14.34 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+
+
+\subsection{Quantitative Evaluation on Long Video Generation}
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/results/long_fvd_eval.pdf}
+    \caption{\textbf{Quality degradation.} FVD changes of non-overlapping 16-frame clips from the long videos generated by models trained on the UCF-101, Sky Time-lapse, and Taichi-HD datasets. The lower value indicates the slower degradation.}
+    \label{fig:long_fvd_eval}
+\end{figure}
+Quantitatively evaluating long video generation results has been under explored. In this section, we propose several metrics by generalizing existing metrics to evaluate the crucial aspects of the long videos. We generate 512 videos with 1024 frames on each of the Sky Time-lapse, Taichi-HD, and UCF-101 datasets. We compare our proposed methods, TATS-base
+and TATS-hierarchical, with the baseline Vanilla VQGAN and the state-of-the-art models including MoCoGAN-HD~\cite{tian2021a}, DIGAN~\cite{yu2021generating}, and CCVS~\cite{le2021ccvs} by unrolling RNN states, directly sampling, and sliding attention window using their official model checkpoints. 
+
+\topic{Quality.} 
+We measure video quality with respect to the duration by evaluating every 16 frames extracted side-by-side from the generated videos. Ideally, every set of 16-frame videos should come from the same distribution as the training set. 
+Therefore, we report the FVD changes of these generated clips compared with the first generated 16 frames in Figure~\ref{fig:long_fvd_eval}, to measure the degradation of the video quality. The figure shows that our TATS-base model successfully delays the quality degradation compared with the vanilla VQGAN baseline, MoCoGAN-HD, and CCVS models. In addition, the TATS-hierarchical model further improves the long-term quality of the TATS-base model. The concurrent work DIGAN~\cite{yu2021generating} also claims the ability of extrapolation, while we show that the generation still degrades severely after certain number frames on the UCF-101 and Taichi-HD datasets. We conjecture the unusual decrease
+of the FVD w.r.t. the duration of DIGAN and TATS-hierarchical on Sky Time-lapse can be explained by that the I3D model~\cite{carreira2017quo} used to calculate FVD is trained on Kinetics-400 dataset, and the sky videos can be outliers of the training data and lead to weak activation in the logit layers and therefore such unusual behaviors. \cameraready{We further perform qualitative and human evaluations to compare our method with DIGAN in supp. mat. C. The results confirm that the sky videos generated by TATS have better quality.}
+% Figure~\ref{fig:digan_sky}.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/results/long_coherence_eval.pdf}
+    \caption{\textbf{Video coherency.} CCS and ICS values of every 16-frame clip extracted from long videos generated by different models trained on the UCF-101 dataset.}
+    \label{fig:long_coherence_eval}
+\end{figure}
+
+\topic{Coherence.} The generated long videos should follow a consistent topical theme.
+% \devi{Makes sense!} 
+We evaluate the coherence of the videos on the UCF-101 dataset since it has multiple themes (classes). We expect the generated long videos to be classified as the same class all the time. We adopt the same trained C3D model for IS calculated~\cite{saito2020train}, and propose two metrics, Class Coherence Score (CCS) and Inception Coherence Score (ICS) at time step $t$, measuring the theme similarity between the non-overlapped 16 frames w.r.t. the first 16 frames, defined as below:
+% ~\guan{Can we add short intuition on what each metric is about (so reader can get the high-level idea without read equation)?}
+\begin{align*}
+\small
+\text{CCS}_t &= \sum_{i} \frac{\mathbf{1} (\argmax p_{C3D}(y|x_i^{(0:15)}), \argmax p_{C3D}(y|x_i^{(t:t+15)})}{N}
+\end{align*}
+\begin{align*}
+\small
+\text{ICS}_t &= \sum_{i} p_{C3D}(y|x_i^{(t:t+15)}) \log{\frac{p_{C3D}(y|x_i^{(t:t+15)})}{p_{C3D}(y|x_i^{(0:15)})}}
+\end{align*}
+The ICS captures class shift more accurately than the CCS, which only looks at the most probable class. On the other hand, CCS is more intuitive and allows us to define single metrics such as the area under the curve. CCS also doesn't have the asymmetry issue (unlike KL divergence used in ICS). We show the scores of TATS models and several baselines in Figure~\ref{fig:long_coherence_eval}. TATS-base achieves decent coherence as opposite to its quality degradation shown previously. Such difference can be explained by its failure on a small portion of generated videos as shown in supp. mat. Figure 20, which dominates the FVD. This also shows that CCS and ICS measure coherence on individual videos that complementary to FVD changes. Furthermore, TATS-hierarchical outperforms the baselines on both metrics. For example, more than half of the videos are still classified consistently in the last 16 frames of the entire 1024 frames.
+
+
+
+\subsection{Qualitative Evaluation on Long Video Generation}
+
+This section shows qualitative results of videos with $1024$ frames and discusses their common properties. $1024$ frames per video approaches the upper bound in the training data
+as shown in supp. mat. Figure 15, 
+% Figure~\ref{tab:data-stats} in Appendix
+which means the generated videos are probably different from the training videos, at least in duration.
+\begin{figure}[b]
+    \centering
+    \includegraphics[width=\linewidth]{figures/results/long_video_gen_self_loop_short.pdf}
+    \caption{\textbf{Videos with recurrent events.} Every $100^\text{th}$ frame is extracted from the generated videos with $1024$ frames on the UCF-101 and Taichi-HD datasets. }
+    \label{fig:self-loop}
+\end{figure}
+\topic{Recurrent actions.} We find that some video themes contain repeated events such as the \textit{Handstand Push-Up} class in the UCF-101 dataset and videos in the Taichi-HD dataset. As shown in Figure~\ref{fig:self-loop}, our model generalizes to long video generation by producing realistic and recurrent actions. 
+However, we find that all the $1024$ generated frames in these videos are unique and motions are not identical, which shows that our model is not simply copying the short loops. 
+% More examples from other classes, e.g. \textit{Brushing Teeth} and \textit{Boxing Punching Bag}, of such synthetic videos can be found in supp. mat. Figure 18.
+
+\begin{wrapfigure}[8]{r}{0.45\textwidth}
+\centering
+  \footnotesize
+  \begin{tabular}{lll}
+    \toprule
+    Videos  & LPIPS metric & Color Similarity  \\
+    \midrule
+    Real & $0.1839 \pm 0.0683$ & $0.7330 \pm 0.2401$ \\
+    Fake & $0.3461 \pm 0.1184$ & $0.0797 \pm  0.1445$\\
+     \bottomrule
+    \end{tabular}
+  \captionof{table}{LPIPS and color histogram correlation between the first and the last frames of the sky videos.}
+  \label{tab:lpips}
+\end{wrapfigure}
+\topic{Smooth transitions.} Videos with the same theme often share visual features such as scenes and motions. We show that with enough training data available for a single theme, our model learns to ``stitch'' the long videos through generating smooth transitions between them. For example in Figure~\ref{fig:intersection}, we show that our model generates a long sky video containing different weather and timing while the transitions between these conditions are still natural and realistic. To show that this is not the case in the training data, we compute the LPIPS score~\cite{zhang2018unreasonable} and color histrogram correlation between the $1^\text{st}$ and the $1024^\text{th}$ frames and report the mean and standard deviation on the $500$ generated and $216$ real long videos in Table~\ref{tab:lpips}. It shows that such transitions are much more prominent on the generated videos than the training videos.
+Similar examples of the UCF-101 and Taichi-HD videos can be found in supp. mat. Figure 19.
+% Appendix Figure~\ref{fig:intersection_ucf} and Figure~\ref{fig:intersection_taichi}
+A separation of content and motion latent features~\cite{Tulyakov_2018_CVPR,yu2021generating,tian2021a} may better leverage such transitions, which we leave as future work.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/results/long_video_gen_intersection.pdf}
+    \caption{\textbf{Videos with homomorphisms.} Every $100^\text{th}$, $10^\text{th}$, and consecutive frames are extracted from a generated sky video with $1024$ frames.}
+    \label{fig:intersection}
+\end{figure}
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/results/video_manipulation.pdf}
+    \caption{\textbf{Videos with meanings.} Video manipulation by modifying the texts.}
+    \label{fig:manipulation}
+\end{figure}
+
+\topic{Meaningful synthesis.} By conditioning on the temporal information, we can achieve more controllable generation, which allows us to directly create or modify videos based our own will. 
+For example, in Figure~\ref{fig:manipulation}, we show that it is possible to manipulate the videos by changing the underlying storyline - by replacing ``killed by'' with ``kills'' we completely change the destiny of Mugen!
+
+% we follow the classic observation that naturally occurring images lie on low dimensional manifolds~\cite{murase1995visual} or union of such manifolds for different classes~\cite{elhamifar2013sparse}. Each video forms a curve on such manifolds. Thus, synthesis of the longer videos can be achieved by the self-loops or intersections of these curves.  \devi{Interesting :) Can we cite something that backs this up for videos? We should also say more -- so is this what we do to get datasets for longer videos? We need this just for evaluation/computing metrics, or also to train? How do we implement this exactly? If these details are coming later, we should say so here.}
+
+% \guan{Is the experiments on conditioned generation not included yet? Though Sec.2.3 talked about it.}
+
+% \topic{Repetition:} Models like styleGAN-v are non-autoregressive and tend to generate repeated frames. \devi{Will we say more?}
+
+% \topic{Relatedness:} To evaluate the video-text/audio relatedness, following \cite{see2019massively}, we randomly sample 1000 videos \devi{generated videos? If so, how do they have corresponding text descriptions? is it the text that the generated video was conditioned on?} as well as their text descriptions from the test set. For each text and video pair, we also pick 9 additional videos \devi{doesn't sound like these are generated.. I don't think I follow this metric.} that are not aligned with that description. Then, we calculate the probability of each of 10 videos given the description, the prompt ranking accuracy is measured as the percentage of the time that the model predicts a higher probability to the paired video.
+
+% \subsection{Ablation on Top-k sampling}
+
+
+% \begin{figure}[h]
+%     \centering
+%     \begin{subfigure}{0.45\textwidth}
+%     \includegraphics[width=\linewidth]{figures/results/ablation/ucf-toppk.pdf}
+%     \end{subfigure}
+%     \begin{subfigure}{0.45\textwidth}
+%     \includegraphics[width=\linewidth]{figures/results/ablation/sky-toppk.pdf}
+%     \end{subfigure}
+%     \caption{FVDs of differnet top-k and top-p values.}
+%     \label{fig:long_coherence_eval}
+%     \vspace{-0.6cm}
+% \end{figure}

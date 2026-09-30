@@ -1,0 +1,318 @@
+% \tableofcontents
+
+\startcontents[Supplementary Material]
+
+\printcontents[Supplementary Material]{l}{1}{\section*{Supplementary Material of TATS}\setcounter{tocdepth}{2}}
+
+\section{Implementation Details}
+In this section, we provide additional details on our proposed TATS model, including 
+designs to stabilize training 3D-VQGAN with GAN losses, 
+discussions on the undesired temporal dependence induced by the zero padding, 
+ablations on different potential solutions, 
+and description of our interpolation attention.
+
+\subsection{Training video VQGAN with GAN losses}
+\label{sec:video_vqgan}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/appendix/discriminator.pdf}
+    \caption{Training VideoGPT with GAN losses leads to discriminator collapse.}
+    \label{fig:discriminator}
+\end{figure}
+In this section, we describe how we train 3D-VQGAN with GAN losses and clarify several major architecture choices of our proposed vanilla video VQGAN compared with VQGAN~\cite{esser2021taming} and VideoGPT~\cite{yan2021videogpt}. 
+% Both vanilla video VQGAN and VideoGPT~\cite{yan2021videogpt} utilize 3D convolutions to compress the video. 
+% Vanilla video VQGAN uses perceptual loss and GAN losses to achieve a larger compression rate similar to VQGAN~\cite{esser2021taming}. 
+We find that directly applying GAN losses to VideoGPT leads to severe discriminator collapse. 
+As shown in Figure~\ref{fig:discriminator} (a), after adding GAN losses at the 20k step, the discriminator losses saturate quickly and thus provide nonsensical gradient to the decoder. 
+As a result, the decoder (generator) loss and reconstruction loss entirely fall apart. 
+We found that the tricks proposed in VQGAN~\cite{esser2021taming} such as starting GAN losses at a later step and using adaptive weight, do not help the situation. 
+We present several empirical methods we found effective in stabilizing the GAN losses.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/appendix/blob.pdf}
+    \caption{Blob-shaped artifacts due the the normalization layers in VQGAN.}
+    \label{fig:blob}
+\end{figure}
+
+First, we find that the axial-attention layers introduced in VideoGPT interact poorly with the GAN losses and exacerbate the collapse, which is also noticed in recent work on training ViT with GAN losses~\cite{lee2021vitgan}. 
+Therefore, we utilize a pure convolution architecture similar to VQGAN~\cite{esser2021taming} for video compression. 
+Second, a more powerful decoder helps the reconstruction follow the discriminator closely.
+We doubled the number of feature maps whenever the resolutions are halved, in contrast to VideoGPT where all the layers have a constant number of channels. 
+As a consequence, similar to the previous observation~\cite{child2020very}, we find that training large VAE models would cause exploded gradients. 
+Furthermore, similar to the proposed solution of gradient skipping~\cite{child2020very}, we always clip the gradient to have the Euclidean norm equal to $1$ during the training. 
+Last, we notice that the blob-shaped artifacts often appear in the reconstruction and exaggerate along with the intermediate feature maps as shown in Figure~\ref{fig:blob}, which was also observed in StyleGANs~\cite{karras2019style,karras2020analyzing} and can be attributed to the normalization layers.
+This is especially pronounced in the training video VQGAN due to the small batch sizes. 
+We use Synced Batch Normalization as a replace of Group Normalization~\cite{wu2018group} used in original VQGAN~\cite{esser2021taming} and accumulate gradients across multiple steps and successfully mitigate this issue. 
+Our vanilla video VQGAN can be steadily trained with the GAN losses with the above choices of architecture designs.
+
+\subsection{Zero paddings inhibit sliding attention window}
+\label{sec:time_agnostic_detail}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/appendix/2DVQGAN.pdf}
+    \caption{2D-VQGAN generates larger images by generating tokens in the center.}
+    \label{fig:2dvqgan}
+\end{figure}
+
+Following the intuition in method section, we provide a more detailed discussion on why zero paddings in VQGAN inhibit the usage of the sliding attention window. 
+We aim to show that when zero padding is used, there are barely tokens starting with $\mathbf{z}^{(1:t-1)}$ in the training set. 
+However, this is necessary for the transformer to generate $\mathbf{z}^{(t)}$ using a sliding window. 
+
+For simplicity, we absorb the quantization step $\mathbf{q}$ into $f_\mathcal{E}(\mathbf{x})$. 
+In order for there to be tokens starting with $\mathbf{z}^{(1:t-1)}$ in the transformer training data, there need to be real video clips that can be encoded in $\mathbf{z}^{(1:t)}$. 
+% \devi{is it a hypothesis, or is it desired but it not actually true? Also, should we say why it is desired?} 
+It is desired that $f_\mathcal{E}$ is temporally shift-equivariant given 3D convolutions so that $\mathbf{z}^{(1:t)}$ is the output of the clips slightly shifted from the original position, i.e. $\mathbf{z}^{(1:t)} = f_\mathcal{E}(\mathbf{x}^{(d:T+d-1)})$, where $d$ is the compression rate of $f_\mathcal{E}$ in the temporal dimension. 
+However, we find that the encoder is \emph{not} temporally shift-equivariant and encodes $\mathbf{x}^{(d:T-1)}$ differently when these frames are positioned at different places, i.e.
+\begin{equation}
+    \label{eq:full_consistency}
+    [f_\mathcal{E}(\mathbf{x}^{(0:T-1)})]^{(1:t-1)} \neq [f_\mathcal{E}(\mathbf{x}^{(d:T+d-1)})]^{(0:t-2)}
+\end{equation} 
+To see this theoretically, we consider a shift-equivariant version of $f_\mathcal{E}$ by moving all the internal zero paddings to the input. 
+We denote this encoder as $\hat{f}_\mathcal{E}$ such that
+\begin{equation}
+    \label{eq:equal_encoder}
+    f_\mathcal{E}(\mathbf{x}) = \hat{f}_\mathcal{E}([\mathbf{0}^N \; \mathbf{x} \; \mathbf{0}^N]),
+\end{equation}
+% \devi{should $\hat{f}_\mathcal{E}$ be $\hat{f}_{\epsilon}$?}
+where $[\mathbf{0}^N \; \mathbf{x} \; \mathbf{0}^N]$ is the concatenation of $\mathbf{x}$ with $N$ zero paddings $\mathbf{0} \in \mathbb{R}^{h\times w}$. 
+One can show that the number of paddings needed is $N = \mathcal{O}(Ld)$, 
+where $L$ is the number of convolutional layers in the encoder. 
+Given the shift equivariance of $\hat{f}_\mathcal{E}$, we can derive the desired latent tokens for transformer training as 
+$$z^{(1:t)} = \hat{f}_\mathcal{E}([\mathbf{0}^{N-d} \; \mathbf{x}^{(d:T-1)} \; \mathbf{0}^{N+d}]).$$ 
+However, we cannot find such real videos corresponding to $\hat{\mathbf{x}} = [\mathbf{0}^{N-d} \; \mathbf{x}^{(d:T-1)} \; \mathbf{0}^{N+d}]$ as the input to $f_\mathcal{E}$ based on the Equation~\ref{eq:equal_encoder} for two reasons. 
+First, according to Equation~\ref{eq:equal_encoder} the input to $f_\mathcal{E}$ should be $\hat{\mathbf{x}}^{(N:N+T)}=[\mathbf{x}^{(T+d:T)} \; \mathbf{0}^{d}]$. 
+There are rare videos whose last $d$ frames are blank in the real datasets. 
+In addition, $\hat{\mathbf{x}}^{(N-d:N)}=\mathbf{x}^{(d:T+d)}$ indicates that real frames are used to pad the input, while $f_\mathcal{E}$ only uses zeros. 
+Therefore, we show that no such tokens are starting with $\mathbf{z}^{(1:t-1)}$ in the training set. As a result, the transformer cannot generalize to the sequence starting with $z^{(1:t-1)}$ using a sliding attention window.
+
+This problem occurs in all the generative models that utilize VQVAE and transformers. 
+However, it is often disguised and ignored in previous studies. 
+In practice, the severity of this issue depends on the receptive field, and the relative position of the generated token to the border. 
+In the case of the original VQGAN~\cite{esser2021taming} that uses a sliding window to generate high-resolution images, this issue is disguised as the spatially centered token is always chosen to generate, which is far away from the border and much less affected by the zero-padding given the large spatial size (256).
+We show in Figure~\ref{fig:2dvqgan} that, when generating the tokens near the border using a sliding window using the high-resolution VQGAN, the quality of images degrades quickly, similar to our observation in video generation. 
+Furthermore, tokens at any position are close to the borders for synthesizing long videos due to the small temporal length (16).
+
+\subsection{Quantifying the time agnostics of different padding types}
+\label{sec:padding}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/method/paddings.pdf}
+    \caption{Demonstration of different padding types and their computational costs as well as effects on the consistency score. Note that when using less or no paddings, extra real paddings are added to the input videos.}
+    \label{fig:tradeoff}
+\end{figure}
+
+Adding real frames makes the VQGAN fully time-agnostic but increases the computational cost. 
+Using other paddings is less effective but brings no overheads. 
+Therefore, it is essential to quantify the temporal dependence to understand the trade-off between the desired property and the cost to achieve it. 
+To that end, we propose an equivariance score as a measure of time agnostic shown in Equation~\ref{eq:full_consistency}, which calculates the percentage of tokens that are identical when the same frames are positioned at the beginning of the end of the clips, which are the two extreme cases that are mostly affected by the paddings from either side:
+\begin{equation}
+    \sum_{i=1}^{t} \sum_{j=0}^{h-1} \sum_{k=0}^{w-1} \frac{\mathbf{1}\left([f_\mathcal{E}(\mathbf{x}_{0:T})]_{i, j, k}, [f_\mathcal{E}(\mathbf{x}_{d:T+d})]_{i-1, j, k}\right)}{t\times h\times w},
+\end{equation}
+where $\mathbf{1}$ is an identity function.
+We report the mean and standard deviation across $1024$ clips 
+using a video VQGAN trained on the UCF-101 dataset across different padding strategies. 
+We visualize the trade-off between the costs and effects on the consistency score in Figure~\ref{fig:tradeoff}. 
+We also partially remove the zero paddings from different numbers of layers to picture the trade-off varies more accurately, where the padding type is called ``Padding-Less''. 
+
+As shown in Figure~\ref{fig:tradeoff}, we find that the more paddings are removed, the more time agnostic the encoder becomes. 
+Note that when removing all the paddings and concatenating enough real frames to the input, we obtain a perfectly time-agnostic encoder that achieves the equivariance score $=1$. 
+However, it also significantly increases the memory and computational costs of the training. 
+As for the other padding types, although the reflect and circular paddings provide more realistic video changes, they could drift further from the real frames and yield a smaller equivariance score than the replicate padding. 
+For example, a walking person is more likely to stop than walk backward in the following frames. We find that the replicate padding, which gives $0.75$ consistency score, already resolves the time-dependence issue well in practice. Given the little extra cost it brings, we use replicate paddings and no real frames in our experiments. 
+
+\subsection{Details of the interpolation attention}
+\label{sec:attention}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/method/attention_full.pdf}
+    \caption{Illustration of the vanilla causal attention and the interpolation causal attention. For simplification, every frame is assumed to have 2 tokens.}
+    \label{fig:attention}
+\end{figure}
+
+We implement the interpolation transformer based on designed attention called interpolation causal attention, as shown in the right scheme of Figure~\ref{fig:attention}(c). 
+Specifically, the anchor frame (dark) is given during the inference, and the target frame (light) needs to be generated. 
+In the vanilla causal attention shown in Figure~\ref{fig:attention}(a), tokens attend to the tokens \emph{in front of} it. 
+In the interpolation causal attention, tokens attend to \emph{both} the tokens before it and the anchor tokens, which allows acquiring information from the anchor frames at both ends generated by the autoregressive transformer. 
+We want to stress that it is important to not attend the last anchor frame on the frames to be generated like the one in the Figure~\ref{fig:attention}(b), since a multi-layer self-attention will form a shortcut and leak the information of the frames in the middle to themselves and cause the training to collapse.
+
+\section{Experiment setups}
+In this section, we provide additional details of our experiments.
+\subsection{Dataset and evaluation details}
+We validate our approach on the UCF-101~\cite{soomro2012ucf101}, Sky Time-lapse~\cite{xiong2018learning}, Taichi-HD~\cite{siarohin2019first}, AudioSet-Drum~\cite{gemmeke2017audio}, and MUGEN~\cite{mugen2022mugen} datasets. 
+Below we provide basic descriptions of these datasets and our data processing steps on each of them. 
+We also report the relevant dataset statistics such as the number of long videos and the number of frames per video in Figure~\ref{tab:data-stats}.
+\label{sec:dataset_appendix}
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/dataset/data_stats.pdf}
+    \caption{\textbf{Dataset statistics.} Distribution of the number of videos in each dataset that have at least a certain number of frames.}
+    \label{tab:data-stats}
+\end{figure}
+\begin{itemize}
+    \item \textbf{UCF-101} is a dataset designed for action recognition which contains 101 classes and $13,320$ videos in total. 
+    We train our model on its \emph{train split} which contains $9,537$ videos following the official splits.\footnote{\url{https://www.crcv.ucf.edu/data/UCF101.php}} 
+    We also report number of frames in videos of every class in Figure~\ref{fig:ucf_stats}.
+    \item \textbf{Sky Time-lapse} contains time-lapse videos that depict the sky under different time and weather conditions. 
+    The paper~\cite{xiong2018learning} claims that $5,000$ videos are collected but only $2,647$ are actually released in the official dataset.\footnote{\url{https://github.com/weixiong-ur/mdgan}} 
+    We follow \cite{yu2021generating} to train our model on the train split and test using videos from the test split.
+    \item \textbf{Taichi-HD} has $2,668$ videos in total recording a single person performing Taichi.\footnote{\url{https://github.com/AliaksandrSiarohin/first-order-model/blob/master/data/taichi-loading/README.md}} 
+    We follow \cite{yu2021generating} to sample frames from every $4$ frames when training our TATS-base model for a fair comparison. 
+    However, training TATS-Hierarchical with this setting would drop $60\%$ of videos for not having enough frames as shown in Figure~\ref{tab:data-stats}. 
+    Therefore we do not skip frames for TATS-Hierarchical.
+    \item \textbf{AudioSet-Drum} is a collection of drum kit videos with audio available in the dataset. 
+    The train split contains $6,000$ videos, and the test split contains $1,000$ videos. 
+    All the video clips have $90$ frames. 
+    We use the STFT features extracted by \cite{chatterjee2020sound2sight} as the audio data\footnote{\url{https://sites.google.com/site/metrosmiles/research/research-projects/sound2sight}}, and follow its evaluation setting to measure the image quality of the $45^\text{th}$ frames on the test set.
+    \item \textbf{MUGEN} is a dataset containing videos collected from the open-sourced platform game CoinRun~\cite{cobbe2019quantifying} by recording the gameplay of trained RL agents. 
+    We use their template-based algorithm auto-text, which generates textual descriptions for videos with arbitrary lengths. 
+The train and test splits contain $104,796$ and $11,802$ videos, respectively, each at 3.2s to 21s (96 to 602 frames) long.
+\end{itemize}
+To calculate the VFDs and DVDs, we generate $2,048$ and $512$ videos for short and long video evaluation, respectively, considering time cost. 
+To calculate the IS, we generate $10,000$ videos. 
+To calculate the CCS and ICS for long video evaluation, we also generate $512$ videos. 
+We run the evaluations for $10$ times and report the standard deviations.
+\begin{figure}[t]
+    \centering
+    \includegraphics[trim=120 0 120 50,clip,width=\linewidth]{figures/appendix/ucf101_class_stats.png}
+    \caption{Average number of frames for each of class in the UCF101 dataset.}
+    \label{fig:ucf_stats}
+\end{figure}
+\subsection{Training and inference details}
+\topic{VQGAN.} 
+Suggested by the VQGAN training recipe~\cite{esser2021taming}, we start GAN losses after the reconstruction loss generally converges after $10K$ steps. 
+We adopt a codebook with vocabulary size  $K=16,384$ and embedding size $c=256$. 
+We do not use the random start trick for codebook embeddings~\cite{dhariwal2020jukebox,yan2021videogpt}. 
+Following \cite{wang2018video}, we set $\lambda_\text{rec}=\lambda_\text{match}=4.0$ and $\lambda_\text{disc}=1.0$. 
+We use the ADAM optimizer~\cite{kingma2014adam} with $lr = 3e^{-5}$ and $(\beta_1, \beta_2) = (0.5, 0.9)$. 
+As discussed in Section~\ref{sec:video_vqgan}, we always clip the gradients to have euclidean norm $=1$. 
+We train the VQGAN on $8$ NVIDIA V100 32GB GPUs with batch size $=2$ on each gpu and accumulated batches $=6$ for $30K$ steps. 
+Each model usually takes around $57$ hours to train.
+
+\topic{Transformers.} 
+Both autoregressive and interpolation transformers contain $24$ layers, $16$ heads, and embedding size $=1024$. 
+We use the AdamW optimizer~\cite{loshchilov2018decoupled} with a base learning rate of $4.5e^{-6}$, where we linearly scale up by the total batch size. 
+We train the transformers on $8$ NVIDIA V100 32GB GPUs with batch size $=3$ on each GPU until the training loss saturates. 
+Specifically, we train the autoregressive transformers for $500K$ steps as a general setting except that we train TATS-base on the UCF-101 dataset for $1.35M$ as it keeps improving the results. It takes around $10$ days to train the transformer models.
+In practice, we find that the interpolation setting simplifies the problem dramatically, so we only train the interpolation transformers for $30K$ for the best generalization performance. 
+At the inference time, we adopt sampling strategy where temperature $t=1$, top-$k$ with $k=2048$, and top-$p$ with $p=0.80$ as our general setting (for interpolation transformers, a smaller $q$ and $k$ usually produces better results). Sampling $1$ video with $1024$ frames takes around $30$ minutes using TATS-base on a single Quadro P6000 GPU, while TATS-hierarchical reduces this time to $7.5$ minutes for autoregressive transformer and $23$ seconds for interpolation transformer.
+
+\subsubsection{Baselines}
+Apart from those that have been discussed in the related work section, we provide additional descriptions on the baselines we compared with and other GAN-based video generation models in this section. TGAN~\cite{saito2017temporal} proposes to generate a fixed number of latent vectors as input to an image generator to synthesize the corresponding frames. MoCoGAN~\cite{Tulyakov_2018_CVPR} utilizes a RNN to sample motion vectors to synthesize different frames. MoCoGAN-HD~\cite{tian2021a} leverages a LSTM to predict a trajectory in the latent space of a trained image generator.  DVD-GAN~\cite{clark2019adversarial} adopts a similar architecture as MoCoGAN with a focus on scaling up training. TSB~\cite{munoz2021temporal} further improves  MoCoGAN by mixing information of adjacent frames using an operation called temporal shift. 
+TGAN2~\cite{saito2020train} proposes to divide the generator into multiple small sub-generators and introduces a subsampling layer that reduces the frame rate between each pair of consecutive sub-generators. 
+HVG~\cite{castrejon2021hierarchical} further introduces a hierarchical pipeline to interpolate and upsample low-resolution and low-frame-rate videos gradually. 
+ProgressiveVGAN~\cite{acharya2018towards} extends ProgressiveGAN~\cite{karras2018progressive} to video generation by simultaneously generating in the temporal direction progressively. LDVD-GAN~\cite{kahembwe2020lower} analyzes the discriminators used in video GANs and designs improved discriminators considering the convolution kernel dimensionality. CCVS~\cite{le2021ccvs} utilizes VQVAE to compress frames for training transformer and a flow module to improve temporal consistency. VideoGPT~\cite{yan2021videogpt} further leverages 3D convolution and axial self-attention in the VQVAE to encode the temporal dimension as well. 
+DIGAN~\cite{yu2021generating} first generalized the idea of implicit neural representations to video generation by decomposing the network weights for the spatial and temporal coordinates. StyleGAN-v~\cite{skorokhodov2021stylegan} maps a continuous temporal positional embedding to the input feature map of the StyleGAN.
+
+\subsection{Comparison of the computational costs}
+
+\cameraready{
+We compute the time to generate a single video of $1024$ frames using different methods in Table~\ref{tab:inference_time}. 
+The slow inference speed of autoregressive models is often criticized. 
+However, among all the methods that build on VQVAE and transformer framework, our TATS-hierarchical is the fastest -- $1/3$ the time of CCVS and $1/5$ the time of VideoGPT. 
+Accelerating autoregressive transformers is an active research area. 
+Further improvements can be achieved by methods such as sparse attention, which we leave for future exploration.
+}
+
+\begin{table}[h]
+\centering
+\caption{Time for generating a 1024-frame video.}
+\addtolength{\tabcolsep}{3.5pt}
+\label{tab:inference_time}
+\begin{tabular}{llllll}
+\toprule
+DIGAN & MoCoGAN-HD & CCVS & VideoGPT & TATS-base & TATS-hierarchical \\
+\midrule
+4.2 sec  & 28.5 sec  &22 min & 42 min & 30 min & 7.5 min \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Additional results on long video generation}
+
+\subsection{More videos with repeated actions and smooth transitions.}
+Video generation results with repeated actions can be widely seen in other UCF-101 classes as well as shown in Figure~\ref{fig:more_intersection}. 
+In addition to the generated sky videos with smooth transitions, we also show that there are such cases in UCF-101 and Taichi-HD datasets in Figure~\ref{fig:intersection_taichi_ucf}. 
+We can see in the example of UCF-101 \textit{Sky Diving} video that the transition proceeds clearly with unrealistic content as only limited data are available per class. 
+In the example of Taichi video, we can see that the color of the pants transforms smoothly. 
+However, there is still unrealistic content in such videos. Therefore, we argue that a split of content and motion generation could be helpful in these cases~\cite {Tulyakov_2018_CVPR,yu2021generating,tian2021a}.
+
+\subsection{Failure cases.} 
+Errors could occur and accumulate during the application of sliding window attention. 
+We show several typical failure examples in Figure~\ref{fig:failure_case}. 
+In the example of  \textit{Boxing Punching Bag}, an error occurs at around $300$ frames, and the general quality of the video deteriorates after that. 
+Repeated tokens are generated in the deteriorated area, which is a commonly observed issue in sequence generation~\cite{Holtzman2020The,jiang2018sequence}. 
+We also find that this kind of issue happens more often in the areas which contain large motions. 
+The video quality could also degrade quickly if the thematic event of the video has a clear end. For example, the generated \textit{Long Jump} video quickly transits to the other scene and degenerates when the person finishes the action.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.85\linewidth]{figures/appendix/displacement.pdf}
+    \caption{The $1000^\text{th}$ generated frame and the average pixel difference w.r.t. the $1024^\text{th}$ frame. DIGAN generations contain clear periodic artifacts.}
+    \label{fig:displacement}
+\end{figure}
+
+\subsection{Additional comparison with DIGAN.} \cameraready{
+We find that DIGAN presents clear quality degradation on the Sky dataset. To show this, we calculate the average difference between the $1000^\text{th}$ and $1024^\text{th}$ frames generated by DIGAN and our method in Figure~\ref{fig:displacement}. 
+DIGAN results show periodic artifacts induced by the sinusoidal positional encodings (repeated changes in the diagonal direction). 
+However, this is not reflected in the FVD metric, which we conjecture is due to the domain gap with respect to the Kinetics dataset which the I3D model is trained on. 
+So to quantify this, we conduct human evaluation to compare TATS with DIGAN. 
+We randomly sampled 100 generated videos for each method
+and cropped the videos to the last 128 frames. 
+We showed raters a pair of videos (one from each method), and asked them to select the video with fewer artifacts. 
+Each video pair was evaluated by around 5 raters. 
+TATS was chosen over DIGAN $67\%$ of the time ($355$ vs. $175$). 
+Under a binomial test, TATS is statistically significantly better than DIGAN with confidence $>0.95$.
+}
+
+
+% \subsection{Sky Time-lapse results}
+
+\section{Additional related works}
+\topic{The implicit bias of zero padding.} 
+The positional inductive bias introduced by zero padding has drawn increasing attention recently~\cite{islam2019much,kayhan2020translation,xu2021positional,alsallakh2021mind}. In most cases, such inductive bias is helpful in classification~\cite{islam2019much}, generation~\cite{xu2021positional}, or object detection~\cite{alsallakh2021mind}. Our paper observes a case where this inductive bias is harmful. 
+
+\topic{Video prediction.} Video prediction aims at modeling the transformation between frames and predicting future frames given real frames~\cite{ranzato2014video,srivastava2015unsupervised,finn2016unsupervised,van2017transformation,kumar2019videoflow,park2021vid}. For instance, \cite{van2017transformation} divides the frames into patches, calculates the affine transformation between temporally adjacent patches, and predicts such affine transformation to be applied to the most recent frame. \cite{luc2017predicting} predicts videos of semantic maps and argues that autoregressive models lead to error propagation when more frames are predicted while being more accurate in the semantic segmentation space. Flow-based models~\cite{kumar2019videoflow} and ODE-based models~\cite{park2021vid} have also been used for video prediction. Different from video prediction, video generation focus on producing videos from noise. When applying to long videos, one substantial difference is that video prediction starts from a real frame while video generation starts from a generated frame. Some video generation models fall into the middle part~\cite{le2021ccvs} that predicts future frames given frames generated by an image generator. We have shown that these models also suffer from quality degradation.
+
+\topic{Conditional video generation.} 
+Text-conditioned video generation has been studied in multiple papers. SyncDraw~\cite{mittal2017sync} first proposes to combine VAE and RNN for video generation while conditioning on texts. T2V~\cite{li2018video} uses CVAE to generate the gist then GANs with 3D convolutions to generate fixed-length low-resolution videos. The text is encoded in a convolutions filter to process the gist. TFGAN~\cite{balaji2019conditional} proposes a multi-scale text-conditioning discriminator and follows MoCoGAN~\cite{Tulyakov_2018_CVPR} to use an RNN to model the temporal information. IRC-GAN~\cite{deng2019irc} proposes to use a recurrent transconvolutional generator and mutual-information introspection to generate videos based text. Craft~\cite{Gupta2018ImagineTS} sequentially composes a scene layout and retrieves entities from a video database to create complex scene videos. GODIVA~\cite{wu2021godiva} relies on a pretrained VQVAE model to produce video frame representations and autoregressively predicts the video representations based on the input text representations and former frames. Each element's prediction in the current frame's representation attends to the previous row, column, and time. As for audio-conditioned video generation, Sound2Sight~\cite{chatterjee2020sound2sight} proposes to model the previous frames and audios with a multi-head audio-visual transformer and predicts future frames with a prediction network based on sequence-to-sequence architecture. Vougioukas et al.~\cite{vougioukas2018end} studies speech-driven facial animation, which aims at generating face videos given the speech audios. They propose a framework based on RNNs and a frame generator. Some conditional generation frameworks are also able to generate long videos either when minimal changes occur in the video scenes~\cite{menapace2021playable} or strong conditional information is given such as segmentation maps~\cite{wang2018video,mallya2020world}. Our paper focuses on more realistic and complex videos with weak or no conditional information available. 
+
+% \topic{Concurrent submission.} MUGEN~\cite{mugen2022mugen} is a concurrent submission to ECCV. It introduces a large-scale multimodal dataset for video-audio-text generation and understanding. This paper uses the videos and texts from this dataset while focusing on long video generation.
+\begin{figure}[h]
+    \centering
+    \vspace{-.5cm}
+    \includegraphics[trim=0 0 0 0,clip,width=\linewidth]{figures/appendix/long_video_gen_self_loop_more.pdf}
+    \caption{More class-conditional generation results of UCF-101 videos with $1,024$ frames that contains repeated action.}
+    \label{fig:more_intersection}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \vspace{-.5cm}
+    \includegraphics[trim=0 0 0 0,clip,width=\linewidth]{figures/appendix/long_video_gen_intersection_taichi_ucf.pdf}
+    \caption{Unconditional and class-conditional generation results of \textit{Sky Diving} and Taichi-HD videos with $1,024$ frames that contain smooth transitions.}
+    \label{fig:intersection_taichi_ucf}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \vspace{-.5cm}
+    \includegraphics[width=\linewidth]{figures/results/long_video_gen_failure.pdf}
+    \caption{Failure cases of class-conditional generation results of long videos on the UCF-101 dataset.}
+    \label{fig:failure_case}
+\end{figure}
+
+
+
+
+% \begin{figure}[h]
+%     \centering
+%     \vspace{-.5cm}
+%     \includegraphics[trim=0 0 0 0,clip,width=\linewidth]{figures/appendix/digan_sky.pdf}
+%     \caption{Randomly selected generation results by DIGAN and TATS on the Sky Time-lapse datasets.}
+%     \label{fig:digan_sky}
+% \end{figure}

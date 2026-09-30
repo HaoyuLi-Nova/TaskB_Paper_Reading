@@ -1,0 +1,128 @@
+% CVPR 2025 Paper Template; see https://github.com/cvpr-org/author-kit
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+\usepackage{cvpr}              % To produce the CAMERA-READY version
+% \usepackage[review]{cvpr}      % To produce the REVIEW version
+% \usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+
+% \usepackage{iclr2025_conference,times}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage{cuted}
+\usepackage{amssymb}
+
+\usepackage[accsupp]{axessibility}  % Improves PDF readability for those with disabilities.
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+% \usepackage{hyperref}
+\usepackage{url} 
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{8463} % *** Enter the Paper ID here
+\def\confName{CVPR}
+\def\confYear{2025}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+% \title{StreamingT2V: Consistent, Dynamic, and Extendable Long Video Generation from Text}
+
+\title{StreamingT2V: Consistent, Dynamic, and Extendable \\Long Video Generation from Text}
+
+%%%%%%%%% AUTHORS - PLEASE UPDATE
+% \author{First Author\\
+% Institution1\\
+% Institution1 address\\
+% {\tt\small firstauthor@i1.org}
+% % For a paper whose authors are all at the same institution,
+% % omit the following lines up until the closing ``}''.
+% % Additional authors and addresses can be added with ``\and'',
+% % just like the second author.
+% % To save space, use either the email address or home page, not both
+% \and
+% Second Author\\
+% Institution2\\
+% First line of institution2 address\\
+% {\tt\small secondauthor@i2.org}
+% }
+
+\definecolor{linkblue}{HTML}{5586bd}
+\newcommand{\affiliationsep}[0]{\hspace{5pt}}
+
+\author{
+Roberto Henschel$^1$$^{*}$$^{\dagger}$,
+Levon Khachatryan$^1$$^{*}$,
+Hayk Poghosyan$^1$$^{*}$,
+Daniil Hayrapetyan$^1$$^{*}$,
+\\
+Vahram Tadevosyan$^1$$^\ddagger$,
+Zhangyang Wang$^{1,2}$, 
+Shant Navasardyan$^1$,
+Humphrey Shi$^{1,3}$ \\
+% \small$^1$Moonvalley \affiliationsep 
+\small$^1$Picsart AI Resarch (PAIR) \affiliationsep 
+\small$^2$UT Austin \affiliationsep \small$^3$Georgia Tech \affiliationsep \\
+    {\small \textbf{\url{https://github.com/Picsart-AI-Research/StreamingT2V}}}
+}
+
+\begin{document}
+\maketitle
+
+\begin{strip}
+\vspace{-15mm}
+   \centering
+   \includegraphics[width = 1.0\textwidth]{figures/main_teaser_v3_new.png}
+   \captionof{figure}{
+       \textbf{StreamingT2V} is an advanced autoregressive technique to create long videos featuring rich motion dynamics, ensuring temporal consistency, alignment with descriptive text, high frame-level image quality, and no stagnation. Demonstrations include videos up to \textbf{1200 frames, spanning 2 minutes}, which can be extended further. The effectiveness of StreamingT2V is not limited by the Text2Video model used, indicating potential for even higher-quality with improved base models.} 
+       \vspace{-2mm}
+   \label{fig:teaser_img}
+\end{strip}
+
+
+\def\thefootnote{*}\footnotetext{Equal contribution. \hspace{.5em} $^\dagger$ Current affiliation: Moonvalley. 
+\hspace{.5em} $^\ddagger$ Current affiliation: Superside.
+\hspace{.5em} 
+Correspondence to: Roberto Henschel \textless firstname@moonvalley.com\textgreater, for Levon Khachatryan, Hayk Poghosyan, Daniil Hayrapetyan: \textless firstname.lastname@picsart.com\textgreater, and  H. Shi.}\def\thefootnote{\arabic{footnote}}
+
+
+
+
+\input{sec/0_abstract}    
+\input{sec/1_introduction}
+\input{sec/2_related_work}
+\input{sec/3_preliminaries}
+\input{sec/4_method}
+\input{sec/5_experiments}
+\input{sec/5.1_future_work}
+\input{sec/6_conclusion}
+
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+
+% WARNING: do not forget to delete the supplementary pages from your submission 
+\input{sec/supplementary_Arxiv}
+
+\end{document}

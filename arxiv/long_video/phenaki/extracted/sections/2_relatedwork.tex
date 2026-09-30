@@ -1,0 +1,29 @@
+\section{Related Works}
+
+This paper is closely related to auto-regressive methods for text conditioned image and video generation. DALL-E~\cite{DALLE} \textit{translates} text tokens to discrete image embeddings learnt using a VQVAE~\cite{vqvae}. Parti~\cite{PARTI} has a similar architecture but can generate higher quality images by predicting tokens from a ViT-VQGAN~\cite{vit_vqgan} using a 21B parameters transformer. Similar architectures have been used for generating videos as well. GODIVA~\cite{godiva} uses a transformer to map text tokens to video tokens from a image based VQVAE. Given the large number of tokens from multiple frames, GODIVA relied on a local-attention mechanism. Similarly, NUWA~\cite{nuwa} and NUWA-Infinity~\cite{wu2022nuwa} both employ auto-regressive architectures to generate videos and images from text. NUWA generates fixed size outputs, while NUWA-Infinity introduces a second layer of auto-regressive computation to support variable size videos. Likewise, CogVideo~\cite{cogvideo} argues the main reason behind low quality video generation is the scarcity of good text-video data and tried to leverage pre-trained text to images models to generate high quality video. 
+
+While \model sticks to the same architecture principles, it has major differences with previous work. Most notably, NUWA, NUWA-Infinity and CogVideo treat videos as a sequence of independent images. This can lead to poor modeling of dynamics and generate motion artifacts. To combat this, NUWA-infinity used the previous frame during decoding to combat this. In \model, we go further and treat videos as a temporal sequence of images which substantially decreases the number of video tokens given the redundancy in video generation, and results in a much lower training cost. The auto-regressive nature of the \phenaki also allows us to effectively condition on previous frames and generates longer videos as detailed in Section~\ref{sec:method}.
+
+%\mbz{I'm not sure how much detail we wanna put here. commenting out for now.}
+% Second, \model does not rely on an auto-regressive transformer. 
+% \begin{itemize}
+%     \item It is similar to maskgit
+%     \item It is much faster in inference
+%     \item Inference cost can actually be tuned, we can trade off quality for generation speed
+%     \item The efficient maskgit inference opens the door to story mode. Which would be harder with regular transformers. 
+% \end{itemize}
+
+% Finally, 
+% \begin{itemize}
+%     \item CogVideo does pre-training
+%     \item Nuwa does train on text to image and text2video jointly + a host of other tasks. In our model, text2video and text2image are actual naturally co-existing leading to a less complicated setup.
+%     \item similar to imagen and video diffusion we use a pre-trained t5x text encoder. This difffers
+% \end{itemize}
+
+%Second, \model is the first model that utilizes joint training on images and videos at the same time to rectify issues with text-video datasets. Finally, \model is only about 1B parameters in size, which is much smaller than CogVideo at 9B and NUWA which only has a 800M parameters decoder. This smaller size, clearly highlights the importance of main contributions of our paper.
+% \pikinder{Nuwa Looks to be 870M in total }
+
+Diffusion models are another class of models which recently have been used for conditional and unconditional video generation, which we call VDM~\cite{ho2022video}. In VDM, authors proposed replacing the conventional U-Net architectures for 2D image modeling with a 3D space-time model to run the diffusion process directly on pixels. % VDM then uses two models to generate videos: one to generate every 4 frames and one to fills in between. 
+While this approach provides an effective formulation for modeling videos, it is limited to fixed size videos. To address this issue, VDM provides an auto-regressive extension, which allows the model to generate longer videos but it is typically impractical due to high sampling time of diffusion models.
+
+Text conditional video generation is a relatively new field of research, nonetheless, image conditional video generation, commonly known as video prediction, and unconditional video generation have been studied more comprehensively. These papers include deterministic methods using a combination of recurrent and convolutional networks~\cite{ranzato2014video,srivastava2015unsupervised,finn2016unsupervised, wang2017predrnn}, variational based stochastic methods~\cite{babaeizadeh2017stochastic,svg,villegas2019high,fitvid} and more recently by learning a discrete representation~\cite{videovqvae,rakhimov2020latent,transframer}, auto-regressive models~\cite{videotranf,videogpt,ccvs,harp}, diffusion models~\cite{mcvd,harvey2022flexible,yang2022diffusion,diff4pred} flow based models~\cite{kumar2019videoflow}, and finally adversarial based methods~\cite{vondrick2016generating,saito2017temporal,tulyakov2018mocogan,clark2019adversarial,saito2020train,trIVD}. These works mostly consider limited domain (e.g. robotic videos) prediction/generation, or short fixed size clips. Section~\ref{sec:exp} provides comparison with some of these models.

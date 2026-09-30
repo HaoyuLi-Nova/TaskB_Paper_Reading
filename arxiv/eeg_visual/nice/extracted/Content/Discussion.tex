@@ -1,0 +1,23 @@
+\label{sec:discussion}
+There have been some studies achieving commendable results in image reconstruction with fMRI.
+We turn to more convenient and fast EEG signals and focus on the object recognition tasks, in which the semantic information is the significant gain by natural image decoding compared to visual decoding of contrast, color, etc.
+We have tried to demonstrate the feasibility and plausibility of EEG-based image decoding from three folds, zero-shot classification performance, detailed resolving of the brain activity, and model interpreting.
+% Researchers have worked on decoding visual activity from our brains for a long time.
+% Some studies have achieved good results with fMRI but are still limited by expensive devices and seconds of time needed for one image \citep{horikawa2017generic, shen2019deep}.
+% EEG is a viable alternative with low cost and high time resolution.
+% However, prior studies have encountered experimental design pitfalls and limitations\citep{palazzo2021decoding, li2021perils}. 
+% A large-scale EEG dataset was recently proposed to model human visual recognition and decode objects pairwisely \citep{gifford2022large}.
+% Inspired by the rich dataset and the popular multi-modal learning, we propose a self-supervised framework to prove further the feasibility of decoding natural images from EEG. 
+% Contrastive learning aligned the features extracted from images and EEG signals.
+% We achieved good results in the 200-way zero-shot image decoding.
+% Furthermore, we got biological plausibility by analyzing time, space, frequency, and semantics. 
+% Our results were consistent with neuroscience principles.
+There are also some limitations of this paper.
+Firstly, we observed that a stable response required multiple repetitions. 
+This could be attributed to the brief 100 ms stimulus duration, which may make it susceptible to being missed or disrupted by stimuli before and after. 
+We will aim to identify a more optimal window length for stimulus presentation.
+Secondly, we have yet to capture useful information from the gamma band, which deserves further investigation.
+
+In conclusion, we propose a self-supervised framework to decode natural images from EEG for object recognition.
+Our framework has achieved remarkable results in zero-shot tasks with rich biological evidence.
+The results provide new inspiration for practical brain-computer interfaces.

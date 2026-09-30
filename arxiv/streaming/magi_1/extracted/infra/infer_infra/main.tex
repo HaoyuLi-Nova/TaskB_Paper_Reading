@@ -1,0 +1,5 @@
+\subsection{Inference Infrastructure}
+As an innovative large-scale autoregressive denoising model, \magi introduces two pivotal architectural innovations: multi-chunk parallel inference and KV cache, which unlock new possibilities for user experiences, such as real-time streaming video generation, and enables cost-effective deployment. However, these advancements also introduce new challenges to the inference infrastructure. In this section, we present our infrastructure design tailored to two major scenarios: real-time streaming inference on H100/H800, and cost-efficient deployment on RTX 4090 GPU.
+
+\input{infra/infer_infra/realtime}
+\input{infra/infer_infra/cost_effective}

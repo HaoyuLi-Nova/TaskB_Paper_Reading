@@ -1,0 +1,31 @@
+
+\begin{wraptable}{r}{0.6\textwidth}
+  \small
+  \setlength{\tabcolsep}{4pt} % tighten columns a bit more to accommodate new column
+  \vspace{-3em}
+  \centering
+  \caption{
+    Ablation studies. RF refers to Rolling Forcing, and SF refers to Self Forcing.
+  }
+  \vspace{0.5em}
+  \label{tab:ablation}
+  \centering
+  \resizebox{0.6\textwidth}{!}{
+  \begin{tabular}{l|cccccc|c}
+      \toprule
+      \multirow{2}{*}{Model}  &
+      \multicolumn{6}{c|}{Evaluation Scores $\uparrow$} & \multirow{2}{*}{ {\large$\Delta^{\text{Quality}}_{\text{Drift}}$}  }  \\
+    \cmidrule(lr){2-7}
+       & \scriptsize Temp.  & \scriptsize Subj.      & \scriptsize Back.    & \scriptsize Mot.    & \scriptsize Aes. & \scriptsize Img. & \\
+      \midrule
+    w/o RF inference    & 95.45 & 86.01 & 89.94 & 97.36 & 57.59 & 65.19 & 5.53 \\
+    w/o RF training     & 95.91 & 87.50 & 90.86 & 98.05 & 60.41 & 69.24 & 0.89 \\
+    w/o SF training     & 90.83 & 83.27 & 88.14 & 95.63 & 55.30 & 62.00 & 1.62 \\
+    w/o attention sink  & 97.53 & 83.22 & 87.99 & 98.56 & 58.99 & 67.30 & 4.63 \\ 
+    \midrule
+    Ours full           & \textbf{97.61} & \textbf{92.80} & \textbf{93.71} & \textbf{98.70} & \textbf{62.39} &	\textbf{70.75} & \textbf{0.01}\\
+    \bottomrule
+  \end{tabular}
+  }
+    \vspace{-1.5em}
+\end{wraptable}

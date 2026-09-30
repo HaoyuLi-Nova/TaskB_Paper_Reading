@@ -1,0 +1,43 @@
+\section{Introduction}
+\label{sec-1-intro}
+
+Image animation, also known as image-to-video generation (I2V), empowers filmmakers and content creators with the ability to bring static images to life with dynamic motion. Image animation has attracted significant research efforts throughout the year, with various approaches explored to achieve realistic image animations~\cite{horrytour, xuanimating,liuinfinite, holynski2021animating}.
+Recently, advances in video generation models have significantly transformed I2V synthesis~\cite{xing2023dynamicrafter,yang2024cogvideox}. These models utilize generative techniques to produce videos from text, opening up new creative possibilities. However, the limitations of pure I2V approaches become clear when considering the user-intent driven nature of dynamic content creation, as textual information alone falls short of capturing the intricate details of motion, leading to uncertainty and a lack of control in generating the animations.
+
+In content creation and filmmaking, motion design of the shot is crucial. It involves planning the camera movements and object motions to create a cohesive visual narrative. 
+For example, from a single input image in Fig.~\ref{fig:teaser} (leftmost column), different users may want to explore different camera movements (\eg, keeping the camera static, dollying backward, or orbiting while elevating) and object arrangements (\eg, moving the boys or the kites in particular directions)
+%in the scene) 
+to express their creative vision for the resulting footage.
+However, current video generation models rely primarily on textual inputs for motion control, largely limiting the precision and expressiveness of the resulting animations. While some recent works~\cite{wang2024motionctrl,wu2025draganything} have attempted to incorporate camera and object motion controls into video diffusion models, they cannot fully address the challenges that come from the intertwining nature of camera and object motions, and hence struggle to interpret the ambiguous user intention. For instance, when the user drags the arm of a character in the image, it could mean panning the camera, moving the character, or just moving the arm.
+
+
+
+In our work, we aim at enabling precise user control on the camera motion, object global motion (e.g., moving the character), and object local motion (e.g., moving the arm). A standard approach is to prepare video training data that have all required labels (e.g. camera extrinsic parameters, object motion, etc.). 
+%But 
+However, this requires labor-intensive and possibly unreliable labeling, and eventually limits the variety and quantity of video data for training~\cite{wang2024motionctrl,he2024cameractrl}. Instead, we propose to represent motions in ways that do not rely on such costly labels, but on simple 2D bounding boxes and 2D point trajectories that can be automatically and reliably estimated. This allows us to take almost any kind of video for training and enriches our generation variety. 
+
+However, we still face one major challenge. 
+Users tend to think and plan the motion in 3D scene space, but the video generation model is trained with 2D screen-space motion conditions. 
+Moreover, users have to specify the motion plan on the 2D image canvas. In other words, we need an effective translation from the user motion design in scene space to control signals (bounding boxes and point trajectories) in 2D screen space. 
+Inspired by the classical scene modeling in computer graphics, we propose the 
+Motion Signal Translation module that allows users to plan the motion in 3D scene space, and then accurately interpret the user intention. 
+This module can decompose the user motion into hierarchical transformation and rectify the potentially erroneous user input before feeding the interpreted 2D control signals to the video generation model.
+
+We named 
+our streamlined video synthesis system \textit{\MOCA},
+allowing for joint manipulation of both camera and object motions in a scene-aware manner during the shot design and video synthesis processes.
+As demonstrated in Fig.~\ref{fig:teaser}, our method allows users to generate video shots with different object motions while fixing a desired camera path (noting consistent camera motions across results in each column) and vice versa.
+\MOCA leverages our dedicated Motion Signal Translation module during inference to connect high-level users' motion designs to the screen-space control signals that drive the video diffusion models for video synthesis.
+To this end, we develop dedicated motion-conditioning mechanisms that guide DiT-based~\cite{peebles2023scalable} video diffusion models to follow control signals capturing camera and object motions. 
+
+
+\begin{itemize} 
+%
+\item We introduce cinematic shot design to the process of image-to-video synthesis. 
+%
+\item We present \MOCA, a streamlined video synthesis system for cinematic shot design, offering holistic motion controls for joint manipulation of camera and object motions in a scene-aware manner. 
+%
+\item In addition, we design dedicated motion conditioning mechanisms to guide DiT-based video diffusion models with control signals that capture camera and object motions. We couple that with a Motion Signal Translation module to translate the depicted scene-space motion intent into the screen-space conditioning signal for video generation. 
+%
+\item Evaluations on diverse real-world photos confirm the effectiveness of \MOCA for cinematic shot design, highlighting its potential for various creative applications. 
+\end{itemize}

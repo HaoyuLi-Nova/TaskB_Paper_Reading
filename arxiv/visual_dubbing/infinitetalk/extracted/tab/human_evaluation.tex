@@ -1,0 +1,21 @@
+
+\begin{table*}[t]
+    % \begin{adjustbox}{center}
+        \centering
+        \begin{tabular}{c|cc}
+        \toprule
+            Model & Lip Sync. & Body Sync. 
+            \\
+            \midrule
+            MuseTalk & 2.57 & - \\
+            LatentSync & 2.32 & 1.92  \\
+            Ours & \textbf{1.11} & \textbf{1.09} \\
+            \bottomrule
+        \end{tabular}
+        \caption{
+        Human evaluation between video dubbing methods on motion synchronization. We do not compare our method with MuseTalk in body synchronization because MuseTalk has exactly the same body movement to LatentSync.
+        }
+        \label{tab:human_evaluation}
+        % \vspace{-10pt}
+    % \end{adjustbox}
+\end{table*}

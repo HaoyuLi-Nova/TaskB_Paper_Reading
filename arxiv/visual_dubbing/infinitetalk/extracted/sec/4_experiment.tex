@@ -1,0 +1,48 @@
+\section{Experiment}
+\paragraph{Implementation details}{
+    We build our model based on MeiGen-MultiTalk \cite{kong2025let}, which includes a 14B parameters DiT that enables audio-driven image-to-video generation at multiple resolutions. We use wav2vec2 \cite{wav2vec2} as the audio embedder, and CLIP/H \cite{openclip} as the reference image embedder. Around 2,000 hours of video containing a talking person is collected as our training data. The model is trained with a 64 NVIDIA H100 80G cluster. The context frames includes 9 images, resulting in a $t_c = 3$ context frames latent. The video chunk length is 81. Our model will produce 72 frames each time when generating a long video auto-regressively.
+}
+\paragraph{Test datasets and evaluation metrics}{
+    To rigorously evaluate our method across diverse scenarios, we utilize three benchmark datasets: HDTF \cite{hdtf} and CelebV-HQ \cite{celebvhq} (emphasizing facial dynamics) alongside EMTD \cite{emtd} (incorporating full-body movements). Following established dubbing evaluation protocols \cite{li2024latentsync, skyreelsaudio}, we construct a test set of 120 videos by randomly sampling 40 videos per dataset and permuting their audio channels (replacing original audio with mismatched tracks) to simulate real dubbing conditions. We use our model to perform long sequence video dubbing at $480\times 480$ resolution. The temporal length of generated results is the frame number of the the dubbing video input. 
+    
+    Performance is quantified through complementary automatic metrics and human evaluation. For objective assessment, we employ: Fréchet Inception Distance (FID) measuring per-frame visual quality; Fréchet Video Distance (FVD) evaluating inter-frame temporal coherence; SyncNet's Sync-C (confidence score) and Sync-D (lip distance) quantifying lip synchronization; and Cosine Similarity (CSIM) scoring identity preservation. To capture perceptual nuances beyond automated metrics, we conduct human studies where participants rate on 5 perspectives: gesture synchronization with audio prosody, head motion alignment to speech rhythm, lip synchronization precision, identity consistency, and overall perceptual naturalness. We receive 340 responses from 17 participants on all 40 video dubbing results from EMTD. 
+    % This dual-methodology framework ensures comprehensive validation spanning low-level visual fidelity to high-order behavioral alignment.
+}
+
+\subsection{Quantitative experiments}
+\input{fig/qualitative}
+
+\input{tab/quantitative}
+\input{tab/ablation}
+\input{tab/human_evaluation}
+We compare InfiniteTalk with both traditional video dubbing methods (including MuseTalk \cite{musetalk}, FantacyTalking \cite{wang2025fantasytalking}, and Hallo3 \cite{cui2024hallo3}) and audio-driven image-to-video models (including OmniAvatar \cite{gan2025omniavatar} and MultiTalk \cite{kong2025let}). To follow the pre-processing pipeline and accurately show the performance of the counterparts, we use their open-source weights and inference scripts in this experiment. 
+
+The comparison with image-to-video models is shown in \cref{tab:quantitative-i2v}. InfiniteTalk outperforms the counterparts in lip synchronization by a large margin. Note that, there is a trade-off between synchronization metrics (Sync-C, Sync-D), visual quality matrics (FID, FVD) and identity preservation (CSIM). A trivial solution is that, if a method is copying the input as the output, it will achieve the best FID, FVD, and CSIM over all methods. When comparing InfiniteTalk with methods that have competitive synchronization performances, our method achieves very remarkable visual quality and identity preserving. As seen in \cref{tab:quantitative-dub} when comparing with traditional video dubbing methods. Since LatentSync \cite{li2024latentsync} and MuseTalk \cite{musetalk} is limited to edit the oral region, the rest of the video is kept unchanged, making their FID and FVD extremely good. Given that, the metrics are not showing the true visual quality difference. 
+% Introduce human evaluation for visual quality analysis
+% The results are shown in \cref{tab:quantitative-i2v}, ...
+
+Currently, there is not automatic full body motion-audio alignment metric available. We find the music-motion alignment metric like beat consistency score fail to differentiate the performance of the methods. Meanwhile, Sync-C and Sync-D cannot accurately depict the lip synchronization when there is large head motion in the video.
+For a comprehensive evaluation of full body motion alignment, we conduct a user study. 
+The result is shown in \cref{tab:human_evaluation}. The participant is asked to rank the results (placing the best to the 1-st place, the worst to the 3-rd place) by the video dubbing methods including MuseTalk~\cite{musetalk}, LatentSync~\cite{li2024latentsync}, and our method. The number in the table shows the averaged ranking of the corresponding method. Benefited by the strong audio-driven human animation architecture and the sparse-frame video dubbing paradigm, our method achieves the best results in both lip and body motion synchronization. It demonstrates the limitation of traditional video dubbing methods that the editing region is restricted to mouth, resulting to misaligned body motion.
+
+\subsection{Qualitative experiments}
+% \input{fig/long_video}
+\paragraph{Comparison with counterparts}
+We conduct a visual comparison between our method and traditional video dubbing methods in \cref{fig:qualitative}. The first input example is a static video. It showcases when only editing mouth regions, traditional video dubbing methods cannot drive the head and body by the audio track. The following two inputs are dynamic videos. Compared to the counterparts, InfiniteTalk is not only able to generate plausible audio-aligned lip movements, but also synchronized face, head, and body movements with matched emotional expressions. As a new paradigm, sparse-frame video dubbing also demonstrates its necessity for modern audio-driven human animation video-to-video applications.
+
+\input{fig/camera_control}
+\paragraph{Camera control}
+A visual comparison on the camera control methods are shown in \cref{fig:camera_control}. Using InfiniteTalk alone will not replicate the subtle camera movement of source video. With SDEdit~\cite{sdedit} or Uni3C~\cite{cao2025uni3c}, we can achieve fine-grained camera control. Comparing SDEdit with Uni3C. We find that with Uni3C, the model fails to preserve the video background. 
+% With SDEdit, 
+
+% \subsection{Human evaluation}
+% \input{tab/human_evaluation}
+% As shown in \cref{tab:human-evaluation}, InfiniteTalk ...
+
+\subsection{Ablation study}
+% \input{fig/ablation}
+To systematically evaluate which training strategy performs the best in sparse-frame video dubbing, we conduct ablation studies comparing the four different reference frame positioning methods introduced in \cref{sec:strategies}. 
+% First, we remove terminal frame conditioning to isolate its role in preventing temporal boundary artifacts. Second, we exclude transient frame conditioning to quantify its impact on inter-segment transition smoothness. Third, we deactivate the motion-provoking sampling strategy to measure its effect on mitigating minimal-motion artifacts. Finally, we eliminate camera motion injection to assess its importance in maintaining perspective consistency. 
+All ablated models are rigorously benchmarked using the 40-video test set sampled from EMTD under identical conditions.
+% enabling precise measurement of how each component addresses the core challenges of long-form sparse-frame dubbing.
+As shown in \cref{tab:ablation}, our fine-grained reference frame positioning during training is the key to achieve reliable visual quality and audio-motion synchronization.

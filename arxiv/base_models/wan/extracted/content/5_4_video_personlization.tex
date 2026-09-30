@@ -1,0 +1,96 @@
+\subsection{Video Personalization}
+\label{sec:video_personalization}
+
+Video personalization aims to generate videos that maintain consistent identity with the user-provided reference~\citep{dreamvideo, li2024personalvideo, consisid}.
+In this section, we integrate advanced personalization techniques into the video generation pipeline, achieving state-of-the-art performance.
+The subsequent discussion provides a comprehensive elaboration of our approach, encompassing the model architecture, personalization data, and experimental validation.
+
+
+\subsubsection{Model Design}
+
+The core techniques behind video personalization tackle two primary challenges: (1) the acquisition of high-fidelity personalized identities and (2) the seamless integration of these identity features into the video generation pipeline.
+
+We start from our \method-T2V foundation model by first obtaining personalized identity information. 
+Existing video personalization approaches usually rely on ID extractors (\textit{e.g.,} ArcFace~\citep{deng2019arcface}) or versatile visual extractors (\textit{e.g.,} CLIP~\citep{radford2021learning}) to obtain identity information.
+While they make promising progress, their performance is bottlenecked by the limitations of the feature extractors. 
+For instance, ID extractors mainly focus on features for face recognition but may not capture other critical visual cues such as scars or stickers. 
+Moreover, they are susceptible to low-resolution faces, illumination variations, and partial occlusions (such as glasses, masks, or hair). 
+On the other hand, versatile visual extractors are not specifically tailored to the face domain and tend to focus on coarse-grained semantic information. 
+Therefore, we choose not to rely on any feature extractor to avoid information loss, and our generation process is directly conditioned on the input face image in the latent space of \method-VAE.
+
+There are many ways to inject the personalized identity information into the video generation process. In our experiments, we found that cross-attention operation is suited to interact with dense representations obtained from identity extractors, while self-attention is more appropriate for modeling data in the same latent space. Fig.~\ref{fig:framework_personalization} illustrates the design of our video personalization approach, which follows a self-attention paradigm.
+Specifically, in the latent space, we first extend $K$ additional frames prepended to the given video using the segmented face images. 
+These face images are extracted from the paired video using face detection and segmentation, and the facial landmarks are further aligned to a black canvas that has the same size as the video frame. 
+Then, along the channel dimension of this extended video, we concatenate the face images with all-ones masks for the first $K$ frames, and blank images with all-zeros masks for the remaining frames. 
+These concatenated signals serve as the conditions. 
+Finally, the diffusion process is performed on this temporally extended video, conditioned on the channel-wise condition signals in an inpainting fashion. 
+Note that no other modifications are applied to our \method-T2V model. 
+
+During training, we randomly drop a portion of face images in the $K$ extended frames, so as to support $0$ to $K$ reference face(s) video generation. 
+In the inference stage, starting from the pure noise of the extended video, we concatenate the user-provided face images (no more than $K$) to the extended frames in the channel dimension and set the corresponding masks as all-ones. 
+The goal is to reconstruct the face images in the first $K$ frames, and synthesize a new personalized video in the subsequent frames that preserves the provided identity.
+
+
+
+\begin{figure}[t]
+    \scriptsize
+    \centering
+    \includegraphics[width=1.0\linewidth]{figures/personalization/video_personalization.pdf}
+    \caption{The core design of the video personalization approach in the latent space of \method-VAE.}
+    \label{fig:framework_personalization}
+\end{figure}
+
+
+
+\subsubsection{Dataset}
+We curate a collection of personalization data from our T2V foundation model's training dataset through careful filtering and automatic data synthesizing. 
+We first filter out about $\mathcal{O}(100)$M videos using our internal human classifiers and perform face detection at 1 FPS on these videos. 
+A video shall be discarded if more than one face is detected in any frame or if over 10\% of the frames have no face detected. 
+Then we calculate ArcFace similarities between consecutive frames and discard videos with low similarities. 
+Afterwards, we perform face segmentation to remove the distracting backgrounds, and perform face landmark detection so as to facilitate canvas alignment during our training. 
+Note that we do not filter out faces with the small areas, because we find that such videos usually contain full-body human figures. 
+Finally, we construct about $\mathcal{O}(10)$M personalized videos, where each video is accompanied by 5 segmented faces in average.
+
+We also resort to automatic data synthesizing to improve facial diversity. 
+Particularly, we randomly select $\mathcal{O}(1)$M personalized videos from above, and adopt Instant-ID~\citep{wang2024instantid} to synthesize diverse faces for each video. 
+Notably, we build a text template with over 100 prompts, including anime, line art, cinematic, Minecraft, and so on. Every time we take a random prompt from this template, as well as a random human pose estimated from the rest of the videos, to serve as inputs to Instant-ID. We further measure the ArcFace similarity on the generated faces and filter out those with lower similarities. 
+In total, we gather about $\mathcal{O}(1)$M videos with synthesized faces, which greatly improve the diversity of styles, poses, illuminations, and occlusions on our personalization dataset.
+
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{l| c c c c c}
+        % \toprule
+         & \method & CN-TopA & CN-TopB & CN-TopC \\ %\midrule
+        \shline
+        \rule{0pt}{15pt} % 手动设置行高
+        % Visual Quality
+        Arcface Similarity & 
+            0.5526 & 
+            0.5655 & 
+            0.5197 &
+            0.4998\\
+
+    \end{tabular}
+    \caption{Comparison of other leading video personalization methods.}
+    \label{tab:video_personalization_compare}
+\end{table}
+
+
+
+\subsubsection{Evaluation}
+We present our video personalization results in Fig.~\ref{fig:ID_cases}, where the left part represents the input identities and the right part represents the synthesized personalized videos. 
+All the testing images are randomly picked from Pexels\footnote{www.pexels.com}. 
+We also evaluate our model on an unseen evaluation set and measure the ArcFace similarity between input faces and output personalized videos by sampling faces at 1 FPS from videos. 
+The final similarity scores are averaged from these sampled faces. 
+The corresponding results are illustrated in Table~\ref{tab:video_personalization_compare}, where our approach demonstrates competitive video personalization performance compared to other leading commercial and closed-source Chinese competitors.
+
+\begin{figure}[htbp]
+    \scriptsize
+    \centering
+    \includegraphics[width=\linewidth]{figures/personalization/ID_cases.pdf}
+    \caption{Visualization of our video personalization approach.}
+    \label{fig:ID_cases}
+\end{figure}
+
+

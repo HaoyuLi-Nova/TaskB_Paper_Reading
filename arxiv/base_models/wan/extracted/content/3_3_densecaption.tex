@@ -1,0 +1,104 @@
+\subsection{Dense Video Caption}
+While our dataset includes text descriptions from original webpages for many images and videos, they are often too simplistic to convey detailed visual content.
+DALL-E 3~\citep{BetkerImprovingIG} has demonstrated that the ability of visual generation models to follow prompts can be significantly enhanced by training on highly descriptive generated visual captions.
+Therefore, we develop an internal caption model to generate dense captions for each image and video of our dataset.
+To train this model, we incorporate both open-source vision-language datasets and additional data collected in-house.
+
+\subsubsection{Open Source Dataset}
+\label{sec:open_src_cap_data}
+We collect widely used vision-language datasets for both images and videos.
+Our collection includes not only caption datasets but also visual Q\&A datasets focused on visual content, such as actions, counting, and OCR.
+In some scenarios, we require the caption model to generate captions in a specific style or content based on user instructions.
+Therefore, we also collected pure text instruction data to enhance our model's ability to follow instructions.
+
+\subsubsection{In-house Dataset}
+\label{sec:in_house_cap_data}
+We collect an in-house dataset for various tasks to enhance the model's capabilities in specific areas.
+
+\emph{Celebrities, landmarks, and movie characters.}
+To train our model to recognize celebrities, landmarks, and characters, we collect dataset comprising thousands of identities.
+First, we use large language models (LLMs) to collect names, then retrieve corresponding images from our image-text database using a CLIP-style model.
+We test various CLIP-style models and find that TEAM~\citep{TEAM2022MM} excels in recognizing individuals, particularly Chinese celebrities.
+To further reduce noise in our dataset, we implemented keyword matching for the descriptions of the image-text pairs.
+An image is retained only if it is retrieved by the TEAM model and matches the specified keywords.
+
+\emph{Object counting.}
+To enhance our model's visual counting ability, we compiled a counting dataset by retrieving images with text descriptions that include words like ``one," ``two," ``three", etc.
+These numbers provide coarse annotations for the images.
+We then use a LLM to extract (\emph{category}, \emph{count}) pairs from the corresponding text.
+Finally, we use Grounding DINO~\citep{groundingdino} to count objects in those categories.
+An image is retained only if its text description matches the results from Grounding DINO~\citep{groundingdino}.
+
+\emph{OCR.}
+To improve our model's capability in generating text descriptions, we collect an OCR-augmented image caption dataset.
+Initially, we used an off-the-shelf OCR detector to extract text from images.
+Then, we prompt our caption model to generate descriptions based on these OCR results.
+This approach ensures accurate text descriptions by using the extracted OCR text as prior knowledge.
+Currently, we include only English and Chinese texts.
+
+\emph{Camera angle and motion.}
+We observe that current multi-modal language models (MLLMs) struggle with predicting camera angles and motion, including state-of-the-art commercial models like GPT-4o and Google Gemini Pro.
+To enhance these predictions, we first annotate a set of videos for camera angle and motion.
+This dataset can be utilized in two ways:
+directly training our caption model used in the final training stage,
+or by training an expert model to annotate more video data, aiding our model during the early training phase.
+This dataset enhances the accuracy of our motion and angle descriptions, thereby improving the camera motion controllability of our video generation model.
+
+\emph{Fine-grained categories.}
+To enhance our model's ability to recognize fine-grained categories such as animals, plants, and vehicles, we created a dataset containing several million images across these categories.
+
+\emph{Relational understanding.}
+We enhance our model’s relational understanding by gathering dataset that focus on spatial relationships, such as left, right, up, and down, through the incorporation of existing object detection datasets.
+
+\emph{Re-caption.}
+An important capability of a caption model is to leverage existing tags or brief captions to generate dense captions.
+To facilitate this, we curate a re-caption dataset that extends brief text tags or captions to detailed descriptions based on image content.
+
+\emph{Editing instruction caption.}
+We collect a dataset that describes the differences or transformations between two images.
+This type of caption is valuable for image editing tasks.
+
+\emph{Group image description.}
+We collect a dataset that provides descriptions for groups of images.
+Each caption begins with a description of the common features shared by the images, followed by individual descriptions of each image, using similar phrasing.
+
+\emph{Human-annotated image and video captions.}
+We gather human-annotated dense caption for both images and videos.
+These represent our highest-quality caption data and are used in the final stage of model training.
+
+\begin{figure}[htbp]
+    \centering  
+    \includegraphics[width=0.9\textwidth]{./figures/bench/cap_eval.pdf}  
+    \caption{Our caption model achieves overall performance comparable to Google Gemini 1.5 Pro. In particular, it excels in areas such as events, camera angle, camera motion, style, and color.} 
+    \label{fig:cap_eval}
+\end{figure}
+
+
+\subsubsection{Model Design}
+\textbf{Architecture.} Our caption model adopts a LLaVA-style architecture~\citep{llava}.
+We use a ViT encoder to extract visual embeddings of images and video frames.
+These embeddings are projected through a two-layer perception and then fed into the Qwen LLM~\citep{qwen2.5}.
+
+For the image input, we adopt dynamic high resolution as in LLaVA.
+An image can be divided into a maximum of seven patches.
+For each patch, we adaptively pool the vision embeddings to a 12$\times$12 grid representation to reduce computation.
+
+For the video, we sample 3 frames per second, with an upper limit of 129 frames.
+To further reduce computation, we employ a slow-fast encoding strategy: maintaining the original resolution for every fourth frame and applying global average pooling to the embeddings of the remaining frames.
+Experiments on long video benchmarks indicate that the slow-fast mechanism enhances understanding with a limited number of visual tokens (\textit{e.g.}, improving performance from 67.6\% to 69.1\% on VideoMME~\citep{videomme}) without subtitles.
+
+\textbf{Training.} Following recent state-of-the-art methods, our training process is divided into three stages.
+In the first stage, we freeze the ViT and LLM, and train only the multi-layer perceptron to align the visual embeddings with the LLM input space, using a learning rate of 1e-3.
+In the second stage, all parameters are made trainable.
+In the final stage, we conduct end-to-end training on a small set of high-quality data.
+For the last two stages, the learning rates are set to 1e-5 for the LLM and MLP, and 1e-6 for the ViT.
+
+\subsubsection{Evaluation}
+Automatic evaluation is crucial for the development of our caption model, allowing us to identify the strengths and weaknesses of each model version.
+Following CAPability~\citep{liu2025good}, we develop an automatic caption evaluation pipeline.
+We focus on ten key visual dimensions in video generation: action, camera angle, camera motion, object category, object color, object counting, OCR, scene, style, and event.
+For each dimension, we randomly sampled 1,000 videos and their corresponding captions generated by our model.
+We also used Google Gemini 1.5 Pro to generate dense video captions for this dataset.
+We evaluate our captions and Gemini-generated captions by calculating the F1 metrics for each dimension following CAPability~\citep{liu2025good}.
+The results are illustrated in Fig.~\ref{fig:cap_eval}.
+Our caption performs better in video event, camera angle, camera motion, style, and object color, while Gemini excels in action, OCR, scene, object category, and object counting.

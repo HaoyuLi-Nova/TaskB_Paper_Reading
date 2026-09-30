@@ -1,0 +1,486 @@
+\section{Simulation-Free Training of Flows}
+\label{sec:method}
+
+%
+%
+%
+We consider generative models that define a mapping between samples $x_1$ from a
+noise distribution $p_1$ to samples $x_0$ from a data distribution $p_0$ in
+terms of an ordinary differential equation (ODE),
+\begin{equation}
+  \label{eq:ode}
+  dy_t = v_\Theta(y_t, t)\,dt\;,
+\end{equation}
+where the velocity $v$ is parameterized by the weights $\Theta$ of a neural network.
+Prior work by~\citet{Chen2018NeuralOD} suggested to directly solve \Cref{eq:ode} via differentiable ODE solvers. However, this process is computationally expensive, especially for large network architectures that parameterize $v_\Theta(y_t, t)$. 
+A more efficient alternative is to directly regress a vector field $u_t$ that generates a probability path between $p_0$ and $p_1$.
+%
+To construct such a $u_t$, we define a forward process, corresponding to a probability path $p_t$ between $p_0$ and $p_1=\mathcal{N}(0, 1)$, as
+%
+%
+\begin{equation}
+  \label{eq:forwardprocess}
+  z_t = a_t x_0 + b_t \epsilon\quad\text{where}\;\epsilon \sim \mathcal{N}(0,I)\;. 
+\end{equation}
+For $a_0 = 1, b_0 = 0, a_1 = 0$ and $b_1 = 1$, the marginals,
+\begin{align}
+  \label{eq:marginals}
+  p_t(z_t) &=
+  \mathbb{E}_{\epsilon \sim \mathcal{N}(0,I)}
+  p_t(z_t \vert \epsilon)\;,
+\end{align}
+are consistent with the data and noise distribution.
+
+To express the relationship between $z_t, x_0$ and $\epsilon$, we introduce
+%
+$\psi_t$ and $u_t$ as 
+\begin{align}
+      \psi_t(\cdot | \epsilon) &: x_0 \mapsto a_t x_0 + b_t \epsilon \\
+        u_t(z| \epsilon) &\coloneqq \psi'_t(\psi_t^{-1}(z| \epsilon)  \vert \epsilon) \label{eq:utmapsdiffinverse}
+\end{align}
+
+%
+%
+%
+%
+%
+%
+  %
+%
+%
+%
+%
+Since $z_t$ can be written as solution to the ODE  $z_t' = u_t(z_t |\epsilon)$, with initial value $z_0=x_0$, $u_t(\cdot | \epsilon)$ generates $p_t(\cdot | \epsilon)$.
+ %
+Remarkably, one can construct a marginal vector field $u_t$ which generates the marginal probability paths $p_t$  \cite{lipman2023flow} (see \ref{subsec:flowproofs}), using the conditional vector fields $u_t(\cdot | \epsilon)$:
+\begin{align}
+    u_t(z) = \mathbb{E}_{\epsilon \sim
+  \mathcal{N}(0,I)} u_t(z \vert \epsilon) \frac{p_t(z \vert
+  \epsilon)}{p_t(z)}
+  \label{eq:marginal_u}
+\end{align}
+While regressing $u_t$ with the \emph{Flow Matching} objective 
+\begin{align}
+   \mathcal{L}_{FM} =  \mathbb{E}_{t, p_t(z)} || v_{\Theta}(z, t) - u_t(z) ||_2^2.
+\end{align}
+directly is intractable due to the marginalization in \eqref{eq:marginal_u}, 
+\emph{Conditional Flow Matching} (see \ref{subsec:flowproofs}),
+\begin{align}
+   \mathcal{L}_{CFM} =  \mathbb{E}_{t, p_t(z | \epsilon), p(\epsilon) }|| v_{\Theta}(z, t) - u_t(z | \epsilon)  ||_2^2\;, \label{eq:condflowmatch}
+\end{align}
+with the conditional vector fields $u_t(z \vert \epsilon)$ provides an equivalent yet tractable objective.
+
+%
+%
+%
+
+To convert the loss into an explicit form we insert
+ $\psi_t'(x_0 \vert \epsilon) = a_t'x_0 + b_t' \epsilon$ and $\psi_t^{-1}(z\vert \epsilon) = \frac{z -b_t \epsilon}{a_t}$ into (\ref{eq:utmapsdiffinverse})
+\begin{equation}
+  z_t' = u_t(z_t \vert \epsilon) = \frac{a_t'}{a_t} z_t - \epsilon b_t (\frac{a_t'}{a_t} - \frac{b_t'}{b_t})\;.
+  \label{eq:zode}
+\end{equation}
+%
+%
+%
+%
+%
+%
+%
+Now, consider the \emph{signal-to-noise ratio} $\lambda_t := \log \frac{a_t^2}{b_t^2}$. 
+With $\lambda_t' = 2 (\frac{a_t'}{a_t} - \frac{b_t'}{b_t})$, we can rewrite \Cref{eq:zode} as 
+\begin{equation}
+  u_t(z_t \vert \epsilon) = \frac{a_t'}{a_t} z_t - \frac{b_t}{2} \lambda_t' \epsilon 
+  \label{eq:zodewithlambda}
+\end{equation}
+
+Next, we use \Cref{eq:zodewithlambda} to reparameterize \Cref{eq:condflowmatch} as a noise-prediction objective:
+\begin{align}
+    %
+    \mathcal{L}_{CFM} &= \mathbb{E}_{t, p_t(z | \epsilon), p(\epsilon) } || v_{\Theta}(z, t) - \frac{a_t'}{a_t} z  + \frac{b_t}{2} \lambda_t' \epsilon ||_2^2 \\
+    &= \mathbb{E}_{t, p_t(z | \epsilon), p(\epsilon) } \left(-\frac{b_t}{2}\lambda_t' \right)^2  || \epsilon_\Theta(z, t) - \epsilon ||_2^2
+    %
+    %
+    %
+\end{align}
+%
+where we defined $\epsilon_\Theta \coloneqq \frac{-2}{\lambda_t' b_t} (v_\Theta - \frac{a_t'}{a_t} z)$. 
+
+Note that the optimum of the above objective does not change when
+introducing a time-dependent weighting. Thus, one can derive various weighted
+loss functions that provide a signal towards the desired solution but might
+affect the optimization trajectory. For a unified analysis of different
+approaches, including classic diffusion formulations, we can write the objective
+in the following form (following \citet{Kingma2023UnderstandingDO}):
+\begin{equation*}
+  \mathcal{L}_w(x_0) = -\frac{1}{2} \mathbb{E}_{t\sim\mathcal{U}(t), \epsilon\sim \mathcal{N}(0, I)}
+  \left[ w_t \lambda_t' \Vert \epsilon_\Theta(z_t, t) - \epsilon
+  \Vert^2 \right]\;,
+\end{equation*}
+%
+where $w_t = -\frac{1}{2} \lambda_t' b_t^2$ corresponds to $\mathcal{L}_{CFM}$.
+
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+  
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+
+
+%
+%
+\section{Flow Trajectories}
+%
+\label{subsec:variants}
+%
+%
+%
+%
+In this work, we consider different variants of the above formalism that we
+briefly describe in the following.
+
+\paragraph{Rectified Flow}
+Rectified Flows (RFs) \cite{liu2022flow,albergo2022building,lipman2023flow} define the forward process as straight paths
+between the data distribution and a standard normal distribution, i.e.
+\begin{equation}
+z_t = (1-t) x_0 + t \epsilon\;,
+\end{equation}
+and uses $\mathcal{L}_{CFM}$ which then corresponds to $w_t^\text{RF} = \frac{t}{1-t}$. The network output directly parameterizes the velocity $v_\Theta$.
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+
+\paragraph{EDM}
+EDM \cite{Karras2022ElucidatingTD} uses a forward process of the form
+\begin{equation}
+  z_t = x_0 + b_t \epsilon
+\end{equation}
+where \cite{Kingma2023UnderstandingDO}
+%
+$ b_t = \exp{F_{\mathcal{N}}^{-1}(t \vert P_m, P_s^2)} $
+%
+with $F_{\mathcal{N}}^{-1}$ being the quantile function of the normal
+distribution with mean $P_m$ and variance $P_s^2$. Note that this choice results in
+\begin{equation}
+  \lambda_t \sim \mathcal{N}(-2P_m, (2P_s)^2)\quad\text{for}\;t\sim
+  \mathcal{U}(0,1)
+\end{equation}
+The %
+network is parameterized through an \textbf{F}-prediction
+\cite{Kingma2023UnderstandingDO,Karras2022ElucidatingTD} and the loss can be
+written as $\mathcal{L}_{w_t^\text{EDM}}$ with
+\begin{equation}
+  w_t^\text{EDM} = \mathcal{N}(\lambda_t \vert -2P_m, (2P_s)^2)(e^{-\lambda_t}+0.5^2)
+\end{equation}
+
+\paragraph{Cosine}
+\cite{nichol2021improved} proposed a forward process of the form
+\begin{equation}
+  z_t = \cos\bigl(\frac{\pi}{2} t\bigr) x_0 + \sin\bigl(\frac{\pi}{2} t\bigr) \epsilon\;.
+\end{equation}
+In combination with an $\epsilon$-parameterization and loss, this corresponds
+to a weighting $w_t = \operatorname{sech}(\lambda_t/2)$.
+When combined with a \textbf{v}-prediction loss
+\cite{Kingma2023UnderstandingDO}, the weighting is given by $w_t = e^{-\lambda_t/2}$.
+
+\paragraph{(LDM-)Linear}
+LDM \cite{Rombach_2022} uses a modification of the DDPM schedule \cite{ho2020denoising}. Both are
+variance preserving schedules, i.e. $b_t=\sqrt{1-a_t^2}$, and define $a_t$ for
+discrete timesteps $t = 0, \dots, T-1$ in terms of diffusion coefficients
+$\beta_t$ as
+%
+$ a_t  = (\prod_{s=0}^t (1 - \beta_s))^{\frac{1}{2}}$.
+%
+For given boundary values $\beta_0$ and $\beta_{T-1}$, DDPM uses
+%
+$ \beta_t = \beta_0 + \frac{t}{T-1} (\beta_{T-1} - \beta_0) $
+%
+and LDM uses
+%
+$\beta_t = \left( \sqrt{\beta_0\vphantom{\beta_{T-1}}} + \frac{t}{T-1} (\sqrt{\beta_{T-1}} - \sqrt{\beta_0\vphantom{\beta_{T-1}}}) \right)^2$. 
+%
+
+\subsection{Tailored SNR Samplers for RF models}
+\label{subsubsec:tailoredsnrforrf}
+The RF loss trains the velocity $v_\Theta$ uniformly on all timesteps in
+$[0, 1]$.
+Intuitively, however, the resulting velocity prediction target $\epsilon - x_0$ is more
+difficult for $t$ in the middle of $[0, 1]$, since for $t=0$, the optimal
+prediction is the mean of $p_1$, and for $t=1$ the optimal prediction is the
+mean of $p_0$. 
+In general, changing the distribution over $t$ from the commonly used
+uniform distribution $\mathcal{U}(t)$ to a distribution with density $\pi(t)$
+is equivalent to a weighted loss $\mathcal{L}_{w_t^\pi}$ with
+\begin{equation}
+  w_t^\pi = \frac{t}{1-t}\pi(t)
+\end{equation}
+Thus, we aim to give more weight to intermediate timesteps by sampling them more frequently. Next, we describe the timestep densities $\pi(t)$ that we use to train our models.
+
+%
+%
+
+\paragraph{Logit-Normal Sampling}
+One option for a distribution that puts more weight on intermediate steps
+is the logit-normal distribution~\cite{atchison1980logistic}. Its density,
+\begin{equation}
+\pi_{\text{ln}}(t; m, s) = \frac{1}{s\sqrt{2\pi}} \frac{1}{t(1-t)}\exp\Bigl(-\frac{(\text{logit}(t)-m)^2}{2s^2}\Bigr),
+\label{eq:logitnormal}
+\end{equation}
+where $\text{logit}(t) = \log \frac{t}{1-t}$, has a location parameter, $m$,
+and a scale parameter, $s$. The location parameter enables us to bias
+the training timesteps towards either data $p_0$ (negative $m$) or noise $p_1$
+(positive $m$). As shown in \Cref{fig:tsamplers}, the scale parameters controls how
+wide the distribution is.
+
+In practice, we sample the random variable $u$ from a normal distribution $u \sim \mathcal{N}(u; m, s)$ and map it through the standard logistic function.
+
+\paragraph{Mode Sampling with Heavy Tails}
+%
+%
+The logit-normal density always vanishes at the endpoints $0$ and $1$. To study
+whether this has adverse effects on the performance, we also use a timestep
+sampling distribution with strictly positive density on $[0, 1]$. For a scale
+parameter $s$, we define
+\begin{equation}
+f_{\text{mode}}(u; s) = 1 - u - s\cdot\Bigl(\cos^2\bigl(\frac{\pi}{2} u\bigr) - 1 + u\Bigr).
+\label{eq:modesampler}
+\end{equation}
+For $ -1 \leq s \leq \frac{2}{\pi -2}$, this function is
+monotonic, and we can use it to sample from the implied density
+$\pi_{\text{mode}}(t; s) = \left| \frac{d}{dt} f_{\text{mode}}^{-1}(t) \right|$.
+%
+%
+As seen in \Cref{fig:tsamplers}, the scale parameter controls the degree to which either
+the midpoint (positive $s$) or the endpoints (negative $s$) are favored during sampling.
+This formulation also includes a \textbf{uniform weighting}
+$\pi_{\text{mode}}(t; s=0) = \mathcal{U}(t)$ for $s=0$, which has been used
+widely in previous works on Rectified Flows \cite{liu2022flow,ma2024sit}.
+
+\paragraph{CosMap}
+Finally, we also consider the \emph{cosine} schedule \cite{nichol2021improved}
+from \Cref{subsec:variants} in the RF setting. 
+In particular, we are looking for a mapping $f: u \mapsto f(u) = t, \; u \in [0, 1]$, %
+such that the log-snr matches that of the cosine schedule: $2 \log \frac{\cos(\frac{\pi}{2}u)}{\sin(\frac{\pi}{2}u)} = 2 \log \frac{1-f(u)}{f(u)}$. 
+Solving for $f$, we obtain for $u \sim \mathcal{U}(u)$
+\begin{equation}
+t = f(u) = 1 - \frac{1}{\tan(\frac{\pi}{2} u) + 1}, 
+\label{eq:cosmap}
+\end{equation}
+from which we obtain the density 
+\begin{equation}
+\pi_{\text{CosMap}}(t) = \left| \frac{d}{dt} f^{-1}(t) \right| = \frac{2}{\pi - 2\pi t + 2\pi t^2}.
+\label{eq:cosmapdensity}
+\end{equation}
+%
+%
+
+
+
+%
+%
+
+
+
+
+%
+%
+%
+%
+%
+
+\section{Text-to-Image Architecture}
+\label{subsec:methodarch}
+\modelarchitecture
+%
+\vspace{-0.5em}
+For text-conditional sampling of images, our model has to take both modalities,
+text and images, into account. We use pretrained models to derive suitable
+representations and then describe the architecture of our diffusion backbone.
+An overview of this is presented in \cref{fig:modelfig:total}.
+
+Our general setup follows LDM \citep{Rombach_2022} for training text-to-image models in the latent space of a pretrained autoencoder.
+Similar to the encoding of images to latent representations, we also follow
+previous approaches \cite{saharia2022photorealistic, balaji2022ediffi} and encode the text conditioning $c$ using
+pretrained, frozen text models. Details can be found in \Cref{suppsec:detailsonreps}. 
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+\textbf{Multimodal Diffusion Backbone}
+%
+%
+%
+%
+%
+%
+%
+%
+Our architecture builds upon the DiT \cite{Peebles_2023}
+architecture. DiT only considers class conditional image generation and uses a
+modulation mechanism to condition the network on both the timestep of the
+diffusion process and the class label. Similarly, we use
+embeddings of the timestep $t$ and $c_\text{vec}$ as inputs to the
+modulation mechanism. However, as the pooled text representation retains only
+coarse-grained information about the text input \cite{podell2023sdxl}, the network also
+requires information from the sequence representation $c_\text{ctxt}$.
+
+We construct a sequence consisting of embeddings of the text and image inputs.
+Specifically, we add positional encodings and flatten $2\times 2$ patches of
+the latent pixel representation $x \in \RR^{h \times w \times c}$ to a patch
+encoding sequence of length $\frac{1}{2} \cdot h \cdot \frac{1}{2} \cdot w$. 
+After embedding this
+patch encoding and the text encoding $c_\text{ctxt}$ to a common
+dimensionality, we concatenate the two sequences. We then follow DiT and apply
+a sequence of modulated attention and MLPs. %
+%
+
+Since text and image embeddings are conceptually quite different, we use two
+separate sets of weights for the two modalities. As shown in \cref{fig:modelfig:mm}, this
+is equivalent to having two independent transformers for each modality, but
+joining the sequences of the two modalities for the attention operation, such
+that both representations can work in their own space yet take the other one
+into account.
+
+For our scaling experiments, we parameterize the size of the model in terms of
+the model's depth $d$, \ie the number of attention blocks, by setting the
+hidden size to $64\cdot d$ (expanded to $4\cdot64\cdot d$ channels in the MLP
+blocks), and the number of attention heads equal to $d$.
+%
+
+

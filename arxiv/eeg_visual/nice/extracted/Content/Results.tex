@@ -1,0 +1,226 @@
+\label{sec:results}
+% \label{headings}
+\subsection{Datasets and Preprocessing}
+The dataset \citep{gifford2022large} contains EEG data from ten participants with a time-efficient rapid serial visual presentation (RSVP) paradigm.
+The training set includes 1654 concepts\(\times\)10 images\(\times\)4 repetitions.
+The test set includes 200 concepts\(\times\)1 image\(\times\)80 repetitions.
+Images for training and testing appear in a pseudo-randomized order, and a target image is used to reduce eye blinks and other artifacts.
+Each image displays 100 ms, followed by a 100 ms blank screen.
+Raw EEG data filtered to [0.1, 100] Hz has 63 channels and a sample rate of 1000 Hz.
+
+For preprocessing, we epoched EEG data into trials ranging from 0 to 1000 ms after stimuli onset.
+Baseline correction was performed with the mean of 200 ms pre-stimulus data. 
+All electrodes were preserved for analysis with down-sampling to 250 Hz, and multivariate noise normalization was performed with training data \citep{guggenmos2018multivariate}.
+We averaged all EEG repetitions of one image to ensure the signal-to-noise ratio and compared the impact of repetitions.
+Images were resized to 224\(\times\)224 and normalized before being processed by the image encoder.
+
+\subsection{Experiment Details}
+Our method is implemented with PyTorch on a Geforce 4090 GPU. 
+We randomly select 740 trials from training data as the validation set in each run of the code. 
+Best models are saved when the validation loss reaches a minimum of 200 epochs in the training process.
+We compute the results of the test set once after training.
+It takes about 5 minutes per subject to train with a batch size of 1000, since we get the image features in advance.
+The \(k\) in TSConv is set to 40, \(m_1\) to 25, \(m_2\) to 51, and \(s\) to 5 by pre-experiments.
+Adam optimizer is used with the learning rate, \(\beta_1\) and \(\beta_2\) of 0.0002,
+0.5, and 0.999, respectively. 
+Wilcoxon Signed-Rank Test is employed to analyze the statistical significance.
+
+\subsection{Overall Performance}
+\begin{table}[t]
+  \caption{Overall accuracy (\%) of 200-way zero-shot classification: top-1 and top-5}
+  \label{tab:2}
+  \centering
+  \Huge
+\resizebox{\linewidth}{!}{
+  \begin{tabular}{lcccccccccccccccccccccc}
+    \toprule
+    & \multicolumn{2}{c}{Subject 1} & \multicolumn{2}{c}{Subject 2} & \multicolumn{2}{c}{Subject 3} & \multicolumn{2}{c}{Subject 4} & \multicolumn{2}{c}{Subject 5} & \multicolumn{2}{c}{Subject 6} & \multicolumn{2}{c}{Subject 7} & \multicolumn{2}{c}{Subject 8} & \multicolumn{2}{c}{Subject 9} & \multicolumn{2}{c}{Subject 10} & \multicolumn{2}{c}{Ave} \\
+    \cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7} \cmidrule(r){8-9} \cmidrule(r){10-11} \cmidrule(r){12-13} \cmidrule(r){14-15} \cmidrule(r){16-17} \cmidrule(r){18-19} \cmidrule(r){20-21} \cmidrule(r){22-23}
+    % \cmidrule{2-23} 
+    Method & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 \\
+    \midrule
+    \multicolumn{23}{c}{Subject dependent - train and test on one subject} \\
+    \midrule
+    BraVL & 6.1 & 17.9 & 4.9 & 14.9 & 5.6 & 17.4 & 5.0 & 15.1 & 4.0 & 13.4 & 6.0 & 18.2 & 6.5 & 20.4 & 8.8 & 23.7 & 4.3 & 14.0 & 7.0 & 19.7 & 5.8 & 17.5 \\    \rowcolor{green!20}\textbf{NICE} & 12.3 & 36.6 & 10.4 & 33.9 & 13.1 & 39.0 & 16.4 & 47.0 & 8.0 & 26.9 & 14.1 & 40.6 & 15.2 & 42.1 & 20.0 & 49.9 & 13.3 & 37.1 & 14.9 & 41.9 & \multicolumn{1}{>{\columncolor{green!20}}c}{\textbf{13.8}} & \multicolumn{1}{>{\columncolor{green!20}}c}{\textbf{39.5}} \\
+    \textbf{NICE - SA} & 13.3 & 40.2 & 12.1 & 36.1 & 15.3 & 39.6 & 15.9 & 49.0 & 9.8 & 34.4 & 14.2 & 42.4 & 17.9 & 43.6 & 18.2 & 50.2 & 14.4 & 38.7 & 16.0 & 42.8 & \multicolumn{1}{>{\columncolor{green!10}}c}{14.7} & \multicolumn{1}{>{\columncolor{green!10}}c}{41.7} \\
+    \textbf{NICE - GA} & 15.2 & 40.1 & 13.9 & 40.1 & 14.7 & 42.7 & 17.6 & 48.9 & 9.0 & 29.7 & 16.4 & 44.4 & 14.9 & 43.1 & 20.3 & 52.1 & 14.1 & 39.7 & 19.6 & 46.7 & \multicolumn{1}{>{\columncolor{green!10}}c}{15.6} & \multicolumn{1}{>{\columncolor{green!10}}c}{42.8} \\
+    \midrule
+    \multicolumn{23}{c}{Subject independent - leave one subject out for test} \\
+    \midrule
+    BraVL & 2.3 & 8.0 & 1.5 & 6.3 & 1.4 & 5.9 & 1.7 & 6.7 & 1.5 & 5.6 & 1.8 & 7.2 & 2.1 & 8.1 & 2.2 & 7.6 & 1.6 & 6.4 & 2.3 & 8.5 & 1.8 & 7.0 \\    \rowcolor{green!20}\textbf{NICE} & 7.6 & 22.8 & 5.9 & 20.5 & 6.0 & 22.3 & 6.3 & 20.7 & 4.4 & 18.3 & 5.6 & 22.2 & 5.6 & 19.7 & 6.3 & 22.0 & 5.7 & 17.6 & 8.4 & 28.3 & \multicolumn{1}{>{\columncolor{green!20}}c}{\textbf{6.2}} & \multicolumn{1}{>{\columncolor{green!20}}c}{\textbf{21.4}} \\
+    \textbf{NICE - SA} & 7.0 & 22.6 & 6.6 & 23.2 & 7.5 & 23.7 & 5.4 & 21.4 & 6.4 & 22.2 & 7.5 & 22.5 & 3.8 & 19.1 & 8.5 & 24.4 & 7.4 & 22.3 & 9.8 & 29.6 & \multicolumn{1}{>{\columncolor{green!10}}c}{7.0} & \multicolumn{1}{>{\columncolor{green!10}}c}{23.1} \\
+    \textbf{NICE - GA} & 5.9 & 21.4 & 6.4 & 22.7 & 5.5 & 20.1 & 6.1 & 21.0 & 4.7 & 19.5 & 6.2 & 22.5 & 5.9 & 19.1 & 7.3 & 25.3 & 4.8 & 18.3 & 6.2 & 26.3 & \multicolumn{1}{>{\columncolor{green!10}}c}{5.9} & \multicolumn{1}{>{\columncolor{green!10}}c}{21.6} \\
+    \bottomrule
+  \end{tabular}}
+    
+\end{table}
+
+\begin{table}[t]
+  \caption{Classification accuracy (\%) with different EEG encoder and Image encoder: top-1 (top-5)}
+  \label{tab:3}
+  \centering
+  \Huge
+\resizebox{\linewidth}{!}{
+\begin{threeparttable}
+  \begin{tabular}{lccccccccccccc}
+    \toprule
+    Method & Subject 1 & Subject 2 & Subject 3 & Subject 4 & Subject 5 & Subject 6 & Subject 7 & Subject 8 & Subject 9 & Subject 10 & Ave & std \\
+    % \cmidrule{2-23} 
+    % Method & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 \\
+    \midrule
+    \multicolumn{13}{c}{EEG encoder} \\
+    \midrule
+    ShallowNet & 6.0 (16.0) & 3.5 (21.5) & 8.5 (28.0) & 16.0 (41.0) & 4.0 (16.5) & 9.5 (32.0) & 13.0 (31.0) & 10.0 (24.5) & 2.5 (9.0) & 6.0 (22.5) & 7.9 (24.2) & 4.3 (9.3) \\
+    DeepNet & 12.0 (31.0) & 7.5 (27.5) & 10.5 (33.0) & 14.0 (36.5) & 4.5 (20.0) & 10.0 (33.0) & 9.5 (30.0) & 12.0 (41.0) & 9.0 (31.5) & 10.0 (33.5) & 9.9 (31.7) & 2.6 (5.5) \\
+    Conformer & 11.0 (39.0) & 8.5 (28.0) & 11.0 (33.5) & 14.5 (38.0) & 6.0 (25.5) & 10.0 (30.0) & 13.0 (40.0) & 13.0 (35.5) & 10.5 (31.0) & 13.5 (37.5) & 11.1 (33.8) & 2.6 (5.0) \\
+    EEGNet & 11.5 (38.0) & 11.0 (35.5) & 14.5 (37.5) & 15.0 (43.5) & 11.0 (30.0) & 13.0 (42.5) & 14.0 (35.5) & 15.0 (42.5) & 11.0 (37.0) & 14.5 (41.5) & 13.1 (38.4) & 1.8 (4.2) \\
+    \rowcolor{green!10} \textbf{TSConv} & 12.3 (36.6) & 10.4 (33.9) & 13.1 (39.0) & 16.4 (47.0) & 8.0 (26.9) & 14.1 (40.6) & 15.2 (42.1) & 20.0 (49.9) & 13.3 (37.1) & 14.9 (41.9) & \textbf{13.8 (39.5)} & \textbf{3.3 (6.5)} \\
+    \midrule
+    \multicolumn{13}{c}{Image encoder} \\
+    \midrule
+    ResNet & 9.5 (20.0) & 7.0 (11.5) & 7.5 (16.0) & 10.0 (18.0) & 6.5 (15.0) & 8.0 (14.0) & 10.0 (20.0) & 14.0 (25.0) & 6.0 (15.0) & 9.0 (18.5) & 8.8 (17.3) & 2.2 (3.6) \\
+    ResNet* & 8.0 (13.0) & 6.0 (11.0) & 6.0 (11.5) & 5.0 (9.5) & 4.5 (10.0) & 8.5 (12.0) & 6.0 (10.5) & 10.0 (14.5) & 6.0 (12.0) & 9.0 (13.5) & 6.9 (11.8) & 1.8 (1.6) \\
+    ViT & 8.5 (18.0) & 5.5 (15.0) & 10.5 (20.5) & 7.0 (20.5) & 6.0 (15.0) & 8.0 (20.5) & 7.5 (19.5) & 11.5 (21.5) & 7.0 (17.0) & 7.5 (17.5) & 7.9 (18.5) & 1.8 (2.2) \\
+    ViT* & 13.5 (27.0) & 13.0 (28.5) & 13.0 (29.0) & 13,5 (32.5) & 9.5 (21.5) & 12.5 (29.0) & 10.0 (34.0) & 18.0 (38.5) & 6.5 (24.5) & 11.0 (29.5) & 12.1 (29.4) & 3.1 (4.8) \\
+    \rowcolor{green!10} \textbf{CLIP} & 12.3 (36.6) & 10.4 (33.9) & 13.1 (39.0) & 16.4 (47.0) & 8.0 (26.9) & 14.1 (40.6) & 15.2 (42.1) & 20.0 (49.9) & 13.3 (37.1) & 14.9 (41.9) & \textbf{13.8 (39.5)} & \textbf{3.3 (6.5)} \\
+    \bottomrule
+  \end{tabular}
+      \begin{tablenotes}
+        \item[*] pre-trained ResNet-50 and ViT-B/16 models.  
+    \end{tablenotes}
+\end{threeparttable}}
+\end{table}
+The decoding results are outlined in Table~\ref{tab:2}, with a sanity check in Appendix \ref{sec:appendA0}. 
+We evaluated the base framework (NICE) alongside its variants enhanced with self-attention (NICE-SA) and graph attention (NICE-GA).
+The evaluation was on the latest and most extensive image-EEG dataset, with only one state-of-the-art BraVL \citep{du2023decoding} for comparison.
+This dataset posed a 200-way zero-shot task, comprising 200 untrained image concepts, with a chance level of 0.5\%.
+In subject-dependent experiments, NICE achieved a top-1 accuracy of 13.8\% and a top-5 accuracy of 39.5\%, surpassing BraVL by 8.0\% and 22.0\%, respectively. 
+The introduction of SA and GA improved the top-1 by 0.9\% (\textit{p}\ \textless\ 0.05) and 1.8\% (\textit{p}\ \textless\ 0.01), separately.
+Besides, in subject-independent experiments, our method achieved top-1 of 6.2\% and top-5 of 21.4\%.
+NICE-SA improved the top-1 by 0.8\% (\textit{p}\ \textgreater\ 0.05), while NICE-GA only improved for several subjects, with the average top-1 decreasing by 0.3\%.
+We employed base NICE for fair comparison in the following experiments.
+
+\subsection{Encoder Comparison}
+The comparison of EEG encoders and image encoders is present in Table~\ref{tab:3}.
+We carefully selected several representative methods, including ShallowNet, DeepNet \citep{schirrmeister2017deepa}, Conformer \citep{song2023eega}, and EEGNet \citep{lawhern2018eegneta}.
+Our custom-designed TSConv, which utilizes temporal and spatial convolution, outperformed these methods.
+The average top-1 accuracy of TSConv is 5.9\% higher than ShallowNet (\textit{p}\ \textless\ 0.001), 3.9\% higher than DeepNet (\textit{p}\ \textless\ 0.001), 2.7\% higher than Conformer (\textit{p}\ \textless\ 0.001), and  0.7\% higher than EEGNet (\textit{p}\ \textgreater\ 0.05).
+The robustness of TSConv reflected by standard deviation was not superior.
+
+We utilized image encoders, including ResNet-50 pre-trained on ImageNet-1k, ViT-B/16 pre-trained on ImageNet-21k and fine-tuned on ImageNet-1k, and CLIP-ViT-L/14 pre-trained on 400 million image-text pairs. 
+CLIP pre-trained on huge amounts of data helped us achieve the highest results.
+Interestingly, ViT also worked well with an average top-1 accuracy 1.7\% lower than CLIP (\textit{p}\ \textgreater\ 0.05).
+The results of ResNet were 6.9\% lower (\textit{p}\ \textless\ 0.001).
+\textcolor{teal}{See Appendix \ref{sec:appendA1} for the latest update.}
+
+We also showed the impact of pre-training compared with non-pre-trained ResNet-50 and ViT-B/16. 
+Pre-trained ViT outperformed the non-pre-trained by 4.2\% (\textit{p}\ \textless\ 0.01). 
+Surprisingly, ResNet pre-trained with smaller ImageNet-1k decreased by 1.9\% (\textit{p}\ \textless\ 0.05).
+Note that non-pre-trained models performed well but incurred substantially higher computational costs, with details in Appendix \ref{sec:appendA2}.
+
+\subsection{Temporal, Spatial, and Spectral Dynamics}
+\begin{figure}
+  \centering
+  % \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+  \includegraphics[width=1\linewidth]{Fig/Fig2.png}
+  \caption{Temporal, spatial, spectral analysis. 
+  (A) Topographies of each 100 ms by averaging all training trials. 
+  The temporal lobe has a clear response between 100-600 ms.
+  (B) Averaged accuracy of all subjects with different time lengths.
+  The region of interest is 100-600 ms, after hysteresis in visual systems.
+  (C) Ablate electrodes of different brain regions.
+  The occipital, temporal, and parietal lobes contribute significantly to image decoding.
+  (D) Time-frequency maps of the occipital, temporal, and parietal lobes data from one subject. 
+  The main components are below 30 Hz, and high-frequency components can be observed on the temporal lobe.
+  (E) Averaged accuracy of different rhythms.
+  Theta (\(\sim \)4 Hz) and beta (\(\sim \)14-18 Hz) bands show effective performance.}
+  \label{fig:2}
+\end{figure}	
+Beyond the self-supervised framework, we try to demonstrate the biological plausibility by resolving the visual processing of EEG signals.
+We conducted a detailed analysis from the temporal, spatial, and spectral dynamics perspective in Fig.~\ref{fig:2}.
+The topographies were first plotted with each 100 ms in Fig.~\ref{fig:2}(A) by averaging all training trials from the first subject.
+Visual masking \citep{keysers2002visual} would be alleviated because the data used were collected in many rapid series sequences.
+A clear response could be observed on the temporal cortex 100-600 ms after the onset, although the 200 ms stimulus onset asynchrony (SOA) still caused periodic responses on the occipital cortex.
+Besides, the parietal cortex also had a response after 100 ms.
+The phenomenon is consistent with the bottom-up hierarchy of visual system \citep{dicarlo2007untangling}, that the visual stimulus is processed sequentially by the V1, V2, V4 on the occipital cortex, and inferotemporal (IT) on the temporal cortex along the ventral stream for object recognition \citep{bao2020map}. 
+
+We explored the active time range in three ways: incrementing forward, decrementing backward, and segmentation, as in Fig.~\ref{fig:2}(B). 
+% Data in the no-concern range was set to zero.
+It could be seen that the region of interest was in 100 to 600 ms. 
+The average top-1 accuracy of [0, 1000] ms was 0.1\% lower than that of [100, 1000] ms without significance (\textit{p}\ \textgreater\ 0.05).
+These findings suggest that the initial 100 ms following stimulus onset contained limited information, possibly due to the hysteresis effect in the visual pathway \citep{sayal2020identification}. 
+% While the Original dataset research focused on the peaks at 110 ms \citep{gifford2022large}.
+Besides, the signal after 600 ms brought a negative effect, probably due to the noise from other stimuli and cognitive processing, emerging a response increasing on the frontal lobe as in Fig.~\ref{fig:2}(A).
+
+We conducted an ablation study involving electrodes from different cortices as in Fig.~\ref{fig:2}(C).
+The average accuracy sharply declined 3.8\% (\textit{p}\ \textless\ 0.01) without occipital electrodes.
+Ablation of temporal, parietal electrodes and the central area near the motor cortex decreased the results by 1.9\% (\textit{p}\ \textless\ 0.05),
+1.6\% (\textit{p}\ \textless\ 0.05), and 0.5\% (\textit{p}\ \textgreater\ 0.05) separately.
+The accuracy improved by 0.2\% (\textit{p}\ \textgreater\ 0.05) to discard frontal electrodes.
+The results are still reasonable with the low spatial resolution of EEG.
+
+We plotted time-frequency maps in Fig.~\ref{fig:2}(D) by averaging all training trials from the first subject.
+The main components were below 30 Hz from the occipital, temporal, and parietal region data.
+High-frequency responses could be observed from electrodes on the temporal cortex.
+Interestingly, the frequency responses had an upward trend along with visual processing. 
+% These results roughly align with established principles, coarsely indicating that the bottom-up feedforward is carried by the synchronization of theta and gamma bands, and top-down feedback is influenced by beta and alpha band \citep{bastos2015visual, michalareas2016alphabeta}.
+
+We further conducted classification tests with different frequency bands in Fig.~\ref{fig:2}(E).
+Theta and delta bands near 4 Hz performed well, where theta was more stable for different subjects.
+The beta and alpha bands also demonstrated performance above the chance level, coarsely aligning with previous findings \citep{bastos2015visual, michalareas2016alphabeta}.
+However, the gamma band could hardly help us in decoding, for which we have two speculations. 
+Capturing pure gamma oscillations from EEG can be challenging due to the susceptibility of high-frequency artifacts \citep{fries2008finding, yuval-greenberg2008transient}.
+Besides, the amplitude of the gamma band is quite low and easily modulated by other cognitive processing, such as attention and memory \citep{herrmann2005human}.
+This may explain why some studies with MEG have also disregarded the analysis of the gamma band \citep{hebart2023thingsdata}. 
+Inspired by the latest work \cite{benchetrit2023brain}, we provided preliminary analysis on MEG data for reference in Appendix~\ref{sec:appendA5}.
+
+\subsection{Semantic Similarity}
+\begin{figure}
+  \centering
+  \includegraphics[width=1\linewidth]{Fig/Fig3.png}
+  \caption{Semantic similarity analysis and visualization.
+  (A) Cosine similarity of feature pairs of 200 concepts in the test set. 
+  The results calculated by the trained models of 10 subjects were averaged, and all the concepts were rearranged into five categories: animal, food, vehicle, tool, and others. 
+  (B) Classification results visualized with ground truth (first column) and the top-5 predicted.}
+  \label{fig:3}
+\end{figure}	 
+We show the semantic similarity and classification visualization in Fig.~\ref{fig:3}.
+One concern is that the discrimination we obtain from EEG is not due to semantic information but only the basic visual components, such as color, brightness, contrast, etc.
+We performed representational similarity analysis (RSA) \citep{cichy2020eegfmri}, and got the similarity matrices by averaging all subjects, and categorizing the 200 concepts in the test set into animal, food, vehicle, tool, and others.
+As shown in Fig.~\ref{fig:3}(A), we could observe distinct intra-category aggregation. 
+This meant the obtained EEG representations were closer to the image representations within the corresponding semantic category.
+
+The images in the test set were used for visualization in Fig.~\ref{fig:3}(B).
+We randomly chose several top-5 decoding results from the first subject.
+It could be noticed that the predicted results were semantically similar to the ground truth, such as the bike was predicted into several vehicles with wheels.
+
+\subsection{Data size and Repetition}
+\begin{figure}
+  \centering
+  \includegraphics[width=1\linewidth]{Fig/Fig4.png}
+  \caption{Effect of data size and repetition in training and test set, and visualization of SA and GA.
+  (A) Accuracy with quarters of conditions and all repetitions, with quarters of repetitions and all conditions of training images.
+  Adding more conditions can potentially further improve the performance.
+  (B) Accuracy with different repetitions of the test images.
+  Average ten times to achieve an accuracy of 9.9 (30.1)\%.
+  (C) Grad-CAMs of SA and GA show activation on temporal and occipital regions.}
+  \label{fig:4}
+\end{figure}	
+We compared the impact of the data size and repetition of the training and test sets, which may be crucial for the performance, in Fig.~\ref{fig:4}.
+There were 1654 concepts\(\times\)10 image conditions repeated four times in the training set.
+We averaged the four repetitions of each condition for training. 
+Two cases were compared in Fig.~\ref{fig:4}(A), adding conditions by 25\% intervals with all repetitions, and adding repetitions by 25\% with all conditions.
+Increasing conditions, i.e., data size, contributed significantly to decoding accuracy from 25\% to 50\% (\textit{p}\ \textless\ 0.01), from 50\% to 75\% (\textit{p}\ \textless\ 0.05), and from 75\% to 100\% (\textit{p}\ \textless\ 0.05).
+There were also significant contributions by increasing repetitions from 25\% to 50\% (\textit{p}\ \textless\ 0.01), from 50\% to 75\% (\textit{p}\ \textless\ 0.05), except from 75\% to 100\% (\textit{p}\ \textgreater\ 0.05).
+The results suggest that increasing repetitions is of limited help, while more data promises further improvements.
+
+From another view, repetitions of test data determine the practice efficiency.
+We compared the number of repetitions for averaging, from 5 to 80, with an interval of 5 in Fig.~\ref{fig:4}(B).
+Ten repetitions achieved a 9.9\% (30.1\%) accuracy, which tended to stabilize above 13.0\% (37.0\%) after twenty-five repetitions.
+
+\subsection{Effect of Spatial Modules}
+We tried to provide additional evidence of brain responses facilitated by spatial modules.
+Gradient-weighted class activation mapping (Grad-CAM) \citep{selvaraju2017gradcama} was used to visualize the interest region of SA and GA in Fig.~\ref{fig:4}(C) and Appendix \ref{sec:appendA3}. 
+% All the training data from different subjects were used to show the topography.
+The original data was largely affected by the response on the frontal lobe.
+Surprisingly, self and graph attention focuses on the temporal and occipital lobes, providing implicit evidence that object recognition from EEG is a feasible endeavor.

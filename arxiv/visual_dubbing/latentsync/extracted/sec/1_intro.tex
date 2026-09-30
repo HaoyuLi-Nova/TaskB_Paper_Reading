@@ -1,0 +1,55 @@
+\section{Introduction}
+\label{sec:intro}
+The lip sync \cite{prajwal2020lip,mukhopadhyay2024diff2lip,guan2023stylesync,zhang2023dinet} is a video editing task, which regenerates the lip movements of a talking person according to the given audio, while maintaining the head pose and personal identity. This technique has broad applications in numerous practical domains, such as visual dubbing, virtual avatars, and video conferencing.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{./figures/frameworks_comparison.pdf}
+    % \vspace{-20pt}
+    \caption{Frameworks comparison between previous diffusion-based lip-sync methods and our method.}
+    \vspace{-10pt}
+    \label{fig:frameworks_comparison}
+\end{figure}
+
+In the field of lip sync, GAN-based methods \cite{guan2023stylesync,prajwal2020lip} remain the mainstream approachs. The main issue with these methods is that they struggle to scale up \cite{kang2023scaling,sauer2023stylegan} to large and diverse datasets due to the unstable training \cite{arjovsky2017wasserstein,salimans2016improved} and mode collapse \cite{srivastava2017veegan,che2016mode}. Recent studies proposed diffusion-based methods \cite{mukhopadhyay2024diff2lip,bigioi2024speech,zhong2024style,yu2024make,liu2024diffdub} for lip sync, allowing the model to easily generalize across different individuals without the need for further fine-tuning on specific identities. However, these methods still have some limitations. Specifically, \cite{mukhopadhyay2024diff2lip,bigioi2024speech} perform the diffusion process in the pixel space (\cref{fig:frameworks_comparison} a), which restricts its ability to generate high-resolution videos due to the prohibitive hardware requirements. Other methods \cite{zhong2024style,yu2024make} adopt a two-stage approach: the first stage generates lip motions from audio, and the second stage synthesizes the visual appearance conditioned on the motion (\cref{fig:frameworks_comparison} b). The issue with this two-stage approach is that subtly different sounds may map to the same motion representation, leading to the loss of nuanced expressions linked to the emotional tone of the speech.
+
+To address the above limitations, we propose \textit{LatentSync}, an end-to-end lip sync framework based on audio-conditioned LDMs \cite{rombach2022high} to generate lifelike and high-resolution talking videos, as shown in \cref{fig:frameworks_comparison} (c). We initially tried directly applying methods from the field of audio-driven portrait animation, such as EMO \cite{tian2024emo} and Hallo \cite{xu2024hallo}. However, the results showed poor lip-sync accuracy. We delved deeper into this phenomenon and identified the ``shortcut learning problem'' \cite{geirhos2020shortcut} inherent in lip sync task.
+
+\para{The shortcut learning problem in lip sync.}
+Lip-sync methods are typically based on a video-to-video inpainting framework, the model receives masked frames and audio as inputs. Unexpectedly, the audio-conditioned LDMs tends to predict lip movements based on visual information around the lips, such as facial muscles, eyes, and cheeks, while ignoring the audio information. We conducted an experiment to validate the existence of the shortcut learning problem and the effectiveness of SyncNet supervision \cite{prajwal2020lip} in mitigating this issue. We trained the audio-conditioned LDMs with masks of different sizes, both with and without SyncNet supervision. We used the sync confidence score \cite{chung2017out} to evaluate the synchronization accuracy between audio and lip movements.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{./figures/shortcut.pdf}
+    % \vspace{-20pt}
+    \caption{The shortcut learning problem in the lip-sync task. Higher sync confidence score means better lip-sync accuracy.}
+    \vspace{-10pt}
+    \label{fig:shortcut}
+\end{figure}
+
+As shown in \cref{fig:shortcut}, without SyncNet supervision, as the mask size increases, the visual information available in the masked frame for inferring lip movements decreases, forcing the model to rely more on audio information, thereby improving lip-sync accuracy, and vice versa. In contrast, with SyncNet supervision, the model remains focused on learning audio-visual correlations across different mask sizes.
+
+% \para{Why the SyncNet supervision can force lip-sync models to learn audio-visual correlations?}
+% When the reconstruction loss is employed as primary optimization objective, every pixel values should be predicted accurately. It is easier for model to minimize this loss via learning inpainting ability. In contrast, when employing SyncNet loss, the visual embeddings extracted by SyncNet eliminate redundant texture information, retaining only the lip shape information relevant to audio, which enables the model to focus on learning the relationship between audio and lip shape.
+
+% \para{Why the audio-driven portrait animation methods can achieve high sync conf without SyncNet supervision?}
+
+\para{Why is SyncNet supervision not necessary for audio-driven portrait animation methods?}
+These methods \cite{tian2024emo,xu2024hallo,chen2024echomimic,jiang2024loopy} are based on image-to-video framework. Since they do not involve input masked frames, they do not suffer from the shortcut learning problem.
+
+The previous work Diff2Lip \cite{mukhopadhyay2024diff2lip} has explored how to add SyncNet supervision to pixel-space diffusion models. However, how to effectively apply SyncNet to latent diffusion models \cite{rombach2022high} remains unclear. Specifically, we explored two methods to incorporate SyncNet supervision into latent diffusion models: (a) Decoded pixel space supervision and (b) Latent space supervision. Furthermore, We found that SyncNet struggles to converge in both latent space and high-resolution pixel space. Since the convergence of SyncNet significantly impacts its supervision effectiveness, and ultimately affects the lip-sync accuracy of the supervised model, the convergence issue of SyncNet is highly valuable for research. Therefore, we conducted the first  comprehensive empirical studies in the aspects of model architecture design, training hyperparameters, and data preprocessing techniques, introducing the StableSyncNet with an architecture designed for stable convergence. Our StableSyncNet achieved the unprecedented 94\% accuracy on HDTF \cite{zhang2021flow}.
+
+Additionally, we observed that high-frequency details in the generated talking videos, such as teeth, lips, and facial hair, exhibit flickering artifacts. We propose TREPA, a novel method designed to enhance temporal consistency and reduce such artifacts.
+
+% Additionally, we found that in comparison to single-step lip sync methods \cite{prajwal2020lip,mukhopadhyay2024diff2lip,zhang2024musetalk,guan2023stylesync}, diffusion-based lip sync approaches \cite{mukhopadhyay2024diff2lip,bigioi2024speech}, which employ multi-step generation processes, exhibit inferior temporal consistency. We hypothesize that this might be due to the inconsistency in the diffusion process across different frames. Inspired by \cite{yu2024representation,ge2024content}, we proposed a new method called TREPA, which uses a large-scale self-supervised video model VideoMAE-v2 \cite{wang2023videomae} to extract a powerful representation rich in temporal information. The distance between the temporal representations of the generated consecutive frames and the ground truth consecutive frames is used as an extra loss. This method is very similar to LPIPS \cite{zhang2018unreasonable}, with the key difference being that this loss leverages temporal representations. We found that this simple method effectively improves the temporal consistency while preserving the lip-sync accuracy of our model.
+
+In summary, we made the following contributions: (1) We proposed LatentSync, the first lip-sync method that utilizes audio-conditioned LDMs to achieve end-to-end lifelike lip sync on high-resolution videos, incorporating TREPA to enhance the temporal consistency in the generated videos. (2) We identified the shortcut learning problem in lip-sync task and explored different methods to incorporate SyncNet supervision into audio-condtioned LDMs. (3) We conducted the first comprehensive empirical studies to identify key factors affecting SyncNet convergence, introducing the StableSyncNet for stable convergence.
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=\linewidth]{./figures/framework.pdf}
+    % \vspace{-20pt}
+    \caption{The overview of our LatentSync framework. We use the Whisper \cite{radford2023robust} to convert melspectrogram into audio embeddings, which are then integrated into the U-Net \cite{ronneberger2015u} via cross-attention layers. The reference and masked frames are channel-wise concatenated with noised latents as the input of U-Net. In the training process, we use a one-step method to get estimated clean latents from predicted noises, which are then decoded to obtain the estimated clean frames. The TREPA, LPIPS \cite{zhang2018unreasonable} and SyncNet loss \cite{prajwal2020lip} are added in the pixel space.}
+    \vspace{-10pt}
+    \label{fig:framework}
+\end{figure*}

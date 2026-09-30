@@ -1,0 +1,85 @@
+\section{Introduction}
+\label{sec:intro}
+
+We consider the problem of simultaneously reconstructing \emph{4D scene geometry}
+and estimating \emph{dense point motion} from a monocular RGB video of a dynamic scene 
+in a feed-forward manner.
+This formulation mirrors how the physical world operates: an object is structured by its geometry in 3D space,
+as well as its motion across time.
+Achieving this goal is highly challenging, as monocular 4D reconstruction is inherently ill-posed and dense temporal correspondences remain difficult,
+especially under occlusions and significant motion.
+However, a successful solution would have a wide spectrum of applications,
+from video understanding to robotics~\cite{wang2017deepvo,qin2018vins} and world models~\cite{ha2018world, hafner2025mastering}.
+
+Traditional methods tackle this problem by finding the pixel correspondences over time,
+and then iteratively optimizing a 3D mesh to fit the RGB(D) observations~\cite{zollhofer2014real,newcombe2015dynamicfusion,innmann2016volumedeform}.
+However, they often produce noisy results limited by the sensor,
+and need per-scene optimization, which is less generalizable.
+In the deep learning era, this problem is typically divided into two sub-tasks:
+dynamic geometry reconstruction~\cite{zhang24monst3r,wang2025continuous,jiang2025geo4d}
+and correspondence estimation~\cite{teed2020raft,karaev2024cotracker}, although they are inherently related, both relying on pixel correspondence in multi-view geometry~\cite{hartley2003multiple}.
+
+Recent feed-forward methods such as St4RTrack~\cite{st4rtrack2025},
+Dynamic Point Maps~\cite{sucar2025dynamic},
+and Stereo4D~\cite{jin2024stereo4d},
+have emerged as promising alternatives to address this problem,
+by extending the \emph{static} 3D reconstruction networks,
+like DUSt3R~\cite{wang2024dust3r} and MASt3R~\cite{leroy2024grounding},
+to dynamic scenes via target-timepoint map prediction.
+Even so, these methods process only \emph{pairwise} frames at once and rely on post-optimization to align the results,
+reducing their ability to capture long-range motion coherence.
+
+In this paper,
+we present \method,
+a framework that leverages video generators to jointly reconstruct 4D geometry and estimate dense motion
+for a long monocular video sequence,
+in a feed-forward manner,
+\emph{without any post-optimization}.
+We achieve this by proposing a \emph{world-centric} 4D representation
+that denotes the dynamic scene using a sequence of point maps~\cite{wang2024dust3r,wang2025vggt,jiang2025geo4d}
+and the corresponding scene flow~\cite{horn1981determining}, both defined in the world coordinate system.
+This representation is intuitive and effective:
+by eliminating the camera-induced motion components,
+static background points ideally exhibit zero flow in the system,
+making it easier to learn the motion patterns of dynamic objects.
+By comparison,
+prior works~~\cite{st4rtrack2025,sucar2025dynamic,jin2024stereo4d} only predict the target time point maps,
+paired with the reference frame,
+and do not explicitly model dense motion throughout the whole video.
+We therefore argue that, to fully understand a dynamic 3D scene, it is crucial to jointly model both dense geometry and motion in a shared coordinate system throughout the \emph{entire} video sequence.
+
+
+Another challenge of this task is the lack of large-scale in-the-wild datasets with dense geometry and motion.
+Following recent trends in leveraging pre-trained generative models for 3D~\cite{ke2024repurposing,lu2025matrix3d,jiang2025geo4d}, we do not train our model from scratch but start from a pre-trained video generator~\cite{blattmann2023stable}.
+This strategy significantly alleviates the data scarcity issue,
+as the generator is trained on billions of visual data.
+Moreover, the video generator inherently models spatiotemporal consistency across multiple frames,
+making it well-suited for capturing long-term motion correspondence.
+While Geo4D~\cite{jiang2025geo4d} has explored leveraging video generators~\cite{blattmann2023stable,xu2025geometrycrafter} for 4D reconstruction,
+it only outputs \emph{independent} point maps for each frame,
+without modeling dense motion across these points.
+
+In this work, we take a further step towards jointly modeling dense geometry and motion.
+We do so by encoding a unified 4D representation, combining point maps and scene flows, into a compact latent space.
+Without the need to build cost volumes~\cite{teed2021raft} or establish dense correspondence~\cite{sucar2025dynamic} in pixel space, this integrated representation efficiently transfers the strong priors of the video generator to dense 4D geometry and motion reconstruction.
+
+
+Moreover, we show that it is not necessary to strictly align the value range of 4D data to that of the original VAE in the diffusion model.
+It is commonly believed that such alignment is essential for effectively leveraging pre-trained priors,
+even for 3D geometry~\cite{ke2024repurposing,zhang2024world,lu2025matrix3d,jiang2025geo4d},
+whose distribution differs substantially from that of natural images.
+Our results, however, suggest otherwise.
+Specifically, we adopt the canonical normalization for point maps,
+\ie, centering the 3D coordinates and scaling them according to the scene's mean scale.
+Despite this misalignment with the original RGB distribution in the VAE, \method{} still achieves strong generalization and accurate 4D reconstruction and motion estimation.
+This finding challenges conventional beliefs and opens up new possibilities for leveraging diffusion models for geometric tasks.
+
+To summarize, our key contributions are:
+(1) We present \method,
+a framework that leverages video generators to jointly reconstruct 4D scene geometry and estimate dense motion from monocular videos.
+(2) We propose a novel 4D latent representation that unifies the modeling of geometry and motion, making our model simple but effective and easy to extend.
+(3) We also show that strong generalization can be achieved without strictly aligning our 4D representation to the latent space of video diffusion,
+challenging the conventional wisdom in diffusion-based 3D learning.
+
+
+\input{figs/pipeline.tex}

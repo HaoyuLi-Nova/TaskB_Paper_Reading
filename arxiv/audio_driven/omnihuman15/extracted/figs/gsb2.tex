@@ -1,0 +1,51 @@
+
+\begin{table}[t!]
+    \caption{\textbf{Pairwise subjective ablation study and component comparison.} We report Lip-sync Inconsistency (LSI), Motion Unnaturalness (MU), Image Distortion (ID), and an overall Good/Same/Bad preference score (GSB). Lower is better for LSI, MU, and ID.}
+    \label{tab:subjective_ablation_full}
+
+    \begin{subtable}[t]{0.3\textwidth} \scriptsize
+        \centering
+        \caption{Ablation on agentic reasoning.}
+        \label{tab:ablation_reasoning}
+        \setlength{\tabcolsep}{1pt}
+        \begin{tabular}{lcccc}
+            \toprule
+            Method & {LSI} & {MU} & { ID} & { GSB$\uparrow$} \\
+            \midrule
+            Ours (w/o Reasoning) & 0.12 & 0.58 & 0.11 & $-$0.29 \\
+            Ours (Full Model) & 0.12 & 0.37 & 0.04 & $+$0.29 \\
+            \bottomrule
+        \end{tabular}
+    \end{subtable}
+    \hfill
+    \begin{subtable}[t]{0.3\textwidth} \scriptsize
+        \centering
+        \caption{Comparison of conditioning.}
+        \label{tab:comparison_conditioning}
+        \setlength{\tabcolsep}{1pt}
+        \begin{tabular}{lcccc}
+            \toprule
+            Conditioning Method & { LSI} & { MU} & { ID} & { GSB$\uparrow$} \\
+            \midrule
+            Previous Work~\cite{lin2025omnihuman} & 0.21 & 0.39 & 0.17 & $-$0.23 \\
+            Ours (Proposed) & 0.03 & 0.25 & 0.07 & $+$0.23 \\
+            \bottomrule
+        \end{tabular}
+    \end{subtable}
+    \hfill
+\begin{subtable}[t]{0.3\textwidth}
+    \scriptsize
+    \centering
+    \caption{GSB Score Comparisons} 
+    \label{tab:comparison_base}
+    \setlength{\tabcolsep}{1pt} 
+    \begin{tabular}{@{} l ccc} 
+        \toprule
+        GSB Comparisons & TA $\uparrow$ & Mot $\uparrow$ & VQ $\uparrow$ \\
+        \midrule
+        \rule[-1.8ex]{0pt}{5.2ex} 
+        Ours vs. Base Model & -0.02 & +0.18 & +0.14 \\
+        \bottomrule
+    \end{tabular}
+\end{subtable}
+\end{table}

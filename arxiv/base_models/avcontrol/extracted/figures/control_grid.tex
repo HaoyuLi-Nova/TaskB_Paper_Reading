@@ -1,0 +1,6 @@
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/images/control_grid.jpg}
+\caption{Small-to-large control grid, illustrated on a depth-guided example. The reference canvas resolution scales with information density: each highlighted cell in the reference (top row) maps to the corresponding region in the full-resolution target (bottom row). At $2\times$ downscale, one reference token covers $2{\times}2$ target tokens; at $4\times$, one covers $4{\times}4$. Sparser controls thus require fewer reference tokens, reducing self-attention cost and yielding 35--50\% inference speedup at $4\times$ downscale.}
+\label{fig:control_grid}
+\end{figure}

@@ -1,0 +1,25 @@
+\documentclass[main.tex]{subfiles} 
+
+\begin{document}
+
+\section*{Appendix}
+\label{sec:appendix}
+
+\setcounter{figure}{1} 
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{assets/vbench.jpg}
+  \caption{Overview of VBench evaluation metrics \cite{Huang2024}. VBench measures visual quality, motion smoothness, identity consistency, temporal flicker, spatial coherence, and text–video relevance to provide a fine-grained, multi-dimensional assessment of generated videos.}
+  \label{fig:vbench}
+\end{figure*}
+
+\input{sec/app_1_sec_datasets}
+
+\input{sec/app_2_sec_evaluation_metrics}
+
+\onecolumn
+\input{sec/app_0_table_tasks_datasets}
+\twocolumn
+
+\end{document}
+

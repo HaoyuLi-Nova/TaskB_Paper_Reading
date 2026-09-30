@@ -1,0 +1,252 @@
+\begin{thebibliography}{37}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Brown et~al.(2020)Brown, Mann, Ryder, Subbiah, Kaplan, Dhariwal,
+  Neelakantan, Shyam, Sastry, Askell, et~al.]{brown2020language}
+T.~B. Brown, B.~Mann, N.~Ryder, M.~Subbiah, J.~Kaplan, P.~Dhariwal,
+  A.~Neelakantan, P.~Shyam, G.~Sastry, A.~Askell, et~al.
+\newblock Language models are few-shot learners.
+\newblock \emph{arXiv preprint arXiv:2005.14165}, 2020.
+
+\bibitem[Carreira and Zisserman(2017)]{carreira2017quo}
+J.~Carreira and A.~Zisserman.
+\newblock Quo vadis, action recognition? a new model and the kinetics dataset.
+\newblock In \emph{proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition}, pages 6299--6308, 2017.
+
+\bibitem[Carreira et~al.(2018)Carreira, Noland, Banki-Horvath, Hillier, and
+  Zisserman]{carreira2018short}
+J.~Carreira, E.~Noland, A.~Banki-Horvath, C.~Hillier, and A.~Zisserman.
+\newblock A short note about kinetics-600.
+\newblock \emph{arXiv preprint arXiv:1808.01340}, 2018.
+
+\bibitem[Clark et~al.(2019)Clark, Donahue, and Simonyan]{clark2019adversarial}
+A.~Clark, J.~Donahue, and K.~Simonyan.
+\newblock Adversarial video generation on complex datasets.
+\newblock \emph{arXiv preprint arXiv:1907.06571}, 2019.
+
+\bibitem[Ding et~al.(2021)Ding, Yang, Hong, Zheng, Zhou, Yin, Lin, Zou, Shao,
+  Yang, et~al.]{ding2021cogview}
+M.~Ding, Z.~Yang, W.~Hong, W.~Zheng, C.~Zhou, D.~Yin, J.~Lin, X.~Zou, Z.~Shao,
+  H.~Yang, et~al.
+\newblock Cogview: Mastering text-to-image generation via transformers.
+\newblock \emph{Advances in Neural Information Processing Systems}, 34, 2021.
+
+\bibitem[Ding et~al.(2022)Ding, Zheng, Hong, and Tang]{ding2022cogview2}
+M.~Ding, W.~Zheng, W.~Hong, and J.~Tang.
+\newblock Cogview2: Faster and better text-to-image generation via hierarchical
+  transformers.
+\newblock \emph{arXiv preprint arXiv:2204.14217}, 2022.
+
+\bibitem[Esser et~al.(2020)Esser, Rombach, and Ommer]{esser2020taming}
+P.~Esser, R.~Rombach, and B.~Ommer.
+\newblock Taming transformers for high-resolution image synthesis.
+\newblock \emph{arXiv preprint arXiv:2012.09841}, 2020.
+
+\bibitem[Finn et~al.(2016)Finn, Goodfellow, and Levine]{finn2016unsupervised}
+C.~Finn, I.~Goodfellow, and S.~Levine.
+\newblock Unsupervised learning for physical interaction through video
+  prediction.
+\newblock \emph{Advances in neural information processing systems}, 29, 2016.
+
+\bibitem[Ge et~al.(2022)Ge, Hayes, Yang, Yin, Pang, Jacobs, Huang, and
+  Parikh]{ge2022long}
+S.~Ge, T.~Hayes, H.~Yang, X.~Yin, G.~Pang, D.~Jacobs, J.-B. Huang, and
+  D.~Parikh.
+\newblock Long video generation with time-agnostic vqgan and time-sensitive
+  transformer.
+\newblock \emph{arXiv preprint arXiv:2204.03638}, 2022.
+
+\bibitem[Goodfellow et~al.(2014)Goodfellow, Pouget-Abadie, Mirza, Xu,
+  Warde-Farley, Ozair, Courville, and Bengio]{goodfellow2014generative}
+I.~J. Goodfellow, J.~Pouget-Abadie, M.~Mirza, B.~Xu, D.~Warde-Farley, S.~Ozair,
+  A.~Courville, and Y.~Bengio.
+\newblock Generative adversarial networks.
+\newblock \emph{arXiv preprint arXiv:1406.2661}, 2014.
+
+\bibitem[Ho et~al.(2022)Ho, Salimans, Gritsenko, Chan, Norouzi, and
+  Fleet]{ho2022video}
+J.~Ho, T.~Salimans, A.~Gritsenko, W.~Chan, M.~Norouzi, and D.~J. Fleet.
+\newblock Video diffusion models.
+\newblock \emph{arXiv preprint arXiv:2204.03458}, 2022.
+
+\bibitem[Karpathy et~al.(2014)Karpathy, Toderici, Shetty, Leung, Sukthankar,
+  and Fei-Fei]{karpathy2014large}
+A.~Karpathy, G.~Toderici, S.~Shetty, T.~Leung, R.~Sukthankar, and L.~Fei-Fei.
+\newblock Large-scale video classification with convolutional neural networks.
+\newblock In \emph{Proceedings of the IEEE conference on Computer Vision and
+  Pattern Recognition}, pages 1725--1732, 2014.
+
+\bibitem[Lin et~al.(2019)Lin, Gan, and Han]{lin2019tsm}
+J.~Lin, C.~Gan, and S.~Han.
+\newblock Tsm: Temporal shift module for efficient video understanding.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, pages 7083--7093, 2019.
+
+\bibitem[Liu et~al.(2021)Liu, Lin, Cao, Hu, Wei, Zhang, Lin, and
+  Guo]{liu2021swin}
+Z.~Liu, Y.~Lin, Y.~Cao, H.~Hu, Y.~Wei, Z.~Zhang, S.~Lin, and B.~Guo.
+\newblock Swin transformer: Hierarchical vision transformer using shifted
+  windows.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, pages 10012--10022, 2021.
+
+\bibitem[Luc et~al.(2020)Luc, Clark, Dieleman, Casas, Doron, Cassirer, and
+  Simonyan]{luc2020transformation}
+P.~Luc, A.~Clark, S.~Dieleman, D.~d.~L. Casas, Y.~Doron, A.~Cassirer, and
+  K.~Simonyan.
+\newblock Transformation-based adversarial video prediction on large-scale
+  data.
+\newblock \emph{arXiv preprint arXiv:2003.04035}, 2020.
+
+\bibitem[Miech et~al.(2019)Miech, Zhukov, Alayrac, Tapaswi, Laptev, and
+  Sivic]{miech2019howto100m}
+A.~Miech, D.~Zhukov, J.-B. Alayrac, M.~Tapaswi, I.~Laptev, and J.~Sivic.
+\newblock Howto100m: Learning a text-video embedding by watching hundred
+  million narrated video clips.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, pages 2630--2640, 2019.
+
+\bibitem[Rakhimov et~al.(2020)Rakhimov, Volkhonskiy, Artemov, Zorin, and
+  Burnaev]{rakhimov2020latent}
+R.~Rakhimov, D.~Volkhonskiy, A.~Artemov, D.~Zorin, and E.~Burnaev.
+\newblock Latent video transformer.
+\newblock \emph{arXiv preprint arXiv:2006.10704}, 2020.
+
+\bibitem[Ramesh et~al.(2021)Ramesh, Pavlov, Goh, Gray, Voss, Radford, Chen, and
+  Sutskever]{ramesh2021zero}
+A.~Ramesh, M.~Pavlov, G.~Goh, S.~Gray, C.~Voss, A.~Radford, M.~Chen, and
+  I.~Sutskever.
+\newblock Zero-shot text-to-image generation.
+\newblock \emph{arXiv preprint arXiv:2102.12092}, 2021.
+
+\bibitem[Saito et~al.(2017)Saito, Matsumoto, and Saito]{saito2017temporal}
+M.~Saito, E.~Matsumoto, and S.~Saito.
+\newblock Temporal generative adversarial nets with singular value clipping.
+\newblock In \emph{Proceedings of the IEEE international conference on computer
+  vision}, pages 2830--2839, 2017.
+
+\bibitem[Saito et~al.(2020)Saito, Saito, Koyama, and Kobayashi]{saito2020train}
+M.~Saito, S.~Saito, M.~Koyama, and S.~Kobayashi.
+\newblock Train sparsely, generate densely: Memory-efficient unsupervised
+  training of high-resolution temporal gan.
+\newblock \emph{International Journal of Computer Vision}, 128\penalty0
+  (10):\penalty0 2586--2606, 2020.
+
+\bibitem[Salimans et~al.(2016)Salimans, Goodfellow, Zaremba, Cheung, Radford,
+  and Chen]{salimans2016improved}
+T.~Salimans, I.~Goodfellow, W.~Zaremba, V.~Cheung, A.~Radford, and X.~Chen.
+\newblock Improved techniques for training gans.
+\newblock In \emph{Proceedings of the 30th International Conference on Neural
+  Information Processing Systems}, pages 2234--2242, 2016.
+
+\bibitem[Soomro et~al.(2012)Soomro, Zamir, and Shah]{soomro2012ucf101}
+K.~Soomro, A.~R. Zamir, and M.~Shah.
+\newblock Ucf101: A dataset of 101 human actions classes from videos in the
+  wild.
+\newblock \emph{arXiv preprint arXiv:1212.0402}, 2012.
+
+\bibitem[Sutskever et~al.(2011)Sutskever, Martens, and
+  Hinton]{sutskever2011generating}
+I.~Sutskever, J.~Martens, and G.~Hinton.
+\newblock Generating text with recurrent neural networks.
+\newblock In \emph{ICML'11}, page 1017–1024, 2011.
+
+\bibitem[Tian et~al.(2021)Tian, Ren, Chai, Olszewski, Peng, Metaxas, and
+  Tulyakov]{tian2021good}
+Y.~Tian, J.~Ren, M.~Chai, K.~Olszewski, X.~Peng, D.~N. Metaxas, and
+  S.~Tulyakov.
+\newblock A good image generator is what you need for high-resolution video
+  synthesis.
+\newblock \emph{arXiv preprint arXiv:2104.15069}, 2021.
+
+\bibitem[Tran et~al.(2015)Tran, Bourdev, Fergus, Torresani, and
+  Paluri]{tran2015learning}
+D.~Tran, L.~Bourdev, R.~Fergus, L.~Torresani, and M.~Paluri.
+\newblock Learning spatiotemporal features with 3d convolutional networks.
+\newblock In \emph{Proceedings of the IEEE international conference on computer
+  vision}, pages 4489--4497, 2015.
+
+\bibitem[Tulyakov et~al.(2018)Tulyakov, Liu, Yang, and
+  Kautz]{tulyakov2018mocogan}
+S.~Tulyakov, M.-Y. Liu, X.~Yang, and J.~Kautz.
+\newblock Mocogan: Decomposing motion and content for video generation.
+\newblock In \emph{Proceedings of the IEEE conference on computer vision and
+  pattern recognition}, pages 1526--1535, 2018.
+
+\bibitem[Unterthiner et~al.(2018)Unterthiner, van Steenkiste, Kurach, Marinier,
+  Michalski, and Gelly]{unterthiner2018towards}
+T.~Unterthiner, S.~van Steenkiste, K.~Kurach, R.~Marinier, M.~Michalski, and
+  S.~Gelly.
+\newblock Towards accurate generative models of video: A new metric \&
+  challenges.
+\newblock \emph{arXiv preprint arXiv:1812.01717}, 2018.
+
+\bibitem[van~den Oord et~al.(2017)van~den Oord, Vinyals, and
+  Kavukcuoglu]{van2017neural}
+A.~van~den Oord, O.~Vinyals, and K.~Kavukcuoglu.
+\newblock Neural discrete representation learning.
+\newblock In \emph{Proceedings of the 31st International Conference on Neural
+  Information Processing Systems}, pages 6309--6318, 2017.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez,
+  Kaiser, and Polosukhin]{vaswani2017attention}
+A.~Vaswani, N.~Shazeer, N.~Parmar, J.~Uszkoreit, L.~Jones, A.~N. Gomez,
+  L.~Kaiser, and I.~Polosukhin.
+\newblock Attention is all you need.
+\newblock \emph{arXiv preprint arXiv:1706.03762}, 2017.
+
+\bibitem[Vondrick et~al.(2016)Vondrick, Pirsiavash, and
+  Torralba]{vondrick2016generating}
+C.~Vondrick, H.~Pirsiavash, and A.~Torralba.
+\newblock Generating videos with scene dynamics.
+\newblock \emph{Advances in neural information processing systems}, 29, 2016.
+
+\bibitem[Wang et~al.(2019)Wang, Wu, Chen, Li, Wang, and Wang]{wang2019vatex}
+X.~Wang, J.~Wu, J.~Chen, L.~Li, Y.-F. Wang, and W.~Y. Wang.
+\newblock Vatex: A large-scale, high-quality multilingual dataset for
+  video-and-language research.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, pages 4581--4591, 2019.
+
+\bibitem[Wang et~al.(2017)Wang, Long, Wang, Gao, and Yu]{wang2017predrnn}
+Y.~Wang, M.~Long, J.~Wang, Z.~Gao, and P.~S. Yu.
+\newblock Predrnn: Recurrent neural networks for predictive learning using
+  spatiotemporal lstms.
+\newblock \emph{Advances in neural information processing systems}, 30, 2017.
+
+\bibitem[Weissenborn et~al.(2019)Weissenborn, T{\"a}ckstr{\"o}m, and
+  Uszkoreit]{weissenborn2019scaling}
+D.~Weissenborn, O.~T{\"a}ckstr{\"o}m, and J.~Uszkoreit.
+\newblock Scaling autoregressive video models.
+\newblock \emph{arXiv preprint arXiv:1906.02634}, 2019.
+
+\bibitem[Wu et~al.(2021{\natexlab{a}})Wu, Huang, Zhang, Li, Ji, Yang, Sapiro,
+  and Duan]{wu2021godiva}
+C.~Wu, L.~Huang, Q.~Zhang, B.~Li, L.~Ji, F.~Yang, G.~Sapiro, and N.~Duan.
+\newblock Godiva: Generating open-domain videos from natural descriptions.
+\newblock \emph{arXiv preprint arXiv:2104.14806}, 2021{\natexlab{a}}.
+
+\bibitem[Wu et~al.(2021{\natexlab{b}})Wu, Liang, Ji, Yang, Fang, Jiang, and
+  Duan]{wu2021n}
+C.~Wu, J.~Liang, L.~Ji, F.~Yang, Y.~Fang, D.~Jiang, and N.~Duan.
+\newblock N$\backslash$" uwa: Visual synthesis pre-training for neural visual
+  world creation.
+\newblock \emph{arXiv preprint arXiv:2111.12417}, 2021{\natexlab{b}}.
+
+\bibitem[Yan et~al.(2021)Yan, Zhang, Abbeel, and Srinivas]{yan2021videogpt}
+W.~Yan, Y.~Zhang, P.~Abbeel, and A.~Srinivas.
+\newblock Videogpt: Video generation using vq-vae and transformers.
+\newblock \emph{arXiv preprint arXiv:2104.10157}, 2021.
+
+\bibitem[Yu et~al.(2022)Yu, Tack, Mo, Kim, Kim, Ha, and Shin]{yu2022generating}
+S.~Yu, J.~Tack, S.~Mo, H.~Kim, J.~Kim, J.-W. Ha, and J.~Shin.
+\newblock Generating videos with dynamics-aware implicit generative adversarial
+  networks.
+\newblock \emph{arXiv preprint arXiv:2202.10571}, 2022.
+
+\end{thebibliography}

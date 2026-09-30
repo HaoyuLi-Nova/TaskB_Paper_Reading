@@ -1,0 +1,115 @@
+\vspace{-0.1cm}
+\section{Method}
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=0.8\textwidth]{figure/framework_v7.pdf} 
+	\caption{The proposed Neuro-3D for 3D reconstruction from EEG. The input static and dynamic signals ($e_\mathrm{s}$ and $e_\mathrm{d}$) are aggregated via the dynamic-static EEG-fusion encoder. Subsequently, the fused EEG features are  decoupled into geometry and appearance features ($f_\mathrm{g}$ and $f_\mathrm{a}$). After aligning with clip image embeddings, $f_\mathrm{g}$ and $f_\mathrm{a}$ serve as guidance for the generation of geometric shapes and overall colors.} 
+	\label{framework}
+	\vspace{-0.3cm}
+\end{figure*}
+
+\subsection{Overview}
+
+As depicted in Fig. \ref{framework}, we delineate our framework into two principal components:
+1) \textbf{Dynamic-Static EEG-fusion Encoder}: Given the static and dynamic EEG signals ($e_\mathrm{s}$ and $e_\mathrm{d}$) from EEG-3D, the encoder is responsible to extract discriminative neural features by adaptively aggregating dynamic and static EEG features, leveraging their complementary characteristics.
+2) \textbf{Colored Point Cloud Decoder}: To reconstruct 3D objects, a two-stage decoder module is proposed to generate 3D shape and color sequentially, conditioned on decoupled geometry and appearance EEG features ($f_\mathrm{g}$ and $f_\mathrm{a}$), respectively. 
+
+\subsection{Dynamic-Static EEG-fusion Encoder}
+
+Given EEG recordings under the static and dynamic 3D visual stimuli, how to extract robust and discriminative neural representations becomes a critical issue.
+EEG signals have inherent high noise levels and prolonged exposure to rapidly changing video stimuli introduces further interference factors.
+To address this challenge, we propose to adaptively fuse dynamic and static EEG signals for learning comprehensive and robust neural representation.
+
+
+
+{\textbf{EEG Embedder.}}
+Given preprocessed EEG signals $e_\mathrm{s}\in \mathbb{R}^{C\times T_\mathrm{s}}$ and $e_\mathrm{d}\in \mathbb{R}^{C\times T_\mathrm{d}}$ under static image stimuli $v_0$ (the initial frame of the video) and dynamic video stimuli $\{v_i\}$ with rotational 3D object.
+We design two EEG embedders, $E_\mathrm{s}$ and $E_\mathrm{d}$, to extract static and dynamic EEG features from $e_\mathrm{s}$ and $e_\mathrm{d}$, respectively:
+\begin{equation}
+	z_\mathrm{s}=E_\mathrm{s}(e_\mathrm{s}), z_\mathrm{d}=E_\mathrm{d}(e_\mathrm{d}).
+\end{equation}
+Specifically,
+the embedders consist of multiple temporal self-attention layers 
+that apply self-attention \cite{vaswani2017attention} mechanism along the EEG temporal dimension.
+They capture and integrate temporal dynamics of brain responses over the duration of the stimulus.
+Subsequently, an MLP projection layer is applied to generate output EEG embeddings. 
+
+\textbf{Neural Aggregator.}
+The static image stimulus, with a duration of 0.5 seconds, helps the subject capture relatively stable single-view information about the 3D object. 
+In contrast, dynamic video stimulation renders a holistic 3D representation with rotating views of the object, but its long duration may introduce additional noise.
+To leverage the complementary characteristics, 
+we introduce an attention-based neural aggregator to integrate static and dynamic EEG embeddings in an adaptive way. Specifically, query features are derived from static EEG features $z_{\mathrm{s}}$, while key and value features are obtained from dynamic EEG features $z_{\mathrm{d}}$:
+\begin{equation}
+	Q=W^Qz_\mathrm{s}, K=W^Kz_\mathrm{d}, V=W^Vz_\mathrm{d}.
+\end{equation}
+The attention-based aggregation can be defined as follows:  
+\begin{equation}
+	z_{\mathrm{sd}}=\mathrm{Softmax}(\frac{QK^T}{\sqrt{d}})\cdot V,
+\end{equation}
+where $z_{\mathrm{sd}}$ is the aggregated EEG feature.
+The attentive aggregation approach leverages the stability provided by the static image responses and the temporal dependencies inherent in video data, enabling robust and comprehensive neural representation learning against high signal noises.
+
+\subsection{Colored Point Cloud Decoder}
+
+To recover 3D experience from neural representations, we propose a colored point cloud decoder that first generates the shape and then assigns colors to the generated point cloud, conditioned on the decoupled EEG representations.
+
+
+{\textbf{Decoupled Learning of EEG Features.}}
+Directly using the same EEG feature for the two generation stages may result in information interference and redundance.
+Therefore, to enable targeted conditioning 
+of shape and color generation,   
+we learn distinct geometry
+and appearance components from EEG embeddings in a decoupled way.
+Given the EEG feature $z_\mathrm{sd}$ extracted from EEG-fusion encoder, we decouple it into distinct embeddings for geometry and appearance features ($f_\mathrm{g}$ and $f_\mathrm{a}$) through individual MLP projection layers. 
+To learn discriminative and semantically meaningful EEG features, 
+we align them with video features $f_\mathrm{v}$ encoded by pre-trained CLIP vision encoder $E_\mathrm{v}$ through a contrastive loss and a MSE loss:
+\begin{equation}
+	L_{\mathrm{align}}(f, f_\mathrm{v})=\alpha \mathrm{CLIP}(f, f_\mathrm{v})+(1-\alpha)\mathrm{MSE}(f, f_\mathrm{v}),
+	\label{alpha}
+\end{equation}
+\begin{equation}    f_\mathrm{v}={\sum_{i=1}^nE_\mathrm{v}(v_i)}/{n},
+\end{equation}
+where $f$ represents $f_\mathrm{g}$ or $f_\mathrm{a}$, and $\{v_i\}_{i=1}^n$ denotes downsampled video sequence. 
+To enhance the learning of geometry and appearance features, a categorical loss $L_{\mathrm{c}}$ is proposed to ensure the decoupled geometry and appearance features can be correctly classified as ground-truth color and shape categories:
+\begin{equation}
+	L_{\mathrm{c}}=\mathrm{CE}(\hat{y}_\mathrm{g}, y_\mathrm{g})+\mathrm{CE}(\hat{y}_\mathrm{a}, y_\mathrm{a}),
+\end{equation}
+where $\hat{y}_\mathrm{g}$ and $\hat{y}_\mathrm{a}$ are the shape and color predictions produced by linear classifiers, $y_\mathrm{g}$ and $ y_\mathrm{a}$ denotes ground-truth labels, and $\mathrm{CE}$ denotes cross-entropy loss.
+The final loss $L$ integrates alignment loss and categorical loss:
+\begin{equation}
+	L=L_{\mathrm{align}}(f_\mathrm{g},f_\mathrm{v})+L_{\mathrm{align}}(f_\mathrm{a},f_\mathrm{v})+\gamma L_{\mathrm{c}}.
+	\label{gamma}
+\end{equation}
+Subsequently, $f_\mathrm{g}$ and $f_\mathrm{a}$ are respectively sent into shape generation and color generation streams for precise brain visual interpretation and reconstruction.
+
+
+\textbf{Shape Generation.}
+The point cloud $X_0\in \mathbb{R}^{N\times 3}$ associated with the stimulus signal is incrementally added noise until it converges to an isotropic Gaussian distribution. The noise addition follows a Markov process, characterized by Gaussian transitions with variance scheduled by hyperparameters $\{\beta_i\}_{t=0}^T$, defined as:
+\begin{equation}
+	q\left(X_t \mid X_{t-1}\right)=\mathcal{N}\left(\sqrt{1-\beta_t} X_{t-1}, \beta_t \mathbf{I}\right).
+\end{equation}
+The cumulative noise introduction aligns with the Markov chain assumption, enabling derivation of:
+\begin{equation}
+	q\left(X_{0: T}\right)=q\left(X_0\right) \prod_{t=1}^T q\left(X_t \mid X_{t-1}\right).
+\end{equation}
+Our objective is to generate the 3D point cloud based on the geometry EEG features $f_\mathrm{g}$. This is achieved through a reverse diffusion process, which reconstructs corrupted data by modeling the posterior distribution $p_\theta(X_{t-1}|X_t)$ at each diffusion step. The transition from the Gaussian state $X_T$ back to the initial point cloud $X_0$ can be represented as:
+\begin{equation}
+	p_\theta\left(X_{t-1} \mid X_t, f_\mathrm{g}\right)=\mathcal{N}\left(\mu_\theta\left(X_t, t, f_\mathrm{g}\right), \sigma_t^2 \mathbf{I}\right),
+\end{equation}
+\begin{equation}
+	p_\theta\left(X_{0: T}\right)=p\left(X_T\right) \prod_{t=1}^T p_\theta\left(X_{t-1} \mid X_t, f_\mathrm{g}\right),
+	\label{denoised}
+\end{equation}
+where the parameterized network $\mu_\theta$ is a learnable model to iteratively predict the reverse diffusion steps, ensuring that the generated reverse process closely approximates the forward process. To optimize network training, the diffusion model employs the principle of variational inference, maximizing the variational lower bound of the negative log-likelihood, ultimately yielding a loss function expressed as:
+\begin{equation}
+	\mathcal{L}_t=\mathbb{E}_{X_0\sim q(X_0)}\mathbb{E}_{\epsilon_t\sim \mathcal{N}(0, \mathbf{I})}\left\|\epsilon_t-\mu_\theta\left(X_t, t, f_\mathrm{g}\right)\right\|^2.
+\end{equation}
+
+
+\textbf{Color Generation.}
+Previous researches in point cloud generation suggest that jointly generating geometry and color information often leads to performance degradation and model complexity \cite{melas2023pc2,wu2023sketch}.
+Therefore, following the work in \cite{melas2023pc2}, we learn a separate single-step coloring model $h_{\phi}$ to reconstruct object color in addition to object shape. 
+Specifically, we use the generated point cloud $\hat{X}_0$ with appearance EEG features $f_\mathrm{a}$ as the condition, and send them to coloring model $h_{\phi}$ to estimate the color of the point cloud.
+Due to the limited information provided by EEG signals, predicting distinct colors for each point in a 3D structure presents a significant challenge. As an initial step in addressing this issue,
+we simplify the task by aggregating color information from the ground-truth point cloud. Through a majority-voting mechanism, we select dominant colors to represent the entire object, thereby reducing the complexity of the color prediction process.

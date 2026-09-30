@@ -1,0 +1,156 @@
+\subsection{Evaluation}
+
+We evaluate soundtrack generation mainly on audio quality, audio-video alignment, and audio-text alignment.
+We prioritize alignment to video over alignment to text, because text is used as a supplement and may not capture all the details in the video.
+Moreover, text input is not presented to the viewers in the final output.
+\cref{tab:audio_metric} summarizes the metrics. Correlations between subjective and objective metrics are studied in~\Cref{sec:app_audio_metric_corr}.
+
+
+\begin{table}[h]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{l ll}
+        \toprule
+        &  \textbf{Subjective} & \textbf{Objective}\\
+        \midrule
+        \multirow{3}{*}{Audio quality}
+        & Overall quality (Ovr.) & \multirow{3}{*}{Audio quality score (AQual)} \\
+        & Naturalness (Nat.) \\
+        & Professionalness (Pro.) \\
+        \midrule
+        \multirow{4}{*}{Video alignment}
+        & Diegetic sound correctness (Corr.)& \multirow{4}{*}{\IB score (\IBShort)} \\
+        & Diegetic sound synchronization (Sync.)\\
+        & Non-diegetic music mood alignment (Mood) \\
+        & Non-diegetic music motion/scene alignment (Action) \\
+        \midrule
+        \multirow{2}{*}{Text alignment}
+        & Precision & \multirow{2}{*}{CLAP score} \\
+        & Recall \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{\OursAudio evaluation metrics}. Audio quality measures the standalone quality of the generated audio, while video and text alignment measure how well the generated audio aligns with the input video and text respectively.}
+    \label{tab:audio_metric}
+\end{table}
+
+\subsubsection{Metrics\label{sec:audiobox_metrics}}
+\noindent\textbf{Audio quality.}
+We aim to evaluate how \textit{natural} (free of artifacts) and \textit{professional} (\eg, volume balance, crispness) an audio sample sounds.
+For subjective tests, a pairwise protocol is adopted which asks raters to choose which audio has better overall quality and on those two axes,
+where the pair of audio samples are generated conditioned on the same video and text prompts when applicable.
+We report the Net Win Rate (NWT), defined as ``win\% - lose\%'' for pairwise comparisons.
+NWT ranges from $-100\%$  to $100\%$. Details are described at the end of the section.
+
+For objective metric, the audio quality score (AQual) predicted by the model described in~\cref{sec:audio_cap} is used as an automatic metric.
+We note that the model tends to assign higher scores to samples with music;
+hence the metric should not be used when comparing samples with music and those without music.
+
+Note that we do not adopt Frech\'et audio distance (FAD)~\citep{kilgour2018fr} or KL-divergence (KLD) metrics that are often reported in text-to-audio generation~\citep{liu2023audioldm, vyas2023audiobox}
+because these metrics are not applicable to generated videos that do not have corresponding audio, which we mainly evaluate on in this paper.
+
+
+\noindent\textbf{Video alignment.}
+This measures how well the audio is aligned with the video. %
+For diegetic sound, we measure \textit{correctness} and \textit{synchronization}.
+Correctness reflects whether the \textit{right type} of audio is generated with respect to the scene and the objects in the video (\eg, dog barking versus cat meowing).
+Synchronicity on the other hand focuses on whether the audio is generated at the \textit{right time} matching the motions in the video.
+For non-diegetic background music, we measure how well it supports the \textit{mood} of the scene and how well the \textit{score synchronizes} with the on-screen actions and scene changes (\ie, action scoring).
+Similarly, a pairwise protocol is adopted for subjective tests and net win rate is reported.
+
+For automatic metrics, the \IB (\IBShort) score is used for measuring the alignment between video and diegetic sounds, as used in \citet{mei2023foleygen}.
+As mentioned earlier, when non-diegetic music is present in the video,
+the score usually decreases regardless whether the mood and the score matches because the model is trained on mostly diegetic data without non-diegetic music.
+
+
+\noindent\textbf{Text alignment.}
+Finally, we measure \textit{precision} (percentage of generated audio events that are in the text caption) and \textit{recall} (percentage of audio events from the caption that are generated in the audio).
+We note that we focus more on recall than on precision, as the caption might not include all the acoustic events that are supposed to be heard in a video.
+In terms of the subjective tests, raters are asked to rate on a scale from 1 to 5 for precision and recall.
+We adopt the standalone protocol instead of a pairwise one because text alignment is more objective and is easier to rate in absolute scale.
+For objective test, we measure this with CLAP score~\citep{wu2023clap},
+which is commonly used for text-to-audio generation and does not distinguish hallucination and missing errors.
+
+\noindent\textbf{Computing net win rate}
+The reported subjective preference metric is Net Win Rate.
+For a given model pair, NWT is computed as follows: each item is evaluated by three raters.
+For each item evaluated, we take the mean of the preference between model $A$ and model $B$ (+1 if the model $A$ is preferred, 0 if a tie and -1 if the model $B$ is preferred).
+These are the \textit{consensus} scores for each item.
+We then average these consensus scores across all items to obtain a net win rate of $A$ (this is the expected fraction of items where model $A$ is preferred minus the fraction of items where model $B$ is preferred).
+To obtain 95\% confidence intervals around Net Win Rate, we bootstrap resample the item-level consensus scores 1,000 times,
+compute Net Win Rate for each, and take difference between the 2.5\%-ile and 97.5\%-ile of the Net Win Rate as the 95\% confidence interval.
+The net win rate of $A$ \vs $B$ ranges from -100\% to 100\%.
+
+\subsubsection{Audio Generation Benchmarks}
+\label{subsubsec:audio_gen_bench}
+To thoroughly evaluate audio generation, we consider multiple existing video sources including both real and generated videos,
+and propose to release a benchmark \OursAudioBench\footnote{\url{https://github.com/facebookresearch/MovieGenBench}} which contains high quality videos generated by \OursVideo that cover a wide spectrum of audio events, and human reviewed sound and music captions for those videos.
+In order to enable fair comparison to \OursAudio by future work, we also release non cherry picked generated audio from \OursAudio on \OursAudioBench.
+
+We group videos into two categories: \textit{single-shot} and \textit{multi-shot}.
+Single-shot videos are available in larger quantities and cover a wider spectrum of sound effects,
+which are suitable for testing robustness and generalization.
+Multi-shot videos, extracted from short films, contain scene transitions and have stronger sentiment and deeper narratives than single-shot videos.
+Hence, they are suitable for evaluating video-music alignment and sound design perspectives,
+such as when music enters, how music evolves with the story and aligns with the cuts, and whether music and sound effects are mixed harmonically.
+We describe the composition of single-shot and multi-shot benchmarks next and \cref{tab:audio_eval_set} provides a summary.
+
+\begin{table}[h]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{cc cc cc}
+    \toprule
+    Benchmark & Video sources & Type & Shot & Num. of samples &  Max length \\
+    \midrule
+    \OursAudioBenchSReal  & VGGSound            & Real & Mostly single  & 51    & 10s \\
+    \OursAudioBenchSGen   & \RunwayGen, \Sora   & Gen  & Single         & 151   & 10s \\
+    \OursAudioBench       & \OursVideo          & Gen  & Single         & 527   & 10s \\
+    \OursAudioBenchMGen   & \OursVideo, \Sora   & Gen  & Multi          & 107   & 15s \\
+    \bottomrule
+    \end{tabular}
+    }
+\caption{\textbf{\OursAudio evaluation datasets}. We use "SFX" or "SFX+music" suffix to indicate what version of text captions is used.}
+\label{tab:audio_eval_set}
+\end{table}
+
+\noindent\textbf{Single-shot.}
+This includes VGGSound~\citep{vggsound}, \Sora~\citep{sora}, \RunwayGen~\citep{gen3}, and our proposed \OursAudioBench.
+\begin{itemize}
+    \item VGGSound contains real videos and is widely used for training and evaluating video-to-audio generation models~\citep{mei2023foleygen, luo2024diff, xing2024seeing}.
+    However, we discovered that there are many duplicates or near duplicates (\eg, with added static watermark or text) between the training and evaluation split,
+    and some testing videos are static.
+    We perform deduplication based on video embeddings, and manually review test sets to select 51 samples that are not static, do not contain diegetic speech, and mostly have motion synchronized sounds.
+    \item \Sora has been used to demonstrate video-to-audio generation for generated videos~\citep{xing2024seeing,mei2023foleygen}, but the number of available videos is small and of limited domain.
+    Hence, it is not suitable for being used alone as a benchmark.
+    We review those used in text-to-video comparison (\Cref{appendix_prior_work_details}) and selected 43 samples for audio generation evaluation.
+    \item \OursAudioBench is the new benchmark dataset we create using \OursVideo.
+    It includes 527 videos and is designed to cover various ambient environments (\eg, indoor, urban, nature, transportation) and sound effects (\eg, human, animal, objects).
+    This is the first large scale synthetic benchmark for evaluating video-to-audio generation.
+    To create this benchmark, we first define an ontology with 36 audio categories and audio concepts for each category (\eg, expression $\rightarrow$ \{cry, laugh, yell\}), with a total of 434 concepts.
+    Llama3 is next used to propose video prompts for each audio concept,
+    and \OursVideo is used to generate videos given these prompts.
+    We next review the generated videos to exclude those with artifacts that would severely impact the judgement of whether an audio fits the video, resulting in the final 527 videos.
+    \item \RunwayGen contains 108 synthetic videos.
+    It is created with a similar process as \OursAudioBench but with a subset of prompts.
+    The goal is to include synthetic videos from different models that may contain different types of artifacts and artistic styles, in order to test the robustness of video-to-audio generation models.
+\end{itemize}
+
+We group them into three sets based on video properties:
+``\OursAudioBenchSReal'' is the real single-shot videos which includes VGGSound;
+``\OursAudioBenchSGen'' is the generated single-shot videos from prior video generation models which include \Sora and \RunwayGen;
+``\OursAudioBench'' is the new generated single-shot benchmark we create, which we hope will facilitate future work for thorough text and video-to-audio generation benchmarking.
+
+\noindent\textbf{Multi-shot.}
+We source 26 short films generated by \Sora and by \OursVideo to create this set.
+These videos are 30 second to 2 minute long, and are composed of multiple related shots.
+To compare our model with baseline methods, many of which have length limitations and do not support audio extension, we chunk these videos into 15-second segments and discard last segments shorter than 10 seconds, which results in 107 segments in total.
+The combined set is referred to as \OursAudioBenchMGen.
+
+\noindent\textbf{Text prompt creation for SFX and SFX+music generation.}
+For all the video samples, we use Llama3~\citep{llama3} to propose 5 sound and music captions for each video given its video caption,
+and manually select the best sound and music caption for each video.
+To generate non-diegetic music and sound effects jointly,
+we set the prompt to ``This audio contains music with a 0.90 likelihood.'' for the music presence part of the text caption (see \cref{tab:audio_caption}).
+In contrast, the likelihood is set to 0.01 if music is undesired.
+For baseline models that take text prompt as input, we use sound caption as input when generating sound effects only,
+and concatenate sound and music caption when generating sound effect and music jointly.

@@ -1,0 +1,40 @@
+\section{Limitation and Conclusion}
+\label{sec:conclusion}
+
+\textbf{Limitation}. This study presents \method, a foundational video generation model that has achieved notable advancements across multiple benchmarks.
+Specifically, significant improvements have been observed in motion amplitude (\emph{e.g}., sports, dance) and instruction-following capabilities. 
+%
+Nevertheless, several limitations persist, which should be addressed to realize more potential of \method.
+%
+First, preserving fine-grained details in scenarios involving large motion remains a challenge for our method, as well as a broader issue within the field of video generation. 
+%
+Substantial efforts are required to improve the fidelity of videos with large-scale motion dynamics.
+%
+Second, the computational cost associated with large-scale models remains prohibitive. 
+%
+Inference on a 14B model currently requires approximately 30 minutes on a single head-end GPU without additional optimization. 
+%
+To democratize video generation as a universally accessible AI tool, further research into efficiency and scalability is essential.
+%
+Finally, there is still a lack of domain-specific expertise. As a foundational video model, we are committed to enhancing \method's general capabilities, yet performance in specific localized scenarios, such as education and medicine, may be insufficient. 
+%
+We aim to address this limitation by open-sourcing our latest models and fostering community-driven development across diverse specialized domains.
+
+
+\textbf{Conclusion}. In this report, we publicly release \method, our latest video model, which establishes a new benchmark for video generation.
+%
+We provide a comprehensive overview of the architectural design of our \method-VAE and DiT models, including detailed insights into their training approach, data curation processes, evaluation methods, and empirical results.
+%
+Furthermore, we meticulously analyze our data preprocessing pipeline and the strategic adaptations implemented to optimize model training. 
+%
+This holistic approach is designed to drive advancements in the domain of video generation.
+%
+We also extensively investigate downstream applications, such as image-to-video generation, video editing, and personalized video generation, to demonstrate the versatility and practical utility of \method across diverse scenarios.
+%
+In addition to open-sourcing the 14B model, we explore the feasibility of leveraging smaller-scale models for efficient video generation. 
+%
+Notably, our 1.3B model not only achieves competitive performance compared to larger counterparts but also enables seamless inference on consumer-grade GPUs, significantly enhancing accessibility and practicality for content creators.
+%
+Looking ahead, we plan to focus on scaling both data and model architectures to tackle the most pressing challenges in video generation. 
+%
+Our ongoing efforts aim to provide the research community with more robust and versatile tools for video creation, fostering innovation and broader adoption in this rapidly evolving field.

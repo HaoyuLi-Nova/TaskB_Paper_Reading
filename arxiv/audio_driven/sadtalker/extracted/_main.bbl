@@ -1,0 +1,311 @@
+\begin{thebibliography}{10}\itemsep=-1pt
+
+\bibitem{3dmm}
+Volker Blanz and Thomas Vetter.
+\newblock A morphable model for the synthesis of 3d faces.
+\newblock In {\em ACM SIGGRAPH}, 1999.
+
+\bibitem{atvgnet}
+Lele Chen, Ross~K Maddox, Zhiyao Duan, and Chenliang Xu.
+\newblock Hierarchical cross-modal talking face generation with dynamic
+  pixel-wise loss.
+\newblock In {\em CVPR}, 2019.
+
+\bibitem{videoretalking}
+Kun Cheng, Xiaodong Cun, Yong Zhang, Menghan Xia, Fei Yin, Mingrui Zhu, Xuan
+  Wang, Jue Wang, and Nannan Wang.
+\newblock Videoretalking: Audio-based lip synchronization for talking head
+  video editing in the wild.
+\newblock In {\em SIGGRAPH Asia 2022 Conference Papers}, pages 1--9, 2022.
+
+\bibitem{arcface}
+Jiankang Deng, Jia Guo, Niannan Xue, and Stefanos Zafeiriou.
+\newblock Arcface: Additive angular margin loss for deep face recognition.
+\newblock In {\em CVPR}, 2019.
+
+\bibitem{deng2019accurate}
+Yu Deng, Jiaolong Yang, Sicheng Xu, Dong Chen, Yunde Jia, and Xin Tong.
+\newblock Accurate 3d face reconstruction with weakly-supervised learning: From
+  single image to image set.
+\newblock In {\em CVPR Workshops}, 2019.
+
+\bibitem{cvae}
+Carl Doersch.
+\newblock Tutorial on variational autoencoders.
+\newblock {\em arXiv preprint arXiv:1606.05908}, 2016.
+
+\bibitem{doukas2020headgan}
+Michail~Christos Doukas, Stefanos Zafeiriou, and Viktoriia Sharmanska.
+\newblock Headgan: One-shot neural head synthesis and editing.
+\newblock In {\em ICCV}, 2021.
+
+\bibitem{faceformer}
+Yingruo Fan, Zhaojiang Lin, Jun Saito, Wenping Wang, and Taku Komura.
+\newblock Faceformer: Speech-driven 3d facial animation with transformers.
+\newblock In {\em CVPR}, 2022.
+
+\bibitem{spectre}
+Panagiotis~P. Filntisis, George Retsinas, Foivos Paraperas-Papantoniou,
+  Athanasios Katsamanis, Anastasios Roussos, and Petros Maragos.
+\newblock Visual speech-aware perceptual 3d facial expression reconstruction
+  from videos.
+\newblock {\em arXiv preprint arXiv:2207.11094}, 2022.
+
+\bibitem{speech2gesture}
+Shiry Ginosar, Amir Bar, Gefen Kohavi, Caroline Chan, Andrew Owens, and
+  Jitendra Malik.
+\newblock Learning individual styles of conversational gesture.
+\newblock In {\em CVPR}, 2019.
+
+\bibitem{adnerf}
+Yudong Guo, Keyu Chen, Sen Liang, Yong-Jin Liu, Hujun Bao, and Juyong Zhang.
+\newblock Ad-nerf: Audio driven neural radiance fields for talking head
+  synthesis.
+\newblock In {\em ICCV}, 2021.
+
+\bibitem{resnet}
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+\newblock Deep residual learning for image recognition.
+\newblock In {\em CVPR}, 2016.
+
+\bibitem{fidpaper}
+Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp
+  Hochreiter.
+\newblock Gans trained by a two time-scale update rule converge to a local nash
+  equilibrium.
+\newblock In {\em NeurIPS}, 2017.
+
+\bibitem{dagan}
+Fa-Ting Hong, Longhao Zhang, Li Shen, and Dan Xu.
+\newblock Depth-aware generative adversarial network for talking head video
+  generation.
+\newblock In {\em CVPR}, 2022.
+
+\bibitem{headnerf}
+Yang Hong, Bo Peng, Haiyao Xiao, Ligang Liu, and Juyong Zhang.
+\newblock Headnerf: A real-time nerf-based parametric head model.
+\newblock In {\em CVPR}, 2022.
+
+\bibitem{pix2pix}
+Phillip Isola, Jun-Yan Zhu, Tinghui Zhou, and Alexei~A Efros.
+\newblock Image-to-image translation with conditional adversarial networks.
+\newblock {\em CVPR}, 2017.
+
+\bibitem{eamm}
+Xinya Ji, Hang Zhou, Kaisiyuan Wang, Qianyi Wu, Wayne Wu, Feng Xu, and Xun Cao.
+\newblock Eamm: One-shot emotional talking face via audio-based emotion-aware
+  motion model.
+\newblock In {\em ACM SIGGRAPH}, 2022.
+
+\bibitem{evp}
+Xinya Ji, Hang Zhou, Kaisiyuan Wang, Wayne Wu, Chen~Change Loy, Xun Cao, and
+  Feng Xu.
+\newblock Audio-driven emotional video portraits.
+\newblock In {\em CVPR}, 2021.
+
+\bibitem{dvp}
+Hyeongwoo Kim, Pablo Garrido, Ayush Tewari, Weipeng Xu, Justus Thies, Matthias
+  Niessner, Patrick P{\'e}rez, Christian Richardt, Michael Zollh{\"o}fer, and
+  Christian Theobalt.
+\newblock Deep video portraits.
+\newblock {\em ACM Transactions on Graphics (TOG)}, 2018.
+
+\bibitem{adam}
+Diederik~P Kingma and Jimmy Ba.
+\newblock A method for stochastic optimization.
+\newblock {\em arXiv preprint arXiv:1412.6980}, 2014.
+
+\bibitem{vae}
+Diederik~P Kingma and Max Welling.
+\newblock Auto-encoding variational bayes.
+\newblock {\em CoRR}, abs/1312.6114, 2014.
+
+\bibitem{bailando}
+Siyao Li, Yu Weijiang, Gu Tianpei, Lin Chunze, Wang Quan, Qian Chen, Loy~Chen
+  Change, and Liu Ziwei.
+\newblock Bailando: 3d dance generation via actor-critic gpt with choreographic
+  memory.
+\newblock In {\em CVPR}, 2022.
+
+\bibitem{lsp}
+Yuanxun Lu, Jinxiang Chai, and Xun Cao.
+\newblock Live speech portraits: real-time photorealistic talking-head
+  animation.
+\newblock {\em ACM Transactions on Graphics (TOG)}, 2021.
+
+\bibitem{ma2022training}
+Pingchuan Ma, Yujiang Wang, Stavros Petridis, Jie Shen, and Maja Pantic.
+\newblock Training strategies for improved lip-reading.
+\newblock In {\em ICASSP}, 2022.
+
+\bibitem{mallya2022implicit}
+Arun Mallya, Ting-Chun Wang, and Ming-Yu Liu.
+\newblock {Implicit Warping for Animation with Image Sets}.
+\newblock In {\em NeurIPS}, 2022.
+
+\bibitem{voxceleb}
+Arsha Nagrani, Joon~Son Chung, and Andrew Zisserman.
+\newblock Voxceleb: a large-scale speaker identification dataset.
+\newblock In {\em INTERSPEECH}, 2017.
+
+\bibitem{cpbd}
+Niranjan~D. Narvekar and Lina~J. Karam.
+\newblock A no-reference image blur metric based on the cumulative probability
+  of blur detection (cpbd).
+\newblock {\em TIP}, 2011.
+
+\bibitem{hopenet}
+Ruiz Nataniel, Eunji Chong, and Rehg~James M.
+\newblock Fine-grained head pose estimation without keypoints.
+\newblock In {\em CVPR Workshops}, 2018.
+
+\bibitem{dpe}
+Youxin Pang, Yong Zhang, Weize Quan, Yanbo Fan, Xiaodong Cun, Ying Shan, and
+  Dong-ming Yan.
+\newblock Dpe: Disentanglement of pose and expression for general video
+  portrait editing.
+\newblock {\em arXiv preprint arXiv:2301.06281}, 2023.
+
+\bibitem{wav2lip}
+K~R Prajwal, Rudrabha Mukhopadhyay, Vinay P.Namboodiri, and C.V.Jawahar.
+\newblock A lip sync expert is all you need for speech to lip generation in the
+  wild.
+\newblock In {\em ACM MM}, 2020.
+
+\bibitem{lipgan}
+Prajwal~K R, Rudrabha Mukhopadhyay, Jerin Philip, Abhishek Jha, Vinay
+  Namboodiri, and C~V Jawahar.
+\newblock Towards automatic face-to-face translation.
+\newblock In {\em ACM MM}, 2019.
+
+\bibitem{dalle}
+Aditya Ramesh, Prafulla Dhariwal, Alex Nichol, Casey Chu, and Mark Chen.
+\newblock Hierarchical text-conditional image generation with clip latents.
+\newblock {\em arXiv preprint arXiv:2204.06125}, 2022.
+
+\bibitem{ren2021pirenderer}
+Yurui Ren, Ge Li, Yuanqi Chen, Thomas~H Li, and Shan Liu.
+\newblock Pirenderer: Controllable portrait image generation via semantic
+  neural rendering.
+\newblock In {\em ICCV}, 2021.
+
+\bibitem{imagen}
+Chitwan Saharia, William Chan, Saurabh Saxena, Lala Li, Jay Whang, Emily
+  Denton, Seyed Kamyar~Seyed Ghasemipour, Burcu~Karagol Ayan, S~Sara Mahdavi,
+  Rapha~Gontijo Lopes, et~al.
+\newblock Photorealistic text-to-image diffusion models with deep language
+  understanding.
+\newblock {\em arXiv preprint arXiv:2205.11487}, 2022.
+
+\bibitem{fid}
+Maximilian Seitzer.
+\newblock {pytorch-fid: FID Score for PyTorch}.
+\newblock \url{https://github.com/mseitzer/pytorch-fid}, August 2020.
+\newblock Version 0.2.1.
+
+\bibitem{fomm}
+Aliaksandr Siarohin, St{\'e}phane Lathuili{\`e}re, Sergey Tulyakov, Elisa
+  Ricci, and Nicu Sebe.
+\newblock First order motion model for image animation.
+\newblock In {\em NeurIPS}, 2019.
+
+\bibitem{mraa}
+Aliaksandr Siarohin, Oliver Woodford, Jian Ren, Menglei Chai, and Sergey
+  Tulyakov.
+\newblock Motion representations for articulated animation.
+\newblock In {\em CVPR}, 2021.
+
+\bibitem{nvp}
+Justus Thies, Mohamed Elgharib, Ayush Tewari, Christian Theobalt, and Matthias
+  Nie{\ss}ner.
+\newblock Neural voice puppetry: Audio-driven facial reenactment.
+\newblock In {\em ECCV}, 2020.
+
+\bibitem{wang2021audio2head}
+Suzhen Wang, Lincheng Li, Yu Ding, Changjie Fan, and Xin Yu.
+\newblock Audio2head: Audio-driven one-shot talking-head generation with
+  natural head motion.
+\newblock In {\em IJCAI}, 2021.
+
+\bibitem{wang2021one}
+Suzhen Wang, Lincheng Li, Yu Ding, and Xin Yu.
+\newblock One-shot talking face generation from single-speaker audio-visual
+  correlation learning.
+\newblock In {\em AAAI}, 2022.
+
+\bibitem{fewshotvid2vid}
+Ting-Chun Wang, Ming-Yu Liu, Andrew Tao, Guilin Liu, Jan Kautz, and Bryan
+  Catanzaro.
+\newblock Few-shot video-to-video synthesis.
+\newblock In {\em NeurIPS}, 2019.
+
+\bibitem{facevid2vid}
+Ting-Chun Wang, Arun Mallya, and Ming-Yu Liu.
+\newblock One-shot free-view neural talking-head synthesis for video
+  conferencing.
+\newblock In {\em CVPR}, 2021.
+
+\bibitem{gfpgan}
+Xintao Wang, Yu Li, Honglun Zhang, and Ying Shan.
+\newblock Towards real-world blind face restoration with generative facial
+  prior.
+\newblock In {\em CVPR}, 2021.
+
+\bibitem{lia}
+Yaohui Wang, Di Yang, Francois Bremond, and Antitza Dantcheva.
+\newblock Latent image animator: Learning to animate images via latent space
+  navigation.
+\newblock {\em arXiv preprint arXiv:2203.09043}, 2022.
+
+\bibitem{audiodvp}
+Xin Wen, Miao Wang, Christian Richardt, Ze-Yin Chen, and Shi-Min Hu.
+\newblock Photorealistic audio-driven video portraits.
+\newblock {\em IEEE Transactions on Visualization and Computer Graphics},
+  26(12):3457--3466, 2020.
+
+\bibitem{codetalker}
+Jinbo Xing, Menghan Xia, Yuechen Zhang, Xiaodong Cun, Jue Wang, and Tien-Tsin
+  Wong.
+\newblock Codetalker: Speech-driven 3d facial animation with discrete motion
+  prior.
+\newblock {\em arXiv preprint arXiv:2301.02379}, 2023.
+
+\bibitem{styleheat}
+Fei Yin, Yong Zhang, Xiaodong Cun, Mingdeng Cao, Yanbo Fan, Xuan Wang, Qingyan
+  Bai, Baoyuan Wu, Jue Wang, and Yujiu Yang.
+\newblock Styleheat: One-shot high-resolution editable talking face generation
+  via pre-trained stylegan.
+\newblock In {\em ECCV}, 2022.
+
+\bibitem{facial}
+Chenxu Zhang, Yifan Zhao, Yifei Huang, Ming Zeng, Saifeng Ni, Madhukar
+  Budagavi, and Xiaohu Guo.
+\newblock Facial: Synthesizing dynamic talking face with implicit attribute
+  learning.
+\newblock In {\em ICCV}, 2021.
+
+\bibitem{hdtf}
+Zhimeng Zhang, Lincheng Li, Yu Ding, and Changjie Fan.
+\newblock Flow-guided one-shot talking face generation with a high-resolution
+  audio-visual dataset.
+\newblock In {\em CVPR}, 2021.
+
+\bibitem{tps}
+Jian Zhao and Hui Zhang.
+\newblock Thin-plate spline motion model for image animation.
+\newblock In {\em CVPR}, 2022.
+
+\bibitem{pcavs}
+Hang Zhou, Yasheng Sun, Wayne Wu, Chen~Change Loy, Xiaogang Wang, and Ziwei
+  Liu.
+\newblock Pose-controllable talking face generation by implicitly modularized
+  audio-visual representation.
+\newblock In {\em CVPR}, 2021.
+
+\bibitem{zhou2020makelttalk}
+Yang Zhou, Xintong Han, Eli Shechtman, Jose Echevarria, Evangelos Kalogerakis,
+  and Dingzeyu Li.
+\newblock Makelttalk: speaker-aware talking-head animation.
+\newblock {\em ACM Transactions on Graphics (TOG)}, 2020.
+
+\end{thebibliography}

@@ -1,0 +1,398 @@
+\section{Experiments}
+\label{sec:experiments}
+%
+\tabglobalrank
+\tabsota
+
+\subsection{Improving Rectified Flows}
+\label{subsec:improvingrfs}
+We aim to understand which of the approaches for simulation-free training of
+normalizing flows as in \eqref{eq:ode} is the most efficient.  To enable
+comparisons across different approaches, we control for the
+optimization algorithm, the model architecture, the dataset and samplers. In
+addition, the losses of different approaches are incomparable and also do not
+necessarily correlate with the quality of output samples; hence we need
+evaluation metrics that allow for a comparison between approaches.
+We train models on ImageNet~\cite{Russakovsky2014ImageNetLS} and CC12M~\cite{Changpinyo2021Conceptual1P}, 
+and evaluate both the training and the EMA weights of
+the models during training using validation losses, CLIP scores
+\cite{radford2021learning,Hessel_2021}, and
+FID \cite{heusel2017gans} under different sampler settings (different guidance scales and sampling steps). 
+We calculate the FID on CLIP features as proposed by~\cite{sauer2021projected}. 
+All metrics are evaluated on the COCO-2014 validation split~\cite{Lin_2014}.
+Full details on the training and sampling hyperparameters are provided in \Cref{subsubsec:exp_prelim}.
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+
+\subsubsection{Results}
+We train each of 61 different formulations on the two datasets. We include the
+following variants from \Cref{subsec:variants}:
+\begin{itemize}[noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt]
+  \item Both $\epsilon$- and \textbf{v}-prediction loss with linear
+    (\texttt{eps/linear}, \texttt{v/linear}) and cosine
+    (\texttt{eps/cos}, \texttt{v/cos}) schedule.
+  \item RF loss with $\pi_{\text{mode}}(t; s)$ (\texttt{rf/mode(s)}) with 7 values for $s$ chosen
+    uniformly between $-1$ and $1.75$, and additionally for $s=1.0$ and $s=0$ which
+    corresponds to uniform timestep sampling (\texttt{rf/mode}).
+  \item RF loss with $\pi_{\text{ln}}(t; m, s)$ (\texttt{rf/lognorm(m, s)})
+    with 30 values for $(m, s)$ in the grid with $m$ uniform between $-1$ and
+    $1$, and $s$ uniform between $0.2$ and $2.2$.
+  \item RF loss with $\pi_{\text{CosMap}}(t)$ (\texttt{rf/cosmap}).
+  \item EDM (\texttt{edm($P_m, P_s$)}) with 15 values for $P_m$ chosen
+    uniformly between $-1.2$ and $1.2$ and $P_s$ uniform between $0.6$ and
+    $1.8$. Note that $P_m, P_s=(-1.2, 1.2)$ corresponds to the parameters
+    in \cite{Karras2022ElucidatingTD}.
+  \item EDM with a schedule such that it matches the log-SNR weighting of
+    \texttt{rf} (\texttt{edm/rf}) and one that matches the log-SNR weighting of
+    \texttt{v/cos} (\texttt{edm/cos}).
+\end{itemize}
+
+For each run, we select the step with minimal validation loss when evaluated with EMA weights and then collect CLIP scores and FID obtained with 6 different
+sampler settings both with and without EMA weights.
+
+For all 24 combinations of sampler settings, EMA weights, and dataset choice, we
+rank the different formulations using a non-dominated sorting algorithm. For
+this, we repeatedly compute the variants that are Pareto optimal according to
+CLIP and FID scores, assign those variants the current iteration index, remove
+those variants, and continue with the remaining ones until all variants get
+ranked. Finally, we average those ranks over the 24 different control settings.
+
+We present the results in Tab.~\ref{tab:globalranking}, where we only show the
+two best-performing variants for those variants that were evaluated with different
+hyperparameters. We also show ranks where we restrict the averaging over
+sampler settings with 5 steps and with 50 steps.
+
+We observe that \texttt{rf/lognorm(0.00, 1.00)} consistently achieves a good
+rank. It outperforms a rectified flow formulation with uniform timestep
+sampling (\texttt{rf}) and thus confirms our hypothesis that
+intermediate timesteps are more important. Among all the variants, \emph{only}
+rectified flow formulations with modified timestep sampling perform better than
+the LDM-Linear~\citep{Rombach_2022} formulation (\texttt{eps/linear}) used previously.
+
+We also observe that some variants perform well in some settings but worse in
+others, \eg \texttt{rf/lognorm(0.50, 0.60)} is the best-performing variant with
+50 sampling steps but much worse (average rank 8.5) with 5 sampling steps. We
+observe a similar behavior with respect to the two metrics in
+Tab.~\ref{tab:tabsota}. The first group shows representative variants and their
+metrics on both datasets with 25 sampling steps. The next group shows the
+variants that achieve the best CLIP and
+FID scores. With the exception of \texttt{rf/mode(1.75)}, these
+variants typically perform very well in one metric but relatively badly
+in the other. In contrast, we once again observe that \texttt{rf/lognorm(0.00,
+1.00)} achieves good performance across metrics and datasets, where it obtains
+the third-best scores two out of four times and once the second-best
+performance.
+
+Finally, we illustrate the qualitative behavior of different formulations in
+\Cref{fig:fidvssteps}, where we use different colors for different groups
+of formulations (\textcolor[HTML]{d95f02}{\texttt{edm}},
+\textcolor[HTML]{1b9e77}{\texttt{rf}}, \textcolor[HTML]{7570b3}{\texttt{eps}}
+and \textcolor[HTML]{e7298a}{\texttt{v}}).
+Rectified flow formulations generally perform well and, compared to other
+formulations, their performance degrades less when reducing the number of
+sampling steps.
+
+\figfidvssteps
+
+\subsection{Improving Modality Specific Representations}
+\label{subsec:modalityspecifics}
+Having found a formulation in the previous section that allows rectified flow models to not only 
+compete with established diffusion formulations such as LDM-Linear~\citep{Rombach_2022} 
+or EDM~\citep{Karras2022ElucidatingTD}, but even outperforms them, 
+we now turn to the application of our formulation to high-resolution text-to-image synthesis. 
+Accordingly, the final performance of our algorithm depends not only 
+on the training formulation, but also on the parameterization via a neural network
+and the quality of the image and text representations we use. 
+In the following sections, we describe how we improve all these components before scaling our final method in \Cref{subsec:scaling}. 
+
+\subsubsection{Improved Autoencoders}
+\label{sec:improvedae}
+Latent diffusion models achieve high efficiency by operating in the latent space of a pretrained autoencoder~\citep{Rombach_2022}, 
+which maps an input RGB  $X\in \RR^{H\times W\times 3}$ into a lower-dimensional space $x=E(X) \in \RR^{h\times w \times d}$.
+The reconstruction quality of this autoencoder provides an upper bound on the achievable image quality after latent diffusion training. 
+Similar to \citet{dai2023emu}, we find that increasing the number of latent channels $d$ significantly boosts reconstruction performance, see \Cref{tab:aereconstructiontable}. Intuitively, predicting latents with higher $d$ is a more difficult task, and thus models with increased capacity should be able to perform better for larger $d$, ultimately achieving higher image quality. We confirm this hypothesis in \Cref{fig:aefidstudy}, where we see that the $d=16$ autoencoder exhibits better scaling performance in terms of sample FID. For the remainder of this paper, we thus choose $d=16$. 
+
+\aereconstructiontable
+\horizontalcherries
+
+\subsubsection{Improved Captions}
+\label{subsubsec:improvedcaptions}
+\citet{betker2023improving} demonstrated that synthetically generated captions can greatly improve text-to-image models trained at scale. This is due to the oftentimes simplistic 
+nature of the human-generated captions that come with large-scale image datasets, which overly focus on the image subject and usually omit details describing the background or composition of the scene, or, if applicable, displayed text~\citep{betker2023improving}. 
+We follow their approach and use an off-the-shelf, state-of-the-art vision-language model, \emph{CogVLM}~\citep{wang2023cogvlm}, to create synthetic annotations for our large-scale image dataset. As synthetic captions may cause a text-to-image model to forget about certain concepts not present in the VLM's knowledge corpus, we use a  ratio of 50 \% original and 50 \% synthetic captions. 
+
+To assess the effect of training on this caption mix, we train two $d=15$ \modelname models for 250k steps, one on only original captions and the other on the 50/50 mix. 
+We evaluate the trained models using the GenEval benchmark~\citep{ghosh2023geneval} in \Cref{tab:captionstudy}. The results demonstrate that the model trained with the addition of synthetic captions clearly outperforms the model that only utilizes original captions. We thus use the 50/50 synthetic/original caption mix for the remainder of this work. 
+\captionstudy
+
+
+\subsubsection{Improved Text-to-Image Backbones}
+\label{sec:netbattle}
+
+
+%
+%
+%
+%
+%
+In this section, we compare the performance of existing transformer-based diffusion backbones with our novel multimodal transformer-based diffusion backbone, \modelname, as introduced in \Cref{subsec:methodarch}. \modelname is specifically designed to handle different domains, here text and image tokens, using (two) different sets of trainable model weights. More specifically, we follow the experimental setup from \Cref{subsec:improvingrfs} and compare text-to-image performance on CC12M of DiT, CrossDiT (DiT but with cross-attending to the text tokens instead of sequence-wise concatenation~\citep{chen2023pixart}) and our \modelname. For \modelname, we compare models with two sets of weights and three sets of weights, where the latter handles the CLIP~\citep{radford2021learning} and T5~\citep{raffel2019exploring} tokens (\cf \Cref{subsec:methodarch}) separately. 
+Note that DiT (w/ concatenation of text and image tokens as in \Cref{subsec:methodarch}) can be interpreted as a special case of \modelname with one shared set of weights for all modalities. Finally, we consider the UViT~\citep{hoogeboom2023simple} architecture as a hybrid between the widely used UNets and transformer variants. 
+%
+%
+
+%
+We analyze the convergence behavior of these architectures in \Cref{fig:archstraining}:
+Vanilla DiT underperforms UViT. The cross-attention DiT variant CrossDiT achieves better performance than UViT, although UViT seems to learn much faster initially. 
+Our \modelname variant significantly outperforms the cross-attention and vanilla variants. 
+We observe only a small gain when using three parameter sets instead of two (at the cost of increased parameter count and VRAM usage), and thus opt for the former option for the remainder of this work. 
+
+%
+\archstrainingsqueezed
+
+%
+
+\subsection{Training at Scale}
+\label{subsec:scaling}
+Before scaling up, we filter and preencode our data to ensure safe and efficient pretraining.
+Then, all previous considerations of diffusion formulations, architectures, and data culminate in the last section, where we scale our models up to 8B parameters.
+
+\subsubsection{Data Preprocessing}
+\paragraph{Pre-Training Mitigations}
+Training data significantly impacts a generative model's abilities. Consequently, data filtering is effective at constraining undesirable capabilities~\citep{dalle2mitigations}. 
+Before training at sale, we filter our data for the following categories:
+(i) Sexual content: We use NSFW-detection models to filter for explicit content. 
+(ii) Aesthetics: We remove images for which our rating systems predict a low score.
+(iii) Regurgitation: We use a cluster-based deduplication method to remove perceptual and semantic duplicates from the training data; see \Cref{sec:dedup}.
+
+\paragraph{Precomputing Image and Text Embeddings}
+Our model uses the output of multiple pretrained, frozen networks as inputs (autoencoder latents and text encoder representations). %
+Since these outputs are constant during training, we precompute them once for the entire dataset. We provide a detailed discussion of our approach in \Cref{suppsec:precomputingembeddings}. 
+
+
+
+%
+\subsubsection{Finetuning on High Resolutions}
+\label{subsec:shifting}
+\maxattnlogitqk
+\paragraph{QK-Normalization} 
+In general, we pretrain all of our models on low-resolution images of size $256^2$ pixels. 
+Next, we finetune our models on higher resolutions with mixed aspect ratios (see next paragraph for details). 
+We find that, when moving to high resolutions, mixed precision training can become unstable and the loss diverges.
+This can be remedied by switching to full precision training --- but comes with a $\sim 2\times$ performance drop compared to mixed-precision training. 
+A more efficient alternative is reported in the (discriminative) ViT literature: \citet{dehghani2023scaling} observe that the training of large vision transformer models diverges because the attention entropy grows uncontrollably. To avoid this, \citet{dehghani2023scaling} propose to normalize Q and K before the attention operation. We follow this approach and use RMSNorm~\citep{zhang2019root} with learnable scale in both streams of our MMDiT architecture for our models, see \Cref{fig:modelfig:total}.
+As demonstrated in \Cref{fig:qk_vis}, the additional normalization prevents the attention logit growth instability, confirming findings by \citet{dehghani2023scaling} and \citet{wortsman2023smallscale} and enables efficient training at bf16-mixed~\citep{bfloat16} precision when combined with $\epsilon=10^{-15}$ in the AdamW~\citep{Loshchilov2017FixingWD} optimizer.
+This technique can also be applied on pretrained models that have not used qk-normalization during pretraining: The model quickly adapts to the additional normalization layers and trains more stably. 
+Finally, we would like to point out that although this method can generally help to stabilize the training of large models, it is not a universal recipe and may need to be adapted depending on the exact training setup.
+
+
+\paragraph{Positional Encodings for Varying Aspect Ratios}
+%
+%
+%
+%
+%
+%
+%
+After training on a fixed $256\times256$ resolution we aim to (i) increase the
+resolution and resolution and (ii) enable inference with flexible aspect
+ratios. Since we use 2d positional frequency embeddings we have to adapt them
+based on the resolution. In the multi-aspect ratio setting, a direct
+interpolation of the embeddings as in \cite{dosovitskiy2020image} would not reflect the side
+lengths correctly. Instead we use a combination of extended and interpolated
+position grids which are subsequently frequency embedded.
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+For a target resolution of $S^2$ pixels, we use bucketed sampling
+\cite{novelai,podell2023sdxl} such that
+that each batch consists of images of a homogeneous size $H \times W$, where $H \cdot W
+\approx S^2$.
+For the maximum and minimum training aspect ratios,
+this results in the maximum values for width, $W_\text{max}$, and height,
+$H_\text{max}$, that will be encountered. Let $h_\text{max}=H_\text{max}/16, w_\text{max}=W_\text{max}/16$ and $s=S/16$ be the corresponding sizes in latent space (a factor 8) after patching (a factor 2).
+Based on these values, we construct a vertical position
+grid with the values
+$((p-\frac{h_\text{max}-s}{2})\cdot\frac{256}{S})_{p=0}^{{h_\text{max}-1}}$
+and correspondingly for the horizontal positions. We then
+center-crop from the resulting positional 2d grid before embedding it.
+
+\figtimeshift
+
+\paragraph{Resolution-dependent shifting of timestep schedules}
+Intuitively, since higher resolutions have more pixels, we need more noise to
+destroy their signal. %
+Assume we are working in a resolution with $n=H\cdot W$ pixels. Now, consider a
+"constant" image, i.e. one where every pixel has the value $c$. The forward
+process produces $z_t = (1-t)c \mathbbm{1} + t \epsilon$, where both
+$\mathbbm{1}$ and $\epsilon \in \mathbb{R}^n$. Thus, $z_t$ provides $n$
+observations of the random variable $Y=(1-t)c + t \eta$ with $c$ and $\eta$ in
+$\mathbb{R}$, and $\eta$ follows a standard normal distribution. Thus,
+$\mathbb{E}(Y)=(1-t)c$ and $\sigma(Y)=t$. We can therefore recover $c$ via
+$c=\frac{1}{1-t}\mathbb{E}(Y)$, and the error between $c$ and its sample
+estimate $\hat{c} = \frac{1}{1-t}\sum_{i=1}^n z_{t,i}$ has a standard deviation
+of $\sigma(t, n)=\frac{t}{1-t}\sqrt{\frac{1}{n}}$ (because the standard error
+of the mean for $Y$ has deviation $\frac{t}{\sqrt{n}}$).  So if one already
+knows that the image $z_0$ was constant across its pixels, $\sigma(t, n)$
+represents the degree of uncertainty about $z_0$. For example, we immediately
+see that doubling the width and height leads to half the uncertainty at any
+given time $0 < t < 1$.  But, we can now map a timestep $t_n$ at resolution $n$
+to a timestep $t_m$ at resolution $m$ that results in the same degree of
+uncertainty via the ansatz $\sigma(t_n, n)=\sigma(t_m, m)$. Solving for $t_m$
+gives
+\begin{equation}
+  \label{eq:timeshift}
+t_m = \frac{\sqrt{\frac{m}{n}}t_n}{1+(\sqrt{\frac{m}{n}}-1)t_n}
+\end{equation}
+\sotaeval
+%
+We visualize this shifting function in \Cref{fig:timeshift}. Note that the
+assumption of constant images is not realistic. To find good values for the
+shift value $\alpha\coloneq\sqrt{\frac{m}{n}}$ during inference, we apply them to the
+sampling steps of a model trained at resolution $1024\times 1024$ and run a
+human preference study. The results in \Cref{fig:timeshift} show a strong
+preference for samples with shifts greater than $1.5$ but less drastic
+differences among the higher shift values. In our subsequent experiments, we
+thus use a shift value of $\alpha=3.0$ both during training and sampling at
+resolution $1024\times 1024$. A qualitative comparison between samples after 8k
+training steps with and without such a shift can be found in
+\Cref{fig:timeshift}. Finally, note that \eqref{eq:timeshift} implies a 
+log-SNR shift of $\log \frac{n}{m}$ similar to \cite{hoogeboom2023simple}: 
+ \begin{align}
+     %
+     \lambda_{t_m} &= 2 \log \frac{1-t_n}{\sqrt{\frac{m}{n}} t_n} \\
+     &= \lambda_{t_n} - 2 \log \alpha = \lambda_{t_n} - \log \frac{m}{n} \; .
+ \end{align}
+
+After the shifted training at resolution $1024 \times 1024$, we align the model
+using Direct Preference Optimization (DPO) as described in
+\Cref{supsec:dpo}.
+
+\subsubsection{Results}\label{subsec:results}
+%
+%
+%
+\figvalscaling
+In \Cref{fig:valscaling}, we examine the effect of training our \modelname at scale. For images, we conduct a large scaling study and train models with different numbers of parameters for 500k steps on $256^2$ pixels resolution using preencoded data, \cf \Cref{suppsec:precomputingembeddings}, with a batch size of 4096. We train on $2\times2$ patches~\citep{Peebles_2023}, and report validation losses on the CoCo dataset~\citep{Lin_2014} every 50k steps. In particular, to reduce noise in the validation loss signal, we sample loss levels equidistant in $t \in (0,1)$ and compute validation loss for each level separately. We then average the loss across all but the last ($t=1$) levels.
+
+Similarly, we conduct a preliminary scaling study of our \modelname on videos.
+To this end we start from the pretrained image weights and additionally use a
+2x temporal patching. We follow \citet{blattmann2023align} and feed data to the
+pretrained model by collapsing the temporal into the batch axis. In each
+attention layer we rearrange the representation in the visual stream and add a
+full attention over all spatio-temporal tokens after the spatial attention
+operation before the final feedforward layer. Our video models are trained for
+140k steps with a batch size of 512 on videos comprising 16 frames with $256^2$
+pixels. We report validation losses on the Kinetics
+dataset~\cite{carreira2018quo} every 5k steps. Note that our reported FLOPs for
+video training in \Cref{fig:valscaling} are only FLOPs from video training and
+do not include the FLOPs from image pretraining.
+
+For both the image and video domains, we observe a smooth decrease in the
+validation loss when increasing model size and training steps. We find the validation loss to be highly correlated to comprehensive evaluation metrics
+(CompBench~\cite{huang2023t2i}, GenEval~\cite{ghosh2023geneval}) and to human preference.
+These results support the validation loss as a simple and general measure of
+model performance. Our results do not show saturation neither for image not for video models.
+
+\Cref{fig:qualitativescaleparti} illustrates how training a larger model for longer impacts sample quality.
+Tab.~\ref{tab:genEvalSotaTable} shows the results of GenEval in full. When applying the methods presented in \Cref{subsec:shifting} and increasing training image resolution, our biggest model excels in most categories and
+outperforms DALLE~3~\cite{betker2023improving}, the current state of the art in prompt comprehension, in overall score. 
+\dropthememb
+
+Our $d=38$ model outperforms current proprietary~\cite{betker2023improving,ideogramv1} and open~\cite{sauer2023adversarial,playgroundv25,chen2023pixart,pernias2023wuerstchen} SOTA generative image models in human preference evaluation on the Parti-prompts benchmark~\cite{yu2022scaling} in the categories \emph{visual aesthetics}, \emph{prompt following} and \emph{typography generation}, \cf \Cref{fig:sota_human_eval}. For evaluating human preference in these categories, raters were shown pairwise outputs from two models, and asked to answer the following questions: \\
+\textbf{Prompt following:} \textit{Which image looks more \emph{representative} to the \emph{tex}t shown above and \emph{faithfully} follows it?} \\
+\textbf{Visual aesthetics:} \textit{Given the prompt, which image is of \emph{higher-quality} and \emph{aesthetically more pleasing}?} \\
+\textbf{Typography:} \textit{Which image more accurately shows/displays the text specified in the above description? More accurate spelling is preferred! Ignore other aspects.}
+
+Lastly,~\Cref{tab:biggerismorestepefficient} highlights an intriguing result: not only do bigger models perform better, they also require fewer steps to reach their peak performance.
+
+\genEvalSotaTable
+\biggerismorestepefficient
+
+\paragraph{Flexible Text Encoders}
+%
+
+%
+While the main motivation for using multiple text-encoders is boosting the overall model performance~\cite{balaji2022ediffi}, we now show that this choice additionally increases the flexibility of our \modelname-based rectified flow during inference.
+As described in \Cref{subsubsec:exp_prelim} we train our model with three text encoders, with an individual drop-out rate of 46.3\%. 
+Hence, at inference time, we can use an arbitrary subset of all three text
+encoders. This offers means for trading off model performance for improved
+memory efficiency, which is particularly relevant for the 4.7B parameters of
+T5-XXL~\citep{raffel2019exploring} that require significant amounts of VRAM.
+Interestingly, we observe limited performance drops when using only the two
+CLIP-based text-encoders for the text prompts and replacing the T5 embeddings
+by zeros. We provide a qualitative visualization in
+\Cref{fig:embedder_dropping}. Only for complex prompts involving either highly
+detailed descriptions of a scene or larger amounts of written text do we find
+significant performance gains when using all three text-encoders. These
+observations are also verified in the human preference evaluation results in
+\Cref{fig:sota_human_eval} (\emph{Ours w/o T5}).
+Removing T5 has no effect on aesthetic quality ratings ($50\%$ win rate), and only a small impact on prompt adherence ($46\%$ win rate), whereas its contribution to the capabilities of generating written text are more significant ($38\%$ win rate).
+%
+
+
+%
+
+%
+%

@@ -1,0 +1,77 @@
+
+\section{Introduction}\label{sec:intro}
+
+Autoregressive transformers, e.g. DALL-E~\cite{ramesh2021zero} and CogView~\cite{ding2021cogview}, have revolutionized text-to-image generation recently. It is natural to investigate the potential of autoregressive transformers on text-to-video generation. Previous works followed this basic framework~\cite{wu2021n,ge2022long}, e.g. VideoGPT~\cite{yan2021videogpt}, verifying its superiority over GAN-based methods~\cite{clark2019adversarial,tulyakov2018mocogan}, but are still far from satisfactory. 
+
+One common challenge is that the generated video frames tend to gradually deviate from the text prompt, making the generated characters hard to perform the desired actions. Vanilla autoregressive models might be good at synthesizing videos with  regular (e.g. straightly moving cars) or  random patterns (e.g. speaking by randomly moving lips), 
+but fail on text prompt such as ``a lion is drinking water''.
+%is not that easy. 
+The main difference between the two cases is that, in the former case the first frame already provides sufficient information for the subsequent changes, while in the latter  the model has to precisely understand the action ``drink'' in order to correctly generate the desired action --- the lion lifts the glass to its lip, drinks and then puts down the glass.
+%--- it cannot pour or randomly move the glass. 
+
+Why do the autoregressive transformers well understand the text-image relations, but struggle to understand the text-action  relations in videos? We hypothesize that the datasets and the way to utilize them are the main reasons.
+
+First, it is possible to collect billions of high-quality text-image pairs from Internet~\cite{ramesh2021zero}, but the text-video data are more scarce. The largest annotated text-video dataset, VATEX~\cite{wang2019vatex},  has only 41,250 videos. The retrieval-based text-video pairs, e.g. Howto100M~\cite{miech2019howto100m}, are weakly relevant and most of them only describe the scene without the temporal information. 
+
+Second, the duration of videos varies a lot. Previous models split the video into many clips of a fixed number of frames for training, which 
+%seriously 
+destroys the alignment between the text and its temporal counterparts in the video. If a ``drinking'' video is split into four individual clips of ``holding a glass'', ``lifting'', ``drinking'' and ``putting down'' with the same text ``drinking'', the model will be confused to learn the accurate meaning of drinking. 
+
+\textbf{Present Work. }Here we present a large-scale pretrained text-to-video generative model, CogVideo, which is of 9.4 billion parameters  and trained on 5.4 million text-video pairs. We build  CogVideo  based on a pretrained text-to-image model, CogView2~\cite{ding2022cogview2}, in order to inherit the knowledge learned from the text-image pretraining. To ensure the alignment between text and its temporal counterparts in the video, we propose the \emph{multi-frame-rate hierarchical training}. The flexibility of the textual condition makes it possible to simply prepend a piece of text describing the frame rate to the original text prompt for modeling different frame rates. To keep the text-video alignment, we  choose a proper frame rate description to include the complete action in each training sample. The frame rate token also controls the intensity of the changes throughout continuous frames in generation. Specifically, we train a sequential generation model and a frame interpolation model. The former model generates key frames according to the text, and the latter recursively fill the middle frames by varying the frame rates to make the video coherent. As shown in Figure~\ref{fig:samples}, CogVideo can generate high-resolution (480$\times$480) videos. Human evaluation demonstrates that CogVideo outperforms all publicly available models at a large margin. 
+Our main contributions can be concluded as follows:
+
+\begin{itemize}
+    \item We present CogVideo, which is 
+    %currently 
+    the \textbf{largest} and \textbf{the first open-source} pretrained transformer for text-to-video generation in the general domain. 
+    \item CogVideo 
+    %is the first work showing a method to 
+    elegantly and efficiently finetunes a pretrained text-to-image generative model for text-to-image generation, avoiding the expensive full pretraining from scratch.
+    
+    %without hurting its capacity of text-to-image generation. 
+    \item We propose the multi-frame-rate hierarchical training to better align text-clip pairs, which significantly improves the generation accuracy, in particular for movements of  complex semantics. This training strategy 
+    %also 
+    endows CogVideo with the capacity of controlling the intensity of changes during the generation. 
+\end{itemize}
+
+
+% This process reminds us of two essential points in generating videos from text. 
+% Firstly, video is made up of a sequence of images, and only if we ensure every generated frame is reasonable and in high quality, can we generate a video of high fidelity. 
+% Secondly, video can be viewed as a hierarchy of frames in time dimension (at different frame rate?): a video clip can be firstly decomposed into a few low-frame-rate key frames implicating the rough outline, then further decomposed into a larger number of  high-frame-rate frames connecting those key frames. 
+% While the high-frame-rate frames contains more about motion details, low-frame-rate key frames is more relevant to video semantics (such as "drinking water" in our example). 
+
+
+% Multiple classes of generative model have shown certain achievements in video generation, such as generative adversarial models[...], autoregressive models[...], diffusion models[...]. Among them, autoregressive models play an important role. Earlier video autoregressive model [...] generate video in "pixel-by-pixel" manner.
+% % With the emergence of using VQ-VAE (or VQ-GAN) as discrete visual tokenizer, higher efficiency pre-training is conducted in image generation model (DALL-E[...], CogView[...], etc) and achieved great success. [...] applied this discrete tokenization approach into video generation by tokenizing frames one by one and sequentially laying visual tokens, achieving improvement on efficiency as well as quality. 
+% With the emergence of using VQ-VAE (or VQ-GAN) as discrete visual tokenizer, [...] conducted video generation by tokenizing frames one by one and sequentially laying visual tokens, achieving improvement on efficiency as well as quality. 
+% However, all of above mentioned autoregressive methods generate frames in chronological order[maybe block of frames?], ignoring the fact that video can be view as a hierarchy of frames at different frame rate. Furthermore, although some works[...] notice the relation between image and video by pre-training them together in the same model, none of them takes advantage of existing well-performed pretrained autoregressive image models.
+
+
+% We demonstrate CogVideo, a pretrained general-domain text-to-video generation model[ mention number of parameters?] consisting of two generating stages. 
+% In the first stage, CogVideo sequentially generates a few key frames from text, implicating rough outline of the whole video. Then in the second stage, CogVideo recursively interpolate frames at different frame rate with the guidance of text, adding motion details and making the video coherent. 
+% In both stages, CogVideo incorporating model weights from previous text-to-image generation model CogView2 (which explains the origin of our model's name CogVideo) to improve performance and speed up training. 
+
+% There are two significant advantages in CogVideo. The first advantage is that it improves semantic relevance of input text and output videos and exploits videos' time-dimensional hierarchical nature by adopting a two-stage generation paradigm.  
+% Inter-frame relationships over longer time scales are typically more important for video semantics. For example, when generating videos of "a woman drinking water", the whole process of "taking the bottle close to her mouth ,staying for a while ,then putting it down" is more relevant to semantics than "the trajectory of taking up the bottle" or "slight movement of bottle when drinking water". 
+% However, previous work has mostly generated frames in chronological order, making the model more inclined to focus on adjacent frames rather than frames over long time scales. 
+% With our two-stage generation paradigm, CogVideo is better able to attend to frames over both long and short time scales simultaneously, thus improving text-video relevance and video coherence in the same time. 
+
+% The Second advantage is it can incorporate weights of already trained text-to-image generation models, which accelerates training and achieves better performance. 
+% Generating a high quality video requires that every frame generated is of high quality, so a good image generation model is the basis for a good video generation model. 
+% In the mean time, because of the need to model both temporal and spatial relationships, training video generation models is far more complex than a image models  therefore requires larger datasets and more training resources, but text-video pairs are rare in practical data collection (and usually rarer than text-image pairs). 
+% Thus, training video models often suffers from severe data sparsity. 
+% % Training a video model requires modeling on both spatial and temporal correlation which is far more complex than image model, therefore demands larger datasets and more training resources. 
+% To deal with this problem and take advantage of the relationship between image and video generation models, we propose to decouple temporal and spatial modeling using our novel 2-channel attention mechanism, and use an already trained image generation model for the spatial modeling part. 
+% With this, our training process can be simplified to focus mostly on temporal correlation, thus mitigating the problem of data sparsity and accelerate training. As far as we know, CogVideo is the first autoregressive video generation model to exploit existing pretrained image generation models. In ablation study, we verified its effectiveness. 
+
+
+% Our main contributions are as follows:
+
+% 1. We present CogVideo, a pretrained text-to-video generation model pretraining on a dataset of 18 million captioned videos. % metrics
+% % mention open-source?
+
+% 2. We propose hierarchical 2-stage generation, a novel video generation framework that improve semantic relevance between input text and output video by using the nature of video. Both machine and human evaluation verified its effectiveness.
+
+% 3. We propose 2-channel attention, a efficient method to incorporating existing pretrained image generation model into video generation model, and prove its effectiveness in ablation study. As far as we know, we are the first work to utilize image generation model in autoregressive video generation. 
+
+

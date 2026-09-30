@@ -1,0 +1,846 @@
+
+\documentclass{article} 
+
+\usepackage[dvipsnames]{xcolor}
+
+
+\usepackage{colm2024_conference}
+
+\colmfinalcopy 
+
+\usepackage{microtype}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[accsupp]{axessibility} 
+\usepackage{wrapfig}
+
+
+\input{00_preamble}
+
+
+
+
+\title{\method{}: Consistent Multi-Scene Video\\ Generation via LLM-Guided Planning}
+
+
+
+
+\newcommand*\samethanks[1][\value{footnote}]{\footnotemark[#1]}
+
+\author{Han Lin
+\quad
+Abhay Zala
+\quad
+Jaemin Cho
+\quad
+Mohit Bansal\\
+UNC Chapel Hill\\
+\texttt{\{hanlincs, aszala, jmincho, mbansal\}@cs.unc.edu} \\
+{\tt \normalsize \href{https://videodirectorgpt.github.io/}{https://videodirectorgpt.github.io/}}
+}
+
+
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+
+\begin{document}
+
+
+\maketitle
+
+\begin{abstract}
+Recent text-to-video (T2V) generation methods have seen significant advancements. However, the majority of these works focus on producing short video clips of a single event (i.e., single-scene videos).
+Meanwhile, recent large language models (LLMs) have demonstrated their capability in generating layouts and programs to control downstream visual modules.
+This prompts an important question: {\sl can we leverage the knowledge embedded in these LLMs for temporally consistent long video generation?} 
+In this paper, we propose \method{}, a novel framework for consistent multi-scene video generation that uses the knowledge of LLMs for video content planning and grounded video generation.
+Specifically, given a single text prompt, we first ask our video planner LLM (GPT-4) to expand it into a `\videoplan{}', which includes the scene descriptions, the entities with their respective layouts, the background for each scene, and consistency groupings of the entities. 
+Next, guided by this \videoplan{}, our video generator, named \videomodule{}, has explicit control over spatial layouts and can maintain temporal consistency of entities across multiple scenes, while being trained only with image-level annotations.
+Our experiments demonstrate that our proposed \method{} framework
+substantially improves layout and movement control in both single- and multi-scene video generation and can generate multi-scene videos with consistency, while achieving competitive performance with SOTAs in open-domain single-scene T2V generation.
+Detailed ablation studies, including dynamic adjustment of layout control strength with an LLM and video generation with user-provided images, confirm the effectiveness of each component of our framework and its future potential.
+\end{abstract}
+
+
+\section{Introduction}
+\label{sec:intro}
+
+
+
+Text-to-video (T2V) generation has achieved rapid progress following the success of text-to-image (T2I) generation.
+Most works in T2V generation focus on producing short videos (e.g., 16 frames at 2fps)
+from the given text prompts~\citep{wang2023modelscope, he2022latent, ho2022imagen, singer2022make, zhou2022magicvideo}.
+Recent studies on long video generation \citep{blattmann2023align, yin2023nuwa, villegas2022phenaki, he2023animate} aim at generating long videos of a few minutes with holistic visual consistency.
+Although these works could generate longer videos, the generated videos often display 
+the continuation or repetitive patterns of a single action (e.g., driving a car) instead of transitions and dynamics of multiple changing actions/events (e.g., five steps about how to make caraway cakes).
+Meanwhile, large language models (LLMs)~\citep{brown2020language, openai2023gpt4, touvron2023llama1, touvron2023llama, chowdhery2022palm} have demonstrated their capability in generating layouts and programs to control visual modules~\citep{surismenon2023vipergpt,gupta2023visual}, especially image generation models~\citep{cho2023visual,feng2023layoutgpt}.
+This raises an interesting question:
+{\sl Can we leverage the knowledge embedded in these LLMs for planning consistent multi-scene video generation?}
+
+
+
+\begin{figure}[t]
+\begin{center}
+    \includegraphics[width=.99\linewidth]{img/teaser_v4.pdf}
+    \vspace{-2mm}
+    \caption{
+    \textbf{
+    \method{} framework.}
+    First,
+    we employ \textbf{GPT-4 as a video planner} to craft a multi-component \textbf{\videoplan{}}.
+    Next,
+    we utilize \textbf{\videomodule{}}, a grounded video generation module, to render multi-scene videos with layout and consistency control. 
+    \vspace{-20pt}
+    }
+\label{fig:teaser}
+\end{center}
+\end{figure}
+
+
+
+In this work, we introduce \textbf{\method{}}, a novel framework for consistent multi-scene video generation. As illustrated in \cref{fig:teaser},
+\method{} decomposes the T2V generation task into two stages:
+\textbf{video planning} and \textbf{video generation}.
+For the first video planning stage (see \cref{fig:teaser} \textcolor{ProcessBlue}{blue} part), we employ an LLM to generate a \videoplan{}, which is an overall plot of the video with multiple scenes, each consisting of a text description of the scene and entity names/layouts, and a background. It also consists of consistency groupings 
+of specific entities that re-appear across scenes.
+For the second video generation stage (see \cref{fig:teaser} \textcolor{Dandelion}{yellow} part), we introduce \videomodule{}, a novel grounded video generation module that generates multi-scene videos from the \videoplan{}.
+Our framework provides the following strengths:
+(1) employing an LLM to write a \videoplan{} that guides the generation of videos {with multiple scenes from a single text prompt},
+(2) layout control in video generation by only using image-level layout annotations, and (3) generation of visually consistent entities across multiple scenes. 
+
+
+In the first stage, video planning (\cref{sec:llm_guiding}),
+we employ an LLM (e.g., GPT-4~\citep{openai2023gpt4}) as a video planner to generate a \textbf{\videoplan{}},
+a multi-component video script with multiple scenes to guide the downstream video synthesis process.
+Our \videoplan{} consists of four components: 
+(1) multi-scene descriptions,
+(2) entities (names and their 2D bounding boxes),
+(3) background,
+and
+(4) consistency groupings (scene indices for each entity indicating where they should remain visually consistent).
+We generate the \videoplan{} in two steps by prompting an LLM with different in-context examples. 
+In the first step, we expand a single text prompt into multi-step scene descriptions with an LLM, 
+where each scene is described with a text description, a list of entities, and a background (see \cref{fig:framework} \textcolor{ProcessBlue}{blue} part for details).
+We also prompt the LLM to generate additional information for each entity (e.g., color, attire, etc.), and group together entities across frames and scenes, which will help guide consistency during the video generation stage.
+In the second step, we expand the detailed layouts of each scene with an LLM by generating the bounding boxes of the entities per frame, given the list of entities and scene description.
+This overall `\videoplan{}' guides the downstream video generation.
+
+In the second stage, video generation (\cref{sec:grounded_video_generation}),
+we introduce \videomodule{},
+a grounded video generation module to render videos based on the generated \videoplan{} (see \textcolor{Dandelion}{yellow} part of \cref{fig:framework}).
+For the grounded video generation module, we build upon \modelscope{}~\citep{wang2023modelscope}, an off-the-shelf T2V generation model, by freezing its original parameters and adding spatial/consistency control of entities through a small set of trainable parameters (13\% of total parameters) through the gated-attention module~\citep{li2023gligen}. 
+This enables our \videomodule{} to be trained solely on layout-annotated images, thus bypassing the need for expensive training on annotated video datasets.
+To preserve the identity of entities across scenes,
+we use shared representations for the entities within the same consistency group.
+We also propose to use a joint image+text embedding as entity grounding conditions 
+which we find more effective than the existing text-only approaches~\citep{li2023gligen} in entity identity preservation (see \cref{sec:ablation_study}).
+Overall, our \videomodule{} avoids expensive video-level training, improves the object layout and movement control, and preserves objects cross-scene temporal consistency.
+
+
+
+\begin{figure}[t]
+\begin{center}
+    \includegraphics[width=0.99\linewidth]{img/video_plan_v3.pdf}
+    \vspace{-2mm}
+    \caption{
+    \textbf{
+    \method{} details.
+    }
+    \textbf{1st stage}:
+    we employ the \textbf{LLM as a video planner} to craft a \textbf{\videoplan{}},
+    which provides an overarching plot for multi-scene videos.
+    \textbf{2nd stage}:
+    we utilize \textbf{\videomodule{}}, a grounded video generation module, to render videos based on the \videoplan{}.
+    (\cref{sec:grounded_video_generation}).
+    \vspace{-10pt}
+    }
+\label{fig:framework}
+\end{center}
+\end{figure}
+
+
+We conduct experiments on both single-scene and multi-scene video generation. 
+Experiments show that our \method{} demonstrates better layout skills (object, count, spatial, scale) 
+and object movement control compared with \modelscope{}~\citep{wang2023modelscope} as well as more recent video generation models including  AnimateDiff~\citep{guo2023animatediff}, I2VGen-XL~\citep{zhang2023i2vgen}, and SVD~\citep{blattmann2023stable}. In addition, \method{} is capable of generating multi-scene videos with visual consistency across scenes, and competitive with SOTAs on single-scene open-domain T2V generation (\cref{sec:single_scene_video_gen} and \cref{sec:multi_scene_video_gen}).
+Detailed ablation studies, including dynamic adjustment of layout control strength, video plans generated from different LLMs, and video generation with user-provided images confirm the effectiveness and capacity of our framework (\cref{sec:additional_analysis} and \cref{sec:ablation_study}).
+
+
+Our main contributions can be summarized as follows:
+\begin{itemize}[leftmargin=1em]
+    \setlength{\itemsep}{0pt}
+    \setlength{\parskip}{0pt}
+    \setlength{\parsep}{0pt}
+    \item A new T2V generation framework \method{} with two stages: video content planning and grounded video generation, which is capable of generating a multi-scene video from a single text prompt.
+    \item We employ LLMs to generate a multi-component `\videoplan{}'
+    with detailed scene descriptions, entity layouts, and entity consistency groupings 
+    to guide video generation.
+    \item We introduce \videomodule{}, a novel grounded video generation module, which brings together image/text-based layout control ability and entity-level temporal consistency. Our \videomodule{} can be trained efficiently using only image-level layout annotations.
+    \item Empirical results demonstrate that our framework can accurately control object layouts and movements, and generate temporally consistent multi-scene videos.
+\end{itemize}
+
+
+
+
+
+
+\section{Related Works}
+\label{sec:related_works}
+
+\noindent\textbf{Text-to-video generation.}
+Training a T2V generation model from scratch is computationally expensive.
+Recent work often leverages pre-trained text-to-image (T2I) generation models such as Stable Diffusion~\citep{rombach2022high} by fine-tuning them on text-video pairs~\citep{wang2023modelscope, blattmann2023align}.
+While this warm-start strategy enables high-resolution video generation, it comes with the limitation of only generating short video clips, as T2I models lack the ability to maintain consistency through long videos. 
+On the other hand, recent works on long video generation \citep{blattmann2023align, yin2023nuwa, villegas2022phenaki, he2023animate} aim at generating long videos of several minutes.
+However, the generated videos often display the continuation or repetitive actions 
+instead of transitions of multiple actions/events. 
+In contrast, our \videomodule{} infuses layout control and multi-scene temporal consistency into a pretrained T2V generation model via data and parameter-efficient training while preserving its original visual quality.
+
+
+
+
+\vspace{5pt}
+\noindent\textbf{Bridging text-to-image generation with layouts.}
+To achieve interpretable and controllable generation, a line of research decomposes the T2I generation task into two stages: text-to-layout generation, and layout-to-image generation.
+While early models train the layout generation module from scratch~\citep{hong2018inferring,tan2019text2scene,li2019object,Liang2022LayoutBridgingTS},
+recent methods employ pretrained LLMs to leverage their knowledge in generating image layouts from text~\citep{cho2023visual,feng2023layoutgpt,qu2023layoutllmt2i}.
+To the best of our knowledge, our work is the first to utilize LLMs to generate structured video plans 
+from text, enabling accurate and controllable long video generation. 
+
+
+
+
+
+
+\begin{figure}[t]
+\begin{center}
+    \includegraphics[width=.99\linewidth]{img/grounding_v4.pdf}
+    \vspace{-3mm}
+    \caption{
+    \textbf{Illustration of \videomodule{}.}
+    \textbf{(a) Training.}
+    Our \videomodule{}
+    is efficiently trained on image-level bounding box annotations.
+    We construct entity grounding tokens 
+    with an MLP that takes text, image, and bounding box
+    embeddings as inputs.
+    \textbf{(b) Inference.}
+    we obtain image embeddings of entities from their text descriptions with unCLIP Prior.
+    To ensure temporal consistency, we use the same entity embeddings across scenes.
+    \textbf{(c) Guided 2D Attention.}
+    We modulate the \textcolor{black}{visual representation} with \textcolor{black}{grounding tokens} and \textcolor{black}{text tokens}.
+    }
+\label{fig:img_embedding}
+\vspace{-4mm}
+\end{center}
+\end{figure}
+
+
+
+
+
+\section{\method{}}
+\label{sec:method}
+
+\subsection{Video Planning: Video Plans with LLMs}
+\label{sec:llm_guiding}
+
+
+
+
+
+\vspace{5pt}
+\noindent\textbf{Video plan.}
+As illustrated in the \textcolor{ProcessBlue}{blue} part of \cref{fig:framework}, GPT-4~\citep{openai2023gpt4} 
+acts as a planner, providing a detailed \textit{\videoplan{}} 
+to guide the video generation.
+Our \videoplan{} has four components:
+(1) \textbf{multi-scene descriptions}: a sentence describing each scene, 
+(2) \textbf{entities}: names and their 2D bounding boxes, 
+(3) \textbf{background}: text description of the location of each scene,
+and (4) \textbf{consistency groupings}:
+scene indices for each entity indicating where they should remain visually consistent.
+The \videoplan{} is generated in two steps by prompting GPT-4 independently. 
+The input prompt template for each step is displayed in \cref{appendix:prompt_templates}.
+
+
+
+\vspace{5pt}
+\noindent\textbf{Step 1: Generating multi-scene descriptions, entity names, and consistency groupings.}
+In the first step, we employ GPT-4 to expand a single text prompt into a multi-scene \videoplan{}.
+Next, we group entities and backgrounds that appear across different scenes using an exact match. For instance, if the `chef' appears in scenes 1-4 and `oven' only appears in scene 1, we form the entity consistency groupings as \texttt{\{chef:[1,2,3,4], oven:[1]\}}. 
+In the subsequent video generation stage, we use the
+shared representations for the same entity consistency groups to maintain their temporally consistent appearances (see \cref{sec:grounded_video_generation}).
+
+
+
+\vspace{5pt}
+\noindent\textbf{Step 2: Generating entity layouts for each scene.}
+In the second step,
+we generate a list of bounding boxes for the entities in each frame based on the entities and the scene description. For each scene, we produce layouts for 9 frames, then linearly interpolate to gather information for denser frames (\eg{}, 16 frames per scene).
+In line with VPGen~\citep{cho2023visual}, we adopt the $[x_0, y_0, x_1, y_1]$ format for bounding boxes, where each coordinate is normalized to fall within the range [0,1].
+For in-context examples, we present 0.05 as the minimum unit for the bounding box, equivalent to a 20-bin quantization. 
+
+
+
+
+
+
+\subsection{Video Generation: Generating Videos from Video Plans with \videomodule{}}
+\label{sec:grounded_video_generation}
+
+
+
+
+
+\vspace{5pt}
+\noindent\textbf{Preliminaries.}
+Given a $T$ frame video $\bm{x}\in\mathbb{R}^{T\times 3 \times H \times W}$ with video caption $\bm{c}$, we first uses an autoencoder to encode the video into latents $\bm{z}=\mathcal{E}(\bm{x})\in\mathbb{R}^{T\times C \times H' \times W'}$, where $C=4$ represents the number of latent channels, and $H'=H/8$, $W'=W/8$ represent the spatial dimension of the latents. 
+In Latent diffusion model (LDM) \citep{rombach2022high}, the forward process is a fixed diffusion process which gradually adds noise to the latent variable $\bm{z}$:
+$q(\bm{z}_t|\bm{z}_{t-1})=N(\bm{z}_t; \sqrt{1-\beta_t}\bm{z}_{t-1}, \beta_t \bm{I})$,
+where $\beta_t\in(0,1)$ is the variance schedule with $t\in\{1, ..., T\}$.
+The reverse process gradually produces less noisy samples $\bm{z}_{T-1}, \bm{z}_{T-2}, ..., \bm{z}_0$ starting from $\bm{z}_{T}$ through a learnable denoiser model $\bm{\epsilon_\theta}$. With t as a timestep uniformly sampled from $\{1, ..., T\}$, the training objective of our \videomodule{} can be expressed as: 
+$\min_{\bm{\theta}} L_{\text{LDM}}=E_{\bm{z}, \bm{\epsilon}\sim N(0, \bm{I}), t}\|\bm{\epsilon} - \bm{\epsilon_{\theta}}(\bm{z}_t, t, \bm{c})\|_2^2$.
+
+
+
+
+
+
+
+\vspace{5pt}
+\noindent\textbf{\videomodule{}: Layout-guided T2V generation.}
+\label{sec:network_structure}
+We implement \videomodule{} by integrating layout control capability into \modelscope{}~\citep{wang2023modelscope}, a public T2V generation model based on Stable Diffusion~\citep{rombach2022high}.
+The diffusion UNet in \modelscope{} consists of a series of spatio-temporal blocks, each containing four modules: spatial convolution, temporal convolution, spatial attention, and temporal attention.
+Compared with \modelscope{}, our \videomodule{}
+enables layout-guided video generation 
+with explicit spatial control over a list of entities represented by their bounding boxes, as well as visual and text content. 
+We build upon the 2D attention 
+to create the guided 2D attention (see \cref{fig:network} in \cref{appendix:layout2vid}).
+As shown in \cref{fig:img_embedding} (c), the guided 2D attention takes two conditional inputs to modulate the visual latent representation:
+(1) \textcolor{black}{grounding tokens}, conditioned with gated self-attention~\citep{li2023gligen},
+and
+(2) \textcolor{black}{text tokens} that describe the current scene, conditioned with cross-attention.
+
+
+
+
+
+
+
+\vspace{5pt}
+\noindent\textbf{Temporally consistent entity grounding with image+text embeddings.}
+While previous layout-guided T2I generation models commonly used only the CLIP text embedding for layout control~\citep{li2023gligen,yang2022reco},
+we use the CLIP image embedding in addition to the CLIP text embedding for entity grounding. We demonstrate in our ablation studies (see \cref{sec:ablation_study}) that this method is more effective than using either text-only or image-only grounding.
+As depicted below, the grounding token for the $i^{th}$ entity, $\bm{h}_i$, is a 2-layer MLP which fuses
+CLIP image embeddings $\bm{f}_{\text{img}}(e_i)$,
+CLIP text embeddings $\bm{f}_{\text{text}}(e_i)$,
+and Fourier features~\citep{mildenhall2021nerf} of the bounding box $\bm{l}_i = [x_0, y_0, x_1, y_1]$.
+We use learnable linear projection layers, denoted as $\bm{P}_{\text{img/text}}$, on the visual/text features, which we found helpful for faster convergence during training.
+\label{eq:our_grounding_token}
+$$
+\bm{h}_i = \text{MLP}(
+\bm{P}_{\text{img}}(\bm{f}_{\text{img}}(e_i)),
+\bm{P}_{\text{text}}(\bm{f}_{\text{text}}(e_i)),
+\text{Fourier}(\bm{l}_i))
+$$
+The training and inference procedure of our \videomodule{} are presented in \cref{fig:img_embedding} parts (a) and (b) respectively.
+During training, the image embeddings $\bm{f}_{\text{img}}(e)$ are obtained by encoding the image crop of the entities with CLIP image encoder.
+During inference, since all the inputs are in text format (e.g., from the \videoplan{}), we employ Karlo~\citep{kakaobrain2022karlo-v1-alpha}, a public implementation of unCLIP Prior~\citep{ramesh2022hierarchical} to transform the CLIP text embedding into its corresponding CLIP image embedding.
+Moreover, 
+our image embeddings can also be obtained from user-provided exemplars during inference by simply encode the images with the CLIP image encoder.
+
+
+
+
+
+\vspace{5pt}
+\noindent\textbf{Parameter and data-efficient training.}
+During training, we only update the parameters of the guided 2D attention (13\% of total parameters) to inject layout guidance capabilities into the pretrained T2V backbone while preserving its original video generation capabilities.
+Such strategy allows us to efficiently train the model with only image-level layout annotations,
+while still equipped with multi-scene temporal consistency via shared entity grounding tokens. Training and inference details are shown in \cref{appendix:layout2vid}.
+
+
+
+
+
+
+\section{Experimental Setup}\label{sec:experiments}
+
+\noindent\textbf{Evaluated models.} 
+We primarily compare our \method{} with \modelscope{}, as our \videomodule{} uses its frozen weights and only trains a small set of new parameters to add spatial and consistency control. 
+Additionally, we present comparisons with other T2V generation models (see \cref{sec:experiments_appendix} for baseline model details) on MSR-VTT and UCF-101 datasets~\citep{xu2016msr-vtt, soomro2012ucf101}.
+
+\vspace{5pt}
+\noindent\textbf{Prompts for single-scene video generation.}
+For single-scene videos, 
+we (1) evaluate layout control via VPEval Skill-based prompts~\citep{cho2023visual}, 
+(2) assess object dynamics through ActionBench-Direction prompts adapted from ActionBench-SSV2~\citep{wang2023paxion}, 
+and (3) examine open-domain video generation using MSR-VTT and UCF-101~\citep{xu2016msr-vtt, soomro2012ucf101}.
+We introduce ActionBench-Direction prompts by sampling video captions from ActionBench-SSV2~\citep{wang2023paxion} and balancing the distribution of movement directions. 
+Prompt preparation details are presented in \cref{sec:experiments_appendix}.
+
+
+
+\vspace{5pt}
+\noindent\textbf{Prompts for multi-scene video generation.} 
+For multi-scene video generation,
+we experiment with two types of input prompts:
+(1) a list of sentences describing events -- ActivityNet Captions~\citep{krishna2017dense} and
+\corefdata{} prompts based on Pororo-SV~\citep{li2018storygan}, and
+(2) a single sentence from which models generate multi-scene videos -- HiREST~\citep{zala2023hierarchical}.
+\corefdata{} is a new multi-scene text description dataset
+that we propose to 
+evaluate the visual consistency of objects across multi-scene videos.
+Prompt preparation details are presented in \cref{sec:experiments_appendix}.
+
+
+
+
+
+
+
+
+\vspace{5pt}
+\noindent\textbf{Automated evaluation metrics.} Following previous works \citep{hong2022cogvideo, wu2022nuwa1, wang2023modelscope},
+we use {FID}~\citep{heusel2017gans}, {FVD}~\citep{unterthiner2019fvd}, and {IS}~\citep{salimans2016improved} scores as video quality metrics, and {CLIPSIM}~\citep{wu2021godiva} score
+for text-video alignment.
+Given that CLIP fails to faithfully capture detailed semantics such as spatial relations, object counts, and actions
+in videos~\citep{otani2023verifiable,Cho2023DallEval,cho2023visual,hu2023tifa},
+we further propose the use of the following fine-grained metrics:
+\begin{itemize}[leftmargin=1em]
+    \item \textbf{VPEval accuracy}: we employ it for the evaluation of VPEval Skill-based prompts (object, count, spatial, scale), which is based on running skill-specific evaluation programs that execute relevant visual modules~\citep{cho2023visual}.
+    Since the VPEval accuracy described above does not cover temporal information, we propose a metric that takes into account temporal information as well as spatial layouts for ActionBench-Direction prompts.
+    \item \textbf{Object movement direction accuracy}: we introduce this new metric to evaluate ActionBench-Direction prompts, which takes both temporal information and spatial layouts into consideration. 
+    To accomplish this, we assess whether the target objects in the generated videos move in the direction described in the prompts.
+The start/end locations of objects are obtained by detecting objects with GroundingDINO~\citep{liu2023grounding} on the first/last video frames.
+We then evaluate whether the $x$ (for movements left or right) or $y$ (for movements up or down) coordinates of the objects have changed correctly and assign a binary score of 0 or 1 based on this evaluation.
+For instance, given the prompt ``pushing a glass from left to right'' and a generated video, we identify a `glass' in both the first and last video frames.
+We assign a score of 1 if the $x$-coordinate of the object increases by the last frame; otherwise, we assign a score of 0.
+    \item \textbf{Multi-scene object temporal consistency}: we propose this new metric for the evaluation of ActivityNet Captions and \corefdata{}, which measures the consistency of the visual appearance of a target object across different scenes.
+    We also introduce a new metric to measure the consistency of the visual appearance of a target object across different scenes. 
+Specifically, we first detect the target object using GroundingDINO from the center frame of each scene video.
+Then, we extract the CLIP (ViT-B/32) image embedding from the crop of the detected bounding box.
+We calculate the multi-scene object consistency metric by averaging the CLIP image embedding similarities across all adjacent scene pairs:
+$\frac{1}{N} \sum_{n=1}^{N-1} cos(\text{CLIP}^{\text{img}}_{n}, \text{CLIP}^{\text{img}}_{n+1})$,
+where $N$ is the number of scenes,
+$cos(\cdot,\cdot)$ is cosine similarity,
+and $\text{CLIP}^{\text{img}}_{n}$ is the CLIP image embedding of the target object in $n$-th scene.
+
+\end{itemize}
+
+
+
+
+
+
+
+
+\vspace{3pt}
+\noindent\textbf{Human evaluation.}
+We conduct a human evaluation on the multi-scene videos generated by both our \method{} and \modelscope{} on the \corefdata{} dataset.
+Since we know the target entity and its co-reference pronouns in the \corefdata{} prompts, we can compare the temporal consistency of the target entities across scenes.
+We evaluate the human preference between videos from two models in each category of Quality, Text-Video Alignment, and Object Consistency.
+See \cref{sec:experiments_appendix} for setup details. 
+
+\noindent\textbf{Step-by-step error analysis.}
+We conduct an error analysis at each step of our single-sentence to multi-scene video generation pipeline on the HiREST dataset.
+We analyze the generated multi-scene text descriptions, layouts, and entity consistency groupings to evaluate our video planning stage, and examine the final video to evaluate the video generation stage. 
+
+
+
+
+
+\section{Results and Analysis}
+\label{sec:results}
+
+
+
+\subsection{Single-Scene Video Generation}\label{sec:single_scene_video_gen}
+
+
+
+\noindent\textbf{Layout control results (VPEval Skill-based prompts).}
+\Cref{tab:vpeval_actionbench} (left) displays the VPEval accuracy on the VPEval Skill-based prompts.
+Our \method{} significantly outperforms \modelscope{} as well as recent T2V/I2V generation models including AnimateDiff~\citep{guo2023animatediff}, I2VGen-XL~\citep{zhang2023i2vgen}, and SVD~\citep{blattmann2023stable} on all layout control skills. 
+These results suggest that layouts
+generated by our LLM are highly accurate and greatly improve the control of object placements during video generation.
+\cref{fig:vpeval_and_actionbench_outputs_main} (left) shows an example where our LLM-generated \videoplan{} successfully guides \videomodule{} to accurately place the objects, while \modelscope{} fails to generate a `pizza'. In \cref{appendix:visualizations}, we show additional examples (see \cref{fig:r1w4}) that our \videoplan{} can generate layouts requiring understanding of physics (\eg{}, gravity, perspectives).
+
+
+\begin{table}[h]
+    \centering
+    \vspace{-5pt}
+    \resizebox{0.95\linewidth}{!}{
+    \begin{tabular}{l ccccc c}
+        \toprule
+        \multirow{2}{*}{Method}  & \multicolumn{5}{c}{VPEval Skill-based} & ActionBench-Direction \\
+        \cmidrule(lr){2-6} \cmidrule(lr){7-7} 
+        & Object & Count & Spatial & Scale & Overall Acc. (\%) & Movement Direction Acc. (\%) \\
+        \midrule
+        \modelscope{} & 89.8 & 38.8 & 18.0 & 15.8 & 40.8 & 30.5 \\
+        AnimateDiff & 96.7 & 52.7 & 22.5 & 15.5 & 46.8 & 29.0 \\
+        I2VGen-XL & 96.5 & 62.0 & 35.2 & 23.7 & 54.3 & 35.2 \\
+        SVD & 93.1 & 46.7 & 29.2 & 15.0 & 45.7 & 30.7 \\
+        \midrule
+        \rowcolor{lightblue}
+        \method{} & \textbf{97.1} & \textbf{77.4} & \textbf{61.1} & \textbf{47.0} & \textbf{70.6} & \textbf{46.5} \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{
+    Single-scene video generation evaluation on layout control (\textbf{VPEval Skill-based}) and object movement (\textbf{ActionBench-Direction}) prompts.
+    }
+    \label{tab:vpeval_actionbench}
+    \vspace{-5pt}
+\end{table}
+
+
+
+
+
+\begin{figure}[h]
+\vspace{-5pt}
+  \centering
+\includegraphics[width=.9\linewidth]{img/vpeval_and_actionbench_direction_generation_comparison_main.pdf}
+  \vspace{-5pt}
+\caption{
+Generated examples on \textbf{VPEval Skill-based} and \textbf{ActionBench-Direction} prompts.
+}
+\label{fig:vpeval_and_actionbench_outputs_main} 
+\end{figure}
+
+
+
+
+
+\vspace{3pt}
+\noindent\textbf{Object movement results (ActionBench-Direction).}
+\Cref{tab:vpeval_actionbench} (right) shows the performance on the ActionBench-Direction prompts which evaluate both temporal understanding and spatial layout control.
+For each object, we give prompts that include four movement directions: ‘left to right’, ‘right to left’, ‘top to bottom’, and ‘bottom to top’. Therefore, for a random guess, the movement accuracy is 25\%.
+Our \method{} outperforms \modelscope{} and other T2V/I2V models in object movement direction accuracy by a large margin, demonstrating that our LLM-generated layouts can improve the accuracy of object dynamics in video generation.
+\cref{fig:vpeval_and_actionbench_outputs_main} (right) shows that our LLM-generated \videoplan{} guides the \videomodule{} module to correctly locate and move the `pear' in the accurate direction,
+whereas the `pear' in the \modelscope{} video is not moved and just gets grabbed.
+In \cref{appendix:visualizations}, we show additional examples (see \cref{fig:r2w2}) where for static objects (\eg{}, a bottle), movement is often depicted via camera motion, whereas for objects that can naturally move (\eg{}, airplane), our \method{} directly shows object movements.
+
+
+
+
+
+\begin{wraptable}[15]{r}{6.3cm}
+\centering
+\resizebox{\linewidth}{!}{%
+    \begin{tabular}{l ccc}
+    \toprule
+    \multirow{2}{*}{Method}  & \multicolumn{3}{c}{MSR-VTT} \\
+    \cmidrule(lr){2-4}  
+    & FVD () & FID ()    & CLIPSIM ($\uparrow$)  \\
+    \midrule
+    \multicolumn{2}{l}{\textcolor{gray}{Different arch / Training data}} \\
+    NUWA & ${-}$ & ${47.68}$  & ${0.2439}$ \\
+    CogVideo (Chinese) & ${{-}}$  & ${24.78}$  & ${{0.2614}}$  \\
+    CogVideo (English) & ${{1294}}$  & ${23.59}$    & ${{0.2631}}$  \\
+    MagicVideo & ${{1290}}$  & ${-}$  & ${{-}}$ \\
+    VideoLDM  & ${{-}}$ & ${-}$  & ${{0.2929}}$	\\
+    Make-A-Video &  ${{-}}$ & ${13.17}$  & 0.3049 \\
+    \midrule
+    \multicolumn{3}{l}{\textcolor{gray}{Same video backbone \& Test prompts}} \\
+    \modelscope{}$^\dagger$ & $683$ & $12.32$  & \textbf{0.2909} \\
+    \rowcolor{lightblue}
+    \method{} & \textbf{550} & \textbf{12.22}  & {0.2860} \\
+    \bottomrule
+    \end{tabular}
+}
+\caption{
+    Comparison results on MSR-VTT.
+    \modelscope{}$^\dagger$:
+    Our replication
+    on the same 2990 random test prompts.
+}
+\label{table:msrvtt}
+\end{wraptable}
+
+\vspace{3pt}
+\noindent\textbf{Open-domain results.}
+\Cref{table:msrvtt} presents the FVD, FID, and CLIPSIM scores on MSR-VTT. 
+It's worth noting that our model is built on the pretrained \modelscope{} backbone.
+Despite this, our method demonstrates good improvements in FVD and competitive scores in FID and CLIPSIM.
+In addition, our method achieves better or comparable performance to models trained with larger video data (e.g., Make-A-Video) or with higher resolution (e.g., VideoLDM). 
+Evaluation results on UCF-101 are presented in \cref{appendix:additional_experiments}, where we achieve significant
+improvement in FVD (\modelscope{} 1093 vs. Ours 748) and similar performance in the Inception Score (\modelscope{} 19.49 vs. Ours 19.42).
+
+
+
+
+
+
+
+
+
+
+\subsection{Multi-Scene Video Generation}\label{sec:multi_scene_video_gen}
+
+\noindent\textbf{Multiple sentences to multi-scene videos generation (ActivityNet Captions / Coref-SV).}
+As shown in the left two blocks of \Cref{tab:multi_scene_video},
+our \method{} outperforms \modelscope{} in visual quality (FVD/FID) and multi-scene object temporal consistency.
+Notably, for \corefdata{}, our \method{} achieves higher object consistency than \modelscope{} even with GT co-reference 
+(where pronouns are replaced with their original noun counterparts, acting as oracle information; e.g., ``she picked up ...'' becomes ``cat picked up ...'').
+{As we do not have ground-truth videos for \corefdata{}, we only use it to evaluate consistency when co-references are used across scenes.}
+\cref{fig:pororo_and_hirest_outputs} (left) shows a video generation example from \corefdata{},
+where the LLM-generated \videoplan{} can guide the \videomodule{} module to generate the same mouse across scenes consistently,
+whereas \modelscope{} generates a hand and a dog instead of a mouse in later scenes.
+
+
+\begin{table}[t]
+\centering
+\resizebox{.99\linewidth}{!}{
+\begin{tabular}{l ccc c cc}
+\toprule
+\multirow{2}{*}{Method}  & \multicolumn{3}{c}{ActivityNet Captions} & Coref-SV & \multicolumn{2}{c}{HiREST} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-5} \cmidrule(lr){6-7}
+& FVD () & FID () & Consistency ($\uparrow$) &  Consistency ($\uparrow$) & FVD () & FID () \\
+\midrule
+\modelscope{} & 980 & 18.12 & 46.0 & 16.3 & 1322 & 23.79\\
+\modelscope{} (with GT co-reference; oracle) & -& -& -& 37.9 & - & - \\
+\modelscope{} (with prompts from our \videoplan{}) & -& -& -& - & 918 & 18.96 \\
+\rowcolor{lightblue}
+\method{} (Ours) & \textbf{805} & \textbf{16.50} & \textbf{64.8} & \textbf{42.8} & \textbf{733} & \textbf{18.54} \\
+\bottomrule
+\end{tabular}
+}
+\caption{
+    Multi-scene video generation with multiple input text (ActivityNet Captions and \corefdata{})
+    and single sentence (HiREST).
+    \textit{GT co-reference}: replacing co-reference pronouns in \corefdata{} with the original object names (e.g., ``his friends'' may become ``dog's friends''). 
+    \textit{Prompts from our \videoplan{}}: 
+    an enhanced benchmark for \modelscope{} using scene descriptions from our \videoplan{}.
+}
+\label{tab:multi_scene_video}
+\end{table}
+
+
+\begin{figure}[t]
+\centering
+    \includegraphics[width=.95\linewidth]{img/coref_sv_hirest_combined.pdf}
+    \caption{
+        Generation examples on \textbf{\corefdata{} (left)} and \textbf{HiREST (right)}.
+        Our \method{} is able to generate detailed \textit{video plans} and visually consistent videos. 
+    }
+\label{fig:pororo_and_hirest_outputs}
+\end{figure}
+
+
+
+\vspace{5pt}
+\noindent\textbf{Single sentences to multi-scene videos generation (HiREST).}
+The right block of \Cref{tab:multi_scene_video} shows
+our \method{} achieves better visual quality scores (FVD/FID) than \modelscope{} on the HiREST dataset.
+Moreover, by comparing with an enhanced \modelscope{} benchmark, where videos are generated from each scene description in our GPT-4-produced video plan, we demonstrate the effectiveness of prompts generated by GPT-4.
+However, it still performs worse than our \method{}, also showing the effectiveness of our \videomodule{}.
+As shown in \cref{fig:pororo_and_hirest_outputs} (right), our LLM can generate a step-by-step \videoplan{} from a single prompt and our \videomodule{} can generate consistent videos following the plan, 
+showing how to make caraway cakes (a British seed cake). In contrast, \modelscope{} repeatedly generates the final caraway cake (which is visually inconsistent). 
+An additional example with human (see \cref{fig:multi_scene_boy}) is shown in \cref{appendix:visualizations}.
+
+
+\begin{figure}[t]
+\centering
+    \vspace{-2mm}
+    \includegraphics[width=.85\linewidth]{img/image_input_example_main.pdf} 
+    \vspace{-3mm}
+    \caption{
+    Video generation with text-only (top) and image+text (bottom) inputs with \method{}.
+    By giving text or image+text inputs,
+    users can generate images where 
+    the identities of the entities are preserved across multiple scenes.
+    }
+\label{fig:image_input_main}
+\end{figure}
+
+
+
+
+
+\subsection{Additional Analysis}\label{sec:additional_analysis}
+
+
+
+
+
+\noindent\textbf{Generating videos with custom image exemplars.}
+Our \videomodule{} can obtain CLIP image embeddings either from user-provided image exemplars or from entity text descriptions via the unCLIP Prior.
+In \cref{fig:image_input_main}, we demonstrate that our \videomodule{} can flexibly take either text-only or image+text descriptions as input to generate consistent multi-scene videos.
+
+
+\vspace{3pt}
+\noindent\textbf{Dynamic layout strength control with GPT-4.}
+The number of denoising steps with layout guidance $\alpha$
+controls layout control strength of
+\videomodule{} (see \cref{appendix:visualizations} for more detailed illustration).
+Instead of using a static $\alpha$ value, we explore dynamically adjusting it during the \videoplan{} generation by asking LLM how much layout guidance needs to be used for each prompt.
+\Cref{tab:ablation_alpha} compares static $\alpha$ values
+and dynamic $\alpha$ values (LLM-Dynamic-$\alpha$), showing that LLMs help achieve a good balance in the quality-layout trade-off.
+
+
+\begin{table}[t]
+    \centering
+    \resizebox{0.85\linewidth}{!}{
+    \begin{tabular}{l ccc c}
+        \toprule
+        \multirow{2}{*}{\parbox{4cm}{\# Denoising steps with layout guidance (out of 50)}} & \multicolumn{3}{c}{MSR-VTT} & ActionBench-Direction \\
+        \cmidrule(lr){2-4} \cmidrule(lr){5-5} 
+        & FVD () & FID () & CLIPSIM ($\uparrow$) & Move Direction Acc. (\%) \\
+        \midrule
+        $\alpha=0.1$ (5 steps) & 550 & \textbf{12.22} & \textbf{0.2860} & 46.5  \\
+        $\alpha=0.2$ (10 steps) & 588 & 17.25 & 0.2700 & \textbf{59.8} \\
+        $\alpha=0.3$ (15 steps) & 593 & 17.17 & 0.2702 & 57.8 \\
+        LLM-Dynamic-$\alpha$ (5-15 steps) & \textbf{523} & 13.75 & 0.2790 & 56.8 \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{Ablation of the denoising steps with layout guidance (via guided 2D attentions) in MSR-VTT and ActionBench-Direction prompts, where
+    $\alpha=\frac{\text{\# steps with layout guidance}}{\text{\# total steps}}$.
+    }
+    \label{tab:ablation_alpha}
+\end{table}
+
+
+
+\noindent\textbf{Video Planner LLMs: GPT-4, GPT-3.5-turbo, and LLaMA2.}
+We conducted an ablation study using the open-sourced LLaMA2-7B and LLaMA2-13B models~\citep{touvron2023llama} as well as GPT-3.5-turbo in the video planning stage on MSR-VTT and ActionBench-Directions. 
+We evaluated LLaMA2 in both fine-tuned and zero-shot settings. To collect data for fine-tuning LLaMA2, we randomly sampled 2000 prompts from WebVid-10M~\citep{bain2021frozen} and generated layouts with GPT-4. In addition to the visual quality (FID/FVD) and video-text alignment (CLIPSIM) scores on MSR-VTT and movement direction accuracy score on ActionBench-Directions, we also report the number of samples whose output layouts can be successfully parsed (\eg, \#Samples). Evaluation setup details are given in \cref{sec:ablation_study}.
+\Cref{table:ablation_llms} shows that zero-shot LLaMA2-13B struggles to generate layouts that can be successfully parsed (\eg, only 82 out of 600). It also achieves worse scores on all three metrics (FID, FVD, and CLIPSIM) on MSR-VTT, as well as the movement direction accuracy on ActionBench-Directions, which shows that GPT models have stronger in-context learning skills and can generate more reasonable layouts.
+On the other hand, all scores can be improved by fine-tuning on layouts generated by GPT-4.
+Fine-tuning open-sourced LLMs can be a future direction worthwhile to explore.
+Another point to note is that GPT-3.5-turbo and GPT-4 achieve very similar performance on MSR-VTT, but GPT-3.5-turbo performs significantly worse than GPT-4 on ActionBench-Directions. This suggests that GPT-3.5-turbo is less effective at handling prompts requiring strong layout control compared to GPT-4.
+
+\noindent\textbf{Challenging cases.} 
+The bounding box-based control of our method poses two main challenges.
+Firstly, some objects might not follow the bounding box control well when there are too many overlapping bounding boxes. For example, in \cref{fig:pororo_and_hirest_outputs} right, the ``hand mixer'' and ``unsalted butter'', which have relatively small bounding box sizes, do not follow the box control well. 
+Secondly, the control of whether the background is static or moving is usually determined by the prior knowledge of the video generation model. 
+For example, as shown in \cref{fig:r2w2}, it’s hard for  Layout2Vid to generate a moving bottle with a static background and a moving boat with a completely static background
+(see paragraph ``Object movement prompts with different types of objects'' in \cref{appendix:additional_qualitative_examples} for details).
+
+\begin{table}[t]
+    \centering
+    \resizebox{0.99\linewidth}{!}{
+    \begin{tabular}{l cccc cc}
+        \toprule
+        \multirow{2}{*}{\parbox{3.5cm}{LLMs}} & \multicolumn{4}{c}{MSR-VTT} & \multicolumn{2}{c}{ActionBench-Directions} \\
+        \cmidrule(lr){2-5} \cmidrule(lr){6-7} 
+        & FVD () & FID () & CLIPSIM ($\uparrow$) &\#Samples ($\uparrow$) & Movement Direction Acc (\%)  &\#Samples ($\uparrow$) \\
+        \midrule
+        \emph{Fine-tuned} \\
+        LLaMA2-7B & 580  & 12.69  & 0.2851  & 2749 & 35.8 & 537 \\
+        LLaMA2-13B & 556  & 12.40  & 0.2854  & 2786  & 53.3 & 561\\
+        \midrule
+        \emph{Zero-shot} \\
+        LLaMA2-13B & 573 & 13.47 & 0.2792 & 2236 & - & 82 \\
+        GPT-3.5-turbo & 558 & 12.27 & 0.2852 & \textbf{2990}  & 49.0 & \textbf{600}\\
+        \rowcolor{lightblue}
+        GPT-4 (default) & \textbf{550} & \textbf{12.22} & \textbf{0.2860} & \textbf{2990}   & \textbf{59.8} & \textbf{600}\\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{Ablation of video generation with video plans generated from different LLMs on MSR-VTT and ActionBench-Directions.
+    }
+    \label{table:ablation_llms}
+\vspace{-3pt}
+\end{table}
+\normalsize 
+
+
+
+
+ 
+
+
+
+
+\subsection{Human Evaluation}
+\label{sec:human_evaluation}
+
+\begin{wraptable}[7]{r}{7cm}
+\vspace{-30pt}
+\centering
+\resizebox{\linewidth}{!}{
+    \begin{tabular}{l ccc}
+        \toprule
+        \multirow{2}{*}{Evaluation category} & \multicolumn{3}{c}{Human Preference (\%) $\uparrow$}\\
+        \cmidrule(lr){2-4}
+        & Ours
+        & \modelscope{} & Tie  \\
+        \midrule
+        Quality & \textbf{50} & 34 & 16 \\
+        Text-Video Alignment & \textbf{58} & 36 & 6 \\
+        Object Consistency & \textbf{62} & 28 & 10 \\
+        \bottomrule
+    \end{tabular}
+    }
+\caption{Human preference on multi-scene videos generated with
+\corefdata{} prompts.
+}
+\label{table:human_eval}
+\end{wraptable}
+
+
+
+\textbf{Human preference.}
+We conduct a human evaluation study on the multi-scene videos generated by both our \method{} and \modelscope{} on the \corefdata{} dataset.
+We show 50 videos to 10 crowd-annotators from AMT\footnote{Amazon Mechanical Turk: \url{https://www.mturk.com}} to rate each video (56 annotators in total, 10 annotators per video) and calculate human preferences for each video with average ratings.
+\Cref{table:human_eval} shows that the multi-scene videos (with \corefdata{} prompts) generated by our \method{} are preferred
+by human annotators
+than \modelscope{} videos in 
+all three categories (Quality, Text-Video Alignment, and Object Consistency).
+
+
+
+\textbf{Step-by-step error analysis.}
+In our error analysis of video planning and generation stages,
+we measure 1-5 Likert scale accuracy of four intermediate generation steps: scene descriptions, layouts, consistency groupings, and final video.
+While the first three planning steps achieve high scores ($\ge 4.52$),
+there is a big score drop in the layout-guided video generation ($4.52\xrightarrow{}3.61$). 
+This suggests that our \method{} could generate more accurate videos,
+once we have access to a stronger T2V backbone than \modelscope{}.
+See \cref{appendix:human_eval} for more detailed analysis.
+
+
+
+
+
+
+
+
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+In this work, we propose \method{}, a novel 
+framework for consistent multi-scene video generation, leveraging the knowledge of LLMs for video content planning and grounded video generation.
+In the first stage, we employ GPT-4 as a video planner to craft a \videoplan{}, a multi-component script for videos with multiple scenes.
+In the second stage, we use \videomodule{}, a grounded video generation module, to generate videos with layout and consistency control.
+Experiments demonstrate that our proposed framework
+substantially improves object layout and movement control over state-of-the-art methods on open-domain single-scene video generation, and 
+can generate consistent multi-scene videos while maintaining visual quality.
+
+
+\section*{Acknowledgments}
+We thank the reviewers for the thoughtful discussion and feedback. 
+This work was supported by ARO W911NF2110220, DARPA MCS N66001-19-2-4031, DARPA KAIROS
+Grant FA8750-19-2-1004, NSF-AI Engage Institute DRL211263, ONR N00014-23-1-2356, and Accelerate
+Foundation Models Research program. The views, opinions, and/or findings contained in this article are
+those of the authors and not of the funding agency.
+
+
+
+
+\bibliography{main}
+\bibliographystyle{colm2024_conference}
+
+\newpage
+
+\input{99_appendix}
+
+\end{document}

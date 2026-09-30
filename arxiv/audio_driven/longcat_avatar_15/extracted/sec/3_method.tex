@@ -1,0 +1,133 @@
+\section{Method}
+\subsection{Architecture}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.99\linewidth]{imgs/pipeline.png}
+  \caption{The overall pipeline of LongCat-Video-Avatar 1.5.}
+  % \Description{A woman and a girl in white dresses sit in an open car.}
+  \label{fig:pipeline}
+\end{figure*}
+
+In this work, we inherit the unified DiT-based video diffusion architecture from LongCat-Video-Avatar 1.0 \cite{meituanlongcatteam2025longcatvideoavatartechnicalreport}. The model is built upon a 3D Variational Autoencoder (VAE), and each Diffusion Transformer (DiT) block comprises 3D self-attention, text cross-attention, and a Feed-Forward Network (FFN). Text embeddings are encoded using a UMT5 encoder, while 3D Rotary Position Embeddings (RoPE) are applied to the visual tokens to encode spatiotemporal positional information. The overall network architecture of the proposed method is shown in Fig.\ref{fig:pipeline}.
+
+Our unified architecture supports multiple audio-driven human animation tasks with different input configurations. The network accepts three types of latent sequences as input: a reference latent, motion latents, and noise latents. For text-to-video generation, only noise latents are provided. For text-image-to-video generation, the reference latent is temporally concatenated with the noise latents. For video continuation, the context latents are temporally concatenated with the noise latents and fed into the model as additional conditioning signals.
+
+To enable audio-driven generation within this unified video foundation model, we modify each DiT block by inserting an additional audio cross-attention layer after the text cross-attention module. This allows audio cues to be seamlessly integrated into the visual generation process. To prevent training instability and ensure the model effectively aligns audio signals with corresponding mouth movements without catastrophic forgetting of pre-trained visual priors, we retain the Adaptive Layer Normalization (adaLN) module before each audio cross-attention layer. This module functions as a gating mechanism that progressively incorporates audio control, thereby stabilizing optimization and facilitating the learning of accurate audio-to-lip motion mappings.
+
+
+\subsection{Audio Feature Extraction}
+
+
+In this version, we significantly upgrade our audio encoder from the Wav2Vec2 \cite{baevski2020wav2vec} model used in v1.0 to Whisper-large \cite{radford2022whisper}. Compared to the 94M-parameter Wav2Vec2, Whisper-large features 1.5B parameters and is pre-trained on 680,000 hours of multilingual speech data. This architectural enhancement yields substantially richer acoustic representations, superior phoneme level expressiveness, and stronger multilingual robustness, as it operates directly on Mel spectrograms extracted from raw audio waveforms.
+
+To process audio streams exceeding Whisper's 30-second context limit, we adopt a sliding window strategy. The input spectrogram is partitioned along the time dimension and forwarded through the Whisper encoder, which yields 33 hidden states (the embedding layer plus 32 transformer layers) at an internal frame rate of 50 Hz. To compress this high-dimensional multi-layer output into a compact representation, we follow \cite{chen2025humo} and apply a grouped mean pooling strategy. Specifically, all 33 hidden states are divided into four groups of 8 layers each, plus one singleton layer. Each group is reduced via mean-pooling to form a 5 channel feature representation. Subsequently, these 5 channel features are temporally resampled via linear interpolation from 50 Hz to the target video frame rate of 25 FPS, yielding an audio embedding of shape $(T, 5, 1280)$, where $T$ denotes the number of video frames and 1280 is the hidden dimension. Finally, because the video VAE applies a $4\times$ temporal downsampling when converting pixel-space videos into the latent space, a corresponding temporal compression is required for the audio embeddings. We employ an audio projector that aggregates neighboring context within a temporal window and downsamples the 25 FPS audio features to match the latent sequence length. This ensures strict temporal alignment between the audio cues and visual latents prior to their injection into the audio cross-attention layers.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.9\linewidth]{imgs/audio_encoder.pdf}
+  \caption{The lip synchronization comparison between Wav2vec2 and Whisper-large.}
+  % \Description{A woman and a girl in white dresses sit in an open car.}
+  \label{fig:audio_encoder}
+\end{figure*}
+
+As illustrated in Fig.~\ref{fig:audio_encoder}, our comparison between Wav2Vec and Whisper-large clearly demonstrates that Whisper-large not only achieves highly accurate and fine grained audio-lip synchronization, but also produces much more natural and fluid mouth movements.
+
+
+
+
+\subsection{Group-Relative Per-Frame Policy Optimization}
+\label{sec:grpo}
+
+Our training framework largely follows the multi-reward GRPO formulation of LongCat-Video~\cite{team2025longcat}. 
+Our main extension is to move from video-level reward modeling to \emph{per-frame} reward modeling. In LongCat-Video, each reward model $R_k$ produces a video-level reward and the corresponding relative advantage is computed at the sample level. Here, we instead decompose each reward along temporal partitions. Let $r_{k,j}^i$ denote the reward of the $j$-th temporal partition of sample $i$ under reward model $R_k$. Following the same group-relative normalization strategy as LongCat-Video, we define
+\begin{equation}
+\hat A_{k,j}^i
+=
+\frac{r_{k,j}^i-\mu_{k,j}}{\sigma_{k,j}^{\max}},
+\end{equation}
+where $\mu_{k,j}$ is the group mean and $\sigma_{k,j}^{\max}$ is the maximum group standard deviation for reward $R_k$ at temporal partition $j$, following the stabilized normalization used in LongCat-Video.
+
+Consistent with the multi-reward training strategy in LongCat-Video, the effective relative advantage is the weighted sum of the individual relative advantages:
+\begin{equation}
+\hat A_{\mathrm{total},j}^i
+=
+\sum_k w_k \hat A_{k,j}^i.
+\end{equation}
+Therefore, our method preserves the same multi-reward aggregation form as LongCat-Video, while extending the advantage from a video-level scalar to a temporally structured signal.
+The resulting per-frame relative advantage is then used for diffusion policy optimization on stored denoising transitions. Compared with the original video-level formulation, this extension enables finer-grained credit assignment and allows the optimization to focus on temporally localized artifacts such as local motion inconsistency, hand deformation, and short-range structural collapse.
+
+\textbf{First-frame hand-presence check.} For image-to-video, and video-continuation tasks, we further introduce a task-aware first-frame hand-presence check. Since hand quality can only be meaningfully supervised when the conditioning frame contains visible hands, we prioritize such samples during preference optimization, thereby increasing the proportion of hand-relevant training examples and helping alleviate hand distortion in conditioned human video generation.
+
+\textbf{Multi-clip rollout.} To better support long-horizon video-continuation generation, we additionally adopt a multi-clip rollout strategy. Multiple clips are generated sequentially, where earlier clips are used to build temporal context and only the final clip participates in GRPO optimization. In this way, our method preserves the overall LongCat-Video training paradigm while extending it to per-frame reward-based credit assignment and longer temporal continuation.
+
+
+
+\subsection{Few-step Generation}
+\label{sec:fsg}
+
+Inspired by the Distribution Matching Distillation 2 (DMD2) \cite{yin2024improved} framework, we distill multi-step diffusion models into efficient few-step generators. DMD2 aligns the generator’s distribution with the teacher's by minimizing the reverse Kullback-Leibler (KL) divergence. However, the standard implementation requires substantial GPU memory, as it requires maintaining three separate, homogeneous models in VRAM simultaneously: the generator, the fake score function, and the real score function. To overcome this VRAM bottleneck, we propose a parameter-efficient architecture that utilizes a single base Diffusion Transformer (DiT) backbone equipped with multiple LoRA adapters. Specifically, we employ a shared backbone and differentiate its functional roles by dynamically mounting either a Generator LoRA or a Fake Score LoRA. This design enables seamless switching between few-step sampling and score estimation, while the original base DiT provides the real-score guidance. To balance inference speed and generation quality, we distill the model to 8 denoising steps. During this process, both the real and fake score functions retain the time scheduler from the preceding training stages to ensure a consistent noise scale. Furthermore, to mitigate over-saturation typically observed during distillation, we slightly reduce the Classifier-Free Guidance (CFG) scales for both text and audio to 4.0. Our approach significantly reduces the hardware footprint while preserving the high-fidelity distribution matching performance of the original DMD2.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.99\linewidth]{imgs/multiperson.pdf}
+  \caption{Visual illustration of the background character driving strategy. (a) w/o Silent Condition. (b) w/ Silent Condition.}
+  \label{fig:multiti}
+\end{figure*}
+
+
+\begin{table}[t]
+\centering
+\small
+\caption{Outline of the progressive training stages.}
+\label{tab:training_stages}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Training Tasks} 
+    & \textbf{Size Bucket} 
+    & \textbf{Batch Size} 
+    & \textbf{Learning Rate} 
+    & \textbf{Iterations} \\
+\midrule
+AT2V + AI2V + VC 
+    & $256\text{p} \times 93$ frames 
+    & 64
+    & $2 \times 10^{-5}$ 
+    & 130k \\
+AT2V + AI2V + VC 
+    & $480\text{p} \times 93$ frames 
+    & 32
+    & $2 \times 10^{-5}$ 
+    & 45k \\
+AT2V + AI2V + VC + Ref
+    & $480\text{p} \times 93$ frames 
+    & 32
+    & $2 \times 10^{-5}$ 
+    & 28k \\
+AT2V + AI2V + VC + Ref
+    & $480\text{p} + 720\text{p} \times 93$ frames 
+    & 32
+    & $2 \times 10^{-5}$ 
+    & 6k \\
+AT2V + AI2V + VC + Ref + MultiTalk
+    & $480\text{p} + 720\text{p} \times 93$ frames 
+    & 32
+    & $2 \times 10^{-5}$ 
+    & 2k \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Multi-Person Conversation}
+
+
+
+For two-person conversational video generation, we follow the training strategy of MultiTalk \cite{kong2025let} and adopt the L-RoPE mechanism to explicitly associate each speaker region with its corresponding audio condition. Meanwhile, reference attention maps are used to establish region-level correspondences between visual character regions and audio signals.
+
+When multiple individuals appear in the reference image, we designate two of them as target speakers and treat the remaining individuals as background. However, this setting introduces an attribution ambiguity: due to the high visual similarity between background characters and target speakers in the reference attention space, background regions may be erroneously assigned to the target speakers' attention regions. This results in them being driven by the corresponding speech signals, exhibiting undesired lip or facial motions.
+
+To address this issue, we introduce additional bounding box annotations and model non-target character regions as independent categories during attention map estimation, which reduces the probability that they are absorbed into the target speaker regions. Nevertheless, attention level separation alone is insufficient to fully eliminate speech-driven motion. Since the original two-speaker MultiTalk formulation provides only two audio conditions, it does not assign an explicit audio condition to background regions. Therefore, when additional person boxes are available, we introduce an extra silent audio track as a dedicated background audio condition, mapping all non-target character regions to this silent condition. Consequently, as illustrated in Fig.~\ref{fig:multiti}, the audio cross-attention module precisely binds the two target speakers to their respective speech signals, while associating non-target characters with a silent condition. This mechanism effectively prevents the target speech from inducing unintended lip movements in background characters.
+
+
+
+

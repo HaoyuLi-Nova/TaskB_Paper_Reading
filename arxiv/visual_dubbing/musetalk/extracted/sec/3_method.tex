@@ -1,0 +1,152 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Overview}
+\label{subsec:method_1}
+We propose MuseTalk, a GAN-based one-step generation framework operating in the VAE latent space, building on insights from prior work. This section outlines the technical implementation and design principles of MuseTalk.
+
+Through experimentation, we found that simultaneously optimizing the SyncNet loss~\cite{prajwal2020lip} and GAN loss in a single training stage for a randomly initialized model leads to training instability. We further discuss this issue in the supplementary materials. In contrast, MuseTalk introduces a novel two-stage training strategy to mitigate this problem.
+
+The first stage, \textbf{Facial Abstraction Pretraining}, establishes foundational visual representations using our proposed \textbf{Informative Frame Sampling (IFS) }mechanism. In the second stage, \textbf{Lip-Sync Adversarial Finetuning}, we introduce \textbf{Dynamic Margin Sampling (DMS)} to balance adversarial training objectives with lip-synchronization constraints, enabling effective optimization of both aspects.
+% A schematic overview of the complete pipeline is presented in~\cref{fig:fig_pipeline}.
+
+\subsection{Network Pipelines}
+\label{subsec:method_2}
+MuseTalk is designed to seamlessly integrate audio and visual information while maintaining efficient one-step inference capabilities. 
+Unlike conventional GAN-based methods~\cite{prajwal2020lip, wang2023seeing}, which use independent encoders for audio and visual data, we leverage a multimodal U-Net architecture~\cite{ronneberger2015u} as the backbone of the generator. 
+To further enhance computational efficiency, we refer to the Latent Diffusion approach~\cite{rombach2022high}, shifting the learning task from the pixel domain to the latent space.
+
+\noindent \textbf{Identity Feature Handling.}
+For video dubbing, the generated video must retain the identity of the original reference image, which necessitates integrating identity information into the network. 
+Previous diffusion-based methods~\cite{tian2024emo, jiang2024loopy} achieve this by incorporating a ReferenceNet that adjusts each attention layer to inject identity information. 
+While this approach is effective for multi-step denoising processes, it can be overly computationally expensive for one-step predictions.
+Instead, we simplify the process by concatenating identity information along the channel dimension at the U-Net input.
+
+Specifically, we pass the upper half of the source image at time \( t \) and the full-face reference image (captured at a different moment) through a VAE encoder.
+The encoded features are then concatenated along the channel dimension to form a comprehensive image feature representation \(v^{w \times h \times 2c}\), where \(w\) and \(h\) denote the width and height of the feature, respectively. 
+As illustrated in~\cref{fig:fig_pipeline}, an occluded lower half of the ground truth image \(I_{s}^{t}\) and a reference identity image \(I_{\text{ref}}^{t}\) at time \(t\) are each passed through the VAE encoder, producing outpus \(v_{\text{ref}}^{w \times h \times c}\) and \(v_{m}^{w \times h \times c}\). 
+Experimental results in~\cref{tab:performance} demonstrate that this straightforward yet effective design provides robust identity control.
+
+During inference,  only a single input frame at time \( t \)  is required. This frame is used as both \( I_{\text{ref}}^{t} \) and \( I_{s}^{t} \). 
+The generated \( I_{o}^{t} \) is subsequently overlaid onto the original image using advanced face parsing and blending techniques. 
+Detailed descriptions are provided in the supplementary materials. 
+The construction of reference and source images during training is elaborated upon in subsequent sections.
+
+\begin{figure}[tbp]
+  \centering
+   \includegraphics[width=\linewidth]{image/fig_sis.pdf}
+   \caption{
+   The illustration of proposed Informative Frame Sampling mechanism. 
+   We calculate the pose and lip similarity based on Euclidean distance between facial landmarks.
+   }
+   \label{fig:fig_IFS}
+\end{figure}
+
+\noindent \textbf{Audio Feature  Handling.}
+Following established practices~\cite{tian2024emo, jiang2024loopy, chen2024echomimic}, we utilize a pre-trained audio encoder~\cite{baevski2020wav2vec, radford2023robust} to extract audio features and inject them into the U-Net through its cross-attention layers. To optimize inference speed, we employ the lightweight Whisper-Tiny model~\cite{radford2023robust} to process an audio segment centered at time \(t\) with duration \(T\). 
+The selected audio segment is first resampled to 16,000 Hz and converted into an 80-channel log-magnitude Mel spectrogram, denoted as \(A_{mel}^{t} \in \mathbb{R}^{T \times 80}\). 
+The resulting audio feature has dimensions \(a^{T \times d}\), where \(d=384\).
+
+\subsection{Facial Abstract Pretraining}
+\label{subsec:method_3}
+\noindent \textbf{Observation.} 
+We observed that joint optimization of multiple losses during early training stages leads to unstable convergence, particularly when combined with adversarial objectives. 
+To address this challenge, we adopt a phased training approach where the first stage focuses on cultivating facial abstract inpainting capabilities through mild optimization strategies.
+
+\noindent \textbf{Loss Function.}
+At this stage, we employ stable reconstruction losses instead of adversarial training objectives. To focus the model's attention as much as possible on the facial region, we crop the images along the edges of the face, thereby reducing the interference from background inpainting tasks on the model, as illustrated in~\cref{fig:fig_DMS}. Given a synthesized talking face image $I^{t}_{o}$ and its ground truth counterpart $I^{t}_{gt}$, we formulate the optimization target as:
+\begin{equation}
+\mathcal{L_{\text{stage1}}} = \left \| I^{t}_{o} - I^{t}_{gt} \right \|_1 + \lambda_{vgg} \left \| \mathcal{V}(I^{t}_{o}) - \mathcal{V}(I^{t}_{gt}) \right \|_2,
+\label{loss:stage1}
+\end{equation}
+where $\mathcal{V}$ denotes the feature extractor of VGG19~\cite{simonyan2014very}. 
+Utilizing solely the L1 loss tends to produce overly smoothed facial reconstructions. 
+In contrast, perceptual loss~\cite{johnson2016perceptual} facilitates the learning of high-frequency visual patterns, particularly in capturing transitional facial features such as sideburn textures and incipient dental structures. 
+
+\noindent \textbf{Informative Frame Sampling.} 
+Previous GAN-based approaches~\cite{prajwal2020lip, zhang2023dinet, cheng2022videoretalking} rely on random sampling to obtain the reference image \(I^{t}_{ref}\). 
+However, this method introduces a significant gap between training and inference phases. 
+Specifically, during training, the reference image \(I^{t}_{\text{ref}}\) and the ground truth image \(I^{t}_{\text{gt}}\) often exhibit different head poses. In contrast, during inference, \(I^{t}_{\text{ref}}\) and \(I^{t}_{\text{gt}}\) share the same pose.
+This discrepancy makes it challenging for models to generalize well across different scenarios. 
+We introduce a novel Informative Frame Sampling (IFS) strategy to address the training-inference discrepancy by focusing the model on lip movement generation.
+The IFS strategy aims to construct data pairs \(I^{t}_{ref}\) and \(I^{t}_{gt}\) that retain relevant texture details while filtering out redundant or distracting information. As illustrated in~\cref{fig:fig_IFS}, the process involves three key steps:
+
+\begin{enumerate}
+\item \textbf{Pose Alignment:} We calculate head pose similarity using chin landmark distances and select the most similar frames to form the Pose-Aligned Set \(\mathcal{E}_{\text{pose}}\). 
+
+\item \textbf{Distinct Lip Movement:} We compute inner-lip landmark differences to identify frames with distinct lip movements, forming the Lip Motion Dissimilarity Set \(\mathcal{E}_{\text{mouth}}\). 
+
+\item \textbf{Intersection Selection:} We choose the intersection \(\mathcal{E}_{\text{pose}} \cap \mathcal{E}_{\text{mouth}}\) as the Sampled Reference Image Set \(\mathcal{E}\), sort it by similarity, and select the top \(k\) subset as \(I^{t}_{\text{ref}}\). 
+We later describe the optimal value of \(k\) in~\cref{ablation-IFS}. 
+\end{enumerate}
+
+
+\subsection{Lip-Sync Adversarial Finetuning}
+\label{subsec:method_4}
+\noindent \textbf{Optimization Objective.}
+The primary goal of this stage is to enhance the model's capability in generating realistic dental details while ensuring precise lip movements. Building upon the initial training phase, where the model learns to extract facial abstract information from audio inputs, we observe that the outputs tend to exhibit overly smoothed teeth and replicated lip motions from reference images, as demonstrated in~\cref{fig:fig_loss_ab}(b). 
+To overcome these limitations, we incorporate two loss functions: an adversarial loss~\cite{mao2017least} and a SyncNet loss~\cite{prajwal2020lip}.
+
+\noindent \textbf{Adversarial Loss.}
+The adversarial loss~\cite{gulrajani2017improved} is designed to enable the generator to capture intricate details by competing against two discriminators: one focused on the entire face \( \mathcal D_{face}\) and another specifically targeting the lip region \( \mathcal D_{lip}\). For the lip discriminator \( \mathcal D_{lip}\), the input region is carefully cropped based on the lip landmarks, \textbf{expand} to a fixed size of and fed into the network without any resizing operations. 
+We chose the expand method over resizing because resizing degrades lip generation quality, resulting in inaccurate and unrealistic mouth shapes.
+The optimization objective for the adversarial loss is formulated as:
+
+\begin{equation}
+\mathcal{L}_{adv} = \mathcal{L}_{adv,face}+\mathcal{L}_{adv,lip},
+\end{equation}
+where 
+\begin{equation}
+\mathcal{L}_{adv,face} = -\mathbb{E}_{A_{mel}^{t},I^{t}_{ref}} [ \mathcal D_{face}(I^{t}_{o})],
+\end{equation}
+\begin{equation}
+\mathcal{L}_{adv,lip} = -\mathbb{E}_{A_{mel}^{t},I^{t}_{ref}} [ \mathcal D_{lip}(I^{t}_{lip})].
+\end{equation}
+
+\noindent \textbf{Sync Loss.}
+The SyncNet loss promotes lip movement learning by aligning the generated frames with the audio~\cite{li2024latentsync, prajwal2020lip}. Specifically, we apply a SyncNet \(\mathcal S\) that takes \(N\) pairs of audio and image frames as input. The output features are then used to calculate the cosine similarity. The optimization objective is:
+\begin{equation}
+\mathcal{L}_{sync} = \frac{1}{N} \sum_{i}^{N} -\log[{CosSim}(\mathcal S(A^{i}_{mel}, I^{i}_o))].
+\label{loss:syncloss}
+\end{equation}
+
+The overall optimization objective for this stage is:
+\begin{align}
+\mathcal{L}_{\text{stage2}} = \mathcal{L}_{\text{stage1}} + \lambda_{adv} \mathcal{L}_{adv} 
++ \lambda_{sync} \mathcal{L}_{\text{sync}}.
+\label{loss:stage2}
+\end{align}
+% The detail of hyperparameters $N$, $\lambda_{adv}$, and $\lambda_{sync}$ are included in supplementary material.
+
+\begin{figure}[tbp]
+  \centering
+   \includegraphics[width=\linewidth]{image/fig_second_stage.pdf}
+   \caption{
+    (a) Identity image during Inference.
+    (b) First-stage model generates smooth teeth.
+    (c) SyncNet loss promotes accurate lip movements but causes blurring.
+    (d) GAN loss enhances clear teeth but replicates the original lip.
+    (e) After applying DMS, both accurate lip movements and clear teeth are generated.
+    }
+   \label{fig:fig_loss_ab}
+\end{figure}
+
+\noindent \textbf{Dynamic Margin Sampling.}
+When optimizing \(\mathcal{L}_{\text{stage2}}\), we observe conflicts between the adversarial loss and the SyncNet loss. 
+Specifically, optimizing the adversarial loss alone can produce clear teeth but causes the model to replicate the reference lip movements, especially when the reference image shows teeth, as illustrated in~\cref{fig:fig_loss_ab}(d). Conversely, as shown in~\cref{fig:fig_loss_ab}(c), optimizing the SyncNet loss alone enables the model to close the mouth during silent periods but results in blurry lip movements when speaking. When both losses are optimized simultaneously, the SyncNet loss becomes difficult to converge, and the model's behavior tends towards that shown in~\cref{fig:fig_loss_ab}(d).
+
+% The design of DMS is based on a thorough analysis of the challenges in lip movement optimization within adversarial learning. 
+Prior works~\cite{wang2024v, jiang2024loopy, xu2024hallo} have noted that the mapping from audio to lip movements is inherently weak. Stronger conditions, such as identity constraints or other more dominant learning tasks, can easily overshadow lip-sync learning. Additionally, we have identified and localized a previously overlooked issue in previous methods~\cite{prajwal2020lip, zhong2023identity}: the leakage of lip movement information in training data pairs. 
+The left side of~\cref{fig:fig_DMS} illustrates this issue.
+This may lead to the model directly copying the reference's lip movements and ignoring the actual changes in lip movements, as shown in~\cref{fig:fig_loss_ab}(d).
+
+We propose Dynamic Margin Sampling (DMS) to disrupt this implicit ``hint'' from the data.
+Specially, we introduce random margins around the chin area when cropping \(I_{\text{ref}}^{t}\) and \(I_{\text{gt}}^{t}\). 
+It is crucial that the margins for \(I_{\text{ref}}^{t}\) and \(I_{\text{gt}}^{t}\) are independently and randomly generated; otherwise, the hint remains. As shown in~\cref{fig:fig_DMS}, after applying DMS, the information from unmasked regions (e.g., the nose area) no longer directly indicates the degree of mouth opening, thereby forcing the model to rely on the audio input to generate accurate lip movements.
+
+\begin{figure}[tbp]
+  \centering
+   \includegraphics[width=\linewidth]{image/fig_DMS.pdf}
+   \caption{The principle of Dynamic Margin Sampling (DMS) in promoting lip movement learning. Without DMS, the model can easily infer the general lip shape of \(I_{gt}^{t}\) from the relative position of the nose in the input images \(I_{\text{ref}}^{t}\) and \(I_{s}^{t}\). With DMS, this cue is weakened, forcing the model to learn the lip movements.}
+   \label{fig:fig_DMS}
+\end{figure}

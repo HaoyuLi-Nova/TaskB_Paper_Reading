@@ -1,0 +1,30 @@
+\paragraph{Adaptive Multi-Stage Overlap.}\label{sec:magiattn_overlap}
+
+
+
+Leveraging previous optimizations, we achieve high-performance computation through an efficient kernel and balanced workload dispatch, while minimizing communication overhead with our new primitives. To drive true linear scalability, we further improve end-to-end performance by introducing a multi-stage compute-communication overlap strategy, that effectively hides communication latency and adaptively optimizes overlap through manual or automatic tuning.
+
+Similar to prior works~\citep{liu2023ringattentionblockwisetransformers,zhao2023pytorch,async_tensor_parallelism_in_pytorch}, we schedule pipeline stages to overlap computation with communication for both forward and backward passes (Fig~\ref{fig:multi_stage_overlap_fwd_bwd}). Each $\mathrm{rank}_i$ first partitions its remote $\mathrm{KV}$/$\mathrm{dKV}$ communication into stages. 
+In the forward pass, the scheduler first launches the \texttt{group-cast} kernel to prefetch the next remote $\mathrm{KV}$, then asynchronously executes the FFA kernel for partial attention computation, hiding all communication behind computation~\footnote{To prevent all SMs from being occupied by the attention kernel, we ensure the communication kernel picked first by setting \texttt{CUDA\_DEVICE\_MAX\_CONNECTIONS}=1~\citep{cuda_device_max_connections_issue}.}. 
+In the backward pass, besides prefetching the next $\mathrm{KV}$, the \texttt{group-reduce} kernel reduces the last $\mathrm{dKV}$ in a separate CUDA stream before launching the FFA kernel for the current stage, ensuring communication is overlapped across all stages except the final $\mathrm{dKV}$ reduction~\footnote{Due to PyTorch's one-to-one mapping for process groups and collective communication streams including \texttt{all-to-all-v}~\citep{collectives_nccl_stream_issue}, we internally use an additional CP group for \texttt{group-reduce} to enable full overlap between communication kernels in the backward pass.}.
+
+To adaptively control overlap granularity, we further introduce a tunable hyperparameter, $num\_stages$, accounting for varying compute-to-communication ratios across training setups, microbatches, or between forward and backward passes. This parameter can be manually configured or automatically determined by our \textit{overlap solver}, with a simple dynamic search algorithm (See Alg.~\ref{alg:dynamic-overlap-search} for more details).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

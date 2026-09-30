@@ -1,0 +1,32 @@
+% !TEX root = ./../main.tex
+
+%\section{\bhr{Limitations}}
+%\label{sec:limitation}
+
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+We introduced FIFO-Diffusion, a novel inference algorithm that enables the generation of infinitely long videos from text without tuning video diffusion models pretrained on short clips. 
+Our approach achieves this by introducing diagonal denoising, which processes latents with increasing noise levels using a queue in a first-in-first-out fashion.
+While diagonal denoising presents a trade-off, we addressed its limitations with latent partitioning and leveraged its strengths with lookahead denoising.
+Together, these techniques allow FIFO-Diffusion to generate high-quality, long videos that maintain strong scene consistency and expressive dynamic motion.
+Although latent partitioning reduces the training-inference gap of diagonal denoising, the gap persists due to changes in the model's input distribution.
+However, we believe that this gap could be addressed by integrating the diagonal denoising paradigm into the training phase, and the benefits of FIFO-Diffusion remains for training as well. 
+We leave this integration as future work; aligning the training and inference environments can significantly enhance FIFO-Diffusion's performance.
+
+
+
+% We introduced FIFO-Diffusion, a novel inference algorithm that enables the generation of infinitely long videos from text without tuning video diffusion models pretrained on short clips. 
+% Our approach achieves this by introducing diagonal denoising, which processes latents with increasing noise levels using a queue in a first-in-first-out fashion. 
+% %At each step, a fully denoised frame is dequeued, while a new random noise frame is enqueued. 
+% While diagonal denoising presents a trade-off, we addressed its limitations with latent partitioning and leveraged its strengths with lookahead denoising. 
+% Together, these techniques allow FIFO-Diffusion to generate high-quality, long videos that maintain strong scene consistency and expressive dynamic motion.
+
+% Although latent partitioning reduces the training-inference gap of diagonal denoising and lookahead denoising improves denoising accuracy, as shown in \cref{tab:ablation}, the gap persists due to changes in the model's input distribution. 
+% However, we believe that the benefits of diagonal denoising are promising for training as well, and that this gap could be addressed by integrating the diagonal denoising paradigm into the training phase. We leave this integration as future work; aligning the training and inference environments can significantly enhance FIFO-Diffusion's performance.
+
+
+\section*{Acknowledgements}
+\label{sec:acknowledgements}
+This work was partly supported by LG AI Research, and the Institute of Information \& communications Technology Planning \& Evaluation (IITP) grant funded by the Korea government (MSIT) [RS-2022-II220959 (No.2022-0-00959), (Part 2) Few-Shot Learning of Causal Inference in Vision and Language for Decision Making); NO.RS-2021- II211343, Artificial Intelligence Graduate School Program (Seoul National University)].

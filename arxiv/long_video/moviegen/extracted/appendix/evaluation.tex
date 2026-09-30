@@ -1,0 +1,165 @@
+\section{Additional Evaluation Details}
+
+
+
+
+
+
+
+
+
+\subsection{Annotation Variance Study on Text-to-Video Evaluation} \label{appendix_sec:variance}
+To ensure trustworthy human annotation results and assess the significance of the winning or losing outcomes, we analyze the annotation variance across each evaluation axis.
+Specifically, we repeated the same annotation tasks four times using a subset of 381 prompts for text-faithfulness, quality, and realness \& aesthetics A/B tests.
+We calculate the standard deviation of the net win rate (win\% - lose\%) for each evaluation axis.
+This estimation is detailed in ~\cref{tab:eval_variance}.
+In~\cref{sec:t2v_main_results} we use these standard deviations to gauge the statistical significance of the results.
+
+As shown in ~\cref{tab:eval_variance}, the overall quality axis exhibits higher variance than text-faithfulness, mainly due to the subjectivity introduced by combining different evaluation signals within the overall quality axis.
+Among the quality axes, frame consistency displays a higher variance than the others, as determining which video has greater distortion is more challenging than judging which has larger or more natural overall motion.
+Furthermore, realness demonstrates less variance than aesthetics, as it is generally more objective to identify \textit{generated looking} content (for the realness axis) than to align on a universally pleasing aesthetic definition (for the aesthetic axis).
+
+  \begin{table}[h]
+      \centering
+      \resizebox{\linewidth}{!}{%
+      \begin{tabular}{ccccccc}
+          \toprule
+          Text Faithfulness & Overall & Frame consistency & Motion Completeness & Motion Naturalness & Realness & Aesthetics \\
+          \midrule
+          3.74\% & 5.07\% & 4.08\% & 3.98\% & 1.68\% & 2.52\% & 4.84\%\\
+           \bottomrule
+      \end{tabular}
+      }
+      \caption{\textbf{Evaluation Variance.}
+        Each number is acquired by sending the same A/B testing four times and compute standard deviation on the net win rate of each evaluation metric.
+      }
+      \label{tab:eval_variance}
+  \end{table}
+
+\subsection{T2V comparison to prior work} \label{appendix_prior_work_details}
+In~\cref{sec:t2v_main_results} in the main paper, we compare to prior works for text-to-video generation.
+Here, we provide extra details on how we obtain generated videos for each method and on how we post-process our generated videos to ensure fair comparison and reduce annotator bias.
+The size parameters for the videos from prior work that we use for comparion are shown in~\cref{tab:t2v_competitors}.
+We assume that many of the black box industry models that we compare to are being updated and improved over time.
+Hence, we include the dates on which we collected the videos from website.
+
+
+\begin{table}[h!]
+  \centering
+  \adjustbox{max width=\textwidth}{%
+  \begin{tabular}{cccccc}
+      \toprule
+       & \multicolumn{5}{c}{Generation Specs} \\
+        & \RunwayGen & \LumaLabs & \Sora & \Kling & \OURS \\
+       \midrule
+       Resolution  & 1280$\times$768 & 1360$\times$752 & 1920$\times$1080 & 1920$\times$1080 & 1920$\times$1080 \\
+       Duration  & 10s & 5s & 10s & 10.43s & 10.67s \\
+       \#Video frames  & 256 & 121 &300 & 313 & 256 \\
+       FPS  & 24 & 24 & 30 & 30 & 24 \\
+       \bottomrule
+  \end{tabular}}
+  \caption{
+      We compare with the above generation specification with external works.
+      \RunwayGen videos are collected on September 23th, 2024.
+      \LumaLabs videos are collected on September 23th, 2024.
+      \Kling videos are collected on September 25th, 2024.
+      The videos released from \Sora are at a variety of different resolutions and durations.
+      We note that the max resolutions of the released videos is 1920$\times$1080, whereas the majority of videos are at 1280$\times$720 and 10s in duration.
+  }
+  \label{tab:t2v_competitors}
+\end{table}
+
+\textbf{\Sora. }
+Our only option for comparing to \Sora is by using the prompts and videos from their publicly released website (158 videos in total).
+We note that for these closed source methods, the only videos released publicly on their website are likely to only represent their ``best'' samples, obtained through some unknown amount of cherry picking.
+As discussed in~\cref{sec:t2v_main_results} in the main paper, for fair comparison to \Sora we hence also select samples from \OursVideo using what we consider a modest amount of cherry picking.
+Specifically, for each prompt, we generate 5 different videos from \OursVideo using different random seeds.
+From each of these 5 videos, we manually pick the ``best''.
+The videos released by \Sora are at a variety of different resolutions.
+Specifically, a small number of videos are 1080p HD, whilst the majority are at 1280$\times$720, whereas all videos from \OursVideo are 1080p HD.
+For fair comparison, and to reduce annotator bias in the human evaluation, we adaptively spatially downsample our generated videos such that they are the same resolution as the corresponding \Sora video for each prompt (we do this for all prior work comparisons).
+The videos released by \Sora are at a variety of different durations, with the majority being 10s, whereas all videos from \OursVideo are 10.66s.
+For fair comparison, we adaptively temporally center crop either our or \Sora's videos such that they are the same duration for each prompt, whilst retaining the original frame rate.
+For the \Sora comparisons, we sampled from \OursVideo using 500 linear steps.
+
+To allow for easy comparison to \OursVideo for future work, we release non cherry picked generated videos from \OursVideo on the \textToVBenchmarkName (see~\cref{sec:t2v_eval_benchmark} in the main paper).
+
+
+\subsection{Correlations between audio-based objective and subjective metrics}\label{sec:app_audio_metric_corr}
+\label{sec:app-audio-corr}
+
+
+We show the relationship between the objective metrics and subjective metrics presented in Section \ref{sec:audiobox_metrics}. Using around $10,000$ annotations over 53 evaluations for each of the Video-Audio Alignment and Audio Quality tasks, we explore (1) how well we can ascertain system-level net win rate on a subjective metric from the objective metrics, and (2) on an item level, how subjective scores depend on objective metrics.
+
+For brevity we choose to focus on a single aspect of both tasks: ``Overall'' audio quality for the Audio Quality pairwise task and the ``Correctness'' aspect of the Video-SFX alignment task. For Audio quality, we observe a high degree of correlation between the aspects: ``overall'', ``professional'' and ``naturalness'' have Pearson correlation coefficients of 0.9 or higher. For the Video-SFX alignment task, the correctness and synchronization aspects have similarly high
+observed correlation of 0.76.
+
+For the Text-Alignment task, we combine annotated precision and recall into an $F_1$ score; the 1-5 scores for both are mapped to (20\%, 40\%, 60\%, 80\% and 100\%) for both precision and recall. The number of systems evaluated for the Text-Alignment task is small, so we do not consider system-level correlations.
+
+\subsubsection{System-level correlations}
+\label{sec:app-audio-system-level-corr}
+Figure \ref{fig:audiobox_system_corr} shows how system-level pairwise performance based on subjective evaluations (using net win rate) compares to the mean difference of the item-level objective metrics.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/appendix/audiobox_system_corr_plots}
+    \caption{\label{fig:audiobox_system_corr} Comparing subjective and objective metrics at the system level. Each scatter point is a pair of models evaluated on a given dataset. The $x$-axis shows the absolute value of the mean item-level difference in objective metric and the $y$ axis shows the net win rate for the model with the higher mean item-level difference in objective scores. Grey scatter points show model ablation comparisons for \OursAudio, other points show pairwise comparisons
+    between \OursAudio and an external baseline.}
+\end{figure}
+
+We find that objective metrics are predictive of subjective measures but with caveats. For instance, there is a significant amount of model-specific bias, meaning two model pairs with the same mean objective score difference may have different or opposing net win rates, which means relying solely on differences in objective metrics to make superiority claims is risky.
+Pairwise comparisons of \OursAudio with external baselines (non-ablation ones) show larger net win rates on Audio Quality at a given difference in audio quality score,
+which may indicate that \OursAudio improves aspects of perceived audio quality not captured by audio quality score alone.
+
+If we rely on ablations alone and consider model pairs (33 evaluations) where differences in objective scores are statistically significant,
+we find that significant differences in audio quality score correctly predict overall audio quality preferences in 21 out of 24 comparisons (87.5\% of the time, with a 95\% CI: 71.7 - 96\%).
+\IB score was similarly predictive of overall audio quality preference but differences in \IB score were smaller, so only 17 out of 33 pairs had statistically significant differences in \IB scores,
+and of these 82.3\% (95\% CI: 63.6\% - 94.5\%) correctly predicted preferences on overall audio quality.
+
+Figure \ref{fig:audiobox_precision} shows the precision (the fraction of model pairs where the average difference between the objective metric correctly predicts the subjective preference) for the best expected F1 score for each (objective metric, subjective metric) pairing. We also show 95\% confidence intervals obtained from bootstrap resampling of both items and model pairs. We find due to the limited sample that precision estimates are quite uncertain but that (1) audio quality score
+tends to be a better predictor of audio quality preference than \IB, while both \IB and audio quality score seem to be comparably good predictors of Video-SFX Alignment aspects, and (2) both metrics are more predictive for the sample of model pairs comparing \OursAudio and an external model.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/appendix/audiobox_system_precision_plots}
+    \caption{\label{fig:audiobox_precision} Precision at the system level: fraction of model pairs for which a given objective metric correctly predicts the human preference. 95\% CI obtained via bootstrap resampling of both items and model pairs. Filled markers represent only considering model ablations, and unfilled markers consider both model ablations and comparisons between \OursAudio and external baselines.}
+\end{figure}
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{figures/appendix/bradley_terry_vs_auto_score}
+    \caption{\label{fig:audiobox_bt_impact} We show a regression coefficient for a given subjective preference metric as a function of objective scores. The difference between the coefficients of two items indicates the log-odds of the item being preferred on a given subjective aspect.}
+\end{figure}
+
+\begin{figure}
+\centering
+    \includegraphics[width=0.5\textwidth]{figures/appendix/audiobox_ta_corr.pdf}
+    \caption{\label{fig:audiobox_ta_align} Above shows the correlation between consensus subjective evaluations of Text-Audio alignment and CLAP. We find moderate correlation (Spearman $r$ of $\sim 0.3$ for single-scene (real) videos and $\sim0.35$ for generated single-scene videos).}
+\end{figure}
+
+
+\subsubsection{Item-level correlations}
+\label{sec:app-audio-item-level-corr}
+Figure \ref{fig:audiobox_bt_impact} shows how the (log) odds of a model generation being preferred depend on various objective metrics. The value shown on the $y$-axis is obtained by fitting a linear model with a Bradley-Terry likelihood \citep{bradleyterry1952} on the observed subjective evaluations. We model the latent quality vector for model $m$ and item $i$ $z_{mi} = \beta^{(0)}_m + \sum_r \beta_{r,g_i} x_{mir}$ where $\beta^{(0)}_m$ is an offset parameter for each evaluated model, $g_i$
+indicates the group of the $i$-th item (in this case the presence or absence of non-diegetic music), and $r$
+is the index of the regression variable -- in this case the $r$-th bin of the objective metric, and $x_{mir} = 1$ when the item $i$ for model $m$ has an objective metric that falls in the $r$-th bin and $0$ otherwise. We then show $\beta_{r,g_i}$ in the $y$ axis of Figure \ref{fig:audiobox_bt_impact}. Note that for each subjective measure, we only regress on one objective metric for these visualizations.
+
+The relative difference in the latent quality corresponds to the log-odds of one item being preferred to the other.
+
+We make several observations
+
+\begin{itemize}
+    \item Both audio quality score and \IB score are predictive of overall audio quality, with a generation with the best observed \IB score having $\sim 4-4.5$ to 1 odds in favor of being preferred to a generation with the lowest observed \IB score.
+    \item However, when non-diegetic music is present, the \IB score becomes less predictive of preferences for overall audio quality.
+    \item A bad ($<$ 4) audio quality score does indicate a slightly lower odds of an item showing stronger Video-SFX alignment (``correctness'' aspect) compared to an item with a very high audio quality score ($\sim$1.5 to 1), but the impact of audio quality score improving past a $\sim4-5$ has little to no further impact.
+    \item Gains in overall audio quality tend to saturate at audio quality scores above $\sim$ 6.5, but only for items without non-diegetic music. Items with non-diegetic music continue to see higher preferences for audio quality scores beyond the $\sim6.5$ point, which is also reflected in direct tests shown in Table \ref{tab:audio_abl_qual_sbj}.
+    \item Increases in \IB score tend to have a stronger relative impact on overall audio quality than on Video-SFX alignment.
+    \item \IB scores do tend to monotonically increase Video-SFX correctness without saturating.
+    \item Diegetic synchronization does seem to be correlated with \IB like diegetic correctness, however this is likely not causal based on findings that IB score is insensitive to shifts in audio. Instead, model changes that improve correctness likely also improve synchronization, leading to a spurious correlation between synchronization and IB score.
+\end{itemize}
+
+
+For the Text-Audio alignment subjective evaluations, where we measure both recall and precision in 20\% increments, we report correlations with CLAP \citep{wu2023clap} scores in Figure \ref{fig:audiobox_ta_align}. We find that on the item level, there is moderate correlation. To compute confidence intervals via bootstrap we utilize a two-stage approach to also account for annotation error; we first resample evaluated items, then resample the individual annotations for each item
+and compute consensus score on the bootstrap sample. We find nominally that single-scene generated videos have a higher Spearman correlation between CLAP and human evaluations compared to single-scene real videos, however this difference is not statistically significant.

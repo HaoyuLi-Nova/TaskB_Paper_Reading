@@ -1,0 +1,150 @@
+\section{Data Processing Pipeline}
+\label{sec:data_processing}
+
+High-quality data is essential for training large generative models, and an automated data construction pipeline significantly enhances the efficiency of the training process.
+%
+In developing our dataset, we prioritized three core principles: \emph{high quality}, \emph{high diversity}, and \emph{substantial scale}.
+%
+Following these principles, we curated a dataset comprising billions of videos and images. 
+%
+This section offers a detailed introduction to the data construction pipeline employed for \method.
+
+
+\subsection{Pre-training Data}
+
+We curated and deduplicated a candidate dataset sourced from both internal copyrighted sources and publicly accessible data. 
+%
+In the pre-training stage, our goal is to select high-quality and diverse data from this expansive yet noisy dataset to facilitate effective training.
+%
+Throughout the data mining process, we designed a four-step data cleaning process, focusing on fundamental dimensions, visual quality, and motion quality. % category balancing.
+Subsequently, we will also highlight our data processing workflow for constructing visual text data.
+
+
+\textbf{Fundamental dimensions.} 
+%
+The fundamental dimensions of our data filtering framework focus on the intrinsic attributes of the source video and image data, enabling efficient preliminary filtering out of all the unsuitable data.
+%
+Specifically, our multidimensional filtering approach encompasses the following critical aspects:
+%
+\emph{Text detection}. A lightweight OCR detector is implemented to quantify text coverage ratios, effectively excluding videos and images with excessive textual elements to maintain visual clarity.
+%
+\emph{Aesthetic evaluation}: We use the widely adopted LAION-5B~\citep{schuhmann2021laion} aesthetic classifier to perform an initial quality assessment of our images, quickly filtering out low-quality data.
+%
+\emph{NSFW Score}. Through our internal safety assessment model, we systematically evaluate and filter inappropriate content based on computed NSFW scores in all training data.
+%
+\emph{Watermark and logo detection}. We detect whether the video or images contain watermarks and logos, and crop these elements during training.
+%
+\emph{Black border detection}. Utilizing heuristic-based detection methods, we automatically crop extraneous black borders to maintain focus on content-rich regions.
+%
+\emph{Overexposure detection}. Our trained expert classifier evaluates and filters out data with abnormal tonal distributions, ensuring optimal visual quality in the training dataset.
+%
+\emph{Synthetic image detection}. Empirical evidence indicates that even minimal contamination ($<10\%$) by generated images can significantly degrade the performance of the model. Therefore, we train an expert classifier to filter out these ``contaminating" images.
+%
+\emph{Blur detection}. An internally developed model assigns quantitative blur scores to training materials, enabling the systematic removal of visually indistinct content.
+%
+\emph{Duration and resolution}. We also enforce constraints where video duration must exceed 4 seconds, and resolution thresholds are applied at different training stages to filter out low-quality data.
+%
+Through the implementation of these efficient preprocessing strategies, we successfully eliminated approximately 50\% of the initial dataset. 
+%
+The retained high-quality data subsequently progresses to a more superior semantic-driven selection stage for further refinement.
+
+
+\textbf{Visual quality.}  
+%
+This primarily involves selecting data from the candidate dataset that is of relatively high quality and meets pre-training standards.
+%
+This subset of data must have good visual quality and its overall distribution should align with that of natural data.
+%
+In this process, we divide the task into two parts: \emph{clustering} and \emph{scoring}. 
+%
+\emph{Clustering} is used to split all the data into smaller subsets, allowing us to process each subset individually. 
+%
+The benefit of this approach is that it prevents the loss of small yet important data segments that might occur due to a long-tail distribution, thereby maintaining the original data distribution. 
+%
+Specifically, we divide the data into 100 clusters and then select a certain amount of data from each cluster for the next stage of data processing.
+%
+\emph{Scoring} is used to assign a quality score to each video or image, facilitating the selection and processing of data at different stages. 
+%
+Specifically, we select samples from each cluster for manual scoring (ranging from 1 to 5, with 1 being the worst and 5 being the best). 
+%
+We then train an expert assessment model using all the annotated data to score the entire dataset. 
+
+\textbf{Motion quality.}  
+%
+The goal of motion quality assessment is to select videos that are natural, complete, and with significant motion, while avoiding static or jittery movements. 
+%
+We classify video data into six distinct motion quality tiers.
+%
+\emph{Optimal motion}: This level represents videos with optimal attributes, such as significant motion layout, perspective, and amplitude, along with clean, smooth movement. 
+%
+\emph{Medium-quality motion}: Videos in this category exhibit noticeable movements but may have minor issues like multiple subjects or partial occlusion. This data ensures motion diversity and can be used during pre-training to help the model better understand spatio-temporal relationships. 
+%
+\emph{Static Videos}: This category primarily focuses on the videos, which consist largely of chat and interview-style videos. While these videos contain minimal motion information, they are of high quality. Therefore, we need to identify them separately and reduce their sampling ratio.
+%
+\emph{Camera-driven Motion}: Footage dominated by camera movement (\emph{e.g.}, aerial shots) with minimal subject motion. Given their similarity to static images, these receive substantially lower sampling priority.
+%
+\emph{Low-quality Motion}: Videos exhibiting excessive subjects, severe occlusions, or unclear main subjects (\emph{e.g.}, crowded street scenes). Such content is excluded due to its negative impact on training efficiency and motion generation quality.
+%
+\emph{Shaky camera footage}: Amateur recordings with pronounced camera shake, often causing motion blur and ambiguous foreground-background differentiation. This category is systematically excluded from training consideration.
+
+
+\textbf{Visual text data.} 
+%
+In addition, we also introduce a novel data processing approach to enhance the visual text generation of \method. 
+%
+This approach comprises two distinct processing branches designed to improve both the accuracy and the harmony of text rendering.
+%
+On one hand, we synthesize hundreds of millions of text-containing images by rendering Chinese characters on a pure white background. 
+%
+On the other hand, we collect large amounts of text-containing images from vast real-world data. 
+%
+We employ multiple OCR models to accurately recognize both English and Chinese text from images and videos, and subsequently input these extracted text contents into the multimodal language model Qwen2-VL. 
+%
+This process generates natural descriptions of the images, ensuring that the descriptions incorporate as much precise text content as possible. 
+%
+We collect a mass of real-world image-text pairs by leveraging this processing pipeline.
+%
+By integrating both synthetic and real data during the pre-training stage, our approach effectively generalizes to generate rare words in videos with accurate glyphs and high realism, demonstrating significant superiority in visual text generation.
+
+
+\begin{figure}[t]  
+    \centering  
+    \includegraphics[width=1.0\textwidth]{figures/data/fig_data_stage.png}  
+    \caption{Data provisioning across different training phases. For each stage, we dynamically adjust the proportions of data related to motion, quality, and category based on data throughput.} 
+    \label{fig:data_stage} 
+\end{figure}
+
+
+\subsection{Post-training Data}
+\label{sec:post-training data}
+The core objective of post-training is to improve both the visual fidelity and motion dynamics of generated videos through high-quality data.
+%
+Our data processing pipeline in this stage employs distinct strategies for static and dynamic data: image data undergoes optimization for improved visual quality, while video data is specifically processed to refine motion quality.
+%
+
+\textbf{Image processing.}
+%
+From the pool of high-scoring image data, we perform an additional refinement process to identify top-quality samples that the images excel in aspects such as quality, composition and details.
+%
+Specifically, we construct the curated dataset using two methods: \emph{expert-based collection} and \emph{manual collection}.
+%
+The former method involves selecting the top 20\% of images based on scores predicted by an expert model.
+%
+For this subset, we also consider factors such as style and category to ensure diversity in data distribution.
+%
+The latter approach involves manually collecting top-quality images from various categories and data sources while also filling in any missing concepts in our dataset to enhance the model's generalization capabilities. 
+%
+Through this process, we collected a total of millions of curated images.
+
+
+\textbf{Video processing.}
+%
+In this phase, we employ a strategy similar to the one used for images to collect top-quality videos. 
+%
+First, we filter out some top-ranked videos from the candidate datasets using the visual quality classifier. 
+%
+Then, based on the motion quality classifier, we select millions of videos featuring simple movements and millions of videos with complex movements. 
+%
+All video selections follow a strategy that emphasizes category balance and high diversity.
+%
+Meanwhile, we select data from 12 major categories, including technology, animals, arts, humans, vehicles, and \emph{etc}, in order to enhance the model's generative capabilities for commonly used categories.

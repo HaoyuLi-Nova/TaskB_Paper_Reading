@@ -1,0 +1,77 @@
+\section{Introduction}
+\label{sec:intro}
+
+The unified synthesis of audio and video represents a pivotal frontier in contemporary generative AI, with profound implications for content creation, digital avatars, and immersive virtual worlds. Industry-leading proprietary models, such as Veo 3~\cite{veo3_website} and Sora 2~\cite{sora2_website}, have set a high benchmark, delivering outputs with remarkable fidelity and demonstrating substantial practical utility. However, a significant gap persists between these closed-source systems and the capabilities of existing open-source methods~\cite{shan2025hunyuanfoley,cheng2025mmaudio,peng2025omnisync}. A fundamental challenge, in particular, remains largely unsolved in the open-source community: achieving precise and harmonious audio-visual alignment.
+
+While recent open-source models have made strides in generation quality, they often struggle with robust audio-visual synchronization. Recent explorations into end-to-end \textbf{joint audio-video generation}~\cite{liu2025javisdit,ruan2023mmdiffusion,ishii2024simple,haji2024av,low2025ovi,wang2025universe} underscore this limitation.
+\hut{Specifically, these methods often exhibit specialized limitations: many are confined to generating ambient sounds and fail to synthesize natural human speech~\cite{liu2025javisdit,ruan2023mmdiffusion,ishii2024simple,haji2024av}; while others, such as JAM-Flow~\cite{kwon2025jam}, focus solely on speech generation but lack the capability to generate environmental sounds.}
+Even among more general models, 
+% Ovi~\cite{low2025ovi} struggles with \textit{robust alignment}, and Universe~\cite{wang2025universe} produces content lacking \textit{fine-grained temporal synchronization} 
+\hutnew{Ovi~\cite{low2025ovi} exhibits deficiencies in \textit{robust alignment}, while UniVerse-1~\cite{wang2025universe} suffers from poor \textit{audio-video synchronization}.}
+\yr{Table~\ref{tab:related_work_comparison} presents a capability comparison.}
+These shortcomings reveal a critical gap in current research: few methods investigate the root causes of \yr{audio-video} misalignment from a methodological standpoint. 
+% Instead, performance improvements have predominantly relied on scaling up model size and training data—a `brute-force' approach that fails to address the core mechanistic deficiencies in alignment. 
+Consequently, there remains a lack of highly generalizable and well-aligned audio-video \yr{joint} generation methods.
+\hutnew{\textit{This leaves a significant void in the open-source landscape for a unified framework capable of generating a comprehensive audio spectrum—from ambient sounds to human speech—while maintaining precise audio-visual harmony.}}
+
+
+
+In this work, we posit that the difficulty in achieving robust synchronization stems from three fundamental challenges inherent to the joint diffusion process. 
+\textit{\yr{(1)}} During joint generation, both modalities are progressively denoised from pure noise. In the early, highly stochastic stages, attempting to align two concurrently evolving, \yr{highly noisy} latents \yr{causes} a phenomenon we term \textbf{Correspondence Drift}, where the optimal mapping continuously shifts, impeding stable learning. 
+\textit{\yr{(2)}} 
+% existing architectural designs often rely on global cross-attention, where entire video and audio sequences interact. This approach is computationally inefficient and struggles to capture the precise, frame-level temporal cues necessary for tight synchronization. 
+\hut{Audio-visual synchronization presents a fundamental architectural tension between two competing objectives: precise, frame-level temporal alignment (\textit{e.g.}, lip movements) and holistic, global style consistency (\textit{e.g.}, emotional tone). Existing designs, often relying on a single, monolithic mechanism like global cross-attention, conflate these distinct goals, forcing the model into a suboptimal trade-off where neither objective is fully achieved.}
+\textit{\yr{(3)}} Conventional Classifier-Free Guidance (CFG)~\cite{ho2022classifier} operates by amplifying conditioning signals for each modality in isolation. Consequently, it does not inherently promote or enhance the crucial cross-modal correspondence between the generated audio and video.
+% , the conventional Classifier-Free Guidance (CFG)~\cite{ho2022classifier} lacks a mechanism for cross-modal enforcement, which is designed to strengthen the conditioning of each modality independently, but does not explicitly amplify the alignment between the audio and video.
+% It is designed to strengthen the conditioning of each modality independently, but it does not explicitly amplify the alignment signal \textit{between} the audio and video.
+
+To overcome these challenges, we propose \textbf{Harmony}, a novel \yr{joint audio-video generation} framework designed to generate highly synchronized audio-\yr{video} content %by explicitly enhancing cross-modal alignment. 
+\yr{with cross-task synergy.}
+Harmony's design is centered on three core innovations, each targeting one of the aforementioned challenges. To mitigate Correspondence Drift, we employ a \textbf{Cross-Task Synergy} training paradigm, co-training the joint generation task with 
+%an audio-driven video synthesis task 
+\hutnew{auxiliary audio-driven video
+and video-driven audio generation tasks} to leverage the latter's strong supervisory signal for instilling robust alignment priors. 
+% To address inefficient interaction in previous global cross attention,
+\hut{To resolve the conflation of local and global synchronization objectives,}
+we further propose a \textbf{Global-Local Decoupled Interaction Module} that ensures both holistic style consistency and precise temporal synchronization through the decoupled global style attention and localized, \hut{RoPE-aligned} frame-wise attention. 
+Finally, to address the fact that conventional CFG lacks a mechanism for enhancing audio-visual alignment, we propose \textbf{Synchronization-Enhanced CFG (SyncCFG)}. This novel technique redefines the negative condition learned from the cross-task training stage to explicitly isolate and amplify the guidance vector corresponding to audio-visual alignment. 
+% Through these contributions, Harmony establishes a new paradigm for audio-visual generation that prioritizes and mechanistically enforces cross-modal alignment, achieving state-of-the-art performance in both generation quality and synchronization.
+
+
+\begin{table}[t]
+\centering
+\caption{Comparison of capabilities among existing joint audio-video generation models. We evaluate their ability to generate different sound types and the quality of their temporal alignment with the video. (\cmark: Good, \fmark: Fair/Limited, \xmark: Poor/Unsupported)}
+\vspace{-0.1in}
+\label{tab:related_work_comparison}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Model} & \makecell{\textbf{Human} \\ \textbf{Speech}} & \makecell{\textbf{Environmental} \\ \textbf{Sound}} & \makecell{\textbf{Speech-Video} \\ \textbf{Alignment}} & \makecell{\textbf{Sound-Video} \\ \textbf{Alignment}} \\
+\midrule
+MM-Diffusion~\cite{ruan2023mmdiffusion} & \xmark & \fmark & \xmark & \fmark \\
+JavisDiT~\cite{liu2025javisdit} & \xmark & \fmark & \xmark & \fmark \\
+AnimateSI~\cite{wang2025animate} & \xmark & \fmark & \xmark & \fmark \\
+% UniAVGen~\cite{zhang2025uniavgen} & \cmark & \xmark & \cmark &\xmark \\
+JAM-Flow~\cite{kwon2025jam} & \cmark & \xmark & \cmark &\xmark \\
+UniVerse-1~\cite{wang2025universe} & \cmark & \cmark & \xmark & \fmark \\
+Ovi~\cite{low2025ovi} & \cmark & \cmark & \fmark & \fmark \\
+\midrule
+\textbf{Harmony (Ours)} & \cmark & \cmark & \cmark & \cmark \\
+\bottomrule
+\end{tabular}%
+}
+\vspace{-0.18in}
+\end{table}
+
+% Extensive quantitative and qualitative experiments demonstrate the superior audio-video generation quality of our framework. On standard benchmarks, Harmony surpasses existing methods in both fidelity and diversity. Critically, our results highlight its unparalleled ability to achieve robust cross-modal alignment, showing marked improvements in fine-grained temporal synchronization and overall stylistic consistency, thereby validating the efficacy of our proposed techniques.
+% The main contributions of our work are summarized as follows:
+
+\hutnew{Extensive experiments on our newly proposed \textbf{Harmony-Bench} validate our framework on the challenging task of jointly generating human speech and ambient sounds. Harmony achieves the best audio-video alignment, maintaining fine-grained temporal synchronization in complex acoustic scenes, which confirms the efficacy of our approach. The main contributions of our work are summarized as follows:}
+
+\begin{itemize}
+    \item We propose \textbf{Harmony}, a novel \yr{joint} audio-\yr{video} generation framework built upon the principle of \textbf{Cross-Task Synergy} to resolve the fundamental \textit{Correspondence Drift} problem in joint diffusion models.
+    \item We design a \textbf{Global-Local Decoupled Interaction Module} that achieves comprehensive alignment in both overall style and fine-grained temporal details.
+    \item We propose a novel \textbf{Synchronization-Enhanced CFG (SyncCFG)} that guides the model towards better audio-visual correspondence during inference by using %silent 
+    \yr{mute-audio} \hutnew{and static-video} condition as negative guidance.
+    \item We establish a new state-of-the-art in audio-visual generation, with extensive experiments validating Harmony's superior performance in cross-modal synchronization.
+\end{itemize}

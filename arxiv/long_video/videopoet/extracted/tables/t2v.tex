@@ -1,0 +1,27 @@
+\begin{table}[tp]
+\centering
+% \scriptsize
+\caption{\textbf{Comparison on zero-shot text-to-video benchmarks.} See Appendix~\ref{sec:appendix-evaluation} for evaluation details.}
+% \vspace{-2mm}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+      Model & \multicolumn{2}{c}{MSR-VTT} & \multicolumn{2}{c}{UCF-101} \\
+      & \multicolumn{1}{c}{CLIPSIM} & \multicolumn{1}{c}{FVD} & \multicolumn{1}{c}{FVD} & \multicolumn{1}{c}{IS} \\
+\midrule
+CogVideo (EN)~\yrcite{hong2022cogvideo} & \multicolumn{1}{c}{0.2631} & 1294 & 702 & 25.27 \\
+MagicVideo~\yrcite{zhou2022magicvideo} & \multicolumn{1}{c}{-} & 998 & 655 & - \\
+Video LDM~\yrcite{blattmann2023align} & \multicolumn{1}{c}{0.2929} & - &  551 & 33.45 \\
+ModelScopeT2V~\yrcite{wang2023modelscope} & \multicolumn{1}{c}{0.2930} & 550 & - & - \\
+InternVid~\yrcite{wang2023internvid} & \multicolumn{1}{c}{0.2951} & - & 617 & 21.04 \\
+VideoFactory~\yrcite{wang2023videofactory} & \multicolumn{1}{c}{0.3005} & - & 410 & - \\
+Make-A-Video~\yrcite{singer2022make} & \multicolumn{1}{c}{0.3049} & - & 367 & 33.00 \\
+Show-1~\yrcite{zhang2023show} & \multicolumn{1}{c}{0.3072} & 538 & 394 & 35.42 \\
+\bf \modelname{} (Pretrain) & \multicolumn{1}{c}{0.3049}  & \bf 213 & \bf 355 & \bf 38.44\\
+\bf \modelname{} (Task adapt) & \multicolumn{1}{c}{\bf 0.3123} & - & - & - \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:t2v_sota}
+\vspace{-2mm}
+\end{table}

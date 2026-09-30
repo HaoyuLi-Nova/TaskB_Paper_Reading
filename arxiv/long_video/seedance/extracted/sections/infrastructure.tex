@@ -1,0 +1,101 @@
+\iffalse
+
+\section{Training Infrastructure}
+
+This subsection introduces the key strategies for efficient model training，including large-scale pre-training and post-training. First, we employ a parallelism strategy to train the lite model on long-context videos. Second, a Runtime Balance strategy is proposed to address computational imbalance during joint image-video training. Additionally, we design Multi-Level Activation Checkpointing (MLAC) to reduce GPU memory usage and recomputation overhead. Finally, we optimize GPU utilization by implementing fused CUDA kernels to streamline fragmented I/O operations. As a result, out lite model attains a model FLOPs Utilization (MFU) of 38\% in large-scale training with thousands of GPUs.
+\subsection{Large-Scale Pre-Training Optimization}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=.8\linewidth]{figures/training_infrastructure/runtime_balance.png}
+  \caption{Balance samples within one batch across GPUs by runtime metric.
+        \textbf{Top}: seqlen-to-runtime lookup table.
+        \textbf{Bottom left}: One batch samples across GPUs before balance.
+        \textbf{Bottom left}: One batch samples across GPUs after balance.}
+  \label{fig:runtime_balance}
+\end{figure}
+
+\paragraph{Parallelism Strategy.}
+We use 3D parallelism that includes data parallelism, context parallelism, and model sharding to support efficiently distributed training with long-context samples. FSDP~\citep{zhao2023pytorch} shards the model parameters, optimizer states, and gradients across GPUs, and enables overlap between computation and communication to reduce communication overhead and improve distributed training efficiency. We adopt Ulysess~\citep{jacobs2023deepspeed} as our context-parallelism strategy, which iteratively shards samples across the sequence dimension and the head dimension in token-dependent/independent layers through all-to-all communication.
+\paragraph{Runtime Balance.}
+Joint training of images and videos causes significant computational imbalance across GPUs, leading to inter-device synchronization overhead and reduced training throughput. Existing methods~\citep{ma2025step} based on seqlen (sequence length) and FLOPs fail to achieve optimal balance due to the non-linear relationship between training runtime and these metrics, influenced by varying operator efficiency. To address this, we propose Runtime Balance (\Cref{fig:runtime_balance}), which constructs an offline lookup table mapping seqlen to actual runtime. During training, the process gathers runtime estimates obtained via table queries from all ranks and employs a greedy algorithm to determine the global workload distribution. After that, ranks exchange training samples via communication based on the balancing results to achieve optimal load balance. Notably, runtime balancing is restricted within the same batch to preserve data consistency. To minimize training overhead, proactive balancing for the next batch is performed asynchronously in a sub-process to avoid waiting for the main training process.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\linewidth]{figures/training_infrastructure/mlao.png}
+  \caption{Multi-level activation checkpointing(MLAC). (a) Vanilla AC saves inputs on device could still encounter GPU OOM. (b) MLAC further supports offloading module inputs to achieve zero-activation AC, (c) and minimize recomputation overheads by saving compute-bound activations to multi-level storage space.}
+  \label{fig:mlao}
+\end{figure}
+\paragraph{Multi-Levels Activation Checkpointing.}
+Activation checkpointing~\citep{chen2016training} introduces significant recomputation overhead during backpropagation and may still encounter GPU OOM issues in long-context scenarios, as it inevitably requires caching the input tensor of the wrapped module. We introduce Multi-Level Activation Checkpointing (MLAC), as shown in \Cref{fig:mlao}, a method for selectively saving any intermediate activation during forward pass on multiple levels of storage, such as GPU, CPU, and disk memory. MLAC minimizes recomputation overhead during backpropagation by prioritizing the caching of output tensors from compute-bound operations. Furthermore, it supports offloading input tensors of the gradient checkpointing module on the CPU and disk to attain zero
+activation occupancy in GPU memory, which allows training larger models with longer context.
+MLAC incorporates an efficient asynchronous caching and prefetching mechanism that optimizes the overlap between memory transfers and forward/backward computations. Compared to vanilla AC, MLAC makes full use of the available hardware resources and significantly improves training efficiency.
+
+\paragraph{Fused Kernel.}
+IO-bound operations such as normalization and RoPE (rotary position encoding) frequently access memory, preventing the Tensor/CUDA core from being fully utilized. 
+We introduce kernel fusion techniques that leverage registers and shared memory to store intermediate results from consecutive memory-access-intensive operators and fuse them into a single CUDA kernel. These fused kernels reduce the global memory accesses to one-tenth of the baseline, significantly improving the kernel's arithmetic intensity. Specifically, we fuse QK-Norm, RoPE, and all the attention preprocessing operations and implement the corresponding forward and backward fused kernels. Similar optimization strategies are applied to the rest of the memory-access-intensive operators in the model to improve the training and inference efficiency.
+
+\fi
+
+\section{Training Infrastructure}
+\subsection{Pre-Training Optimization}
+To support efficient large-scale pre-training of long-context video models on thousands of GPUs, we have designed a highly optimized training infrastructure.
+% that achieves a model FLOPs utilization (MFU) of up to 0.38. 
+Our system focuses on maximizing hardware efficiency, scalability, and robustness. It integrates high-performance kernel fusion, a hybrid parallelism strategy, multi-level activation checkpointing (MLAC), runtime-aware workload balancing, and multi-level fault tolerance. These components work together to ensure stable, high-throughput training under diverse workloads and hardware scales.
+
+\textbf{High-Performance Kernel.}
+To fully utilize GPU hardware resources, we combined \texttt{torch.compile} with handcrafted CUDA kernels for performance-critical operators. We identified memory-bound operations and fuse them into single CUDA kernels to minimize redundant memory access, such as rotary position encoding (RoPE) and normalization. These fused kernels store intermediate results in registers or shared memory, significantly improving arithmetic intensity and reducing global memory traffic by over 90\%. 
+
+
+\textbf{Parallelism Strategy.}
+We adopted a hybrid parallelism strategy combining data parallelism and sequence parallelism to efficiently train long-context models on thousands of GPUs. Specifically, we employed Hybrid Sharded Data Parallelism (HSDP)~\citep{zhao2023pytorch} for memory-efficient weight sharding and mitigating performance degradation observed when scaling to over thousands of GPUs. 
+For sequence parallelism, we followed the Ulysses~\citep{jacobs2023deepspeed} approach, sharding tokens across GPUs along the sequence and head dimensions to enable parallel processing of long video samples. 
+
+\textbf{Multi-Levels Activation Checkpointing.}
+Multi-Level Activation Checkpointing (MLAC)~\citep{seawead2025seaweed} policy is employed to reduce GPU memory pressure under negligible recomputation overhead during backpropagation. MLAC implements optimized asynchronous caching and prefetching mechanisms to maximize the overlap between memory transfers and forward/backward computation. We leveraged MLAC to prioritize offloading output tensors of the operators (ops) with the highest recomputation cost during model training, e.g., attention and FC2 layer in MLP module. Furthermore, MLAC was applied to offload input tensors of the activation checkpointing module to attain zero activation occupancy in GPU memory, which allows us to lower the degree of sequence parallelism and thereby reduce communication overhead.
+
+
+\textbf{Workload Balance.}
+Large-scale video pre-training often involves heterogeneous data types (e.g., long vs. short videos, varying resolution), which introduces significant computational imbalance across GPUs. To address this, we applied a runtime-aware workload balancing strategy~\citep{seawead2025seaweed}, leveraging an additional all-to-all communication step to distribute workload evenly across GPUs.  
+This balancing strategy is performed within each batch to maintain data consistency, and is asynchronously precomputed in the background to avoid stalling the main training loop. 
+Our approach significantly reduced inter-GPU idle time and improves overall training throughput.
+
+
+\textbf{Fault Tolerance.}
+In large-scale training jobs running on thousands of GPUs over extended periods, transient failures are inevitable. To ensure robustness, we integrated fault tolerance at multiple levels.
+First, we implemented periodic checkpointing of both model and optimizer states, with full support for FSDP-sharded weights. The states of the dataloader were also saved to ensure bitwise-exact resumption.
+Second, we conducted thorough machine health checks before launching each job to eliminate potential stragglers and faulty nodes.
+Third, we reduced model initialization overhead to maximize effective training time. For example, we utilized PyTorch’s meta tensor initialization to directly load model parameters, eliminating the time typically spent on standard initialization.
+Combined, these strategies enhanced training reliability and minimize the impact of hardware or software failures during prolonged distributed runs.
+
+\subsection{Post-Training Optimization}
+Post-training primarily consists of three phases: supervised fine-tuning, reinforcement learning, and distillation. During this stage, it is essential not only to optimize training efficiency but also to minimize GPU memory consumption (e.g., reducing peak memory usage and fragmentation) and enhance overall memory utilization. The suboptimal GPU memory utilization observed in the post-training stage primarily stems from three factors:
+
+\begin{itemize}
+    \item \textbf{Memory Contention}. During the reinforcement learning and distillation phases, GPU memory is sequentially and dynamically shared among various components, including the Text Encoder, DiT, VAE, reward models, and their corresponding activation tensors.
+    \item \textbf{Complex Training Modes}. The coexistence of trainable and frozen model components complicates memory management and introduces additional optimization challenges.
+    \item \textbf{Diverse Workloads}. The concurrent presence of both long and short video sequences creates variable memory demands, making traditional static memory optimization methods ineffective.
+\end{itemize}
+
+To effectively address these challenges, we have developed a dynamic memory management framework that incorporates CPU offloading and recomputation techniques. Additionally, we adopted the parallelization strategies previously used during pre-training, leveraging FSDP and sequence parallelism to enable efficient multi-node scaling.
+
+\begin{itemize}
+    \item \textbf{Memory Optimization}. To ensure simplicity and ease of use, we utilized PyTorch hooks to implement CPU offloading,  thereby minimizing intrusive modifications to user code. Through detailed profiling and modeling, we identified optimal CPU offloading and recomputation strategies. In addition, we applied localized static memory planning to mitigate memory fragmentation caused by frequent allocation and free of tensors with varying sizes. 
+    % This issue is often reflected in PyTorch as a significant gap between the \textit{max\_memory\_reserved} and the \textit{max\_memory\_allocated}.
+    % Specifically, intermediate activation tensors are intelligently identified and offloaded from GPU to CPU when not actively required, significantly reducing GPU peak memory usage. These tensors are subsequently reloaded onto the GPU precisely when needed, minimizing performance overhead while maximizing memory efficiency.
+    \item \textbf{Parallelism Strategy}. To maximize hardware utilization, we configured different degrees of sequence parallelism across different models based on their computational characteristics. Additionally, we set \texttt{TORCH\_NCCL\_AVOID\_RECORD\_STREAMS=1} to eliminate delayed memory release issues. Additionally, we manually managed the \texttt{free\_event\_queue} to address the problem of delayed parameter release in FSDP when parameters are frozen. Furthermore, we utilized \texttt{register\_post\_backward\_reshard\_only\_hook} to adjust the order of memory allocation and release during backward computation under the frozen mode.
+\end{itemize}
+
+These optimizations ensure stable and efficient post-training performance, even in complex scenarios involving multiple model components and diverse video workloads.
+
+% Finally, we conducted detailed profiling and workload analyses to pinpoint critical bottlenecks. Based on these insights, targeted optimizations were applied to mitigate GPU memory fragmentation and control peak memory usage. These enhancements ensure stable and efficient post-training performance, even in complex scenarios involving multiple model components and diverse video workloads.
+
+% Post-training primarily consists of three phases: supervised fine-tuning, reinforcement learning, and distillation.
+% During the latter two phases, GPU memory is sequentially and dynamically shared among multiple parallel components, including the Text Encoder, DiT, VAE, reward models, and their corresponding activation tensors. 
+% Additionally, the complexity of the training mode, characterized by a combination of trainable and frozen components, introduces additional challenges for memory optimization.
+% Furthermore, the concurrent presence of long and short video data imposes variable memory demands, rendering traditional static memory optimization methods suboptimal.
+
+
+% To effectively address these challenges, we designed a dynamic memory management framework based on CPU offloading techniques, recomputing techniques and sequence parallel strategy. 
+
+% Specifically, we leveraged PyTorch hooks to automate and simplify the memory management process: intermediate activation tensors are intelligently identified and offloaded from GPU to CPU when not actively used, significantly reducing GPU memory occupancy. Subsequently, these tensors are seamlessly reloaded onto the GPU precisely when needed for computation, minimizing performance overhead while maximizing memory efficiency.
+% Furthermore, we conducted detailed profiling and workload analyses to pinpoint critical bottlenecks. Based on these insights, targeted optimizations were applied to reduce GPU memory fragmentation and control peak memory usage, ensuring stable and efficient post-training even under complex scenarios involving multiple model components and diverse video workloads.

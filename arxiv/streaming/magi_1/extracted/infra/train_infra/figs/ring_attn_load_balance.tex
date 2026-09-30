@@ -1,0 +1,6 @@
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{infra/train_infra/figs/ring_attn_load_balance.for_arxiv.pdf}
+    \caption{Illustration of Ring-Attention’s customized sharding strategies for load balancing. (a) Full mask uses sequential sharding for the global mask; (b) Causal mask employs tailored \textit{zigzag sharding}~\citep{ring_flash_attention_issue2}; (c) Varlen full mask applies sequential sharding per local mask (one per packed sample); (d) Varlen causal mask uses \textit{zigzag sharding} per local mask, causing performance degradation from fragmentation and padding.}
+    \label{fig:ring_attn_load_balance}
+\end{figure}

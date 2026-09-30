@@ -1,0 +1,33 @@
+
+\subsubsection{Rethinking System Design for Robust Distributed Training Frameworks with DTensor}\label{sec:train_infra_odin}
+
+As large-scale models continue to evolve, the growing  complexity of training procedures has exposed fundamental limitations in existing distributed training frameworks~\citep{shoeybi2020megatronlm, rajbhandari2020zeromemoryoptimizationstraining}. Two major bottlenecks are particularly prominent:
+\begin{itemize}
+    \item Lack of testability by design. Most frameworks were not initially built with testability as a first-class feature, resulting in fragile infrastructure with limited maintainability and reliability;
+    \item Tight coupling between model implementation and parallelization strategy. This entanglement prevents algorithm researchers and system engineers from working independently, hindering collaboration and modular development
+\end{itemize}
+We argue that next-generation distributed training frameworks must directly address these two pain points to support large-scale model research and deployment.
+
+Inspired by early explorations~\citep{xu2021gspmdgeneralscalableparallelization, yuan2022oneflowredesigndistributeddeep} and PyTorch’s pioneering implementations~\citep{zhao2023pytorch, pytorchdtensor2024, liang2024torchtitanonestoppytorchnative}, we propose a blueprint for redesigning robust distributed training frameworks based on Pytorch Distributed Tensor (DTensor)~\citep{pytorchdtensor2024} and Parallel Plan:
+
+\paragraph{DTensor} PyTorch DTensor introduces three parallel placements: \texttt{Replicated}, \texttt{Shard}, and \texttt{Partial}, alongside a distributed initialization strategy to maintain placement semantics~\citep{pytorch_offset_rngtracker_2025}, and a propagation mechanism that deduces output placements from input ones for supported ops, triggering communication as needed~\footnote{In practice, DTensor selects communication patterns based on estimated redistribution cost, but these estimates are often inaccurate.}~\citep{pytorch_sharding_prop_2025}. While it supports basic ops including naive distributed matmul, its current implementations lack the generality to handle more complex yet commonly scenarios in modern training workflows, as shown in Tab.~\ref{tab:dtensor_placements}.
+
+\paragraph{Parallel Plan} 
+Parallel Plan provides a declarative interface for specifying parallelization strategies across model submodules. It works in conjunction with the \texttt{parallelize\_module} function and is built on top of DTensor. However, its current capabilities are mostly limited to tensor parallelism (TP) and do not generalize well to other parallelism.
+
+In our architecture design, we extend both DTensor and Parallel Plan to support a broader range of usages. These extensions enable the following key features:
+
+\paragraph{Decoupling Modeling from Parallelization.} This feature allows model researchers to concentrate on model design and algorithm development without needing to manage low-level parallelism details. At the same time, infrastructure engineers can independently optimize parallelization strategies without modifying model implementation. This clear separation of concerns enables more efficient collaboration and improved training throughput.
+
+
+\paragraph{High-Precision Alignment with Non-Distributed Oracles.} 
+By disabling all parallel plans, we can seamlessly revert to non-distributed configurations, yielding "pure" model code that serves as a baseline or oracle for evaluating distributed correctness. To ensure alignment within a relative error of $10^{-8}$, we upcast tensors to higher precision~\footnote{In our experiments, \texttt{float32} is insufficient for fully alignment; \texttt{float64} suffices in most cases.}, enforce deterministic algorithms~\citep{pytorch2024reproducibility}, and control randomness using consistent seed management. This design enables precise infrastructure testing, ultimately improving reliability and debuggability.
+
+
+
+
+
+
+
+
+

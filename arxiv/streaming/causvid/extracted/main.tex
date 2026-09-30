@@ -1,0 +1,76 @@
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage[pagenumbers]{cvpr} %
+
+\input{sec/preamble}
+
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,citecolor=cvprblue]{hyperref}
+
+\def\paperID{1409} %
+\def\confName{CVPR}
+\def\confYear{2025}
+
+\title{From Slow Bidirectional to Fast Autoregressive Video Diffusion Models}
+
+\author{Tianwei Yin$^{1^*}$ \hspace{6mm} Qiang Zhang$^{2^*}$ \hspace{6mm} Richard Zhang$^{2}$ \\ William T. Freeman$^{1}$ \hspace{6mm} Frédo Durand$^{1}$ \hspace{6mm} Eli Shechtman$^{2}$ \hspace{6mm} Xun Huang$^{2}$ \\ \vspace{-3mm} \\
+$^{1}$MIT \hspace{5mm} $^{2}$Adobe \\\\
+\centerline{\url{https://causvid.github.io/}}
+}
+
+
+\begin{document}
+
+
+\twocolumn[{%
+ \renewcommand\twocolumn[1][]{#1}%
+ \maketitle
+ \centering
+ \includegraphics[width=\textwidth, trim={0 0.5cm 0 0.5cm}]{figures/teaser_final.pdf}
+ \captionof{figure}{ 
+    Traditional bidirectional diffusion models (top) deliver high-quality outputs but suffer from significant latency, taking 219 seconds to generate a 128-frame video. Users must wait for the entire sequence to complete before viewing any results. In contrast, we distill the bidirectional diffusion model into a few-step autoregressive generator (bottom), dramatically reducing computational overhead. Our model~(\textbf{\method}) achieves an initial latency of only 1.3 seconds, after which frames are generated continuously in a streaming fashion at approximately 9.4 FPS, facilitating interactive workflows for video content creation. 
+    \label{fig:teaser}
+   }
+ \vspace{1.8em}
+}]
+
+\maketitle
+
+\let\thefootnote\relax\footnotetext{$^{*}$ Equal Contribution. Correspondence:~\texttt{tianweiy@mit.edu}
+}
+
+
+\input{sec/0_abstract}
+\vspace{-1em}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=\linewidth]{figures/main_result_v4.pdf}
+    \caption{
+    Diverse video generation tasks supported by our method. The model can generate videos from a single text prompt (top row) or with additional image input (second row). 
+    Our model also enables interactive applications where generation results respond to user input with low latency.
+    For example, it can add realistic texture and lighting to outputs rendered by a basic game engine that responds to user input on the fly (third row).
+    Additionally, it enables dynamic prompting~(fourth row), allowing users to input new prompts at any point in a video to build extended narratives with evolving actions and environments.
+    }
+    \label{fig:main_result}
+\end{figure*}
+
+\input{sec/1_intro}
+
+
+\input{sec/2_related}
+\input{sec/3_background}
+\input{sec/4_method}
+\input{sec/5_experiments}
+\input{sec/6_conclusion}
+\input{sec/7_acknowledgment}
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+
+\input{sec/X_suppl}
+
+\end{document}

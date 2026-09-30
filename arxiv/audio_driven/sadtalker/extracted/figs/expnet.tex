@@ -1,0 +1,9 @@
+\begin{figure}[tp]
+    \centering
+    \includegraphics[width=\columnwidth]{figs/images/expnet_v2.pdf}
+    \vspace{-2.5em}
+    \caption{The structure of our ExpNet. We involve a monocular 3D face reconstruction model~\cite{deng2019accurate}~($R_e$ and $R_d$) to learn the realistic expression coefficients. Where $R_e$ is a pretrained 3DMM coefficients estimator and $R_d$ is a differentiable 3D face render without learnable parameters. We use the reference expression $\beta_0$ to reduce the uncertainty of identity and the generated frame from pre-trained Wav2Lip~\cite{wav2lip} and the first frame as target expression coefficients since it only contains the lip-related motions. }
+    \label{fig:expnet}
+\end{figure}
+
+%condition on audio, the reference expression $\beta_{0}$ from the first frame and the controllable blink factor $z_{blink}$

@@ -1,0 +1,49 @@
+\begin{table}[h]
+\centering
+\caption{Comparison of models across multiple quality metrics on 50s, 75s, and 100s videos for our main results. The gray metrics are aggregated metrics by VBench Long.}
+\resizebox{1.0\textwidth}{!}{
+\begin{tabular}{cgrrgrrrrgrr}
+\toprule
+ & \makecell{text\\alignment}
+ & \makecell{overall\\consistency}
+ & \makecell{clip\\score}
+ & \makecell{temporal\\quality}
+ & \makecell{subject\\consistency}
+ & \makecell{background\\consistency}
+ & \makecell{motion\\smoothness}
+ & \makecell{dynamic\\degree}
+ & \makecell{frame-wise\\quality}
+ & \makecell{aesthetic\\quality}
+ & \makecell{imaging\\quality} \\
+\midrule
+\rowcolor{skyblue!30}
+    \multicolumn{12}{c}{\textit{50 seconds}} \\
+NOVA & 24.58 & 20.55 & 28.61 & 86.53 & 92.48 & 95.21 & 99.18 & 31.96 & 34.45 & 39.85 & 29.06 \\
+MAGI-1 & 26.04 & 21.55 & 30.53 & 88.34 & 98.08 & 97.50 & 99.36 & 28.49 & 54.20 & 52.15 & 56.26 \\
+SkyReels-V2 & 23.73 & 18.94 & 28.53 & 88.78 & 96.06 & 96.43 & 98.67 & 39.15 & 54.13 & 50.44 & 57.82 \\
+CausVid & 25.25 & 20.71 & 29.80 & 89.34 & 98.29 & 97.27 & 98.45 & 37.35 & 61.56 & 57.91 & 65.21 \\
+Self-Forcing & 24.77 & 20.27 & 29.27 & 88.17 & 96.77 & 96.24 & 98.40 & 34.35 & 61.06 & 54.95 & 67.17 \\
+Ours & 26.37 & 22.03 & 30.71 & 91.03 & 97.00 & 95.55 & 98.39 & 55.36 & 60.82 & 53.76 & 67.87 \\
+\midrule
+\rowcolor{skyblue!30}
+    \multicolumn{12}{c}{\textit{75 seconds}} \\
+NOVA & 23.37 & 19.19 & 27.54 & 86.32 & 91.78 & 95.57 & 99.14 & 31.24 & 31.53 & 37.34 & 25.73 \\
+MAGI-1 & 24.95 & 20.36 & 29.53 & 87.89 & 98.20 & 97.70 & 99.29 & 24.82 & 52.04 & 49.38 & 54.71 \\
+SkyReels-V2 & 22.70 & 17.60 & 27.81 & 88.99 & 96.08 & 96.54 & 98.88 & 39.89 & 51.55 & 47.55 & 55.55 \\
+CausVid & 24.76 & 19.99 & 29.53 & 89.14 & 98.32 & 97.28 & 98.50 & 35.82 & 60.96 & 56.87 & 65.06 \\
+Self-Forcing & 23.39 & 18.85 & 27.93 & 87.79 & 97.43 & 96.50 & 98.77 & 29.15 & 60.02 & 53.28 & 66.77 \\
+Ours & 26.31 & 22.09 & 30.53 & 91.00 & 96.93 & 95.45 & 98.29 & 55.62 & 60.67 & 53.38 & 67.97 \\
+\midrule
+\rowcolor{skyblue!30}
+    \multicolumn{12}{c}{\textit{100 seconds}} \\
+NOVA & 22.89 & 18.63 & 27.15 & 86.24 & 91.66 & 95.50 & 99.13 & 31.09 & 31.03 & 36.64 & 25.42 \\
+MAGI-1 & 23.75 & 18.94 & 28.57 & 87.62 & 98.35 & 97.99 & 99.20 & 22.21 & 50.90 & 47.25 & 54.55 \\
+SkyReels-V2 & 22.05 & 16.84 & 27.25 & 88.80 & 96.05 & 96.52 & 98.86 & 38.75 & 50.48 & 46.33 & 54.62 \\
+CausVid & 24.41 & 19.61 & 29.22 & 89.06 & 98.41 & 97.46 & 98.54 & 34.60 & 61.01 & 57.22 & 64.79 \\
+Self-Forcing & 22.00 & 17.16 & 26.84 & 87.39 & 97.39 & 96.76 & 98.52 & 26.41 & 58.25 & 51.16 & 65.35 \\
+Ours & 26.04 & 21.75 & 30.34 & 90.87 & 97.09 & 95.53 & 98.35 & 54.12 & 60.66 & 53.00 & 68.31 \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:detailed_results}
+\end{table}

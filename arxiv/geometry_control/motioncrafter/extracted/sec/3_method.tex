@@ -1,0 +1,322 @@
+\section{Method}
+\label{sec:method}
+
+Given as input a monocular video sequence with dynamic objects,
+our goal is to learn a neural network $f_\theta$ that can output a 4D representation of its geometry along with dense point-wise correspondences, \emph{simultaneously}:
+\begin{equation}
+    \label{eq:goal}
+    f_\theta: \{\bm{I}_i\}_{i=1}^N \rightarrow
+    \{\bm{X}_i, \bm{V}_{i\rightarrow i+1}\}_{i=1}^N.
+\end{equation}
+$\mathcal{I}=\{\bm{I}_i\}_{i=1}^N$ is the input monocular video sequence with $N$ frames,
+where each frame
+$\bm{I}_i\in\mathbb{R}^{H\times W\times 3}$
+is an RGB image.
+The network
+$f_\theta$
+predicts a viewpoint-invariant point map
+$\bm{X}_i\in\mathbb{R}^{H\times W\times 3}$ for each frame $i$,
+and the 3D scene flow\footnote{Unless otherwise noted,
+we simplify $\bm{V}_{i\rightarrow i+1}$ as $\bm{V}_{i}$ for clarity.}
+$\bm{V}_{i\rightarrow i+1}\in\mathbb{R}^{H\times W\times 3}$
+between each pair of consecutive frames $i$ and $i+1$.
+Both the point map and scene flow are represented in a shared \emph{world coordinate system}.
+Note that,
+since we only predict forward scene flow,
+the last frame
+$N$
+does not have a corresponding flow prediction,
+i.e., we do not supervise $\bm{V}_{N\rightarrow N+1}$.
+
+
+To smoothly model the long-term motion and enable generalization to diverse scenes,
+we build $f_\theta$ upon a pretrained video generator,
+where $\boldsymbol{\theta}$ denotes the learnable parameters.
+Our framework is illustrated in~\cref{fig:overview}.
+We first introduce our unified 4D representation in~\Cref{sec:method_pre}.
+Then,
+in~\Cref{sec:method_vae},
+we present a dedicated 4D\footnote{Here we use 4D VAE to refer to the fused geometry and motion VAEs.} VAE architecture that jointly encodes geometry and motion into a unified latent space.
+Finally,
+in~\Cref{sec:method_training},
+we describe the overall training and inference strategy for our model.
+
+
+\subsection{Unified Geometry \& Motion Representation}
+\label{sec:method_pre}
+
+Here,
+like in DUSt3R~\cite{wang2024dust3r},
+we define the point maps and scene flows in the coordinate system of the first frame,
+which serves as the world coordinate system.
+In particular,
+the point map
+$\bm{X}_i \in \mathbb{R}^{H\times W\times 3}$
+stores the 3D coordinates
+$(x, y, z)$
+of each pixel from the frame
+$i$
+in the world coordinate system,
+while the scene flow
+$\bm{V}_{i} \in \mathbb{R}^{H\times W\times 3}$
+represents the 3D motion vector \((\Delta x, \Delta y, \Delta z)\)
+of each pixel from the frame
+$i$
+to
+$i+1$.
+Ideally, the \emph{deformed point map}
+\begin{equation}
+    \bm{X}_i^{d} = \bm{X}_i + \bm{V}_i
+\end{equation}
+should be spatially aligned with the point map of the next frame
+$\bm{X}_{i+1}$. 
+However,
+due to viewpoint changes,
+$\bm{X}_i^{d}$
+and
+$\bm{X}_{i+1}$
+are not in one-to-one correspondence in pixel space, 
+as they represent different frame contents,
+as illustrated in~\cref{fig:representation}.
+Note that,
+% following the very recent work~\cite{sucar2025dynamic,st4rtrack2025},
+our scene flow is also defined directly in the \emph{(world) coordinate system},
+meaning that each
+$\bm{V}_i$
+represents the motion vector \((\Delta x, \Delta y, \Delta z)\)
+in the world space,
+naturally eliminating camera-induced motion components.
+
+Such a unified geometry-motion representation offers several advantages:
+%  for both modeling and learning:
+1) \emph{Camera-free modeling.} 
+Similar to DUSt3R~\cite{wang2024dust3r},
+defining the geometry and motion in a chosen world coordinate system removes the need for additional camera pose estimation.
+2) \emph{Temporal consistency.} 
+In a continuous video sequence, geometry and motion are temporally coherent. 
+Modeling them jointly in the same coordinate system makes them easier to learn.
+3) \emph{Richer motion modeling.}
+Unlike existing methods~\cite{sucar2025dynamic,st4rtrack2025},
+we define scene flow between every pair of consecutive frames in the video,
+rather than only between the first frame and others.
+Consequently, this representation is less sensitive to occlusions induced by viewpoint variations and remains capable of capturing motion information of newly emerging dynamic objects in subsequent frames.
+
+
+\input{figs/data_representation.tex}
+\subsection{Unified 4D Geometry-Motion VAE}
+\label{sec:method_vae}
+
+Here, we describe how to effectively encode the above 4D representation into a latent space,
+which can then be used as the target for a video generator.
+Recent works on geometric diffusion models~\cite{ke2024repurposing,zhang2024world,jiang2025geo4d} encode only 3D geometric attributes, neglecting explicit motion modeling for dynamic scenes.
+In contrast, we design a novel 4D VAE architecture that jointly encodes geometry and motion into a unified 4D latent,
+as illustrated in~\cref{fig:overview}.
+
+To leverage the priors of \emph{pretrained} video generators,
+it is widely believed that
+\emph{the input to the VAE should be strictly aligned with the original data distribution of the pre-trained diffusion model}~\cite{ke2024repurposing, zhang2024world, jiang2025geo4d}.
+That is,
+a naive approach is to directly rescale 3D attributes (such as disparity~\cite{ke2024repurposing} and point maps~\cite{zhang2024world}) into the range $[-1, 1]$,
+by performing a max normalization,
+and then encode them using the frozen VAE weights.
+However,
+the world-coordinate 3D attributes are typically unbounded, with coordinates spanning $(-\infty, +\infty)$,
+in contrast to images with bounded pixel ranges $[0, 255]$.
+Moreover, the distribution of 3D attributes is inherently distinct from that of natural RGB images.
+Hence,
+in this work,
+we investigate a fundamental question:
+\emph{Is strict alignment with the diffusion model's input space essential for finetuning diffusion models?}
+
+
+\input{figs/rescale}
+
+\paragraph{Geometry VAE with Revised Normalization}
+To answer the above question,
+one key insight of our model is a slightly adjusted point map normalization strategy for the Geometry VAE.
+Note that,
+unlike the max normalization to $[-1, 1]$ commonly used in existing geometric diffusion models~\cite{ke2024repurposing,zhang2024world,jiang2025geo4d},
+we instead apply \emph{canonical normalization} to each sequence of world-coordinate point maps:
+\begin{equation}
+    \label{eq:normalization}
+    \hat{\bm{X}}_i = \frac{\bm{X}_i-\mu}{S},
+\end{equation}
+where
+$\mu=\frac{1}{|\mathcal{D}|}\sum_{d\in\mathcal{D}} \bm{X}_d$
+is the mean of all valid points,
+denoted by
+$\mathcal{D}$,
+in the point map sequence
+$\cup_{i=1}^N\{\bm{X}_i\}$
+and
+$S=\frac{1}{|\mathcal{D}|}\sum_{d\in\mathcal{D}} \big\| \bm{X}_d - \mu \big\|_2 + \varepsilon$ 
+is the mean distance for scale normalization with a small constant
+$\varepsilon$
+for numerical stability.
+This normalization maintains the scale invariance of point maps,
+while significantly improving the reconstruction quality of the Geometry VAE and better preserving finer structural details compared to max normalization~\cite{wang2024dust3r,wang2025vggt},
+especially when handling large-scale outdoor scenes, as shown in~\cref{fig:rescale}.
+
+Here, we finetune the entire encoder-decoder using our new normalization strategy, which provides a more flexible input distribution.
+We define the training objective as:
+\begin{equation}
+\label{eq:geometry_loss}
+\mathcal{L}_G = \mathcal{L}_{\text{point}} + \lambda_{d}\mathcal{L}_{\text{depth}} + \lambda_{n}\mathcal{L}_{\text{normal}},
+\end{equation}
+where
+$\mathcal{L}_{\text{point}}$
+is the MSE loss for point map reconstruction,
+$\mathcal{L}_{\text{depth}}$
+is a multi-scale loss computed on the projected depth maps,
+and
+$\mathcal{L}_{\text{normal}}$ enforces consistency of surface normals, following ~\cite{xu2025geometrycrafter, wang2024moge}.
+The difference is that we are encoding world-based point clouds.
+Hence, we normalize the ground-truth camera poses together with the point clouds so that
+we can use scale-aligned camera parameters to project the point clouds into depth maps.
+Experiments show that this supervision, similar to the multimodal fusion in Geo4D~\cite{jiang2025geo4d}, improves the reconstruction quality of point clouds.
+
+Here we also tried using Kullback–Leibler (KL) divergence loss~\cite{kullback1951information} to constrain the distribution of the latent to a standard Gaussian distribution,
+but found that it led to a significant drop in VAE performance.
+
+The proposed normalization and VAE training strategy consistently improve the performance of the VAE and the downstream diffusion U-Net in~\cref{tab:ablation_geometry},
+suggesting that \emph{strict alignment with the diffusion model's input and latent space is not always necessary},
+especially for the 3D attributes. 
+
+\paragraph{Motion VAE}
+A simple way to model scene flow is to train a separate motion VAE with the same architecture as the Geometry VAE.
+However, because motion and geometry are inherently correlated,
+learning motion independently may be suboptimal.
+We therefore explore several fusion strategies between geometry and motion:
+(1) \textit{no fusion}, where geometry and motion are encoded separately without any interaction;
+(2) \textit{offset fusion}, inspired by LayerDiffuse~\cite{zhang2024layerdiffuse},
+where the motion latent is added as an offset to the geometry latent; and
+(3) \textit{unified fusion}, where the geometry and motion latents are concatenated into a unified 4D latent
+and passed to the motion VAE decoder to reconstruct the scene flow.
+As reported in~\cref{tab:ablation_motion}, although the unified concatenation strategy does not yield the best reconstruction quality at the VAE stage,
+it leads to superior performance in the subsequent diffusion U-Net.
+During Motion VAE training, we freeze the Geometry VAE's parameters to preserve its learned geometric priors.
+The training objective is formulated as:
+% \begin{equation}
+%     \label{eq:motion_loss}
+%     \mathcal{L}_{M} = \mathcal{L}_{\text{sceneflow}} + \lambda_{\text{reg}}\mathcal{L}_{\text{reg}},
+% \end{equation}
+% \begin{equation}
+%     \label{eq:motionreg_loss}
+%     \mathcal{L}_{\text{reg}} = ,
+% \end{equation}
+\begin{equation}
+\label{eq:motion_loss}
+\mathcal{L}_{\text{M}} = 
+\underbrace{
+\frac{1}{|\mathcal{D}|} \sum_{d \in \mathcal{D}} \, \| \hat{\bm{V}}_d - \bm{V}_d \|_2^2
+}_{\text{Scene flow reconstruction loss}}
++ \lambda_{\text{reg}} \underbrace{
+\frac{1}{|\mathcal{N}|} \sum_{n \in \mathcal{N}} \, \| \hat{\bm{V}}_n \|_2^2
+}_{\text{Zero-flow regularization}},
+\end{equation}
+where $\hat{\bm{V}}_d$ is the predicted scene flow, ${\bm{V}}_d$ is the ground truth,
+$\mathcal{D}$ denotes valid pixels,
+and $\mathcal{N}$ denotes all pixels.
+The first term denotes the MSE loss on the valid scene flow,
+and the second term is a regularization term to encourage the scene flow to zero,
+following the as-static-as-possible assumption. 
+
+
+By combining the Geometry VAE and Motion VAE into a unified 4D VAE, 
+we successfully achieve an integrated representation of geometry and motion within a single latent space, 
+enabling efficient 4D scene encoding and decoding.
+
+\subsection{Model Training}
+\label{sec:method_training}
+
+\paragraph{Training Data}
+Dynamic datasets with annotated 3D geometry and dense scene flow are difficult to collect in real-world settings.
+Therefore,
+we rely on synthetic datasets for training the scene flow estimation task.
+In particular,
+we divide our training data into two categories:
+(1) \emph{Geometry Datasets:}
+Dynamic Replica~\cite{karaev2023dynamicstereo},
+GTA-SFM~\cite{wang2020gtasfm},
+MatrixCity~\cite{li2023matrixcity},
+MVS-Synth~\cite{huang2018deepmvs},
+Point Odyssey~\cite{zheng2023pointodyssey},
+TartanAir~\cite{wang2020tartanair},
+ScanNet++~\cite{yeshwanth2023scannet++},
+BlinkVision~\cite{li2024blinkvision},
+OmniWorld~\cite{zhou2025omniworld}
+and Synthia~\cite{ros2016synthia};
+(2) \emph{Geometry-and-Motion Datasets:}
+Kubric~\cite{greff2021kubric},
+Spring~\cite{Mehl2023_Spring},
+and Virtual KITTI 2~\cite{cabon2020virtual}.
+The first category provides only geometric data,
+including per-frame depth maps,
+camera intrinsics and extrinsics.
+Following DUSt3R~\cite{wang2024dust3r},
+we express the ground-truth point clouds into a shared first frame coordinate system.
+The second category additionally provides dense scene flow annotations.
+During \textit{geometry reconstruction} training,
+we use both dataset groups (1)+(2),
+whereas during \textit{motion reconstruction} training,
+only datasets in group (2) are employed.
+
+\paragraph{Training Strategy}
+We adopt a two-stage training pipeline for the VAE components.
+We begin by training the Geometry VAE independently to capture scene geometry.
+Next,
+we train the Motion VAE while keeping the Geometry VAE frozen,
+thereby preserving its learned geometric priors.
+After convergence,
+we combine them into a unified 4D VAE,
+whose parameters remain frozen during the training of the diffusion U-Net.
+For U-Net training, we combine the datasets from groups (1) and (2) to provide geometry supervision, and use only the datasets from group (2) for motion supervision.
+Following prior works~\cite{hu2024-DepthCrafter,xu2025geometrycrafter} in employing EDM~\cite{karras2022elucidating} pre-conditioning,
+our framework supports both the \textit{deterministic} and \textit{denoising} paradigms.
+For the deterministic paradigm, the training objective is defined as:
+\begin{equation}
+\mathcal{L}_{\text{deterministic}} = \mathcal{L}_{\text{latent}} + \lambda_G \mathcal{L}_G + \lambda_M \mathcal{L}_{\text{M}},
+\end{equation}
+where $\mathcal{L}_G$ is the geometry reconstruction loss defined in~\eqref{eq:geometry_loss},
+$\mathcal{L}_{M}$ is the motion reconstruction loss defined in~\eqref{eq:motion_loss}, and $\mathcal{L}_{\text{latent}}$ denotes the latent-space diffusion loss:
+\begin{equation}
+\mathcal{L}_{\text{latent}} =
+\underbrace{
+\frac{1}{N} \sum_{N} 
+\| 
+\hat{\mathbf{z}}^{\text{G}}_i - \mathbf{z}^{\text{G}}_i
+\|_2^2
+}_{\text{geometry latent supervision}}
++
+\underbrace{
+\frac{1}{N-1} \sum_{N-1}
+\| 
+\hat{\mathbf{z}}^{\text{M}}_i - \mathbf{z}^{\text{M}}_i
+\|_2^2
+}_{\text{motion latent supervision}},
+\end{equation}
+where $N$ denotes the number of frames,
+and $\hat{\mathbf{z}}^{\text{G}}_i,\mathbf{z}^{\text{G}}_i,\hat{\mathbf{z}}^{\text{M}}_i, \mathbf{z}^{\text{M}}_i$ are the denoised latent and the original latent of geometry and motion, respectively.
+We only perform forward scene flow estimation,
+thus discarding the motion latent in the last frame.
+For the denoising paradigm, the objective simplifies to latent supervision:
+% \begin{equation}
+$\mathcal{L}_{\text{denoise}} = \mathcal{L}_{\text{latent}}$.
+% \end{equation}
+We found experimentally that the deterministic paradigm generally performs better, so we use it by default. Ablation experiments can be found in the supplementary materials.
+
+This progressive and modular training pipeline allows the model to first acquire strong geometry and motion priors before integrating temporal reasoning,
+ultimately enabling robust and coherent dense 4D reconstruction.
+
+\paragraph{Implementation Details}
+To inherit the strong priors from the video generator,
+both the VAE and U-Net of our \method{} are initialized with the pretrained weights of SVD~\cite{blattmann2023stable},
+and trained using the AdamW optimizer~\cite{loshchilov2017decoupled} with a learning rate of $1e$-$4$. 
+We first train the Geometry VAE for 40{,}000 iterations,
+followed by training the Motion VAE for 20{,}000 iterations. 
+Subsequently,
+we merge the Geometry VAE and Motion VAE into a unified 4D VAE,
+and train the U-Net for another 40{,}000 iterations with the encoded 4D latent representations.
+The batch size is set to 8 for VAE training and 25 for U-Net training.
+All experiments are conducted on 8 GPUs with 40 GB of memory each and take about 3 days.
+More implementation details are provided in the supplementary material.

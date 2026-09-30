@@ -1,0 +1,41 @@
+\section{Related Work}\label{sec:related_work}
+\noindent \textbf{Video generation.}
+%
+Benefiting from the stability in training and well-established open-sourced communities, recent attempts at video generation, mainly leverage diffusion models~\citep{ho2020denoising, song2020denoising, peebles2023scalable}.
+% 
+Many recently video diffusion models are the T2V models~\citep{karras2023dreampose, ruan2023mm, zhang2023i2vgen, latentvideodiffusion, chen2023videocrafter1, hong2022cogvideo, yang2024cogvideox}.
+%
+Some approaches seek to replace the guidance signal from text to image, focusing on the I2V setting~\citep{mcdiff, chen2023seine, esser2023structure}.
+%
+As a pioneering approach, Video Diffusion Model~\citep{ho2022video} expands a 2D image diffusion architecture to accommodate video data and jointly train the model on image and video from scratch.
+% 
+To utilize powerful pre-trained image generators, such as Stable Diffusion~\citep{ldm}, later works inflate the 2D architecture by interleaving temporal layers between the pre-trained 2D layers and finetune the new model on large video dataset~\citep{webvid10m}.
+% 
+Among them, Align-Your-Latents~\citep{alignyourlatents} efficiently turns a text-to-image (T2I) model into a video generator by aligning independently sampled noise maps.
+%
+Stable video diffusion~(SVD)~\citep{svd} extends Align-Your-Latents by more elaborate training steps and data curation.
+%
+AnimateDiff~\citep{animatediff} utilizes a pluggable motion module to enable high-quality animation creation on personalized image backbones~\citep{dreambooth}.
+% 
+To enhance temporal coherency, Lumiere~\citep{bar2024lumiere} replaces the commonly used temporal super-resolution module and directly generates full-frame-rate videos.
+% 
+Other significant attempts include leveraging scalable transformer backbone~\citep{ma2024latte}, operating in space-temporal compressed latent space, \emph{e.g.}, W.A.L.T.~\citep{gupta2023photorealistic} and Sora~\citep{videoworldsimulators2024}, and using discrete token with language model for video generation~\citep{kondratyuk2023videopoet}. Please see~\citep{Po:2023:star_diffusion_models} for a comprehensive survey.
+
+\noindent \textbf{Controllable video generation.}
+% 
+The ambiguity of text or image conditioning alone often leads to weak control for video diffusion models.
+% 
+To provide enhanced guidance, some works adopt other signals, \emph{e.g.}, depth/skeleton sequence, to precisely control the scene/human motion in the generated videos~\citep{sparsectrl, chen2023control, zhang2023controlvideo, khachatryan2023text2video, hu2023animate, xu2023magicanimate}.
+%
+Another method~\citep{sparsectrl} utilizes sketch images as the control signal, contributing to high video quality or accurate temporal relationship modeling.
+% 
+In contrast, our work focuses on camera control during the video generation process. AnimateDiff adopts efficient LoRA~\citep{hu2021lora} finetuning to obtain model weights specified for different camera movement types.
+% 
+Direct-a-Video~\citep{directavideo} proposes a camera embedder to control the camera pose of generated videos, but only conditions three camera parameters, limiting its camera control ability to the most basic types, such as pan left.
+%
+MotionCtrl~\citep{motionctrl} takes more camera parameters as input to control the camera viewpoints.
+%
+However, solely relying on the numerical values of camera parameters restricts the accuracy of camera control, and the necessity to fine-tune part of the video diffusion model's parameter can hamper its generalization ability across different video domains.
+%
+In this study, we aim to control the camera poses during the video generation process precisely, and expect the corresponding model can be used in various video generation models.
+

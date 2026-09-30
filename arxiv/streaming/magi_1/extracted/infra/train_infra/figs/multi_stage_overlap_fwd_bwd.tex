@@ -1,0 +1,6 @@
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{infra/train_infra/figs/multi_stage_overlap_fwd_bwd.for_arxiv.pdf}
+    \caption{Schematic of MagiAttention's multi-stage overlap scheduling (see ~\ref{sec:magiattn_overlap}). (a) Forward pass: 4-stage scheduling overlaps computation (partial attention outputs and \textit{lse} factors) with prefetching of next-stage $\mathrm{KV}$ requests (where applicable), hiding all communication overhead with the final stage's computation exposed. (b) Backward pass: 3-stage scheduling overlaps computation (partial $\mathrm{dQ}$, $\mathrm{dKV}$) with prefetching of next-stage $\mathrm{KV}$ requests and reduction of prior $\mathrm{dKV}$ requests, hiding all communication overhead except the $\mathrm{dKV}$ reduction of the final stage.}  
+    \label{fig:multi_stage_overlap_fwd_bwd}
+\end{figure}

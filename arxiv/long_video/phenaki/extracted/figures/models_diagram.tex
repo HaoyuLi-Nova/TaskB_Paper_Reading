@@ -1,0 +1,8 @@
+\begin{figure}
+  \centering
+  \vspace{-0.5cm}
+  \includegraphics[width=1\linewidth]{figures/models.pdf}
+  \vspace{-.1in}
+  \caption{The architecture of \model. \textbf{Left:} \cvivit encoder architecture. The embeddings of images and video patches from raw frames $\bx$ are processed by a spatial and then a causal transformer (auto-regressive in time) to generate video tokens $\bz$. \textbf{Center:} MaskGiT is trained to reconstruct masked tokens $\bz$ predicted by a frozen \cvivit encoder and conditioned on T5X tokens of a given prompt $\bp_0$. \textbf{Right:} How \model can generate arbitrary long videos by freezing the \textit{past} token and generating the future tokens. The prompt can change over time to enable time-variable prompt (i.e. \story) conditional generation. The subscripts represent time (i.e. frame number).}
+  \label{fig:models}
+\end{figure}

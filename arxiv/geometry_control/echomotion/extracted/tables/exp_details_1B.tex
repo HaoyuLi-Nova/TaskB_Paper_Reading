@@ -1,0 +1,31 @@
+\begin{table}[ht]
+\setlength{\abovecaptionskip}{0.2cm}
+\setlength{\belowcaptionskip}{-0.4cm}
+\centering
+\caption{Experimental settings of EchoMotion 1.3B model.}
+\setlength{\tabcolsep}{10mm}
+\begin{tabular}{cc}
+\hline
+\textbf{Parameter}    & \textbf{Value} \\ \hline
+Transformer dim       & 1536           \\
+Numbers of heads      & 24             \\
+Numbers of layers     & 30             \\
+Number of video-only blocks & 0        \\
+Number of video-motion blocks & 30     \\
+Video height          & 480            \\
+Video width           & 832            \\
+Video frame           & 81            \\
+FPS                   & 16             \\
+Batchsize             & 2              \\
+Train timesteps       & 1000           \\
+Train shift           & 8.0            \\
+Optimizer             & AdamW          \\
+Learning rate         & 8e-6           \\
+Weight decay          & 0.001          \\
+Sample timesteps      & 50             \\
+Sample shift          & 8.0            \\
+Sample guidance scale & 6.0            \\ \hline
+\end{tabular}
+\label{tab:settings_1b}
+\vspace{5mm}
+\end{table}

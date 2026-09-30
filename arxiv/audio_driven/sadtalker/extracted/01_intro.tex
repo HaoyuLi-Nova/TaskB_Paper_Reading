@@ -1,0 +1,29 @@
+\section{Introduction}
+\label{sec:intro}
+Animating a static portrait image with speech audio is a challenging task and has many important applications in the fields of digital human creation, video conferences, \etc. Previous works mainly focus on generating lip motion~\cite{atvgnet, lipgan, wav2lip, pcavs,videoretalking} since it has a strong connection with speech. Recent works also aim to generate a realistic talking face video containing other related motions, \eg, head pose. Their methods mainly introduce 2D motion fields by landmarks~\cite{zhou2020makelttalk} and latent warping~\cite{wang2021audio2head, wang2021one}. However, the quality of the generated videos is still unnatural and restricted by the preference pose~\cite{pcavs, eamm}, month blur~\cite{wav2lip}, identity modification~\cite{wang2021audio2head, wang2021one}, and distorted face~\cite{wang2021audio2head, wang2021one, hdtf}. 
+
+% \xiaodong{Need refinement} 
+Generating a natural-looking talking head video contains many challenges since the connections between audio and different motions are different. \ie, the lip movement has the strongest connection with audio, but audio can be talked via different head poses and eye blink. Thus, previous facial landmark-based methods~\cite{zhou2020makelttalk,atvgnet} and 2D flow-based audio to expression networks~\cite{wang2021one, wang2021audio2head} may generate the distorted face since the head motion and expression are not fully disentangled in their representation. Another popular type of method is the latent-based face animation~\cite{wav2lip, videoretalking, pcavs, eamm}. Their methods mainly focus on the specific 
+kind of motions in talking face animation and struggle to synthesize high-quality video. Our observation is that the 3D facial model contains a highly decoupled representation and can be used to learn each type of motion individually. Although a similar observation has been discussed in \cite{hdtf}, their methods also generate inaccurate expressions and unnatural motion sequences.
+% To this end, we learn the 3D coefficients from audio and also leverage a 3D-aware face render to this tasks.
+% Although a similar observation has been discussed in \cite{hdtf}, they also leverage 2D motion network for rendering, causing inaccurate expressions and unnatural motions.
+% Inspired by recent facial render methods, learning each component individually and disentangled is necessary. On the other hand, even the motion fields is accurate and diversity, generate the photo-realistic video is also challenging~\cite{pcavs, wang2021one}. 
+% with both realistic talking-related motion and high-quality videos
+
+From the above observation, we propose SadTalker, a \textbf{S}tylized \textbf{A}udio-\textbf{D}riven \textbf{Talk}ing-head video generation system through implicit 3D coefficient modulation. 
+To achieve this goal, we consider the motion coefficients of the 3DMM as the intermediate representation and divide our task into two major components. On the one hand, we aim to generate the realistic motion coefficients~(\eg, head pose, lip motion, and eye blink) from audio and learn each motion individually to reduce the uncertainty. For expression, we design a novel audio to expression coefficient network by distilling the coefficients from the lip motion only coefficients from ~\cite{wav2lip} and the perceptual losses~(lip-reading loss~\cite{3dmm}, facial landmark loss) on the reconstructed rendered 3d face~\cite{deng2019accurate}.
+For the stylized head pose, a conditional VAE~\cite{cvae} is used to model the diversity and life-like head motion by learning the residual of the given pose.
+After generating the realistic 3DMM coefficients, we drive the source image through a novel 3D-aware face render. Inspired by face-vid2vid~\cite{facevid2vid}, we learn a mapping between the explicit 3DMM coefficients and the domain of the unsupervised 3D keypoint. Then, the warping fields are generated through the unsupervised 3D keypoints of source and driving and it warps the reference image to generate the final videos. We train each sub-network of expression generation, head poses generation and face renderer individually and our system can be inferred in an end-to-end style.
+% generate the dense motion fields using the learned motion coefficients and then generates the life-like talking head video using these dense motion fields.
+As for the experiments, several metrics show the advantage of our method in terms of video and motion methods.
+% Since our method can generate realistic 3DMM motion coefficients from audio, it also enable many other applications beyond single image animation, \ie, the personalize audio-driven visual dubbing~\cite{audiodvp}, cartoon face animation~\cite{zhou2020makelttalk}, 3D facial animation~\cite{faceformer}. We will give some applications of our system in the experiments.
+
+% \xiaodong{contribution}
+The main contribution of this paper can be summarized as:
+
+\begin{itemize}
+    \item We present SadTalker, a novel system for a stylized audio-driven single image talking face animation using the generated realistic 3D motion coefficients.
+    \item To learn the realistic 3D motion coefficient of the 3DMM model from audio, ExpNet and PoseVAE are presented individually.
+    \item A novel semantic-disentangled and 3D-aware face render is proposed to produce a realistic talking head video.
+    \item Experiments show that our method achieves state-of-the-art performance in terms of motion synchronization and video quality.
+\end{itemize}

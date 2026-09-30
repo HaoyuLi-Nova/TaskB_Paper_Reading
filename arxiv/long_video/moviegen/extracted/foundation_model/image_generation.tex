@@ -1,0 +1,54 @@
+\subsection{\TextToI Generation}
+\label{sec:t2i_generation}
+The \Ours model is trained jointly on videos and images, and hence is able to generate both videos and images.
+To further validate the model's image generation capabilities, we continued training it with an image autoencoder and compared its performance to prior work in image generation.
+The following sections provide detailed experimental settings and evaluation results.
+
+\subsubsection{Method}
+\label{sec:post_train_images}
+For the \TextToI model, our goal is to generate realistic images. We utilize the \Ours model as an initialization and replace the TAE with an image autoencoder. We then train the model on the text-to-image generation task, allowing it to generate images based on text descriptions. The final resolution is $1024$ px.  For post-training, we curated a total of \bigO(1000) images created by in-house artists for quality-tuning, following the approach outlined in~\citep{dai2023emu}.
+We finetuned the model for 6k steps with a learning rate of 0.00001 and a batch size of 64. We used a constant learning rate scheduler with 2000 warm-up steps.
+
+
+
+\subsubsection{Results}
+
+To measure the quality of our \TextToI generation results, we use human evaluators to evaluate the following axes: (a) text faithfulness, and (b) visual quality.
+For evaluating text faithfulness, we use a pairwise A/B comparison set up where evaluators select which image aligns better with a given generation prompt.
+Evaluators are asked to choose which of the choices A or B, is better, or equal, in terms of text alignment.
+For visual quality, we use a a similar pairwise A/B comparison set up and ask raters to help select the image that looks more realistic.
+Evaluators are asked to look for flaws in the generation, such as errors in the number of fingers or arms, or visual text spelling errors, before making their decision.
+For creating the benchmarking prompts, we analyzed typical \textToI user prompts and generated categories and distributions, and leverage LLMs to produce user prompts that mimic real users prompts.
+
+
+
+We compare with the best contemporary \TextToI models including \Flux~\citep{flux}, \Dalle~\citep{dalle3}, \MJ~\citep{midjourney}, and \Ideogram~\citep{ideogram} available at time of benchmark
+These are however black-box commercial solutions, which makes fair comparison a challenge.
+Similar to \TextToV evaluation, we obtain non cherry picked generated images from the benchmark prompts for the prior work methods, and compare to them using non cherry picked images from \OURS for the same prompts.
+To ensure consistent comparison across all models and evaluation axes, we utilize the ELO rating system to establish rankings based on battle records converted from raw human evaluation results.
+For A/B comparison evaluations, the ``win/tie/lose'' on a given prompt between two models were directly interpreted as one battle record.
+This approach allowed us to combine ratings on all evaluation axes to generate an overall performance.
+The comparison results are summarized in~\cref{img:t2i_overall_elos_ranking}, where we see that our model achieves the highest ELO rating compared to all recent state-of-the-art \textToI methods available at the time of benchmarking.
+In~\cref{img:t2i_qualitative_results}, we show some qualitative results of our generations.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.9\linewidth]{figures/foundation_model/t2i_elos_ranking.pdf}
+    \caption{\textbf{ELO rating comparison of \textToI methods.} We compare our image generation model to state-of-the-art \textToI models and observe that it performs competitively with recent approaches.}
+    \label{img:t2i_overall_elos_ranking}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.24\linewidth]{figures/T2I_qualitative/writer.png}
+    \includegraphics[width=.24\linewidth]{figures/T2I_qualitative/hiker.png}
+    \includegraphics[width=.24\linewidth]{figures/T2I_qualitative/designer.png}
+    \includegraphics[width=.24\linewidth]{figures/T2I_qualitative/painter.png}
+    \caption{\textbf{Example T2I Images from \OURS.} Generation prompts from left to right:
+    (1) A focused writer, with a trusty pencil by their side, sits in a modern, minimalist home office with a large window providing ample natural light.
+    (2) A hiker wearing a backpack walks along a trail with a rugby ball in hand, looking up at a soaring airplane overhead, the sun shining down on a beautiful day.
+    (3) A styled hair with a headband inspired a graphic designer using a pen tablet and stylus to create vibrant digital art in a cubism style.
+    (4) A vivid landscape painting on an easel stands in a bright, natural light-filled studio, showcasing its vibrant colors and textures, while a painter works in the background.
+    }
+    \label{img:t2i_qualitative_results}
+\end{figure}

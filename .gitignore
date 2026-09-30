@@ -1,0 +1,82 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# LaTeX build artifacts (keep checked-in .bbl from arXiv sources)
+*.aux
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+texput.log
+
+# arXiv source archives (re-download via scripts)
+arxiv/**/source.tar.gz
+
+# Paper assets stay on disk and are re-downloaded with scripts/download_catalog.py.
+# They are not committed: GitHub rejects ~100MB files, and this tree is about 10GB of figures.
+*.png
+*.PNG
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.gif
+*.webp
+*.bmp
+*.tif
+*.tiff
+*.pdf
+*.eps
+*.ps
+*.svg
+*.mp4
+*.mp3
+*.MP3
+*.wav
+*.WAV
+*.ttf
+*.otf
+*.tfm
+*.pk
+*.gz
+*.zip
+*.tar
+*.7z
+*.pt
+*.pth
+*.bin
+*.ckpt
+*.npy
+*.npz
+*.safetensors
+*.onnx
+*.part

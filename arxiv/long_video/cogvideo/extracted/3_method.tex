@@ -1,0 +1,181 @@
+\section{Method}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.95\textwidth]{images/framework.pdf}
+  \caption{Multi-frame-rate hierarchical generation framework in CogVideo. Input sequence includes frame rate, text, frame tokens. [B] (Begin-of-image) is a separator token, inherited from CogView2. In stage 1, $T_s$ frames are generated sequentially on condition of frame rate and text. Then in stage 2, generated frames are re-input as bidirectional attention regions to recursively interpolate frames. Frame rate can be adjusted during both stages. Bidirectional attention regions are highlighted in \colorbox{MyBlue}{blue}, and unidirectional regions are highlighted in \colorbox{MyGreen}{green}.}
+  \label{fig:framework}
+\end{figure}
+
+In this section, we first introduce \textit{multi-frame-rate hierarchical training} to better align text and video semantics in \S~\ref{section-2-stage-generation}, and then illustrate an efficient method \textit{dual-channel attention} to inherit the knowledge in pretrained text-image models for video generation in \S~\ref{subsection-2-channel-attention}. To overcome the large memory and time overhead caused by the large model and long sequence, we refer to Swin Attention~\cite{liu2021swin} and extend it to autoregressive video generation in \S~\ref{subsec: swin}.
+
+\subsection{Multi-frame-rate Hierarchical Training} \label{section-2-stage-generation}
+% As previous works successfully prove transformer's ability to sequentially generate video frames from text, our approach pursues enhancing semantic relevance between text and video by better alignment of text-video pairs using \textit{multi-frame-rate hierarchical} training.
+%as well as ability to generate videos at multiple frame rates. 
+Here we present the \textit{multi-frame-rate hierarchical training} and generation. We follow the framework of VQVAE~\cite{van2017neural} and first tokenize each frame into image tokens. Each training sample consists of 5 frames of tokens, but our training method differs in the construction of training sequences and generation process.
+
+\textbf{Training. }The key design is to add a frame-rate token to the text and sample frames at this frame rate to compose a fixed-length training sequence. The motivations are two folds: 
+\begin{enumerate}[(1)]
+    \item Directly separating the long video into clips at a fixed frame rate often leads to semantic mismatching. We still use the full text but the truncated clip might only contain incomplete action. 
+    \item The adjacent frames are usually very similar. A giant change over the previous frame will probably incur a large loss.  This will lead the models less inclined to explore the long-range correlation because simply copying the previous frame acts like a shortcut.
+\end{enumerate}
+
+Therefore, in each training sample, we want the text and the frames to match as possible. We predefined a series of frame rates, and select the lowest frame rate for each text-video pair, as long as we can sample at least 5 frames at this frame rate in the video.
+
+Although the above method increases the alignment of text and video, the generation at a low frame rate could be incoherent. We train another \emph{frame interpolation} model to insert transition frames to the generated samples of the sequential generation model. Thanks to the generality of CogLM~\cite{ding2022cogview2}, the two models can share the same structure and training process only with different attention masks. 
+
+\textbf{Generation.} The multi-frame-rate hierarchical generation is a recursive process, illustrated in Figure~\ref{fig:framework}. Specifically, the generation pipeline consists of a sequential generation stage and a recursive interpolation stage:
+% A video can be viewed as a hierarchy of frames in the time dimension: it can firstly be decomposed into a sequence of incoherent low-frame-rate key frames closely related to general outline and video semantics, then be further decomposed into a sequence of high-frame-rate frames focusing more on local motion and coherence. 
+% That is to say, those key frames in low frame rate can be considered as a natural semantic condensation of a video, which plays an important role in improving semantic relevance. On the contrary, simply aligning frames in chronological order, like most of the existed works do, often leads models less inclined to explore relationships in the long range because frames within shorter range usually have higher similarity which is beneficial to reducing training loss. 
+% A straightforward solution is to hierarchically generate frames, i.e., generating low-frame-rate key frames first and then recursively interpolating high-frame-rate frames. 
+% In the meantime, hierarchical generation at a fixed frame rate cannot fully solve the problem. Previous models commonly train with videos of the same length and frame rate by splitting original data into clips of fixed length, which can lead to poor text-video alignment as duration of original video varies. For example, as a 2-second clip of 4 fps is suitable for modeling short-term patterns like "smile" or ``speak'', it may perform poorly on long-term patterns like ``drinking water'' while its original video can last for longer time and a clip of 2 seconds may only contain motion of "holding a glass" or "putting the glass down". 
+\begin{enumerate}[(1)]
+\item Sequentially generate $T_{s}$ key frames based on a low frame rate and text. The input sequence is \texttt{[\{Frame Rate\}\{Text\} [B] \{Frame$1$\} ...  \{Frame $T_s$\}]}. In practice, we always set $T_{s}=5$ and the minimum sampling frame rate to 1 fps. 
+% For example, when generating a video of $4\cdot 2^n+1$ frames, in this stage we only generate the $(i \cdot 2^n +1)$-th frames $(i=0,1,2, ..., T_s-1)$.
+
+\item Recursively interpolate frames based on the text, frame rate and known frames. In each round of interpolation, we split generated frames into multiple $\lceil \frac{T_s}{2} \rceil$-frame blocks overlapping at the beginning and the end, and interpolate a frame between the successive frames in each block. The input sequence is \texttt{[\{Frame Rate\}\{Text\} [B] \{Frame1\} ... \{Frame $T_s$\}]}, where Frame $2i (i=1,2,...,\lfloor \frac{T_s}{2} \rfloor)$ are to be autoregressively generated. By recursively halfing \texttt{\{Frame Rate\}}, we can conduct finer and finer interpolation to generate videos of many frames.  
+\end{enumerate}
+
+\textbf{The effect of CogLM. }Tasks such as frame interpolation rely heavily on bidirectional information. However, most previous works use GPT~\cite{wu2021godiva, yan2021videogpt, wu2021n}, which is unidirectional. To be aware of the bidirectional context, we adopt Cross-Modal General Language Model (CogLM) proposed in~\cite{ding2022cogview2} which unites bidirectional context-aware mask prediction and autoregressive generation by dividing tokens into unidirectional and bidirectional attention regions. While bidirectional regions can attend to all bidirectional regions, unidirectional regions can attend to all bidirectional regions and previous unidirectional regions. As shown in \ref{fig:framework}, (1) all frames in stage 1 and the 2nd, 4th frames in stage 2 are in the unidirectional region; (2) \texttt{\{Frame Rate\}}, \texttt{\{Text\}} and all other frames belong to the bidirectional region. In this way, bidirectional attention context is fully exploited in text and given frames without interfering with auto-regressive frame prediction.
+
+\subsection{Dual-channel Attention} \label{subsection-2-channel-attention}
+
+\begin{wrapfigure}[18]{r}{0.32\textwidth}
+  \centering
+  \vspace{-5mm}%
+  \includegraphics[width=0.32\textwidth]{images/2-channel-attention.pdf}
+  \vspace{-6mm}%
+  \caption{The dual-channel attention block. We initialize the Attention-plus the same as Attention-base so that the model behaves exactly the same as CogView2 when it is initialized.}
+  \label{fig:2-channel-attention}
+\end{wrapfigure}
+
+
+Large-scale pretraining usually demands a large dataset. For the open-domain text-to-video generation, ideally we need the dataset to cover sufficient text-video pairs to infer both spatial and temporal correlation between video and text. However, to collect high-quality text-video pairs is often difficult, expensive and time-consuming.
+
+A natural idea is to make use of the image data to facilitate the learning of spatial semantics.
+% There have been some simple attempts based on this observation. For example, ~
+Video Diffusion Model~\cite{ho2022video} and NÜWA~\cite{wu2021n} try to add text-image pairs into text-video training, which achieves better results on multiple metrics. However, as for training a video-only generation model, adding image data will significantly increase training costs, especially in large-scale pretraining scenarios. 
+
+\begin{comment}
+~\cite{wu2021n} unified several pretraining tasks of both image and video to get better results, and
+\end{comment}
+
+In this paper, we propose to leverage pretrained image generation models instead of image data. Pretrained text-to-image models, e.g. CogView2~\cite{ding2022cogview2}, already have a good command of the text-image relations. The coverage of the dataset to train these models is also larger than that of videos.  
+
+The proposed technique is \emph{dual-channel attention}, where we only add a new spatial-temporal attention channel to the pretrained CogView2~\cite{ding2022cogview2} at each transformer layer. All the parameters in the CogView2 are frozen in the training, and only the parameters in the newly added attention layer (See the attention-plus in Figure~\ref{fig:2-channel-attention}) are trainable. We denote the original attention block in CogView2 as attention-base. 
+
+Here we also emphasize that directly finetuning CogView2 for text-to-video generation cannot well inherit the knowledge, because the temporal attention follows a different attention pattern and quickly ruins the pretrained weights during the initial phase of training with large gradients.
+% \begin{comment}
+% 这个说服力太弱了?
+% \end{comment}
+% Therefore we choose to preserve the entire image model in CogVideo by expanding attention blocks with \textit{dual-channel attention}, while maintaining the property of being initialized as a pretrained image model. We choose CogView2, one of the state-of-the-art text-to-image generation models, as our base image model. As illustrated in Figure~\ref{fig:2-channel-attention},
+
+Specifically, the dual-channel attention block with Sandwich-LN~\cite{ding2021cogview} can be computed as
+% \begin{equation}
+% \begin{split}
+% \hat{x_l} & = LN(x_l) \\
+% \widetilde{x_l} & = \alpha \dot AttnBase(\hat{x_l}) + (1-\alpha) \dot AttnPlus(\hat{x_l})
+% \end{split}
+% \end{equation}
+\begin{align}
+% \hat{x_l} & = \text{LayerNorm}(x_l), \\
+\widetilde{x} & = \mathbf{{\alpha}} \cdot \text{attention-base}(\text{LayerNorm}(x_{in}))\notag \\ &\quad+ (\mathbf{1-{\alpha}}) \cdot \text{attention-plus}(\text{LayerNorm}(x_{in})), \label{eq-alpha} \\
+x_{out} & = x_{in} + \text{LayerNorm}(\widetilde{x}).
+\end{align}
+The mixture factor $\alpha$ is a vector $\in {(0,1)}^{d}$, where $d$ is the hidden size of the input feature $x_{in}$. To restrict the range of $\alpha$ within $(0,1)$, we reparameterize it as $\alpha = \text{sigmoid}(\mathbf{a}) \in {(0,1)}^{d}$, where $\mathbf{a}\in \mathbb{R}^d$ is a learnable parameter. 
+% where $x_l$ denotes input features of layer $l$. Attention-base and Attention-plus denote two attention channels.
+% % ; FFN and LayerNorm represent Feed-Forward Networks and LayerNorm respectively; 
+% $\alpha$ is a vector of the  length hidden-size and normalized to $(0, 1)$. The whole structure is the same as CogView2 when ignoring Attention-plus.
+% During training, we only change parameters in Attention-plus, while preserving the whole CogView2 by fixing Attention-base and FFN to CogView2's weights all the time. Note that we also initialize Attention-plus the same as Attention-base so that the new model behaves exactly the same as CogView2 when it is initialized.
+The attention-plus block has the same shape of parameters as the normal multi-head attention block, attention-base, but differs in the  procedure of computation as follows.
+
+In our training, we tried two kinds of attention, 3D local attention and 3D Swin~\cite{liu2021swin} attention for attention-plus block. Here we depict the 3D local attention, and the latter is a natural replacement introduced in section~\ref{subsec: swin}.
+
+In 3D local attention, the receptive field (RF) for the token at $(t, x, y)$ 
+% in frame block of size $(T_s, X, Y)$ 
+(where $(t, x, y)$ corresponds to the coordination along time, height and width), is a 3D block with extent $l_t, l_x, l_y \in \mathbb{N}^+$:
+\begin{equation}
+    \text{RF}_{(t, x, y)} = \{(k,i,j) ~ \Big\vert ~ \lvert x-i \rvert < l_x, \lvert y-j \rvert < l_y,  \lvert t-k \rvert < l_t, ~(k, i, j) \notin \text{Mask}_{(t, x, y)} \}, 
+\end{equation}
+where $\text{Mask}_{(t, x, y)}$ represents an attention mask for token $(t, x, y)$. In the sequential generation model (Stage 1), the Mask ensures the auto-regressive order; In the interpolation model (Stage 2), the Mask is designed as in as CogLM~\cite{ding2022cogview2} to make the known frames visible to all the frames. 
+% For attention-base, we restrict receptive field to current frame, i.e, $l_x=X, l_y=Y, l_t=1$, to fully use CogView2's spatial modeling ability (therefore referred to as \textit{spatial channel}). 
+% For attention-plus, which is the only new parameters in CogVideo, we set receptive field to a 3D local block throughout the whole time dimension, i.e. $l_x=
+% A_x, l_y=A_y, l_t=T_s$ (therefore referred to as \textit{temporal channel}). $A_x$, $A_y$ are hyper-parameters satisfying $A_x \leq X, A_y \leq Y$. With $A_x$ and $A_y$, CogVideo is able to flexibly trade off between quadratic attention cost and size of receptive field. In practice, we use shifted window attention~\cite{liu2021video} as a approximation of 3D block attention and extend it to CogLM scenario, as illustrated in subsection~\ref{subsec: swin}.
+
+
+It is worth noting that two channels are fused and share the same FFN in each layer, 
+% which has the following advantages. First, it's a simple way to interact between two channels in every layer, making better use of CogView2's spatial features. Second, 
+because FFN is a module of heavy parameters containing much vision knowledge. Due to the similarity between images and videos, bringing its knowledge to the temporal channel will facilitate video modeling. Finally, sharing FFN can reduce parameters, thus speeding up training and reducing memory overhead. 
+
+
+\begin{comment}
+有没有什么论文支持
+\end{comment}
+
+\subsection{Shifted Window Attention in Auto-regressive Generation} \label{subsec: swin}
+To further alleviate the large time and memory overhead in the temporal channel during training and inference, we refer to Swin Attention~\cite{liu2021swin}. 
+The original Swin attention is only applied to non-autoregressive scenarios, we extend it to the autoregressive and temporal scenario by applying an auto-regressive attention mask in the shifted windows. 
+
+\begin{wrapfigure}[15]{r}{0.5\textwidth}
+  \centering
+  \vspace{-5mm}%
+  \includegraphics[width=0.5\textwidth]{images/swin.pdf}
+  \vspace{-4mm}%
+  \caption{In 3D autoregressive swin attention (window size $2\times2$ as an example), the token in the red box can only attend to (either directly or indirectly) the yellow or green tokens. The gray tokens in the $i$-th frame and the token in the red box can be generated in parallel.}
+  \label{fig:swin}
+\end{wrapfigure}
+
+An interesting finding is that, \textbf{the Swin attention provide a chance for parallel generation in faraway regions of different frames}, which further accelerates the auto-regressive generation.  
+% We propose that Swin Attention can further accelerate auto-regressive inference because of the restricted receptive field. 
+The dependence of the generation of a specific token relies on
+\begin{itemize}
+    \item Auto-regressive mask. A token can only attend to previous frames or tokens before itself in the current frame. 
+    \item Shifted window. Only tokens within the distance of window size in both width and height dimensions can be directly attended to.
+\end{itemize}
+As shown in Figure~\ref{fig:swin}, we can start generating parts of the tokens in the following frames before finishing the generation of all the previous frames --- they can work in parallel. 
+Suppose $X$,$Y$ is the height and width of each frame, and $A_x$,$A_y$ are the height and width of shifted window. For two tokens at $(t_1, x_1, y_1)$ and $(t_2, x_2, y_2)$, $t_1 < t_2$, the latter cannot attend to the former either directly or indirectly if
+\begin{equation}
+    (x_1-x_2)Y+(y_1-y_2) \geq (t_2-t_1+1)(A_xY+A_y),
+\end{equation}which means that the $i$-th token in the $t$-th frame can be generated with the $(i-A_xY-A_y)$-th token in the $(t+1)$-th frame in parallel. In this way, we can generate $\lfloor \frac{XY}{A_xY+A_y} \rfloor$ tokens in parallel at most, thus greatly enhance parallelism and accelerate inference compared to auto-regressive with standard attention which can only generate one token at a time. 
+% Similar to swin attention, the attention strategy is able to facilitate memory access by making all query vectors in the same window share the same set of key vectors, therefore achieving lower latency in hardware. Suppose a discretized video with size $(T_s, X, Y)$ and an attention window with size $(T_s, A_x, A_y)$,  each video can be divided into $\lceil \frac{X}{A_x} \rceil \cdot \lceil \frac{Y}{A_y} \rceil$ windows.  carefully-designed attention masks. 
+
+% Considering attention window flattened to a sequence of $A_x \cdot A_y \cdot T$ tokens. $U$ and $B$ is the set of unidirectional and bidirectional attention region respectively, window attention mask tensor M of size $(A_x\cdot A_y\cdot T, A_x\cdot A_y\cdot T)$ is formulated as 
+% \begin{equation}
+% M_{(i, j)} = \left\{ 
+% \begin{array}{ccl}
+% 1 & & i \in U, j\in B \\
+% 1 & & i \in U, j\in U, j\leq i \\
+% 1 & & i \in B, j \in B \\
+% -\infty & & others. \\
+% \end{array}
+% \right.
+% \end{equation}
+
+% and CogLM window attention inside this window can be formulated as 
+% \begin{align}
+%     \hat{Z} = \text{softmax}(\frac{M(ZW_Q)^\top (ZW_K)}{\sqrt{d}}) ZW_V
+% \end{align}
+% where $Z$, $\hat{Z}$ denotes input and output feature vectors inside this window, and $W_Q$,$W_K$,$W_V$ are learned attention weights. To bridge features in different attention window, we 
+%  group attention layers by parity, and shift attention window by $(\lceil \frac{A_x}{2} \rceil ,\lceil \frac{A_y}{2} \rceil )$ in odd layers. Both time and space complexities are O($\lceil \frac{X}{A_x} \rceil \cdot \lceil \frac{Y}{A_y} \rceil(A_xA_yT_s)^2$), which is linear to image size. 
+ 
+% Furthermore, CogLM swin attention is able to exploit more computational parallelism during inference. 
+% % Auto-regressive models commonly suffer from much longer time cost in inference than in training, due to low computational parallelism. 
+% Consider two tokens $D_1$, $D_2$ at $(t_1, x_1, y_1)$ and $(t_2, x_2, y_2)$, both in unidirectional region, $t_1 < t_2$. Because of restrict receptive field in swin attention and unidirectional mask in GLM, $D_2$ cannot attend to $D_1$'s feature either directly or indirectly if
+% \begin{equation}
+%     (x_1-x_2)Y+(y_1-y_2) \geq (t_2-t_1+1)(A_xY+A_y)
+% \end{equation} is satisfied. That is to say, if the i-th token in frame $t_1$ has been generated and $i \geq (A_xY+A_y)$, then we can generate the i-th token in frame $t_1$ and the $(i-A_xY+A_y)$-th token in frame $t_1+1$ in parallel. In face, we can generate $\lfloor \frac{XY}{A_xY+A_y} \rfloor$ tokens in parallel at most, thus greatly enhance parallelism and accelerate inference compared to auto-regressive with standard attention which can only generate one token at a time. See appendix for further explanation. 
+ 
+%  \begin{comment}
+%  可以利用看不到上一帧 wind以外的东西加速生成，但这同时也是缺点..要说吗
+%  \end{comment}
+
+\section{Training}
+
+Based on the methods above, the training details of CogVideo are listed as follows: 
+
+\textbf{Model. }The backbone of CogVideo in both stages is a Transformer with dual-channel attention. The Transformer has 48 layers, with a hidden size of 3,072 in each attention channel, 48 attention heads and 9.4 billion parameters in total. Among them, 6 billion parameters are fixed to CogView2's parameters, which include Position-wise Feed-Forward Networks (FFN), the spatial channel of dual-channel attention, first frame's positional embeddings and all image and text vocabulary embeddings. The specific implementation of Transformer structure is almost identical to CogView~\cite{ding2021cogview} such as using Sandwich LayerNorm and PB-Relax to stabilize training. Shifted CogLM attention window is adopted in recursive interpolation model with window size $10 \times 10$. 
+
+\textbf{Dataset. }We pretrain our model on a dataset of 5.4 million captioned videos with a spatial resolution of $160\times 160$ (can be upsampled to $480\times 480$ by CogView2). For the sequential generation model (Stage 1), we adjust the frame rate in each sample to accommodate the whole video, while the minimum frame rate is set to 1 fps. For the recursive interpolation model (Stage 2), we split videos into clips of different lengths to accommodate prediction on multiple frame rates including 2,4,8 fps. 
+
+\textbf{Pretraining. }The sequence lengths in both stages are 2,065, consisting of 64 text tokens, 5 (frames) $\times$ 400 (per frame)  image tokens, and 1 seperator token. Both text and images are tokenized with icetk\footnote{\url{https://github.com/THUDM/icetk}}.The parameters are updated by Adam with max learning rate $= 2\times10^{-4}$, $\beta_1 = 0.9$, $\beta_2 = 0.95$, weight decay $=1\times10^{-2}$. See Appendix for pretraining details. 
+% We pretrain Stage-1 model for 74,000 iterations, Stage-2 model for 120,000 iterations, both in FP16 with batch size $=416$. The parameters are updat(d by Adam with max learning rate $= 2\times10^{-4}$, $\beta_1 = 0.9$, $\beta_2 = 0.95$, weight decay $=1\times10^{-2}$ .

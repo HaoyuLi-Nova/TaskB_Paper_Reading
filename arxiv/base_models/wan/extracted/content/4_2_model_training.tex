@@ -1,0 +1,109 @@
+
+\begin{figure}[!t]  
+    \centering  
+    \includegraphics[width=1.0\textwidth]{figures/video_dit/dit_arch.pdf}  
+    \caption{Architecture of the \method.} 
+    \label{fig:overview_network} % 
+\end{figure}
+
+
+\subsection{Model Training}
+\label{sec:model_training}
+
+In this section, we will provide a detailed introduction to the architecture design of the foundational video model, specifically for the text-to-video task, along with the details of the pre-training and post-training phases.
+
+
+
+In Fig.~\ref{fig:overview_network}, we present the architecture of \method, which is designed based on the current mainstream DiT~\citep{dit} architecture, which typically consists of three primary components: \method-VAE, diffusion transformer, and text encoder.
+%
+For a given video $V\in \mathbb{R}^{(1+T) \times H \times W \times 3}$, the encoder of \method-VAE encodes it from pixel space into the latent space $x \in \mathbb{R}^{1+T/4 \times H/8 \times W/8}$, which is then fed into the subsequent diffusion transformer structure.
+
+
+
+
+
+\subsubsection{Video Diffusion Transformer}
+\label{sec:dit}
+
+\begin{wrapfigure}{r}{0.4\linewidth}
+    \vspace{-0.2em}
+    \includegraphics[width=0.24\textheight]{figures/video_dit/dit_block.pdf}
+    \caption{Transformer block of \method.}
+    \label{fig:dit_block}
+\end{wrapfigure}
+%
+\textbf{Diffusion transformer}. The diffusion transformer mainly consists of three components: a patchifying module, transformer blocks, and an unpatchifying module.
+%
+Within each block, we focus on effectively modeling spatio-temporal contextual relationships and embedding text conditions alongside time steps.
+%
+In the patchifying module, we use a 3D convolution with a kernel size of $(1, 2, 2)$ and apply a flattening operation to convert $x$ into a sequence of features with the shape of $(B, L, D)$, where $B$ denotes the batch size, $L=(1+T/4) \times H/16 \times W/16$ represents the sequence length, and $D$ indicates the latent dimension.
+%
+Specifically, as illustrated in Fig.~\ref{fig:dit_block}, we employ the cross-attention mechanism to embed the input text conditions, which can ensure the model's ability to follow instructions even under long-context modeling.
+%
+Additionally, we employ an MLP with a Linear layer and a SiLU~\citep{SiLU} layer to process the input time embeddings and predict six modulation parameters individually. 
+%
+This MLP is shared across all transformer blocks, with each block learning a distinct set of biases.
+% 
+Through extensive experiments, we have demonstrated that this design can reduce the parameter count by approximately $25\%$ and reveal a significant performance improvement with this approach at the same parameter scale.
+%
+
+
+\textbf{Text encoder}. \method's architecture uses the umT5~\citep{chung2023unimax} to encode input text.
+%
+Through extensive experiments, we find that umT5 has several advantages in our framework: 
+%
+1) It possesses strong multilingual encoding capabilities, allowing it to understand both Chinese and English effectively, as well as input visual text; 
+%
+2) Under the same conditions, we find that umT5 outperforms other unidirectional attention mechanism LLMs in composition;
+%
+3) It exhibits superior convergence, with umT5 achieving faster convergence at the same parameter scale. 
+%
+Based on these findings, we ultimately chose umT5 as our text embedder.
+
+
+
+\subsubsection{Pre-training}
+We leverage the flow matching framework~\citep{flow-matching, esser2024sd3}  to model a unified denoising diffusion process across both image and video domains. 
+We first conduct pre-training on low-resolution images, followed by multi-stage joint optimization of images and videos. 
+The image-video joint training evolves using progressively upscaled data resolutions and extended temporal durations throughout the stages.
+
+\noindent\textbf{Training objective.}
+Flow matching provides a theoretically grounded framework for learning continuous-time generative processes in diffusion models. 
+It circumvents iterative velocity prediction, enabling stable training via ordinary differential equations (ODEs) while maintaining equivalence to maximum likelihood objectives.
+During training, given an image or video latent $x_{1}$, a random noise $x_{0} \sim \mathcal{N}(0, I)$, and a timestep $t \in[0,1]$ sampled from a logit-normal distribution, an intermediate latent $x_{t}$ is obtained as the training input.
+Following Rectified Flows (RFs)~\citep{esser2024sd3}, $x_{t}$ is defined as a linear interpolation between $x_{0}$ and $x_{1}$, \ie
+\begin{equation}\label{x_t}
+    x_{t}=t x_{1}+(1-t) x_{0}.
+\end{equation}
+The groud truth velocity $v_{t}$ is
+\begin{equation}\label{v_t}
+v_{t}=\frac{d x_{t}}{d t}=x_{1}-x_{0}.
+\end{equation}
+The model is trained to predict the velocity, thus, the loss function can be formulated as the mean squared error (MSE) between the model output and $v_{t}$,
+
+\begin{equation}\label{rf_loss}
+\mathcal{L} = \mathbb{E}_{x_0, x_1, c_{txt}, t}||u(x_t, c_{txt}, t; \theta)-v_t||^2,
+\end{equation}
+where $c_{txt}$ is the umT5 text embedding sequence of 512 tokens long, $\theta$ is the model weights, and $u(x_t, c_{txt}, t; \theta)$ denotes the output velocity predicted by the model.
+
+
+\noindent\textbf{Image pre-training.}
+Our experimental analysis reveals two critical challenges in direct joint training with high-resolution images and long-duration video sequences: 
+(1)~Extended sequence lengths (typically $81$ frames for $1280\times720$ video) substantially reduce training throughput. Under fixed GPU-hour budgets, this results in insufficient data throughput, thereby impeding model convergence rates. 
+(2)~Excessive GPU memory consumption forces suboptimal batch sizes, inducing training instability caused by spikes in gradient variance.
+To mitigate these issues, we initialize the 14B model training through low-resolution ($256~px$) text-to-image pre-training, enforcing cross-modal semantic-textual alignment and geometric structure fidelity before progressively introducing high-res video modalities.
+
+\noindent\textbf{Image-video joint training.}
+Following large-scale $256~px$ text-to-image pre-training, we implement staged joint-training with image and video data through a resolution-progressive curriculum. 
+The training protocol comprises three distinct stages differentiated by spatial resolution areas:
+(1)~In the first stage, we conduct joint training with $256~px$ resolution images and 5-second video clips ($192~px$ resolution, $16$ fps).
+(2)~In the second stage, we initiate spatial resolution scaling by upgrading both image and video resolutions to $480px$ while maintaining a fixed 5-second video duration.
+(3)~In the final phase, we escalate spatial resolution to $720 px$ for both images and 5-second video clips.
+
+\noindent\textbf{Pre-training configurations.}
+We employ efficient training at bf16-mixed precision combined with the AdamW~\citep{adamw, adam} optimizer with a weight decay coefficient of $1e^{-3}$.
+The initial learning rate is set to $1e^{-4}$, and dynamically reduced triggered by plateaus of the FID and CLIP Score metrics.
+
+\subsubsection{Post-training}
+
+In the post-training stage, we maintain the same model architecture and optimizer configuration from the pre-training stage, initializing the network with the pre-trained checkpoint. We conduct joint training at resolutions of $480 px$ and $720 px$ using the post-training video dataset detailed in Sec.~\ref{sec:post-training data}.

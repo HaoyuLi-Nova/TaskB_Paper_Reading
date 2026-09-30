@@ -1,0 +1,433 @@
+
+
+
+
+
+
+\section{Details of Our DiT-Based Data Generator and Video Dubber}
+
+\subsection{Preliminary of Flow-Matching-Based DiT Models}
+\label{appendix_sec:preliminary}
+We adopt a pre-trained T2V DiT model as the backbone for both stages~\citep{hong2022cogvideo,kong2024hunyuanvideo,wan2025wan}.
+It follows a latent diffusion paradigm with a 3D causal Variational Auto-Encoder (VAE)~\citep{kingma2013vae} for video compression and a DiT~\citep{peebles2023dit} for sequence modeling. 
+Each DiT block interleaves 2D (spatial) self-attention, 3D (spatio-temporal) self-attention, text cross-attention, and feed-forward networks (FFN). 
+Training follows standard flow matching~\citep{esser2024sd3,lipman2022flow} with the forward process:
+\begin{equation}
+    \vz_t = (1-t)\,\vz_0 + t\,\bm{\epsilon}, 
+    \quad \bm{\epsilon} \sim \mathcal{N}(0, \mI),
+\label{eq:flow_matching_forward}
+\end{equation}
+and a v-prediction objective to predict $\vv=\bm{\epsilon}-\vz_0$ conditioned on $\vc$:
+\begin{equation}
+    \mathcal{L}_{\text{FM}}(\theta) 
+    = \mathbb{E}_{\vz_0, \bm{\epsilon}, t} 
+    \left[ \big\| \vv_\theta(\vz_t, t, \vc) - \vv \big\|_2^2 \right].
+\label{eq:flow_matching_loss}
+\end{equation}
+
+
+\subsection{Adaptation of Text Cross-Attention Mechanism}
+To effectively adapt the pre-trained backbone—originally designed for text-to-video generation—for the visual dubbing task, we implement a specific strategy for handling text cross-attention. During training, we utilize Qwen2.5-VL~\cite{bai2025qwen2} to generate coarse captions for the target real videos, which serves to preserve the backbone's generative priors. However, to ensure the model primarily relies on the provided visual context and audio signals rather than textual descriptions, we apply a high dropout rate of 70\% to these text conditions. Architecturally, the text embeddings interact exclusively with the noised target tokens via cross-attention, while the reference tokens remain unaffected. For inference, to maintain practical convenience without requiring user-provided captions, we employ an empty string as the positive prompt. Additionally, we leverage Classifier-Free Guidance (CFG) with standard negative prompts (e.g., ``Blurry, deformed, low quality, distorted...'') to suppress artifacts and ensure high-fidelity generation.
+
+
+
+
+\subsection{Details of Our Mask-Based Data Generator}
+\label{appendix_sec:generator}
+
+\myparagraph{Mask setting.}
+Previous mask-based dubbing methods typically employ either half-face rectangular masks derived from smoothly varying bounding boxes~\cite{prajwal2020wav2lip,cheng2022videoretalking,wang2023talklip,zhang2023dinet} or fixed irregular-shaped masks applied to affine-transformed facial crops~\cite{guan2023stylesync,li2024latentsync}. 
+However, the former's size variations often induce lip motion information leakage, causing models to learn lip movements from visual occlusion changes rather than the conditional speech (i.e., shortcut learning). 
+The latter constrains jaw movement, hindering the generation of pronounced mouth shapes such as wide-open expressions. 
+Furthermore, both masking strategies often aggressively occlude the background context surrounding the face. This deprives the model of necessary spatial reference, frequently resulting in visible boundary artifacts or inconsistencies in the background after inpainting.
+
+Instead, we utilize frame-wise 3D Morphable Models (3DMM)~\citep{SMIRK:CVPR:2024} to derive precise facial masks. Specifically, we project the facial mesh while fixing the jaw opening parameter to a maximum of 0.4, keeping all other pose and expression coefficients unchanged. By retaining only the lower-half mask, we minimize the loss of spatiotemporal context (e.g., background dynamics) to reduce inpainting artifacts, while effectively preventing ground-truth lip shape leakage.
+
+\myparagraph{Audio conditioning.}
+Audio features are extracted using the Whisper~\citep{radford2023whisper} encoder and then injected via an audio cross-attention layer placed after text cross-attention.
+Since visual tokens and audio features have different temporal resolutions (1 video token frame corresponds to 8 audio-feature frames, i.e., 1:8), for each video frame, we select the corresponding audio feature frames according to the timestamp, together with neighboring frames, forming a temporal window of size $n = 16$.  
+This yields audio tokens $h_a \in \mathbb{R}^{(b \times f) \times n \times c}$, while video tokens are reshaped into $h_V \in \mathbb{R}^{(b \times f) \times (h'\times w') \times c}$, where $h'\times w'$ denotes the visual spatial size after patchification.  
+Frame-wise cross-attention is then performed between the two modalities, where video tokens serve as queries and audio tokens as keys and values. 
+Formally,
+\begin{equation}
+\mathrm{Attn}(Q_V,K_A,V_A)
+= \operatorname{softmax}\!\left(\frac{Q_V K_A^\top}{\sqrt{d}}\right) V_A,
+\quad
+Q_V = h_V W_Q^V,\; K_A = h_a W_K^A,\; V_A = h_a W_V^A.
+\label{eq:frame_xattn_simple}
+\end{equation}
+
+\myparagraph{Reference conditioning.}
+Reference frames $\{\mI_{\text{ref}}^i\}_{i=1}^N$ are sampled from a different segment of the same video during training to prevent lip-shape leakage, while at inference from the target segment to provide visual cues under a similar head pose.
+
+\subsection{Details of Our Mask-Free Video Dubber}
+\label{appendix_sec:editor}
+\myparagraph{3D Rotary Position Embedding (RoPE).}  
+3D RoPE is adopted in 3D self-attention of the DiT backbone to distinguish spatial-temporal positions, which we keep unchanged for target tokens.
+For reference tokens, inspired by~\citet{tan2024ominicontrol}, we adapt RoPE to be temporally-aligned but spatially-shifted.
+Specifically, a reference token located at $(i,j,k)$, where $i$, $j$, and $k$ denote the height, width, and temporal indices, is mapped to $(i+h', j+w', k)$, with $(h',w',f')$ the spatial–temporal sizes after patchification.
+This design provides two benefits:  
+\textbf{(1)} Temporal alignment enables frame-wise consistency preservation of dynamic attributes such as background and head poses;
+\textbf{(2)} Spatial shifting avoids direct overlap that could distort lip movements, and instead encourages the model to capture spatially misaligned yet correlated features like identity information.
+
+\section{Details of Data Construction Strategies}
+\label{appendix_sec:data_creation}
+
+\subsection{Short-Term Segment Processing}
+During the video generator inference with a single reference frame, we observe that denoising a long clip of 77 frames (matching the setting used by the backbone and the final video dubber) in one pass causes noticeable texture and color drift in the tail frames relative to the first; the drift resets at the first frame of the next clip (see Fig.~\ref{fig:app_short_term}).
+Therefore, \textit{under a single-reference regime, we conclude that single-pass denoising over long clips is detrimental to identity preservation}. We hypothesize two contributing factors: 1) the reference frame is anchored at the first position, so later frames become distant in the RoPE index space, amplifying identity drift; and 2) long clips naturally accumulate larger head motion and spatiotemporal changes, which a single reference frame cannot fully constrain.
+
+To mitigate this, when constructing pseudo pairs with the generator, we adopt short-segment training and inference: we generate clips of 25 frames and bridge adjacent clips with 5 motion frames, then concatenate them to form videos longer than 77 frames for supervising the mask-free video dubber. This short-segment strategy enhances identity preservation, while any slight sacrifice in lip sync accuracy remains within our design guidelines, as shown in Tab.~\ref{tab:app_short_term}.
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/app_short_term.pdf}
+\caption{Example of intra-segment identity drift.}
+\label{fig:app_short_term}
+\end{figure}
+
+Furthermore, this strategy offers a significant computational advantage. Since the computational complexity of the attention mechanism grows quadratically with sequence length ($O(T^2)$), generating a long sequence in a single pass is computationally expensive. By slicing the video into shorter segments, the generation cost scales linearly with the number of segments. Even with the overhead of overlapping frames, this approach to some extent accelerates the data construction process.
+
+\begin{table}[h]
+\centering
+\caption{Quantitative results comparing long-term vs. short-term processing strategies.} 
+\label{tab:app_short_term}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+Method & Sync-C (Lip Sync) $\uparrow$ & CSIM (Identity Preservation) $\uparrow$ \\ \midrule
+Long-clip (77 frames) & 7.983 & 0.842 \\
+Short-segment  (25 frames, +5 overlap) & 7.841 & 0.867 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Multiple Reference Frames for the Mask-Based Data Generator}
+Building upon the 25-frame short-segment setting established above, we further investigate the impact of the number of reference frames ($N$) on the quality of the constructed data. We hypothesize that providing additional visual context can assist the mask-based generator in better maintaining identity and visual fidelity during inpainting.
+
+We conducted experiments on the HDTF dataset with varying numbers of reference frames ($N=\{1, 2, 4, 6\}$). As presented in Tab.~\ref{tab:ref_frame_ablation}, increasing the number of reference frames consistently improves performance across all metrics. Specifically, we observe a steady decrease in FID and LPIPS, indicating better visual quality and perceptual similarity, alongside an increase in CSIM, reflecting improved identity preservation. 
+
+However, the performance gains begin to saturate beyond $N=4$. The improvement from $N=4$ to $N=6$ is marginal (e.g., LPIPS remains constant at 0.020), while the computational cost for encoding reference features continues to increase. Therefore, to strike an optimal balance between generation quality and data construction efficiency, we select $N=4$ as our default setting.
+
+\begin{table}[h]
+\centering
+\caption{Impact of the number of reference frames on the mask-based generator (evaluated on HDTF). \textbf{Bold} indicates the best performance.}
+\label{tab:ref_frame_ablation}
+\resizebox{0.4\linewidth}{!}{
+\begin{tabular}{@{}cccc@{}}
+\toprule
+\textbf{\# Ref. Frames} & \textbf{FID}  & \textbf{LPIPS}  & \textbf{CSIM} $\uparrow$ \\ \midrule
+1 & 8.01 & 0.025 & 0.892 \\
+2 & 7.80 & 0.022 & 0.895 \\
+4 & 7.72 & 0.020 & \textbf{0.904} \\
+6 & \textbf{7.70} & \textbf{0.020} & 0.903 \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\subsection{Mask Processing with Occlusion Handling}  
+To enhance the robustness of our generator against occlusions, namely, to maintain consistency with the original video’s occlusion patterns and thereby facilitate the editor’s ability to naturally inherit them, we introduce an occlusion-handling pipeline.
+First, a vision–language model (VLM)~\citep{bai2025qwen2} is prompted per video with:
+\emph{“Does any object occlude the person’s face? If yes, output \textbf{only} a concise description of the object(s). If no, output nothing.”}
+The returned object phrase(s) are then passed to SAM~2~\citep{ravi2024sam2} to segment candidate occluders, yielding an occlusion mask $M_{\text{occ}}$.
+We apply a light manual screening step to remove severely erroneous segmentations.
+
+Finally, we compose the occlusion-aware mask with the original inpainting mask.
+Let $M_{\text{face}}$ be the face mask (foreground 1, background 0), and $M_{\text{occ}}$ the occluder mask (1 on occluding objects).
+The visible-face mask is
+\[
+M_{\text{vis}} = M_{\text{face}} \land \neg M_{\text{occ}},
+\]
+and the inpainting mask (where \emph{0} indicates regions to inpaint in our implementation) is
+\[
+M_{\text{inp}} = \neg M_{\text{vis}} \;=\; \neg M_{\text{face}} \;\lor\; M_{\text{occ}},
+\]
+where $\land$, $\lor$, and $\neg$ denote logical AND, OR, and NOT, respectively.
+As illustrated in Fig.~\ref{fig:app_occ}, $M_{\text{inp}}$ excludes occluders while preserving non-occluded facial areas for inpainting.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/app_occ.pdf}
+\caption{Example of mask processing with occlusion handling.
+}
+\label{fig:app_occ}
+\end{figure}
+
+While our occlusion annotations can be incomplete or noisy, and using occlusion masks may introduce slight blur near mask boundaries and occasional lip degradation, as shown in the main text, the pipeline still supplies \emph{paired and coherent} references that preserve the scene’s occlusion patterns. This supervision encourages the final mask-dubber to model occlusion–face interactions automatically, enabling robust handling of occlusions without labor-intensive manual intervention. 
+
+\subsection{Lighting Augmentation}
+To enhance the robustness of our mask-free video dubber against challenging lighting conditions, we leverage a video relighting method~\cite{bian2025relightmaster} to augment our paired training data. As illustrated in Fig.~\ref{fig:app_relight}, we apply identical relighting effects to both the original target video $\mV_\text{real}$ and its synthetic companion $\mV_\text{syn}$.
+
+This synchronized processing ensures that the synthetic video input remains fully frame-aligned with the target, allowing the model to learn to directly inherit global lighting structures from the input. Our augmentation strategy includes both static adjustments (varying chromaticities and intensities) and dynamic effects, where light source properties change continuously across frames.
+To maintain high visual fidelity, we primarily apply this augmentation to high-quality studio footage and restrict it to approximately 5\% of the total training dataset. This conservative ratio prevents potential relighting artifacts from degrading the model, while effectively improving generalization to in-the-wild lighting dynamics.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/relight.pdf}
+\caption{\textbf{Visualizing the lighting augmentation strategy.} We apply identical static and dynamic relighting effects (e.g., changing color, intensity, and direction) to both the generated contextual reference and the target video. This ensures the mask-free video dubber learns to utilize lighting cues from the complete input video even under varying illumination conditions.
+}
+\label{fig:app_relight}
+\end{figure}
+
+
+
+\subsection{Post-Processing}
+Similar to~\citet{zhong2023iplap}, we use a Gaussian-smoothed face mask in post-processing to composite the data generator’s facial region back onto the original frames, mitigating minor background and boundary artifacts. Concretely, we blur the binary face mask $M_{\text{face}}$ with a Gaussian kernel to obtain $\tilde{M}_{\text{face}} \in [0,1]$, and perform per-frame alpha blending:
+\[
+\mV_{\text{post}} \;=\; \tilde{M}_{\text{face}} \odot \mV_{\text{gen}} \;+\; \bigl(1 - \tilde{M}_{\text{face}}\bigr) \odot \mV_{\text{orig}}\,,
+\]
+where $\odot$ denotes element-wise multiplication.
+This feathered composition keeps backgrounds consistent while preserving sharp facial edits, yielding training pairs with background-aligned context and helping the editor learn background-consistent editing behavior.
+
+\subsection{Quality Filtering} 
+To maintain identity consistency while enforcing distinct lip shapes, we apply two complementary filters to each synthetic-original pair: 
+\textbf{1) Identity similarity filter.} We use ArcFace~\citep{deng2019arcface} to compute cosine similarity between the synthetic and original videos. As a reference, the mean within-speaker similarity across different real segments is 0.812, which is conservative given their differing head motions. Since our paired videos share identical head motion, we adopt a stricter threshold of 0.85 and discard pairs below this value to prevent identity drift.
+\textbf{2) Lip-shape distinction filter.} After aligning faces to a canonical template using the Umeyama algorithm following~\cite{deng2019arcface}, we measure the landmark distance over the mouth region between the original and synthetic videos. To ensure sufficient lip-shape variation, we reject pairs with a mouth-region landmark distance below 1.0.
+
+To further safeguard visual quality and remove synthetic companions containing noticeable artifacts, we additionally assess each generated clip using a multimodal video-quality model~\cite{han2025videobench}.
+Each video is rated on six aspects including image fidelity, aesthetic appeal, temporal stability, motion smoothness, background consistency, and subject consistency, under a 5-point scoring scheme where 1 means very poor while 5 means excellent.
+We compute the average score across all six dimensions for each clip and retain only those with a mean score above 4.0, ensuring that only high-quality, artifact-free companion videos are included in the final training set.
+
+\subsection{3D Talking Head Rendering Data}
+We leverage Unreal Engine to generate high-quality dubbing pairs. Initially, we acquire the 3D motion representation, which comprises ARKit-based facial expressions and 3D degree-of-freedom (3DOF) head poses. For each dataset entry containing speech audio and 3D motion representation $(A, M)$, we randomly select another entry $(A^{\prime}, M^{\prime})$, and replace the speech-correlated coefficients in M with those from $M^{\prime}$ to form $M_{dub}$. Both the original dataset entry and its corresponding dubbed version are rendered as follows:
+\begin{equation}
+\begin{aligned}
+V &= \mathbf{R}(A, M, I), \\
+V_{\text{dub}} &= \mathbf{R}(A^{\prime}, M_{\text{dub}}, I),
+\end{aligned}
+\end{equation}
+where $\mathbf{R}$ denotes the Unreal Engine rendering pipeline (following \cite{chen2025cafe}) and $I$ represents the Unreal Engine MetaHuman avatar. To ensure data diversity, we create multiple avatars; however, it is important to note that the same avatar is used for each individual dubbing pair. 
+Ultimately, we collect approximately 10 hours of 3D-rendered dubbing pairs in addition to the pairs generated by our DiT-based data generator.
+These rendered pairs provide strictly aligned head motion, environment, and perfectly matched identity, which further enables the mask-free video dubber to focus on speech-related lip edits while preserving all other visual cues. 
+Rendering examples are shown in Fig.~\ref{fig:ue_render}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figures/UE_pair.pdf}
+\caption{Example of aligned rendered video pairs.
+}
+\label{fig:ue_render}
+\end{figure}
+
+
+
+
+\section{Details of Timestep-Adaptive Multi-Phase Learning}
+\label{appendix_sec:multi_phase_training}
+\subsection{Derivation of Eq.~\ref{eq:single_step_denoising}: Timestep-Constrained Single-Step Denoising}
+Given the forward diffusion process as in Eq.~\ref{eq:flow_matching_forward} and the v-prediction objective $\vv=\bm{\epsilon}-\vz_0$, we derive the single-step denoising formula for pixel-level supervision during training, avoiding excessive computational overhead.
+
+From Eq.~\ref{eq:flow_matching_forward}, we can rearrange to obtain:
+\begin{equation}
+\vz_0 = \frac{\vz_t - t\,\bm{\epsilon}}{1-t}.
+\end{equation}
+
+Since $\vv = \bm{\epsilon} - \vz_0$, we have $\bm{\epsilon} = \vv + \vz_0$. Substituting and solving for $\vz_0$:
+\begin{equation}
+\begin{aligned}
+\vz_0 &= \frac{\vz_t - t(\vv + \vz_0)}{1-t} = \frac{\vz_t - t\vv - t\vz_0}{1-t}\\
+(1-t)\vz_0 &= \vz_t - t\vv - t\vz_0\\
+\vz_0 &= \vz_t - t\vv.
+\end{aligned}
+\end{equation}
+
+During inference, we use the predicted velocity $\hat{\vv}$ instead of the true $\vv$, yielding:
+\begin{equation}
+\hat{\vz}_0 = \vz_t - t\hat{\vv}.
+\end{equation}
+
+Alternatively, we can express this as:
+\begin{equation}
+\hat{\vz}_0 = \vz_0 + t(\vv - \hat{\vv}),
+\label{eq:denoising_base}
+\end{equation}
+which shows the reconstruction error depends on the velocity prediction error scaled by $t$.
+
+However, when the timestep $t$ approaches 1 (high noise levels), the velocity prediction error $(\vv - \hat{\vv})$ tends to be amplified when multiplied directly by $t$. This leads to distorted reconstructions $\hat{\vx}_0$ that result in inaccurate and unstable gradients for lip-sync and identity losses. 
+
+To address this, we introduce a truncated effective timestep $\tau$ for the single-step reconstruction:
+\begin{equation}
+\hat{\vx}_0 = \mathcal{D}(\vz_0 + (\vv - \hat{\vv}) \cdot \tau),
+\end{equation}
+where $\tau = \min(t, t_{\text{thres}})$. 
+Importantly, this truncation is applied \emph{exclusively} in the denoising computation for loss supervision. The model's forward pass remains conditioned on the actual timestep $t$, enabling it to learn essential global structure and lip movement patterns even in high-noise regions. By capping the scaling factor at $t_{\text{thres}}$ (set to 0.6 in our experiments), we stabilize the training objectives without restricting the model's perception of the noise level.
+
+\subsection{SyncNet supervision}
+For lip-sync tuning, we adopt a SyncNet~\citep{chung2016syncnet} comprising a visual encoder $S_V$ and an audio encoder $S_a$ to discriminate temporal alignment between video and audio clips.  
+The lip-sync loss is defined as:  
+\begin{equation}
+    \mathcal{L}_{\text{sync}} = 
+    \text{CosSim}\big(S_V(\hat{\vx}_{0}^{[f:f+8]}), \; S_a(\va^{[f:f+8]})\big).
+\end{equation}
+This loss is combined with $\mathcal{L}_{\text{mFM}}$ defined in Eq.~\ref{eq:weighted_loss} in a weighted sum to train the lip-sync LoRA:
+\begin{equation}
+    \mathcal{L}_{\text{total}} = (1 + w \cdot \mM + w_{\text{lip}} \cdot \mM_{\text{lip}}) \odot \mathcal{L}_{\text{FM}} + w_{\text{sync}} \cdot \mathcal{L}_{\text{sync}}.
+\end{equation}
+
+
+\subsection{Details of Parameter Choices for Multi-Phase Learning}
+\label{appendix_sec:multiphase_param}
+Based on the well-established observation that diffusion models process information hierarchically~\cite{peng2025omnisync,zhang2025flexiact,meng2025echomimicv3}, we first heuristically partition the noise schedule (timestep $t$) into three functional regions: high-noise for global structure, mid-noise for lip motion, and low-noise for detailed texture. This initial design is then finalized via the quantitative experiments.
+
+\myparagraph{Determination of timestep shifting $\boldsymbol{\alpha}$ for training.}
+To determine the optimal $\alpha$ values that allow the editing model to efficiently learn decoupled information in each phase, and also to maximize the impact of the lip-sync and identity losses without degrading overall quality, we conduct an ablation study on the specific $\alpha$ settings. The experiments for the mid- and low-noise phases are conducted sequentially, each building upon the optimal parameter choice from the preceding stage.
+
+\input{tables/tab_appendix_alpha}
+
+The results are presented in Tab.~\ref{tab:appendix_alpha}. For the high-noise phase focused on global structure, we find that performance is relatively insensitive to $\alpha$ values above 3.0, with the model stably converging to high visual quality with minimal changes in FID and LPIPS. This is consistent with findings in~\cite{esser2024sd3}. We finally select $\alpha=5.0$ to minimize overlap with the mid-noise phase.
+
+For the mid-noise tuning phase, an overly large $\alpha$ (e.g., 3.0) degrades overall visual quality, while a low value (e.g., 0.8) diminishes the effectiveness of the lip-sync loss. The model's performance is relatively stable within the intermediate range. We therefore select $\alpha=1.5$ as the best balance between effective lip modification and preserving visual quality.
+
+Finally, for the low-noise phase, a larger $\alpha$ (e.g., 0.8) disrupts the previously learned lip shapes. Smaller values are more stable, and based on our results, we select $\alpha=0.2$. This choice allows the texture tuning to maximize its enhancement of visual quality while minimizing any negative impact on the already-learned lip motion.
+
+\myparagraph{Determination of timestep intervals for LoRA expert activation for inference.}
+Similarly, we conduct an ablation study on the activation timestep ranges for the two trained LoRA experts during inference to determine the optimal phase boundaries. Note that this experiment uses the LoRA checkpoints trained with the optimal $\alpha$ values determined previously.
+
+The results are shown in Tab.~\ref{tab:appendix_lora_range}. First, for both experts, naively activating them across the entire denoising process ($t\in[0.0, 1.0]$) leads to a severe degradation in either visual quality or lip-sync, as this forces them to operate in timestep regions they rarely encountered during training.
+
+For the lip LoRA expert trained in the mid-noise phase, activating it too early ($t\rightarrow1$) conflicts with global visual quality and causes flickering artifacts around the mouth. Activating it too late ($t\rightarrow0$) fails to sufficiently enhance lip sync. For the texture LoRA expert trained in the low-noise phase, activating it too early degrades the quality of the lip motion.
+Therefore, to balance these trade-offs, we select the non-overlapping ranges of $t\in[0.4, 0.8]$ for the lip LoRA and $t\in[0.0, 0.3]$ for the texture LoRA.
+
+
+
+\section{Other Implementation Details}
+\label{appendix_sec:implementation_details}
+We conduct experiments using a $\sim$1B-parameter T2V model on 32 A100 GPUs, with face-centered videos at $512\times512$ resolution and 25\,fps.
+For the data generator, we conduct training for $\sim$15k steps on 600 hours of internet audio-video data, sampling 25 frames with lr=1e-5 and batch size 256, which takes $\sim$1 day.
+Using the trained data generator, we then synthesize the contextual video pairs, a one-time data preparation step that takes $\sim$2 days.
+After inference and curation, we obtain $400$ hours of video pairs, totaling 800 hours.
+For the mask-free video dubber, we begin with full-parameter training for $\sim$4k steps on 77-frame samples with lr=1e-5, batch size 256, and timestep shift $\alpha=5.0$, followed by LoRA expert training for $\sim$1k steps each with lr=5e-6 and batch size 64; the entire training process for the video dubber takes $\sim$0.5 days.
+To reduce computational cost, we decode 4 tokens into 13-frame segments for pixel-level loss computation.
+Timestep shifts are set to $\alpha=1.5$ for the lip expert and $\alpha=0.2$ for the texture expert.
+Loss weights are set as $w=w_{\text{lip}}=0.3$ for masks, and 0.05 for SyncNet, CLIP, and ArcFace loss.
+
+\section{Inference Time and Computational Cost}
+\label{appendix_sec:inference_cost}
+Inference with our mask-free video dubber $\Gfree$ requires approximately 30 GB of VRAM and fits comfortably on a single A100 GPU. With 50 denoising steps, $\Gfree$ takes about 1 minute to process a 3-second, 25\,fps video at $512\times512$ resolution.
+
+To provide a comprehensive performance profile, we compare our mask-free video dubber $\Gfree$'s inference time against some representative methods: a GAN-based dubbing model (Wav2Lip), a diffusion-based dubbing model (LatentSync), and a large-scale single-image animation model (MultiTalk). All diffusion-based methods are benchmarked with 50 denoising steps for a fair comparison, as shown in Tab.~\ref{tab:appendix_inference_time}.
+
+\begin{table}[h]
+\centering
+\caption{Inference time comparison on a single A100 GPU. All diffusion models use 50 steps. The task is to process a 3-second, 25\,fps video.}
+\label{tab:appendix_inference_time}
+\resizebox{0.7\textwidth}{!}{
+\begin{tabular}{lcccc}
+\toprule
+Method & Wav2Lip & LatentSync & MultiTalk & \textbf{Ours-$\Gfree$} \\
+\midrule
+Model Type & GAN & Diffusion (UNet) & Diffusion (DiT) & Diffusion (DiT) \\
+Parameters & $\sim$36M & $\sim$816M & $\sim$14B & $\sim$1.5B \\
+Inference Time & $\sim$1s & $\sim$30s & $\sim$1800s (30 min) & $\sim$60s (1 min) \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+The results in Tab.~\ref{tab:appendix_inference_time} show a clear quality-efficiency trade-off. As expected, our DiT-based mask-free video dubber is slower than lightweight GAN-based methods like Wav2Lip, but its inference speed is comparable to other diffusion-based dubbing methods such as LatentSync. Crucially, our method achieves this comparable speed while delivering substantially better lip-sync accuracy and visual quality. Furthermore, when compared to large-scale animation models, our 1.5B parameter mask-free video dubber achieves an overall quality comparable to the 14B MultiTalk model, yet requires only a fraction of its inference time and parameter size. This demonstrates that a task-specific design for visual dubbing is more cost-effective than simply scaling up to a much larger, general-purpose video generation backbone.
+
+Finally, our method can be significantly accelerated. Benefiting from paired data and the utilization of full frame-aligned video inputs during inference, the early, high-noise denoising steps primarily involve inheriting global structure and low-frequency components directly from the original video. This allows us to safely reduce the total number of inference steps to 25 (mainly by pruning the early and late stages) without noticeable quality degradation. Combined with lightweight acceleration techniques such as sequence parallelism and test-time caching (\textit{e.g.}, TeaCache~\cite{teacache}), we can shorten the inference time to approximately 25~seconds for a 3-second clip, substantially mitigating practical deployment limitations.
+
+
+\section{Additional Experimental Results and Analyses}
+\subsection{Ablation on Generative Bootstrapping Paradigm vs. Training Strategy}
+To clearly disentangle the contributions of our two core components (the generative bootstrapping paradigm (using constructed paired data) and the timestep-adaptive multi-phase learning strategy), we conduct a crucial ablation study. We compare four settings, varying the paradigm (inpainting vs. editing) and the training strategy (single-phase vs. multi-phase).
+
+
+\begin{table}[h]
+\centering
+\caption{Ablation study disentangling the contributions of the paradigm (inpainting vs. editing) and the training strategy (single-phase vs. multi-phase). Best results are in \textbf{bold}.}
+\label{tab:appendix_ablation_paradigm_strategy}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{@{}cccccccc@{}}
+\toprule
+ & \textbf{Method} & \textbf{Paradigm} & \textbf{Training Strategy} & FID  & LPIPS  & Sync-C $\uparrow$ & \textbf{Remarks} \\ \midrule
+\ding{172} & $\Gmask^*$ & Inpainting & Single-Phase (Uniform) & 7.87 & 0.018 & 8.05 &  \\
+\ding{173} & $\Gmask^*$ & Inpainting & Multi-Phase & 7.92 & 0.018 & 8.19 &  \\
+\ding{174} & $\Gfree$ & Editing & Single-Phase (Uniform) & 18.52 & 0.125 & 7.68 & Not converged. \\
+\textbf{\ding{175}} & \textbf{$\Gfree$} & \textbf{Editing} & \textbf{Multi-Phase} & \textbf{7.03} & \textbf{0.014} & \textbf{8.56} &  \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+
+The results in Tab.~\ref{tab:appendix_ablation_paradigm_strategy} lead to two key findings. First, the primary performance gain stems from the paradigm shift enabled by the constructed paired data. Applying multi-phase learning to the inpainting-based $\Gmask^*$ (\textbf{\ding{173}} vs. \textbf{\ding{172}}) yields negligible gains, and its performance remains far below that of our final mask-free video dubber (\textbf{\ding{175}}). This demonstrates that the training strategy alone cannot overcome the fundamental limitations of the mask-based inpainting paradigm, which lacks frame-aligned visual context and is constrained by the explicit mask.
+
+Second, the multi-phase learning strategy is an essential enabler for the mask-free video dubber $\Gfree$, but not the $\Gmask^*$. Mask-based $\Gmask^*$ converges well with uniform sampling (\textbf{\ding{172}}) as its inpainting task is straightforward generation. The mask-free editing model, in contrast, must balance the conflicting objectives of inheriting structure, editing lips, and preserving texture. A standard single-phase approach mixes these signals and causes training to collapse (\textbf{\ding{174}}), whereas our multi-phase strategy disentangles them, enabling stable and effective training (\textbf{\ding{175}}). In summary, the paradigm shift is the primary source of improvement (bootstrapping effect), while the multi-phase learning strategy is a necessary mechanism that allows the mask-free editing-based video dubber to function reliably within this new paradigm.
+
+\subsection{Validation of the Self-Bootstrapping Effect}
+To further validate the effectiveness of our self-bootstrapping paradigm, we evaluate the final mask-free model ($\mathcal{G}_{\text{free}}$) against the synthetic data used for its own training (curated from $\mathcal{G}_{\text{mask}}$). Specifically, we sampled 20 held-out pairs from the constructed dataset and compared them with the outputs of $\mathcal{G}_{\text{free}}$ given the same real source videos.
+
+As shown in Tab.~\ref{tab:editor_vs_generator}, $\mathcal{G}_{\text{free}}$ consistently outperforms the constructed training data in terms of lip synchronization (Sync-C) and identity preservation (CSIM), while maintaining comparable visual quality (FID).
+We attribute this improvement to our denoising training objective: by taking potentially flawed synthetic data as input but strictly targeting real video as supervision, the model effectively learns to filter out synthetic artifacts. Consequently, $\mathcal{G}_{\text{free}}$ treats the imperfections in the constructed data as noise to be suppressed, resulting in a model that is more robust and produces higher fidelity results than the data it was trained on.
+
+\begin{table}[h]
+\centering
+\caption{Quantitative comparison between the constructed training data (generated by $\mathcal{G}_{\text{mask}}$) and the output of our final model $\mathcal{G}_{\text{free}}$. The ``student'' ($\mathcal{G}_{\text{free}}$) surpasses the ``teacher'' (data).}
+\label{tab:editor_vs_generator}
+\resizebox{0.5\linewidth}{!}{%
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & \textbf{FID}  & \textbf{Sync-C} $\uparrow$ & \textbf{CSIM} $\uparrow$ \\ \midrule
+Constructed Data (via $\mathcal{G}_{\text{mask}}$) & 7.00 & 7.88 & 0.905 \\
+\textbf{Ours ($\mathcal{G}_{\text{free}}$)} & \cellcolor[HTML]{FE996B}\textbf{6.98} & \cellcolor[HTML]{FE996B}\textbf{8.97} & \cellcolor[HTML]{FE996B}\textbf{0.912} \\ \bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\section{Calculation of Success Rate}
+In our quantitative evaluation on \benchname{} (Tab.~\ref{tab:bench_comparison}), we report the Success Rate metric. To quantify this, we enlisted 10 participants to review the generated videos and provide a binary judgment (\textit{Success} or \textit{Failure}). Evaluators were instructed to classify a generation as a `Failure' if it exhibited severe visual collapse or complete lip-synchronization mismatch. Each video received at least 5 independent evaluations, and the final classification as a successful case was determined by a majority vote.
+
+
+\section{Details of User Study}
+The user study involved 30 participants. Each participant received compensation of approximately 15 USD for completing a session that lasted 40–50 minutes, which aligns with the average hourly wage. For reference, Fig.~\ref{fig:app_screenshot} provides screenshots of the rating interface used in the study.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/user_study_screenshot.pdf}
+    \caption{Screenshot of the rating interface of the user study.}
+    \label{fig:app_screenshot}
+\end{figure}
+
+
+
+
+
+\section{\benchname{}}
+\label{appendix_sec:benchmark}
+To thoroughly evaluate our framework, we construct \benchname{} benchmark, a challenging benchmark comprising 440 video-audio pairs. The dataset is carefully designed with the following composition:
+
+\myparagraph{Audio data.}
+The audio component includes both speech and singing. For speech, we randomly sampled 350 clips from Common Voice~\citep{ardila2019common}, spanning six languages and dialects: 170 in English, 60 in Mandarin, 30 in Cantonese, 30 in Japanese, 30 in Russian, and 30 in French. For singing, we incorporated 60 English clips from NUS-48E~\citep{duan2013nus} and 30 Mandarin clips from Opencpop~\citep{wang2022opencpop}. Each segment lasts between 7 and 14 seconds and captures a wide range of speaking rates, pitch levels, accents, and vocal styles, ensuring rich phonetic and linguistic diversity.
+
+\myparagraph{Video data.}
+The video set combines real-world recordings and AI-generated content from publicly available sources with proper copyright clearance (e.g., Civitai, Mixkit, Pexels).  It contains 291 clips of natural human subjects, 108 clips of stylized characters with distinct artistic features, and 41 clips of non-human or humanoid entities with durations ranging from 2 to 9 seconds. Representative samples are shown in Fig.~\ref{fig:bench_nonhuman}, Fig.~\ref{fig:bench_style}, and Fig.~\ref{fig:bench_real}.
+Unlike conventional datasets, which are typically captured under controlled conditions,  \benchname{} is explicitly designed to reflect real-world challenges. The dataset incorporates dynamic lighting, partial occlusions, identity-preserving transformations, and substantial variations in pose and motion. By embedding these factors, \benchname{} more faithfully captures the diversity and unpredictability of real-world scenarios, providing a rigorous testbed for evaluating lip-synchronization models. Illustrative examples are shown in Fig.~\ref{fig:bench_showcase}.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/bench_nonhuman.pdf}
+    \caption{\benchname{} benchmark Examples (I): Showcasing non-human characters with diverse morphological variations.}
+    \label{fig:bench_nonhuman}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/bench_style.pdf}
+    \caption{\benchname{} benchmark Examples (II): Showcasing stylized characters with distinctive visual designs.}
+    \label{fig:bench_style}
+\end{figure}
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/bench_real.pdf}
+    \caption{\benchname{} benchmark Examples (III): Showcasing real-world human appearances in practical conditions.}
+    \label{fig:bench_real}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=.95\linewidth]{figures/bench_showcase.pdf}
+    \caption{Samples from \benchname{} benchmark showing lighting variations, identity-preserving changes, and occlusions, highlighting complex real-world scenarios.}
+    \label{fig:bench_showcase}
+\end{figure}

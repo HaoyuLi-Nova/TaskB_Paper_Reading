@@ -1,0 +1,282 @@
+\clearpage
+\setcounter{page}{1}
+\setcounter{section}{0}
+\renewcommand{\thesection}{\Alph{section}} 
+\maketitlesupplementary
+
+
+\section*{Outline}
+\label{sec:outline}
+This supplementary material provides two sets of additional information on AnyTalker.
+\subsection*{A. Experimental Details}
+\begin{itemize}
+\item Data-processing pipeline used during training
+\item Construction scheme for inference data
+\item Training hyper-parameters and other technical details
+\item Inference settings
+\end{itemize}
+\subsection*{B. Extended Experiments}
+\begin{itemize}
+\item More analysis of the Interactivity metric
+\item Additional experimental results
+\item Effectiveness of interactivity refinement
+\end{itemize}
+
+\section*{A. Experimental Details}
+\label{sec:data-processing}
+\subsection*{A.1. Training Data Processing}
+\label{subsec:training-data-processing}
+\begin{figure}[t]
+    \centering
+\includegraphics[width=\linewidth]{fig/sync.pdf}
+    \caption{SyncNet Score Matrix in two-person data.}
+    \label{fig:sync}
+\end{figure}
+
+\noindent \textbf{Auxiliary Models.}
+We first introduce the auxiliary models used during the data processing stage.
+To segment sentences and chunk the audio track extracted from each video, we employ the pre-trained speaker-diarization-3.1 model~\cite{Plaquet23}\footnote{\url{https://huggingface.co/pyannote/speaker-diarization-3.1}} in conjunction with OpenAI’s Whisper~\cite{radford2023robust}\footnote{\url{https://github.com/openai/whisper}}.
+For vocal separation and vocal feature extraction, we use pre-trained models
+from Kim\_Vocal\_2~\cite{takahashi2017multi}\footnote{\url{https://github.com/Anjok07/ultimatevocalremovergui}}
+and Wav2Vec2~\cite{schneider2019wav2vec,baevski2020wav2vec}\footnote{\url{https://huggingface.co/facebook/wav2vec2-base-960h}}.
+For face detection and facial feature processing, we adopt RetinaFace~\cite{deng2020retinaface}
+and ArcFace~\cite{deng2019arcface}, both accessible via InsightFace\footnote{\url{https://github.com/deepinsight/insightface}}.
+To measure audio-visual synchronization, we employ the pre-trained SyncNet model from LatentSync~\cite{li2024latentsync}\footnote{\url{https://huggingface.co/ByteDance/LatentSync/tree/main}}.
+Text prompts are obtained with Gemini~2.5~Pro\footnote{\url{https://deepmind.google/models/gemini/pro/}},
+and their features are extracted using the T5-encoder~\cite{raffel2020exploring}\footnote{\url{https://huggingface.co/Wan-AI/Wan2.1-I2V-14B-720P/tree/main/google/umt5-xxl}}.
+Finally, we filter videos with excessive camera motion by means of the CoTracker model~\cite{karaev2024cotracker}\footnote{\url{https://huggingface.co/facebook/cotracker}}.
+
+\begin{figure}[t]
+    \centering
+\includegraphics[width=0.7\linewidth]{fig/data.pdf}
+    \caption{Properties of training data.}
+    \label{fig:data}
+\end{figure}
+
+\begin{figure*}[t]
+    \centering
+\includegraphics[width=\linewidth]{fig/multi-data.pdf}
+    \caption{
+    Two cases from InteractiveEyes. 
+    Both of the speakers have speaking periods.
+    }
+    \label{fig:multi-data}
+\end{figure*}
+
+\begin{figure}[t]
+    \centering
+\includegraphics[width=\linewidth]{fig/single-data.pdf}
+    \caption{Input cases from the benchmark dataset, from left to right: HDTF~\cite{zhang2021flow}, VFHQ~\cite{xie2022vfhq}, and EMTD~\cite{meng2025echomimicv2}.
+    }
+    \label{fig:single-data}
+\end{figure}
+
+\noindent \textbf{Single-Person Data.}
+A valid single-person clip is a 24-fps video that continuously exhibits one identifiable face and is accompanied by speech audio whose lip movements are perfectly synchronised with the soundtrack.
+We first eliminate hand-held recordings exhibiting pronounced camera shake or abrupt scene changes using CoTracker~\cite{karaev2024cotracker}.
+RetinaFace~\cite{deng2020retinaface} is then applied to guarantee that most frame contains exactly one face.
+Videos that satisfy the above criteria are processed by speaker-diarization-3.1~\cite{Plaquet23} to obtain coarse sentence-level segments.
+Utterances longer than 5\,s are further subdivided into semantically coherent units with Whisper~\cite{radford2023robust}, after which any fragment containing overlapping speakers is discarded.
+The remaining clean single-speaker segments average $\approx$\,2\,s in duration.
+Because 2\,s clips cannot saturate GPU memory, we randomly concatenate consecutive segments to extend each sequence; the resulting clip lengths follow a Gaussian distribution with mean 4\,s and standard deviation 0.5\,s.
+Then, their vocal tracks are extracted with Kim\_Vocal\_2~\cite{takahashi2017multi} and encoded with Wav2Vec-2~\cite{schneider2019wav2vec}, while audio-visual synchrony is scored by SyncNet~\cite{li2024latentsync}.
+Clips whose synchrony score lies below a pre-defined threshold are removed from the training set.
+Finally, every retained clip is transcribed and annotated with frame-level face bounding boxes.
+We then use Gemini 2.5 Pro to generate textual descriptions for these clips and employ a T5 encoder to extract text features.
+All input text is uniformly truncated or padded to exactly 512 tokens.
+After being preceded by the above pipeline, it yields approximately $1,000$ h of high-quality 480P single-person data.
+
+
+\noindent \textbf{Two-Person Data.}
+Processing Two-person clips follows the single-person pipeline with three key modifications.
+\begin{enumerate}[leftmargin=*,nosep]
+  \item \textbf{Face count:} the video must contain \emph{exactly two} faces in most frame.
+  \item \textbf{Speaker activity:} speaker-diarization-3.1~\cite{Plaquet23} is constrained to output only two valid states: (i) both speakers active or (ii) a single speaker active. 
+  \item \textbf{Spatial consistency:} the left--right spatial ordering of the two faces must remain unchanged throughout the entire clip; identity swapping is detected and rejected via InsightFace~\cite{deng2020retinaface}.
+\end{enumerate}
+To establish the correct voice--face correspondence, we compute a $2\!\times\!2$ SyncNet confidence matrix (\cref{fig:sync}) and requires the two largest scores to lie on the diagonal; otherwise, the clip is discarded.
+A minimum synchrony threshold identical to the single-person setting is further applied.
+After filtering, approximately $12$ h of clean two-person data are retained.
+
+\noindent \textbf{Data Concatenation.}
+During the first-stage training, we horizontally concatenate randomly selected single-person clips.  
+Because the original videos are extremely high-resolution (many 2K/4K), naively resizing them along the height axis and stacking would yield faces that occupy only a tiny fraction of the frame.  
+To avoid this, we adopt a special cropping strategy.  
+First, we locate the face centre in each of the two candidate clips.  
+For 480P footage, the frame size is (H, W)=(480,832), so we expand a minimal crop of (480,416) around each face centre.  
+We then apply further augmentation: while keeping the crop inside the original image, we randomly enlarge the window while preserving the 480/416 aspect ratio.  
+The resulting crops contain a much larger facial region, enabling the model to learn a more accurate lip-to-audio mapping.
+
+\noindent \textbf{Data Properties.}
+Each processed sample is summarised by a dictionary-style item that stores the absolute paths to the decoded video, cleaned audio, and pre-extracted features.
+During training, the data loader indexes all information through this item.
+Single-person and two-person clips share an identical key structure; the number of face--speech entries in the list unambiguously indicates whether the sample contains one or two speakers.
+Further details are illustrated in~\cref{fig:data}.
+
+\begin{figure*}[t]
+    \centering
+\includegraphics[width=0.9\linewidth]{fig/case.pdf}
+    \caption{
+    Four typical cases that will get a high Interactivity score.
+    }
+    \label{fig:case}
+\end{figure*}
+
+\subsection*{A.2. Benchmark Data Processing}
+\label{subsec:benchmark-data-processing}
+
+\noindent \textbf{Single-Person Data.}
+We adopt HDTF~\cite{zhang2021flow} and VFHQ~\cite{xie2022vfhq} as the single-speaker evaluation benchmarks.
+Both datasets are de facto standards for talking-head generation; their images are tightly cropped around the face region.
+Additional experiments on half-body sequences that include hands are reported in Sec.~B.2.
+
+For each test video, we supply (i) a single reference image of the subject and (ii) the corresponding speech segment.
+To respect GPU-memory constraints, we fix the audio length to 6\,s---a duration that all competing methods process without overflow.
+Twenty clips are randomly selected from each dataset, ensuring that none of the identities appear in the AnyTalker training set.
+Reference images from the three evaluation splits are visualised in~\cref{fig:single-data}.
+
+
+\noindent \textbf{Two-Person Data.}
+We provide additional details for \emph{InteractiveEyes}, the test set introduced in Section 4 in the main text for two-speaker scenarios.
+Each video is shot with a stable camera and contains \emph{exactly two faces in every frame}; the duration is approximately 10\,s.
+In 80\,\% of the cases, both speakers produce speech, while in the remaining 20\,\% only one speaker talks and the other maintains a listening pose.
+To avoid segmentation errors, we do \emph{not} apply speaker-diarization-3.1~\cite{Plaquet23}; instead, speaking intervals are manually annotated so that the Interactivity metric proposed in the main paper can be computed accurately.
+Two representative cases are shown in~\cref{fig:multi-data}.
+
+\begin{table}[t]
+    \centering
+    \caption{
+       Quantitative result on EMTD~\cite{meng2025echomimicv2} benchmark.
+    }
+    \small
+    \begin{tabular}{cccccc}
+        \toprule
+        \multirow{2}{*}{\textbf{Method}} & \multicolumn{4}{c}{\textbf{Metrics}} \\
+        \cmidrule(lr){2-5}
+        & \textbf{Sync-C$\uparrow$} & \textbf{FID} & \textbf{FVD} & \textbf{ID$\uparrow$} \\
+        \midrule
+        FantasyTalking~\cite{wang2025fantasytalking} & 3.76 & 67.66 & 818.71 & 0.76 \\
+        EchoMimic v2~\cite{meng2025echomimicv2} & 6.27 & 63.43 & \underline{671.18} & 0.76 \\
+        MultiTalk~\cite{kong2025let} & \underline{8.38} & 64.71 & 787.99 & \textbf{0.79} \\
+        \midrule
+        AnyTalker-1.3B & 5.83 & \underline{56.01} & 789.59 & 0.74 \\
+        AnyTalker-14B & \textbf{8.45} & \textbf{50.61} & \textbf{664.58} & \underline{0.77} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:EMTD}
+\end{table}
+
+\begin{figure*}[t]
+    \centering
+\includegraphics[width=\linewidth]{fig/bind.pdf}
+    \caption{
+   A bad case generated by Bind-Your-Avatar~\cite{huang2025bind}.
+    }
+    \label{fig:bad}
+\end{figure*}
+
+
+\begin{figure*}[t]
+    \centering
+\includegraphics[width=0.9\linewidth]{fig/qualitative_single.pdf}
+    \caption{
+   Qualitative results on HDTF~\cite{zhang2021flow} (left) and VFHQ~\cite{xie2022vfhq} (right) benchmark.
+   The positions of pronunciation have been highlighted in {\color{red}red} and \underline{underlined}.
+    }
+    \label{fig:qualitative-single}
+\end{figure*}
+
+\subsection*{A.3. Implement Details}
+\label{sec:exp-detail}
+
+\noindent \textbf{Training Details.}
+To comprehensively evaluate our method, we train two models of different sizes: Wan2.1-1.3B-Inp\footnote{\url{https://huggingface.co/alibaba-pai/Wan2.1-Fun-1.3B-InP}} and Wan2.1-I2V-14B~\cite{wan2025wan}, which served as the foundational video diffusion models for our experiments. 
+In all stages, the text~\cite{raffel2020exploring}, audio~\cite{baevski2020wav2vec}, and image~\cite{radford2021learning} encoders, as well as the 3D VAE, remained frozen with their parameters unchanged. 
+The DiT main network, including the newly added AFCA Layers, had all its parameters open for training. 
+The first stage employs a higher learning rate of \(2 \times 10^{-5}\) for pretraining, while the second stage uses a lower learning rate of \(5 \times 10^{-6}\) for fine-tuning, incorporating a warm-up strategy and optimized using the AdamW optimizer~\cite{loshchilov2017decoupled}. 
+The 14B model is trained using 32 NVIDIA H200 GPUs. 
+In the first stage, the global batch size is set to 32 and the model is trained for 2.4M steps. 
+In the second stage, the batch size is adjusted to 16, and the model is trained for an additional 50K steps.
+The 1.3B model is trained using 8 NVIDIA H200 GPUs. 
+The global batch size is maintained at 48 throughout the training process, with the total number of training steps being consistent with that of the 14B model.
+
+
+\noindent \textbf{Inference Details.}
+For all competing methods, we strictly follow the publicly released implementations and adopt their default recommended inference hyperparameters.
+Approaches that require textual input receive a fixed prompt for the single-person benchmark: ``\texttt{this person is talking}''.
+For the multi-person benchmark, the prompts are automatically generated by Gemini~2.5~Pro as described in~Sec.~A.1.
+AnyTalker performs inference with classifier-free guidance (CFG)~\citep{ho2021classifier} using a guidance scale of $4.0$; in the unconditional branch, both textual and audio features are set to zero.
+Face masks are extracted with InsightFace and uniformly dilated to provide a slightly enlarged region for generation.
+
+
+\section*{B. Extended Experiments}
+\label{sec:exp-res}
+
+\subsection*{B.1. More analysis about Interactivity Metric}
+\label{subsec:S-metric}
+
+\begin{figure*}[t]
+    \centering
+\includegraphics[width=\linewidth]{fig/more.pdf}
+    \caption{
+   More Results generated by AnyTalker.
+    }
+    \label{fig:anytalker-result}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+\includegraphics[width=0.6\linewidth]{fig/ab-inter.pdf}
+    \caption{
+   Improvement in interaction among each identity after fine-tuning on authentic multi-person data (right). 
+    }
+    \label{fig:ab-inter}
+\end{figure*}
+
+
+
+
+\noindent \textbf{Good Case.}
+\cref{fig:case} visualises four representative listener behaviours that strongly signal conversational engagement: eyebrow raise, head nod, head turn, and gaze shift.
+The presence of such cues contributes substantially to the final Interactivity score.
+Because Interactivity is computed over the entire video, we do not report frame-level values in~\cref{fig:case}.
+As illustrated in~\cref{fig:anytalker-result}, AnyTalker produces sequences rich in these interactive actions, and thus achieves a comparatively high Interactivity rating.
+
+
+
+\noindent \textbf{The Rubustness of Interactive Metric.}
+Some generative baselines occasionally produce highly implausible motions.
+For example, Bind-Your-Avatar~\citep{huang2025bind} generates an exaggerated ``lying-down'' action shown in~\cref{fig:bad}.
+Without counter-measures, such artifacts would dramatically inflate the ${Motion}$ score even though they are unrelated to interactivity.
+We therefore introduce a lightweight anomaly-suppression rule: if the mean facial-landmark displacement between two consecutive frames exceeds 10 pixels (all faces are pre-aligned to a $256\times 256$ canvas), the landmark positions are frozen until a subsequent displacement below 10 pixels is observed.
+As demonstrated in the right two frames of~\cref{fig:bad}, this simple clamping prevents the vast majority of abnormal movements from entering the Interactivity computation.
+
+
+\subsection*{B.2. Additional Experimental Results}
+\label{subsec:more-quali}
+
+\noindent \textbf{Quantitative Results on the EMTD Benchmark.}
+EMTD~\citep{meng2025echomimicv2} is a half-body dataset that includes hands, as illustrated in~\cref{fig:data}.
+We compare AnyTalker against three methods capable of generating half-body sequences: EchoMimic\,v2~\citep{meng2025echomimicv2}, FantasyTalking~\citep{wang2025fantasytalking}, and MultiTalk~\citep{kong2025let}.
+The evaluation protocol strictly follows the metrics described in Sec.\,5.1 for the single-person benchmark.
+AnyTalker-14B achieves the best scores on three metrics and is only marginally behind MultiTalk on identity preservation (ID).
+These results demonstrate that AnyTalker is a comprehensive framework that handles not only tight-face inputs but also half-body scenarios.
+
+\noindent \textbf{Qualitative Result on Single-Person Benchmarks.}
+As illustrated in~\cref{fig:qualitative-single}, we present qualitative comparisons of EchoMimic~\cite{chen2025echomimic}, StableAvatar~\cite{tu2025stableavatar}, Sonic~\cite{ji2025sonic}, MultiTalk~\cite{kong2025let}, OmniHuman-1.5~\cite{jiang2025omnihuman}, and AnyTalker-14B on the HDTF~\cite{zhang2021flow} and VFHQ~\cite{xie2022vfhq} benchmarks.
+AnyTalker consistently produces clear dentition and accurate lip movement.
+
+\noindent \textbf{More Multi-Person Results.}
+\cref{fig:anytalker-result} showcases additional multi-person animations generated by AnyTalker. The model gracefully handles a broad spectrum of inputs: real photographs, AIGC images, and cartoons. 
+It produces natural, context-appropriate interactions regardless of the number of identities involved. Further compelling examples are available in the videos on the project homepage.
+
+\subsection*{B.3. Effectiveness of Interactivity Refinement}
+\label{sec:ab}
+As shown in~\cref{fig:ab-inter}, refining interactivity with authentic multi-person data lets identities exchange significantly more natural eye contact.
+A model trained solely on single-person data can activate each face correctly, yet every identity remains blank whenever it is not speaking, an effect that looks highly unnatural in conversational scenes.
+
+\subsection*{B.4. Future Work}
+At present, AnyTalker supports only rudimentary camera motions driven by textual prompts.
+Drawing inspiration from recent controllable video-generation approaches~\cite{ye2025unic, lu2024coarse, ye2025stylemaster}, we can incorporate additional conditional signals, such as camera trajectory~\cite {bai2025recammaster}.
+By grafting lightweight, training-efficient modules~\cite{hu2022lora,kong2025taming,lu2025adversarial,ren2024hyper} into recent camera-trajectory-control techniques~\cite{zhang2025zero,bahmani2025ac3d}, we expect to enrich the visual storytelling of the generated videos, automatically framing and tracking the active speaker without manual intervention.
+

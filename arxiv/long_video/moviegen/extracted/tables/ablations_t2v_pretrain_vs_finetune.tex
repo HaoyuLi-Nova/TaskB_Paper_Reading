@@ -1,0 +1,20 @@
+
+
+\begin{table}[!t]
+    \centering
+    \resizebox{0.8\columnwidth}{!}{%
+    \begin{tabular}{ccccc}
+         \toprule
+        \multicolumn{5}{c}{Finetune net win rate \vs \pretrained} \\
+        Overall Quality & Consistency & Motion Completeness & Motion Naturalness & Text Alignment \\
+         \midrule
+         34.65 & 8.14 & 18.38 & 10.5 & 9.97 \\
+         \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{Comparison of finetuned and \pretrained models.}
+    We conduct A/B comparison between finetuned and \pretrained models, where the scores are winning rates of finetune model minus the winning rate of the pretrained model, which shows that finetuning significantly improves over the pretrained model.
+    The videos are evaluated at 24 FPS with 10.6s video duration.
+    }
+    \label{tab:t2v_pretrain_vs_finetune_1}
+\end{table}

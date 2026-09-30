@@ -1,0 +1,28 @@
+% \mbz{coming soon!}
+
+\begin{table}
+\small
+\caption{Text-to-video and text-to-image results highlighting the importance of image datasets in video models. Text-to-image evaluation is done on $40960$ images in LAION-400M~\cite{schuhmann2021laion}.
+%\rubville{cfg=6, temp=4, iterations=24, over 4096 videos from lms}
+}
+\vspace{-.3cm}
+\label{tab:video_image}
+\centering
+\begin{tabular}{c|lll|ll}
+Data Split & \multicolumn{3}{|c|}{Text to Video} & \multicolumn{2}{c}{Text to Image} \\\hline\hline
+Videos\% / Images\% & CLIP $\uparrow$ & FID  & FVD  & CLIP $\uparrow$ & FID  \\\hline
+100\% / 0\% & 0.298 & \textbf{19.2} & \textbf{168.9} & 0.240 & 53.9\\
+80\% / 20\% & \textbf{0.303} & 21.4 & 198.4 & \textbf{0.289} & \textbf{29.4}\\
+50\% / 50\%& 0.302 & 21.4 & 239.7 & 0.287 & 30.5\\             
+\end{tabular}
+
+% \ Data Split  & Text2Video & Text2Image \\
+% \begin{tabular}{cccccc}
+% \ \ \ \ \ Videos\% / Images\%  & CLIP $\uparrow$ & FID  & FVD  & CLIP $\uparrow$ & FID \\
+% \hline
+% 100\% / 0\%                    & 0.298 & 19.2 & \textbf{168.9} & - & -\\
+% \ \ \ \ 80\% / 20\%            & \textbf{0.303} & 21.4 & 198.4 & - & -\\
+% \ \ \ \ 50\% / 50\%            & 0.302 & 21.4 & 239.7 & - & -\\
+% \end{tabular}
+% \end{tabular}
+\end{table}

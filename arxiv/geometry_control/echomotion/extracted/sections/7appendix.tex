@@ -1,0 +1,235 @@
+\appendix
+\section{Appendix}
+
+\subsection{Use of LLMs}
+We utilized Large Language Models (LLMs) in several capacities to assist in this research. The core intellectual contributions, including the formulation of the research problem, the design of the EchoMotion architecture, the MVS-RoPE mechanism, and the mixed multi-modal in-context learning strategy, were conceived and developed entirely by the human authors. The roles of LLMs were confined to the following assistive tasks:
+
+\begin{enumerate}
+    \item \textbf{Writing and Manuscript Refinement:} We employed general-purpose LLMs, such as OpenAI's ChatGPT, for grammatical corrections, stylistic improvements, and enhancing the clarity and readability of the manuscript. The scientific narrative, structure, and all claims remain the original work of the authors.
+
+    \item \textbf{Data Curation Support:} To aid in the collection of our \textit{HuMoVe} dataset, we used an LLM to generate a broad set of keywords and search queries related to complex human motions. This helped to systematically identify relevant video content from public-domain sources.
+
+    \item \textbf{Automated Video Annotation:} A significant part of the annotation process for the \textit{HuMoVe} dataset was facilitated by Qwen-VL-Narrator \citep{qwen-vl-narrator}. This model was tasked with generating the initial draft of the granular textual descriptions for each video clip, covering (1) the subject's appearance and attire, (2) the background context, and (3) a description of the action.
+\end{enumerate}
+
+\subsection{Preliminary}
+\textbf{Diffusion Tranformers(DiT).}
+Diffusion Transformers (DiTs) \citep{peebles2023scalable} replace the conventional U-Net backbone in diffusion models with a pure transformer architecture, demonstrating superior performance and scalability. A DiT operates on latent space and is composed of three main stages:
+\begin{itemize}
+    \item An input encoder that "patchifies" the noisy latent variable into a sequence of tokens.
+    \item A series of transformer blocks that process these tokens. These blocks are conditioned on the diffusion timestep $t$ and other context, such as text embeddings, via adaptive layer normalization (adaLN).
+    \item A final decoder that "unpatchifies" the output tokens back into the predicted noise map.
+\end{itemize}
+
+\input{tables/categories}
+
+\noindent\textbf{Flow Matching.} 
+During training, video latents $x_i$ is disturbed by a random noise $x_0 \sim \mathcal{N}(0, I)$, according to the timestep $t \in[0,1]$, $i.e.$,
+\begin{equation}\label{x_t}
+    x_{t}=t x_{1}+(1-t) x_{0}.
+\end{equation}
+The model is trained to predict the velocity $v_t = x_1 - x_0$ by minimizing the MSE loss of the model prediction and $v_t$,
+\begin{equation}\label{rf_loss}
+\mathcal{L} = \mathbb{E}_{x_0, x_1, y, t}||u(x_t, y, t; \theta)-v_t||^2,
+\end{equation}
+where $y$ is the input text description, $\theta$ denotes the model weights, and $u(x_t, y, t; \theta)$ is the prediction by the DiT model. 
+
+\noindent\textbf{Rotary Position Embedding (RoPE).} 
+Rotary Position Embedding\citep{heo2024rotary} encodes absolute positional information by applying position-dependent rotations to the query and key vectors, which are typically adopted by recent Transformers to inject positional information within self-attention layers. Given a $d$-dimention vision embedding $x_{t,h,w}$ with a 3D positional index $(t, h, w)$ in the sequence, 3D RoPE is added dimension-wise,
+\begin{equation}\label{3d_rope}
+\tilde{x}_{t,h,w} = R^{\Theta}_{t,h,w} x_{t,h,w},
+\end{equation}
+where $R^{\Theta}_{t,h,w}$ denotes a 3D rotation matrix determinded by the given 3D positional index and a pre-defined base frequency $\Theta$.
+
+\subsection{The Joint Distribution of Video and Human Motion.}
+
+Instead of modeling the video-only distribution, we propose that the distribution of human movement video, denoted as $p_{\theta}(z)$, can be modeled by a joint distribution of its video and corresponding human motion parameters. Specifically, given a text prompt $y$, the distribution $p(z|y)$ can be formulated as
+\begin{equation}\label{reformulate_joint}
+p(z|y) = p_{\theta}(x, m | y),
+\end{equation}
+where $x$ and $m$ represent the video and the human motion parameters, respectively. The goal of our model $f$ is to learn the joint distribution $p_{\theta}(x, m | y)$. During inference, we generate a video and corresponding human motion parameters by iteratively denoising the video and human motion latents jointly.
+\begin{equation}\label{joint_inference}
+x, m = f(y)
+\end{equation}
+Revisiting Eq.\ref{reformulate_joint}, we could derive that
+\begin{equation}\label{motion_to_video_distribution}
+p_{\theta}(x|m,y) = \frac{p_{\theta}(x| y)}{p_{\theta}(x, m | y)},
+\end{equation}
+where $p_{\theta}(x|m,y)$ corresponds to the video conditional distribution given the human motion. Therefore, sampling the video from the $p_{\theta}(x|m,y)$ is equivalent to generating a video that matches the given human motion $m$ and text prompt $y$, $i.e.$, controllable video generation. Similarly, given a video, we can recover the human motion parameters within the video by sampling from the motion conditional distribution:
+\begin{equation}\label{video_to_motion_distribution}
+p_{\theta}(m|x,y) = \frac{p_{\theta}(m| y=\emptyset)}{p_{\theta}(x, m | y=\emptyset)}.
+\end{equation}
+
+\subsection{Details of \textit{HuMoVe} Dataset}\label{build_data}
+\textbf{Fine-grained Categories.}
+Table \ref{tab:category_mapping_inline} details the two-level classification scheme used to organize our dataset. We group specific, fine-grained activities (e.g., Skateboarding, Swimming, Boxing) into broader, thematic major categories (e.g., Urban \& Outdoor, Water Sports, Combat Sports). This taxonomy provides a structured framework for analyzing the dataset's diversity and for evaluating model performance across different motion types.
+
+\noindent\textbf{Raw Data Collection.}
+To ensure our raw data encompasses a wide range of human movements, our collection process began with a structured, top-down approach. We first manually defined nine major motion categories, as detailed in Table 2 (e.g., Urban \& Outdoor, Water Sports, and Combat Sports). These high-level categories were then provided as input to a Large Language Model (LLM) \citep{gimini}, which we tasked with generating a diverse list of specific search keywords for each category. An example of the prompt used for this task is shown below. The resulting keywords were subsequently used to collect a raw data pool from diverse sources, including open-source datasets, movies, and the internet. The prompt used for this task is shown in Listing \ref{lst:prompt-to-generate-keywords}.
+\begin{lstlisting}[style=promptstyle, caption={\reb{The prompt used to expand major categories into specific search keywords via an LLM.}}, label={lst:prompt-to-generate-keywords}]
+You are a data sourcing expert for computer vision research. Your task is to expand high-level categories of human motion into specific, diverse, and fine-grained search keywords suitable for video platforms.
+
+For each major category provided, generate a list of 20-30 search terms.
+
+Here is an example of the desired input-output format:
+
+**Input:**
+Major Category: Combat Sports
+
+**Desired Output Keywords:**
+- boxing training drills 4k
+- MMA sparring session slow motion
+- cinematic Taekwondo high kick
+- Judo throw tutorial
+- female wrestler practice highlights
+- Wushu performance competition
+...
+
+Now, please generate keywords for the following list of major categories:
+- Urban & Outdoor
+- Water Sports
+- Athletics & Fitness
+- Ball Sports
+- Combat Sports
+- Dance & Artistic
+- Gymnastics & Acrobatics
+- Ice & Snow Sports
+- General & Others
+\end{lstlisting}
+
+\noindent\textbf{Data Filtering.}
+Raw video data often exhibits frequent scene translation and contains low aesthetic and resolution data, which will negatively impact the performance of the model. To mitigate these challenges, we employ a scene detection model to segment the raw video into clips and leverage an aesthetic scoring model to filter out video clips with low aesthetic quality. As this work primarily focuses on the movement of the main characters in the foreground, we employed a bounding box detection model to identify the individuals in the video, and filtered out those containing multiple main characters by comparing the number and area of the bounding boxes. Moreover, the DWPose\citep{yang2023effective} is employed to detect the number of visible key points within the video. Those data with a relatively low number of visible key points are filtered to avoid artifacts and jitter during the 3D human pose detection stage. 
+
+
+\noindent\textbf{Human Mesh Recovery and Post Process.}
+Given the track bounding boxes as input, to obtain frame-wise high-quality SMPL parameters including $\beta \in \R^{10}$, $\theta \in \R^{24\time6}$, $\Gamma \in \R^{6}$, and $v \in \R^3$, we use the CameraHMR\citep{patel2025camerahmr} for the human mesh estimation, due to its high stability and accuracy. Moreover, we perform temporal smoothing on the frame-wise SMPL parameters and obtain the positions of the 3D keypoints $J \in \R^{24 \times 3}$ through motion retargeting. Finally, we leverage Qwen-VL-Narrator \citep{qwen-vl-narrator} to caption the videos. Our construction mechanism yields about 80k high-quality paired datasets.
+
+
+\reb{
+\subsection{Comparison with Top-tier Commercial Models.}
+% We thank the reviewers for this valuable suggestion. We are actively conducting the experiments for the comparison with top commercial models. We plan to finalize this analysis within the next four days and will update this document with the full results.
+
+We conduct a quantitative comparison with leading commercial models, evaluating on 40 prompts specifically selected for their motion complexity (Table~\ref{tab:sota_compare}). While a gap exists compared to top-tier closed-source models like Veo 3.1 \citep{veo} and Kling 2.5 Turbo \citep{kling}, this is an expected outcome given the vast disparities in model scale, training data, and computational resources. Despite this, our results highlight two key takeaways: First, EchoMotion achieves a competitive Motion Smoothness score, confirming the effectiveness of our joint modeling approach for kinematic quality. Second, it significantly outperforms its video-only baseline (Wan-5B), especially in Posture Plausibility and Human Anatomy. This empirically validates that our method provides substantial gains in human video generation.
+
+\input{tables/quantitative_sota}
+}
+
+\subsection{More Qualitative Results}\label{more_results}
+
+In this section, we provide an expanded gallery of qualitative results to further demonstrate the capabilities of EchoMotion. 
+
+Figure \ref{fig:generations_appendix} showcases a diverse set of text-to-video generation results, highlighting the model's ability to handle complex prompts across various activities and environments. Figure \ref{fig:mt2v_appendix} focuses on the motion-to-video task, illustrating how EchoMotion precisely translates 3D motion sequences into realistic videos while adhering to textual descriptions of appearance and context.
+\input{figures/generations_appendix}
+\input{figures/mt2v_appendix}
+
+\subsection{More Quantitative Results}\label{sec:appendix_quant_results}
+\input{figures/class_wise_performance}
+\subsubsection{Text-to-Video.}
+To provide a more granular understanding of our model's performance and robustness, we present a detailed quantitative comparison across various motion categories. Figure~\ref{fig:per-category} visualizes the performance of our proposed model, EchoMotion(Wan-5B), against several baselines and ablations. The evaluation is conducted on a diverse set of nine categories—Athletic, Arts, Ball, Daily, Fight, Gymnastics, Ice Show Sports, Outdoor, and Water Sports—in addition to an overall average performance. Models are assessed on four key metrics: Aesthetic Quality, Dynamic, Human Anatomy, and Motion Smoothness.
+
+A consistent trend emerges from the results: while all models achieve competitive scores in Aesthetic Quality, our final model, EchoMotion(Wan-5B), establishes a significant lead in the metrics most critical to motion fidelity: Human Anatomy and Motion Smoothness. For instance, in the "Average Performance" comparison, our model outperforms the next-best baseline by a clear margin in these two areas. This strongly indicates that our approach is particularly effective at generating anatomically correct human figures and ensuring temporally coherent, smooth movements, which are common challenges in human video generation.
+
+The strength of our model is further validated by its consistent high performance across a wide spectrum of motion types. From the intricate and precise movements in "Gymnastics" and "Arts" to the large-scale, dynamic actions in "Water Sports" and "Fight," our model consistently ranks first. This demonstrates the generalizability and robustness of our method, proving it is not overfit to a specific type of motion but can handle a diverse range of human activities effectively.
+
+\reb{
+\subsubsection{Motion-to-Video.}
+\label{sec:m2v_quantitative}
+
+\input{figures/qualitative_compare_mt2v_}
+
+We provide a quantitative comparison on the motion-to-video task against several leading methods on the case from VACE-Benchmark \citep{jiang2025vace}, including Text2Video-Zero \citep{t2v-zero}, Follow-Your-Pose \citep{follow-your-pose}, VACE-14B \citep{jiang2025vace}, and the specialized animation model Wan2.2-Animate-14B \citep{wan-animate}. As shown in Table \ref{tab:mt2v_compare}, EchoMotion achieves highly competitive results, demonstrating excellent video quality and strong kinematic plausibility with qualitative results provided in Figure \ref{tab:mt2v_compare}. As shown in Table \ref{tab:mt2v_compare}, EchoMotion achieves highly competitive results, demonstrating excellent video quality and strong kinematic plausibility. The qualitative results in Figure \ref{fig:quanlitative_mt2v} visually corroborate these metrics, showcasing the model's ability to generate high-fidelity videos where the character's movement is highly faithful to the input motion, while the character's appearance and the background scenery strictly adhere to the text prompt.
+
+It is important to clarify that our task is a cross-modal completion challenge (generating from both text and motion), which is distinct from standard image animation (driving a source image with motion). For the comparison with Wan2.2-Animate-14B, which requires a source image, we provided the first frame of the ground truth video and transformed it by Flux-Kontext \citep{kontext} as its input. Since this setup does not use a text prompt to control for the Wan2.2-Animate-14B model, the Prompt Following metric is not applicable for this method. 
+
+The result highlights a key advantage of EchoMotion: its ability to jointly understand and synthesize from both textual and motion inputs, offering greater flexibility. It is particularly noteworthy that despite being a more compact (5B) and versatile motion-video multi-task model, EchoMotion delivers performance on par with larger models specialized for a single task. Crucially, this versatility is achieved with remarkable parameter efficiency. Unlike approaches that require training an auxiliary control module (e.g., a ControlNet branch), EchoMotion natively supports the motion-to-video task through its unified motion-video multi-task training, without introducing any additional parameters.
+
+\subsubsection{Video-to-Motion.}
+\label{sec:v2m_quantitative}
+
+Following the evaluation protocol of recent works like ChatHuman \citep{chathuman}, we assess the performance of our Video-to-Motion capability on 200 samples from the 3DPW test set \citep{von2018recovering}. We report the Mean Per-Joint Position Error (MPJPE) and Procrustes-Aligned MPJPE (PA-MPJPE) and categorize the compared methods into two groups: reconstruction-based and generative-based, as shown in Table \ref{tab:hmr_comparison}.
+
+The results show that while our method does not surpass specialized, reconstruction-based models like HMR2.0\cite{hmr2}, this is an expected outcome. Reconstruction-based methods are typically optimized for the single task of human mesh recovery and often rely on strong supervision from 2D keypoint annotations during training. In contrast, our EchoMotion model is designed as a versatile, motion-video multi-task generative framework, which inherently involves a trade-off between specialization and flexibility. Within the more comparable category of generative-based approaches, our method achieves performance on par with the state-of-the-art ChatHuman, demonstrating the effectiveness of our unified model, which supports not only motion recovery but also broader generative tasks.
+
+\input{tables/quantitative_mt2v}
+
+\input{tables/quantitative_hmr}
+
+
+\subsubsection{Motion Quality.}
+
+% While EchoMotion's primary focus is on video generation, the quality of its underlying motion synthesis is crucial for the final video output. We therefore evaluate its text-to-motion capabilities against specialist motion generation models, with the results presented in Table \ref{tab:motion_generation_comparison}.
+
+While EchoMotion is primarily designed for video generation, we also evaluate its motion synthesis quality. Table \ref{tab:motion_generation_comparison} compares its performance with that of specialist motion generation models.
+Notably, a direct comparison using the Frechet Inception Distance (FID) with baseline methods is not applicable, as this metric is highly dependent on the training data distribution. Our model is trained on our proposed \textit{HuMoVe} dataset, whereas the baseline models (\textit{e.g.}, MLD \citep{mld}, MotionGPT \citep{motiongpt}) are trained on distinct, motion-only datasets like HumanML3D \citep{guo2022generating}. Consequently, we report FID scores only for the model trained on \textit{HuMoVe} dataset.
+
+For a fair and practical comparison, we generated a set of 50 diverse prompts using an LLM \citep{team2024gemini}, rendered the generated motion parameters into mesh videos, and then asked human annotators to score them on three key aspects: Pose Plausibility (PP), Prompt Following (PF), and Motion Smoothness (MS). The results show that EchoMotion achieves competitive performance on Pose Plausibility and Motion Smoothness, and excels in Prompt Following. We attribute this superior instruction-following ability to our joint training and sampling paradigm, where the motion module benefits from the rich semantic understanding of the large pre-trained video model.
+
+\input{tables/quantitative_motion}
+}
+
+\reb{
+\subsection{More Ablation Studies}\label{sec:more_ablations}
+
+In this section, we present additional ablation studies to further validate the architectural design choices of EchoMotion.
+
+\subsubsection{Impact of Positional Collisions in MVS-RoPE}
+To demonstrate the necessity of the spatial extension design within our proposed MVS-RoPE, we investigate the effect of spatial index overlap between modalities. We compare two distinct configurations: 
+(a) EchoMotion (Proposed): Motion tokens are treated as a diagonal extension of the visual latent space to ensure unique spatial identifiers. The encoding is formulated as:
+\begin{align}
+\hat{\bm{f}}_{t,i}^{m}=\text{MVS-RoPE}(\bm{f}_{t,i}^{m},t,i)=\mathcal{R}(t, H+i, W+i)\cdot \bm{f}_{t,i}^{m},
+\end{align}
+where $H$ and $W$ denote the spatial dimensions of the video latents.
+
+(b) Positional Collision (Baseline): Motion tokens are assigned spatial indices starting from the origin, identical to the initial visual tokens. This results in a "collision" of coordinates:
+
+\begin{align}
+\hat{\bm{f}}_{t,i}^{m}=\text{MVS-RoPE}(\bm{f}_{t,i}^{m},t,i)=\mathcal{R}(t, i, i)\cdot \bm{f}_{t,i}^{m}.
+\end{align}
+
+Both models were trained for 1,600 iterations under identical settings. The qualitative comparison is illustrated in Figure~\ref{fig:positional_collision}. The results reveal a stark contrast: the model utilizing our proposed MVS-RoPE (Left) produces visually appealing and temporally coherent videos. Conversely, the Positional Collision baseline (Right) suffers from severe visual degeneration, generating output with collapsed structures and noise. 
+
+This degradation occurs because identifying the modality of a token relies heavily on its positional embedding in the attention mechanism. When motion and video tokens share the same spatial coordinates (collision), it creates positional ambiguity. This forces the motion tokens to interfere with the visual tokens in the attention mechanism, disrupting the pre-trained generative priors of the video backbone and preventing the model from effectively distinguishing between the latent representations of the two modalities.
+
+\input{figures/positional_collisions_}
+
+
+\subsubsection{Two-Stage Training Scheme.}
+
+To validate the effectiveness of our motion-only pretraining, we conduct an ablation study comparing the Phase 2 (motion-video joint training) convergence of two models. Our full model starts this phase from the checkpoint obtained after motion-only pretraining, while the baseline model skips Phase 1 and begins joint training with its motion branch initialized by copying the weights from the video branch. As illustrated in Figure \ref{fig:training_loss}(a), the benefits are clear and significant. Our model with pretraining (orange curve) not only (1) begins with a substantially lower Flow Matching Loss, but also (2) converges much more rapidly and (3) achieves a better final loss value compared to the baseline (blue curve). This demonstrates that establishing a strong motion prior in Phase 1 provides a superior initialization for the subsequent joint training. This pretraining prevents the motion branch's learning signals from being overwhelmed by the computationally dominant video branch, leading to a more stable and efficient joint distribution learning.
+
+\input{figures/training_loss_ablation_}
+
+\subsubsection{Dual-Branch Archetecture.}
+
+We conduct an ablation study to verify the superiority of our dual-branch DiT architecture over a single-stream alternative. The single-stream baseline processes the concatenated video and motion tokens through a shared set of Q, K, V projection and FFN layers. In contrast, our dual-branch design employs a separate set of weights (i.e., experts) for the projection and FFN layers of each modality.
+
+As illustrated in Figure \ref{fig:training_loss}(b), the training loss curves for both architectures reveal a clear performance gap. Our dual-branch model (orange curve) consistently achieves a lower flow matching loss throughout the training process compared to the single-stream baseline (blue curve). Notably, our model converges to a significantly lower final loss, while the baseline plateaus at a higher value, as highlighted in the magnified inset. This result suggests that providing dedicated processing paths for video and motion modalities allows the model to learn more effective and specialized representations. This approach avoids the potential feature interference that can occur in a shared-weight, single-stream architecture, ultimately leading to superior model performance and a more robust joint distribution model.
+}
+
+\subsection{Experiments Details}
+We adapt two pre-trained video foundation models, Wan2.1-1.3B and Wan2.2-5B, by integrating our dual-modality blocks.
+\begin{itemize}
+    \item For the 1.3B model, we replace all original DiT blocks with our video-motion blocks. This results in a final model with 2.6B parameters.
+    \item For the larger 5B model, we adopt a hybrid strategy, replacing half of the video blocks with our dual-modality blocks, which yields a final model with 7.5B parameters.
+\end{itemize}
+
+All models were trained on NVIDIA A100 80GB GPUs. The 2.6B model required approximately 2,300 GPU hours for pre-training, while the 7.5B model required 4,000 GPU hours. Detailed training hyperparameters are provided in Table \ref{tab:settings_1b}.
+
+\input{tables/exp_details_1B}
+\input{tables/exp_details_5B}
+
+\input{figures/model_comparison}
+
+\subsection{Computation and Parameter Analysis}
+
+As illustrated in Figure~\ref{fig:model_caparison}, it is crucial to distinguish between our model's parameter count and its computational cost. While introducing the dual-branch architecture significantly increases the total number of parameters, the growth in computational overhead (i.e., FLOPs) is disproportionately small. For instance, our 1.3B dual-branch model has double parameters than its video-only counterpart but requires only 12.9\% more FLOPs for a single forward pass. This trend holds true for our larger 5B models: the hybrid architecture introduces 51\% more parameters but only increases the computational cost by 10.3\% (from 237.0 to 261.4 PFLOPs).
+
+This disproportionately small increase in FLOPs is a direct consequence of our architectural design. The additional parameters are exclusively dedicated to processing motion tokens, which, despite their rich information content, represent a small fraction of the total sequence length (e.g., 4,131 motion tokens vs. 32,760 video tokens in the 1.3B model). As a result, the impact on practical inference latency is marginal. This demonstrates that our dual-branch approach is a highly efficient method for incorporating multimodal capabilities, significantly expanding model functionality with a minimal increase in its computational footprint.
+
+\subsection{Societal Impacts and Safeguards}
+The advancements in controllable human video generation grounded in kinematic models, as exemplified by our work on EchoMotion, present profound societal impacts. By enabling the creation of high-quality, kinematically plausible videos with direct control over human motion, our framework democratizes access to sophisticated animation and visual effects tools. This innovation can dramatically streamline workflows in industries such as filmmaking (for pre-visualization), video games (for realistic character animation), virtual reality (for lifelike avatars), and even in specialized fields like sports science and physical therapy for visualizing complex biomechanics. The ability to generate videos from structured motion data offers unprecedented creative flexibility and a new paradigm for digital human creation.
+
+However, the power of such generative technologies also introduces significant challenges. The automation of high-fidelity animation could lead to job displacement for traditional 3D animators and motion capture artists, necessitating industry-wide adaptation and a focus on creative direction over manual execution. More critically, the potential for misuse poses a serious ethical concern. The ability to generate realistic videos of individuals performing complex actions they never took could be exploited to create highly convincing deepfakes, impersonations, or misinformation, thereby eroding public trust. Furthermore, ensuring that our $MoVe$ dataset and the models trained on it are free from demographic or physical biases is essential to prevent the generation of content that reinforces harmful stereotypes.
+
+To address these issues, we implement robust safeguards. Our models inherit the safety mechanisms from their foundational bases (Wan2.1 and Wan2.2), which include filters to detect and prevent the generation of inappropriate or harmful content. We are committed to adhering to strict ethical guidelines regarding the use of our technology. By open-sourcing our models and the $MoVe$ dataset, we aim to foster transparency, enable independent auditing, and encourage a community-driven approach to developing responsible and ethical human-centric generative AI.
+

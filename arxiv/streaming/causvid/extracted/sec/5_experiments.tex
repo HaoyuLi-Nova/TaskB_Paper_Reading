@@ -1,0 +1,236 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\noindent\textbf{Models.}
+Our teacher model is a bidirectional DiT~\cite{peebles2023scalable} with an architecture similar to CogVideoX~\cite{yang2024cogvideox}. The model is trained on the latent space produced by a 3D VAE that encodes $16$ video frames into a latent chunk consisting of $5$ latent frames. The model is trained on 10-second videos at a resolution of $352\times640$ and 12 FPS.
+Our student model has the same architecture as the teacher, except that it employs causal attention where each token can only attend to other tokens within the same chunk and in preceding chunks.
+Each chunk contains 5 latent frames. 
+During inference, it generates one chunk at a time using 4 denoising steps, with inference timesteps uniformly sampled as $[999,748,502,247]$.
+We use FlexAttention~\cite{he2024flexattention} for efficient attention computation during training.
+
+\vspace{0.5em}
+\noindent\textbf{Training.}
+We distill our causal student model using a mixed set of image and video datasets following CogVideoX~\cite{yang2024cogvideox}.
+Images and videos are filtered based on safety and aesthetic scores~\cite{schuhmann2022laion}.
+All videos are resized and cropped to the training resolution~($352\times640$) and we use around 400K single-shot videos from an internal dataset, for which we have full copyright. 
+During training, we first generate 1000 ODE pairs~(Sec.~\ref{sec:student_init}) and train the student model for $3000$ iterations with AdamW~\cite{loshchilov2017decoupled} optimizer and a learning rate of $5\times 10^{-6}$.
+After that, we train with our asymmetric DMD loss~(Sec.~\ref{sec:teacher}) with the AdamW optimizer and a learning rate of $2\times 10^{-6}$ for $6000$ iterations.
+We use a guidance scale of $3.5$ and adopt the two time-scale update rule from DMD2~\cite{yin2024improved} with a ratio of $5$.
+The whole training process takes around 2 days on 64 H100 GPUs.
+
+\vspace{0.5em}
+\noindent\textbf{Evaluation.}
+Our method is evaluated on VBench~\cite{huang2024vbench}, a benchmark for video generation with 16 metrics designed to systematically assess motion quality and semantic alignment.
+For our main results, we use the first 128 prompts from MovieGen~\cite{polyak2024movie} to generate videos and evaluate model performance on three primary aspects from VBench competition’s evaluation suite\footnote{https://github.com/Vchitect/VBench/tree/master/competitions}. 
+A comprehensive evaluation using all prompts from VBench is provided in the appendix.
+The inference times are measured on a H100 GPU. 
+
+
+
+
+\subsection{Text to Video Generation}
+We evaluate the ability of our approach to generate short videos~(5 to 10 seconds) and compare it against state-of-the-art methods: CogVideoX~\cite{yang2024cogvideox}, OpenSORA~\cite{opensora}, Pyramid Flow~\cite{jin2024pyramidal}, and MovieGen~\cite{polyak2024movie}. 
+As shown in Tab.~\ref{table:short_result}, our method outperforms all baselines across all three key metrics: temporal quality, frame quality, and text alignment. Our model achieves the highest temporal quality score of $94.7$, indicating superior motion consistency and dynamic quality. 
+In addition, our method shows notable improvements in frame quality and text alignment, scoring $64.4$ and $30.1$, respectively. 
+In the supplementary material, we present our method’s performance on the VBench-Long leaderboard, achieving a total score of $84.27$ and securing first place among all officially evaluated video generation models.
+
+We further evaluate our model's performance through a human preference study. We select the first 29 prompts from the MovieGenBench dataset and collect ratings from independent evaluators using the Prolific platform. For each pair of compared models and each prompt, we collect 3 ratings from different evaluators, resulting in a total of 87 ratings per model pair. The evaluators choose the better video between the two generated videos based on the visual quality and semantic alignment with the input prompt.
+The specific questions and interface are shown in Appendix Fig.~\ref{fig:interface}. For reproducibility, we use a fixed random seed of zero for all videos.
+As illustrated in Fig.~\ref{fig:user_study}, our model consistently outperforms baseline methods such as MovieGen, CogVideoX, and Pyramid Flow. Notably, our distilled model maintains performance comparable to the bidirectional teacher while offering orders of magnitude faster inference, validating the effectiveness of our approach.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figures/preference_study.pdf}
+    \caption{
+    User study comparing our distilled causal video generator with its teacher model and existing video diffusion models. Our model demonstrates superior video quality (scores $>50\%$), while achieving a significant reduction in latency by multiple orders of magnitude.
+    \label{fig:user_study} 
+    }
+\end{figure}
+
+We also compare our method with prior works designed for long video generation: Gen-L-Video~\cite{wang2023gen}, FreeNoise~\cite{qiu2023freenoise}, StreamingT2V~\cite{henschel2024streamingt2v}, FIFO-Diffusion~\cite{kim2024fifo}, and Pyramid Flow~\cite{jin2024pyramidal}. 
+We use a sliding window inference strategy, taking the final frames of the previous 10-second segment as context for generating the next segment.
+The same strategy is also applied to generate long videos using Pyramid Flow. 
+Tab.~\ref{table:long_result} shows that our method outperforms all baselines in terms of temporal quality and frame-wise quality and is competitive in text alignment.
+It also successfully prevents error accumulation.
+As shown in Fig.~\ref{fig:degradation}, our method maintains image quality over time, while most autoregressive baselines suffer from quality degradation~\cite{henschel2024streamingt2v,jin2024pyramidal,chen2024diffusion}.
+
+Tab.~\ref{table:efficiency} compares the efficiency of our method with competing approaches~\cite{yang2024cogvideox,jin2024pyramidal} and our bidirectional teacher diffusion model.
+Our method achieves a $160\times$ reduction in latency and a $16\times$ improvement in throughput compared to the similarly scaled CogVideoX~\cite{yang2024cogvideox}. 
+
+
+\begin{table}[!ht]
+\centering
+\scriptsize
+\begin{tabular}{l@{\ \ \ }c@{\ \ \ }c@{\ \ \ }c@{\ \ \ }c}
+\toprule
+\multirow{2}{*}{Method} & \multirow{2}{*}{Length~(s)} & \multirow{2}{*}{\shortstack[c]{Temporal \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Frame \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Text \\ Alignment}} \\
+\\
+\midrule 
+CogVideoX-5B  & 6 &  89.9 & 59.8 & 29.1   \\ 
+OpenSORA & 8 & 88.4 & 52.0 & 28.4  \\ 
+Pyramid Flow & 10 & 89.6 & 55.9 & 27.1 \\
+MovieGen & 10 & 91.5 & 61.1 & 28.8\\
+\textbf{\method~(Ours)} & 10 &\textbf{94.7} & \textbf{64.4} & \textbf{30.1} \\ 
+\bottomrule
+\end{tabular}
+\tablespace
+\caption{\label{table:short_result} Evaluation of text-to-short-video generation. Each method is evaluated at its closest supported length to 10 seconds.}
+\end{table}
+
+
+
+
+\begin{table}[h!]
+\centering
+\scriptsize
+\begin{tabular}{l@{\ \ \ }c@{\ \ \ }c@{\ \ \ }c}
+\toprule
+\multirow{2}{*}{Method} & \multirow{2}{*}{\shortstack[c]{Temporal \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Frame \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Text \\ Alignment}} \\
+\\
+\midrule 
+Gen-L-Video  & 86.7 & 52.3 & 28.7\\ 
+FreeNoise  & 86.2 & 54.8 & 28.7 \\ 
+StreamingT2V   & 89.2 & 46.1 & 27.2  \\ 
+FIFO-Diffusion  & 93.1 & 57.9 & \textbf{29.9} \\ 
+Pyramid Flow & 89.0 & 48.3 & 24.4    \\
+\textbf{\method~(Ours)} & \textbf{94.9} & \textbf{63.4} & 28.9  \\
+\bottomrule
+\end{tabular}
+\tablespace
+\caption{\label{table:long_result} Evaluation of text-to-long-video generation. All methods produce videos approximately 30s in length.}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\scriptsize
+\begin{tabular}{lrc}
+\toprule
+Method & Latency~(s) & Throughput~(FPS)\\
+\midrule 
+CogVideoX-5B & 208.6 & 0.6 \\ 
+Pyramid Flow & 6.7 & 2.5 \\
+Bidirectional Teacher & 219.2 & 0.6 \\
+\textbf{\method~(Ours)} & \textbf{1.3} & \textbf{9.4}\\
+\bottomrule
+\end{tabular}
+\tablespace
+\caption{\label{table:efficiency} Latency and throughput comparison across different methods for generating 10-second, 120-frame videos at a resolution of $640\times352$. The total time includes processing by the text encoder, diffusion model, and VAE decoder. Lower latency () and higher throughput ($\uparrow$) are preferred.}
+\end{table}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth, trim={0 0.8cm 0 1.1cm}]{figures/ar_quality.pdf}
+    \caption{Imaging quality scores of generated videos over 30 seconds. Our distilled model and FIFO-Diffusion are the most effective at maintaining imaging quality over time. 
+    The sudden increase of score for the causal teacher around 20s is due to a switch of the sliding window, resulting in a temporary improvement in quality. %
+    }
+    \label{fig:degradation}
+\end{figure}
+
+
+\subsection{Ablation Studies}
+\label{sec:ablation}
+\definecolor{myorange}{RGB}{255,127,13}
+\definecolor{mygreen}{RGB}{45,160,43}
+\definecolor{myblue}{RGB}{31,119,180}
+First, we present results of directly fine-tuning the bidirectional DiT into a causal model, without using few-step distillation. We apply causal attention masks to the model and fine-tune it with the autoregressive training method described in Sec.~\ref{sec:teacher}.
+As shown in Tab.~\ref{table:ablation}, the many-step causal model performs substantially worse than the original bidirectional model. 
+We observe that the causal baseline suffers from error accumulation, leading to rapid degradation in generation quality over time~(\textcolor{myorange}{orange} in Fig.~\ref{fig:degradation} ).
+
+We then conduct an ablation study on our distillation framework, examining the student initialization scheme and the choice of teacher model. Tab.~\ref{table:ablation} shows that given the same ODE initialization scheme~(as introduced in Sec.~\ref{sec:student_init}), the bidirectional teacher model outperforms the causal teacher model and is also much better than the initial ODE-fitted model~(where we denote the teacher as None). 
+As shown in Fig.~\ref{fig:degradation}, the causal diffusion teacher suffers from significant error accumulation~(\textcolor{myorange}{orange}), which is then transferred to the student model~(\textcolor{mygreen}{green}). 
+In contrast, we find that our causal student model trained with our asymmetric DMD loss and a bidirectional teacher~(\textcolor{myblue}{blue}) performs much better than the many-step causal diffusion model, highlighting the importance of distillation for achieving both fast and high-quality video generation. With the same bidirectional teacher, we demonstrate that initializing the student model by fitting the ODE pairs can further enhance performance.
+While our student model improves upon the bidirectional teacher for frame-by-frame quality, it performs worse in temporal flickering and output diversity.
+
+
+
+
+\begin{table}[h!]
+    \centering
+    \scriptsize
+    \begin{tabular}{l@{\ \ }c@{\ \ }c@{\ \ }c@{\ \ }c@{\ \ }c@{\ \ }c@{\ \ }c}
+    \toprule
+    \multicolumn{2}{c}{\multirow{2}{*}{\shortstack[c]{\textit{Many-step models}}}} & \multirow{2}{*}{\shortstack[c]{Causal \\ Generator?}} & \multirow{2}{*}{\shortstack[c]{\# Fwd \\ Pass}} & \multirow{2}{*}{\shortstack[c]{Temporal \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Frame \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Text \\ Alignment}} \\ \\
+    \midrule 
+    \multicolumn{2}{c}{Bidirectional} & \xmark & 100 & 94.6 & 62.7 & 29.6 \\
+    \multicolumn{2}{c}{Causal} & \cmark & 100 & 92.4 & 60.1 & 28.5 \\ 
+    \midrule
+    \multicolumn{2}{c}{\textit{Few-step models}} & &  &  &  & \\ 
+    ODE Init.   & Teacher \\
+    \midrule
+    \xmark & Bidirectional & \cmark & 4 & 93.4 & 60.6 & 29.4 \\ 
+    \cmark           & None          & \cmark & 4 & 92.9 & 48.1 & 25.3 \\ 
+    \cmark           & Causal        & \cmark & 4 & 91.9 & 61.7 & 28.2 \\ 
+    \cmark           & Bidirectional & \cmark & 4 & \textbf{94.7} & \textbf{64.4} & \textbf{30.1} \\ 
+    \bottomrule
+    \end{tabular}
+    \tablespace
+    \caption{\label{table:ablation} Ablation studies. All models generate videos of 10s. The top half presents results of fine-tuning the bidirectional DiT into causal models without few-step distillation. The bottom half compares different design choices in our distillation framework. The last row is our final configuration.}
+\end{table}
+
+
+
+
+
+
+
+\subsection{Applications}
+
+In addition to text-to-video generation, our method supports a broad range of other applications. We present quantitative results below, with qualitative samples in Fig.~\ref{fig:main_result}. We provide additional video results in the supplementary material.
+
+\vspace{0.5em}
+\noindent\textbf{Streaming Video-to-Video Translation.} We evaluate our method on the task of streaming video-to-video translation, which aims to edit a streaming video input that can have unlimited frames. 
+Inspired by SDEdit~\cite{meng2021sdedit}, we inject noise corresponding to timestep $t_1$ into each input video chunk and then denoise it in one step conditioned on the text.
+We compare our method with StreamV2V~\cite{liang2024looking}, a state-of-the-art method for this task that builds upon image diffusion models. From 67 video-prompt pairs used in StreamV2V's user study~(originally from the DAVIS~\cite{pont20172017} dataset), we select all 60 videos that contain at least 16 frames. For a fair comparison, we do not apply any concept-specific fine-tuning to either method. Tab.~\ref{table:streamingv2v} shows that our method outperforms StreamV2V, demonstrating improved temporal consistency due to the video prior in our model.
+
+\begin{table}[ht!]
+\centering
+\scriptsize
+\begin{tabular}{l@{\ \ \ }c@{\ \ \ }c@{\ \ \ }c}
+\toprule
+\multirow{2}{*}{Method} & \multirow{2}{*}{\shortstack[c]{Temporal \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Frame \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Text \\ Alignment}} \\
+\\
+\midrule 
+StreamV2V  &  92.5 &  59.3  & 26.9 \\ 
+\textbf{\method~(Ours)} & \textbf{93.2} & \textbf{61.7} &  \textbf{27.7} \\ 
+\bottomrule
+\end{tabular}
+\tablespace
+\caption{\label{table:streamingv2v} Evaluation of streaming video-to-video translation.}
+\end{table}
+
+\vspace{0.5em}
+\noindent\textbf{Image to Video Generation}  
+Our model can perform text-conditioned image-to-video generation without any additional training.
+Given a text prompt and an initial image, we duplicate the image to create the first segment of frames. The model then autoregressively generates subsequent frames to extend the video.
+We achieve compelling results despite the simplicity of this approach.
+We evaluate against CogVideoX~\cite{yang2024cogvideox} and Pyramid Flow~\cite{jin2024pyramidal} on the VBench-I2V benchmark, as these are the primary baselines capable of generating 6-10 second videos. As shown in Table~\ref{table:i2v}, our method outperforms existing approaches with notable improvements in dynamic quality.
+We believe instruction fine-tuning with a small set of image-to-video data could further enhance our model’s performance.
+
+\begin{table}[ht!]
+\centering
+\scriptsize
+\begin{tabular}{l@{\ \ \ }c@{\ \ \ }c@{\ \ \ }c}
+\toprule
+\multirow{2}{*}{Method} & \multirow{2}{*}{\shortstack[c]{Temporal \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Frame \\ Quality}} & \multirow{2}{*}{\shortstack[c]{Text \\ Alignment}} \\
+\\
+\midrule 
+CogVideoX-5B  & 87.0 & 64.9 & 28.9     \\ 
+Pyramid Flow & 88.4 & 60.3 & 27.6\\
+\textbf{\method~(Ours)} & \textbf{92.0} & \textbf{65.0} & \textbf{28.9} \\ 
+\bottomrule
+\end{tabular}
+\tablespace
+\caption{\label{table:i2v} Evaluation of image-to-video generation. CogVideoX generates 6s video while the other methods generate 10s video.}
+\end{table}
+
+
+\subsection{Ultra-Long Video Generation}
+Our model demonstrates strong performance on videos exceeding 10 minutes in duration. As shown in Fig.~\ref{fig:long_video}, a 14-minute example video exhibits slight overexposure but retains overall high quality. 
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/bear.jpg} %
+    \caption{A 14-minute video example generated by our model. Frames are arranged temporally from left to right and top to bottom.}
+    \label{fig:long_video}
+\end{figure*}

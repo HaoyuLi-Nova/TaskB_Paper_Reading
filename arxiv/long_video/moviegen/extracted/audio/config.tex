@@ -1,0 +1,26 @@
+\subsubsection{Model, Training, and Inference Configurations}
+The DiT model has 36 layers and attention/feed-forward dimension of 4,608/18,432,
+which has 13B parameters in total (excluding Long-prompt MetaCLIP, T5, and DAC-VAE).
+In pre-training, videos are capped at 30 seconds (750 frames) and randomly chunked if lengths exceed.
+In finetuning, we randomly sample 10s and 30s segments from the video.
+Fully-sharded data parallelism is used to fit the model size.
+
+The model is trained in two stages: \textit{pre-training} and \textit{fine-tuning}, using the same objective, but different data (described in \cref{sec:audio_pt_data} and \cref{sec:audio_ft_data}) and optimization configurations.
+For pre-training, the effective batch size is 1,536 sequences, and each sequence is capped at 30 seconds (750 tokens).
+The model is pre-trained for 500K updates, taking 14 days on 384 GPUs, using a constant learning rate of 1e-4 with a linear ramp-up for the first 5K steps.
+
+For fine-tuning, the effective batch size is 256 sequences, also capped at 30 seconds.
+The model fine-tunes the pre-trained checkpoint for 50K updates on 64 GPUs, which takes one day.
+The learning rate linearly ramps up to 1e-4 for the first 5K steps, and then linearly decay to 1e-8 for the remaining steps.
+An exponential moving average (EMA) checkpoint with a decay of 0.999 is accumulated during finetuning and used for inference.
+AdamW optimizer with a weight decay of 0.1 and bf16 precision are used for both pre-training and fine-tuning.
+
+To leverage classifier-free guidance (CFG) for inference, during training we drop conditioning inputs altogether (video, text, audio context) with a probability of 0.2.
+To enable both audio generation and audio extension, the masked audio is dropped (\ie, completely masked) with a probability of 0.5, and otherwise masked between 75\% to 100\%.
+To reduce the reliance on either modality, text and video input are dropped independently with a probability of 0.1 for each.
+
+For inference, the midpoint solver with 64 steps is used.
+We did not find using adaptive dopri5 solver or increasing the number of steps to boost the performance.
+We use CFG with a weight of 3 on unconditional vector fields and further conduct reranking with 8 candidates per sample.
+Quality score of 7.0 is used for sound effect generation, and 8.0 for joint sound effect and music generation.
+For audio extension, we use dynamic guidance~\citep{wang2024analysisclassifierfreeguidanceweight} with a weight of 3 and multi-diffusion with a triangle window of $n_{win} = 40$, $n_{hop} = 30$ and $n_{ctx} = 10$ by default.

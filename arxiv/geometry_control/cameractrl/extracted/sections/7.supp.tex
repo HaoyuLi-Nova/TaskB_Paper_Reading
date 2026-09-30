@@ -1,0 +1,543 @@
+\appendix
+\section{Appendix / supplemental material}
+
+\noindent This supplementary material provides discussion of \method and other methods, more discussions on data selection, implementation details, details of user study, additional ablation experiments, more qualitative comparisons, and more visualization results of \method. 
+
+In all visual results, the first image in each row represents the camera trajectory of a video. 
+%
+Each small tetrahedron on this image represents the position and orientation of a camera for one video frame.
+%
+Its vertex stands for the camera location, while the base represents the imaging plane of the camera.
+%
+The red arrows indicate the movement of camera \textbf{position} but do \textbf{not} depict the camera rotation.
+%
+The camera rotation can be observed through the orientation of the tetrahedrons. \textbf{For a clearer understanding of the camera control effects, we highly recommend that readers watch the videos provided in our supplementary file.} 
+
+The organization of this supplementary material is as follows: \cref{suppsec:discuss_cameractrl} gives some discussions between \method and concurrent works.
+%
+\cref{suppsec:data_selection} presents more discussions on the dataset selection process.
+%
+\cref{suppsec:implementation} gives more implementation details.
+%
+The details of the user study are shown in \cref{suppsec:user_study}.
+%
+\cref{suppsec:more_exps} depicts extra experiment results on the model architecture, camera representation, and the lower bound of the \rote and \te.
+%
+Then, we provide more qualitative comparisons between \method with AnimateDiff and MotionCtrl in \cref{suppsec:visual_comparison}. 
+%
+After that, more visualization results are showcased in \cref{suppsec:visualiztion}.
+%
+Finally, we provide some failure cases in \cref{suppsec:failure_cases}.
+
+\section{Discussion with Concurrent camera control works} \label{suppsec:discuss_cameractrl}
+Recent works have explored camera control in video generation, addressing different aspects of the challenge.
+%
+VD3D~\citep{vd3d} integrates camera control into a DiT-based~\citep{dit,snapvideo} model with a novel camera representation module in spatiotemporal transformers. 
+%
+CamCo~\citep{camco} leverages epipolar constraints for 3D consistency in image-to-video generation.
+%
+CVD~\citep{cvd} uses the camera control method and extends it to enable multi-view video generation with cross-view consistency.
+%
+Recaprture~\citep{recapture} enables video-to-video camera control, effectively modifying viewpoints in existing content.
+%
+However, it's limited to simpler scenes and struggles with complex or dynamic environments.
+%
+Cavia~\citep{cavia} enhances multi-view generation through training on diverse datasets, improving cross-view consistency.
+%
+\citep{cmg} improves camera control accuracy using a classifier free guidance~\cite{cfg} like mechanism in a DiT-based~\cite{opensora} model.
+%
+Despite the numerous works addressing camera control in the video generation process, to our best knowledge, \method is among the early methods to achieve accurate camera control in video generation models.
+%
+It provides valuable insights and a solid foundation for future advancements in related fields, such as video generation, as well as 3D and 4D content generation.
+
+\section{More Discussions on Dataset Selection}
+\label{suppsec:data_selection}
+When selecting the dataset for training our camera control model, 
+we first choose three datasets as candidates, they are Objaverse~\citep{objaverse}, MVImageNet~\citep{mvimgnet}, and RealEstate10K~\citep{realestate10k}.
+
+For the Objaverse dataset, its images are rendered with software like Blender, enabling highly complex camera poses.
+%
+However, as seen in row one to row three of \cref{suppfig:dataset_samples}, its content mainly focuses on objects against white backgrounds. 
+%
+In contrast, the training data for many video diffusion models, such as WebVid-10M~\citep{webvid10m}, encompasses both objects and scenes against more intricate backgrounds.
+%
+This notable difference in appearance can detract from the model's ability to concentrate solely on learning camera control.
+%
+In our initial trial, We tried to train the \method with the Objaverse dataset, the resulting model can control the camera trajectory in the Objaverse-like video~(single object with white background) well.
+%
+In other domains, however, the camera control model cannot generalize well in controlling the camera viewpoints during the video generation process.
+
+For MVImageNet data, it has some backgrounds and complex individual camera trajectories.
+%
+Nevertheless, as demonstrated in row four to row six of \cref{suppfig:dataset_samples}, most of the camera trajectories in the MVImageNet are horizontal rotations.
+%
+Thus, its camera trajectories lack diversity, which could lead the model to converge to a fixed pattern. 
+
+Regarding RealEstate10K data, as shown in row seven to row nine of \cref{suppfig:dataset_samples}, it features both indoor and outdoor scenes and objects.
+%
+Besides, each camera trajectory in RealEstate10K is complex and there exists a considerable variety among different camera trajectories.
+%
+Therefore, we choose the RealEstate10K dataset to train our camera control model.
+%
+There are other datasets that possess a similar camera trajectory with the RealEstate10K dataset, like the ACID~\citep{acid} and MannequinChallenge data~\citep{MannequinChallenge}, but with fewer data samples.
+%
+We tried to train the \method using the RealEstate10K and the ACID but did not find an improvement in the camera control accuracy, as shown in \cref{tab:abla_diff_data}.
+%
+This result indicates that the current bottleneck of the camera control accuracy may lie in the complexity of the camera pose distribution.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure5.pdf}
+	\caption{
+ \textbf{Samples of different datasets.} Rows 1 to row 3 are samples from the Objaverse dataset, which has random camera poses for each rendered image. Rows 4 to row 6 show the samples from the MVImageNet dataset. Samples of the RealEstate10K dataset are presented from rows 7 to row 9.}
+	\label{suppfig:dataset_samples}
+\end{figure}
+
+\section{More Implementation Details}
+\label{suppsec:implementation}
+\subsection{Camera encoder $\mathrm{\Phi}_c$ architecture.}
+\label{suppsubsec:camera_encoder_arch}
+As stated in \cref{subsec:cam_control}, we take a temporal attention-enhanced T2I Adaptor~\citep{t2iadaptor} encoder as our camera encoder $\mathrm{\Phi}_c$  to extract the camera features from Plücher embeddings. 
+%
+Generally, the camera encoder consists of a pixel unshuffle layer, a convolution layer, and 4 encoder scales.
+%
+It takes a batch of Plücker embedding sequence $\mathbf{P} \in \mathbb{R}^{b\times n \times 6 \times h \times w}$ where $b, n, h, w$ represent the batch size, number of frames in a video clip, the height and width of the video clip, respectively as input, and output multi-scale camera features.
+%
+The output feature shapes of each layer are listed in \cref{supptable:output_shape}.
+
+\begin{table}[t]
+    \centering\small
+    \caption{\textbf{Output feature shapes of each layer~(encoder scale) of camera encoder.} And $c = 6\times8\times8=384$, $c_1, c_2, c_3, c_4$ are equal to the channels numbers of the corresponding U-Net output feature with the same resolution. For examble, with a stable video 1.5 model, $c_1, c_2, c_3, c_4$ equal to 320, 640, 1280, 1280.}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{lc}
+        \toprule
+        \textbf{input} & $b\times n \times 6 \times h \times w$ \\
+        \midrule
+        Pixel unshuffle & $b\times n \times c \times \frac{h}{8} \times \frac{w}{8}$ \\
+        3$\times$ 3 conv layer & $b\times n \times c_1 \times \frac{h}{8} \times \frac{w}{8}$ \\
+        Encoder scale 1 & $b\times n \times c_1 \times \frac{h}{8} \times \frac{w}{8}$ \\
+        Encoder scale 2 & $b\times n \times c_2 \times \frac{h}{16} \times \frac{w}{16}$ \\
+        Encoder scale 3 & $b\times n \times c_3 \times \frac{h}{32} \times \frac{w}{32}$ \\
+        Encoder scale 4 & $b\times n \times c_4 \times \frac{h}{64} \times \frac{w}{64}$ \\
+        \bottomrule
+    \end{tabular}
+    \label{supptable:output_shape}
+\end{table}
+
+Besides, each encoder scale is composed of one downsample ResNet block~\citep{t2iadaptor}~(except for the encoder scale 1) and one ResNet block, each block is followed by one temporal attention block~\citep{animatediff}.
+%
+More specifically, the temporal attention block consists of a temporal self-attention layer, layer normalizations and position-wise MLP as follows:
+\begin{align}
+    \zeta &\leftarrow x + \mathrm{PosEmb}(x) \\
+    \zeta_1 &\leftarrow \mathrm{LayerNorm}(\zeta) \\
+    \zeta_2 &\leftarrow \mathrm{MultiHeadSelfAttention}(\zeta_1) + \zeta \\
+    \zeta_3 &\leftarrow \mathrm{LayerNorm}(\zeta_2) \\
+    x &\leftarrow \mathrm{MLP}(\zeta_3) + \zeta_2,\\
+\end{align}
+where $\mathrm{PosEmb}$ is the temporal positional embedding.
+
+\subsection{Training.}\label{suppsubsec:train_detail}
+We use the LAVIS~\citep{li-etal-2023-lavis} to generate the text prompts for each video clip of the used dataset~(Objaverse, MVImageNet, RealEstate10K, and ACID). 
+%
+For the text-to-video~(T2V) setting, we used AnimateDiffV3 as the base video generation model.
+%
+To let the camera control model better focus on learning camera poses, similar to AnimateDiff~\citep{animatediff}, we first train an image LoRA on the images of the RealEstate10K dataset. 
+%
+Then, based on the AnimateDiff model enhanced with LoRA, we train the camera control model. 
+%
+Note that, after the camera control model is trained, the image LoRA can be removed.
+%
+For each training sample of the \method, we sample 16 images from one video clip with the sample stride equal to 8, then resize their resolution to 256 $\times$ 384.
+%
+For the data augmentation, we use the random horizontal flip for both images and poses with a 50 percent probability.
+%
+The Adam optimizer is adopted to train the models, with a constant learning rate 1$e^{-4}$, $\beta_1$=0.9, $\beta_2$=0.99, weight decay equals 0.01.
+%
+We use a \textit{linear} beta noise schedule, where $\beta_{start}$ = 0.00085, $\beta_{end}$ = 0.012, and $T$ = 1000.
+%
+We use 16 80G NVIDIA A100 GPUS to train the \method models with a batch size of 2 per GPUS for 50K steps, taking about 25 hours.
+
+For the Image-to-Video~(I2V) setting, we use the Stable Video Diffusion~(SVD) as the base video generator.
+%
+We directly train the camera encoder and the merge linear layer on top of the SVD.
+%
+For each training sample, we sample 14 images for one video clip with the sample stride equal to 8, then resize their resolution to 320 $\times$ 576.
+%
+Then Adam optimizer is utilized with a constant learning rate 3$e^{-5}$, $\beta_1$=0.9, $\beta_2$=0.99, weight decay equals to 0.01.
+%
+Following SVD, we used the EDM~\citep{edm} noise scheduler and set all the hyper-parameters equal to SVD. 
+% 
+We used 32 80G NVIDIA A100 GPUS to train the models with a batch size of 1 per GPUS for 50K steps, taking about 40 hours.
+
+\subsection{Inference.}\label{suppsubsec:inference_detail} By utilizing structure-from-motion methods such as COLMAP~\citep{schoenberger2016sfm}, along with existing videos, we can extract the camera trajectory within a video. 
+%
+This extracted camera trajectory can then be fed into our camera control model to generate videos with similar camera movements.
+%
+Additionally, we can also design custom camera trajectories to produce videos with desired camera movement. 
+%
+During the inference, we use different guidance scales for different domains' videos and adopt a constant denoise step 25 for all the videos.
+
+\subsection{Object Dynamic Distance~(ODD) metric} \label{suppsubsec: object dynamic degree}
+We first utilize the Grounded-SAM-2~\citep{ren2024grounded} to segment the main object in a video. 
+%
+Then, following the dynamic degree in VBench, we use RAFT~\citep{raft} to estimate the optical flow, and only keeping the estimated flows belongs to the main object.
+%
+Then, following the dynamic degree metric, these optical flows are taken as the basis to determination whether the video is static.
+%
+The final object dynamic degree score is calculated by measuring the proportion of nonstatic videos generated by the model.
+
+\subsection{More details of \rote and \te}
+\label{suppsubsec: more_detail_rote_te}
+When using the COLMAP to extract the camera poses of generated videos, it is not very stable to generate the reliable camera pose sequence.
+%
+Thus, when COLMAP fails, we have manually filtered these failed video clips and not added them in the calculation of \rote and \te.
+%
+Besides, since the COLMAP is scale invariant, there may have some scale issues of the generated camera poses.
+%
+These scale issues only have some impact on the calculation of \te, not the \rote.
+%
+To deal with with this scale issue, we have performed some postprocessings to the COLMAP results.
+%
+Specifically, we first compute the relative poses of the ground truth and generated camera poses by setting the homogeneous extrinsic matrix of first frame as a $4 \times 4$ identity matrix.
+%
+Then, normalizing the scale of the COLMAP results with the ground truth camera trajectory.
+%
+Concretely, we calculate the translation gap between the first two frames for both the generated and ground truth camera poses to obtain a rescale factor.
+%
+We then normalize other generated camera poses with this rescale factor to align the scales of the two camera trajectories. 
+%
+This normalization helps alleviate the scale problem in COLMAP results, making our evaluation metrics more convincing.
+
+\section{Details of User Study}
+\label{suppsec:user_study}
+The camera error \te and \rote proposed in \cref{subsec:cam_data} need COLMAP to extract the camera poses of the generated videos.
+%
+However, the COLMAP can not extract precise camera poses in short videos~(16 frames in T2V, 14 frames in I2V) stably.
+%
+To compare the camera control quality between \method with AnimateDiff and MotionCtrl from another perspective, we conduct some user studies.
+%
+Specifically, since the AnimateDiff is only able to generate videos with eight base camera movements in the T2V setting, we sample these three methods with base camera movements and let the user watch the video to decide which video is more in line with the condition camera trajectory. 
+%
+Then calculating the approving rate for each method, the results are in the User Preference Rate column in \cref{table:benckmarkcomp}'s middle block.
+%
+Besides, we employ some complex camera trajectories extracted from the test set of RealEstate10K to condition the MotionCtrl and \method in the T2V setting.
+%
+The generated videos are sent to users to decide which one has a better camera trajectory alignment with the reference videos.
+%
+The user preference rate for MotionCtrl and \method are 27.6\% and 72.4\%, respectively.
+
+After that, in the I2V setting, we sample the MotionCtrl and \method with complex camera trajectories extracted from the RealEstate10K dataset. 
+%
+With these videos, another user study is conducted to let the user choose which video has the better camera trajectory condition performance.
+% 
+Results are shown in the User Preference Rate column of the bottom block of \cref{table:benckmarkcomp}.
+%
+These user study results further demonstrate the the superiority of \method in controlling the camera trajectory during the video generation process.
+%
+We invite 50 users to conduct all the user studies.
+%
+Considering the difference between the education levels of these users, we design the user studies as easily as possible to get more reliable results. 
+
+\section{Extra Experiments}
+\label{suppsec:more_exps}
+\subsection{Extra Ablation Study}
+\label{suppsec:ablation_study}
+\noindent \textbf{Injecting camera features into both encoder and decoder of U-Net.} In the vanilla T2I-Adaptor~\citep{t2iadaptor}, the extracted control features are only fed into the encoder of U-Net.
+%
+In this part, we explore whether injecting the camera features into both the U-Net encoder and decoder could result in performance improvements.
+%
+The experiment results are shown in \cref{table:supp_abla}. 
+%
+The improvements of \te and \rote indicate that compared to only sending camera features to the U-Net encoder, injecting the camera features to both the encoder and decoder enhances camera control accuracy.
+%
+This result could be attributed to the fact that similar to text embedding, Plücker embedding inherently lacks structural information.
+%
+Such that, this integrating choice allows the U-Net model to leverage camera features more effectively.
+%
+Therefore, we ultimately choose to feed the camera features to both the encoder and decoder of the U-Net.
+
+\begin{table}[t]
+    \centering\small
+    \caption{Ablation study of the camera feature injection place.}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{lccc}
+        \toprule
+        Injection Place & FVD$ \downarrow$ &  \te$ \downarrow$ & \rote$ \downarrow$ \\
+        \midrule
+        U-Net Encoder & \textbf{210.9} & 13.91 & 1.51 \\
+        \textbf{U-Net Encoder + Decoder} & 222.1 & \textbf{12.98} & \textbf{1.29} \\
+        \bottomrule
+    \end{tabular}
+    \label{table:supp_abla}
+\end{table}
+
+\begin{figure}[!t]
+	\centering
+	   \includegraphics[width=0.95\linewidth]{images_supp/camera_representations.pdf}
+	\caption{\textbf{Different camera representation.} The left subfigure row shows the camera represented using the intrinsic $K_i$ and the extrinsic matrices $E_i$ (composed of rotation matrix $R_i$ and the translation vector $t_i$). The middle subfigure give the camera representation of converting the rotation matrix $R_i$ into Euler angles $\alpha_i, \beta_i, \gamma_i$. Plücker embedding are given in the right subfigure, the intrinsic and extrinsic matrices are converted into the Plücker embeddings to form a pixel-wise spatial embedding. While the left and middle camera representations are not a pixel-wise camera representations naturally.}
+	\label{suppfig:illu_diff_camera_rep}
+\end{figure}
+
+\begin{figure}[t]
+	\centering
+	   \includegraphics[width=1.0\linewidth]{images_supp/different_camera_representation.pdf}
+	\caption{\textbf{Qualitative comparison of using different camera representations.} The first row shows the result using the raw camera matrix values as camera representation. Result of the second row adopts the ray directions and camera origin as camera representation. The last row exhibits the result taking the Plücker embedding as the camera representation. All the results use the same camera trajectory and the text prompt.}
+	\label{suppfig:compare_diff_camera_representation}
+\end{figure}
+
+\subsection{Qualitative comparison on different camera representation} \label{suppsubsec:qualitative_camera_representation}
+Here, we provide the qualitative comparison using different camera representations, results are shown in~\cref{suppfig:compare_diff_camera_representation}.
+%
+The provided camera trajectory primarily moves forward, with a rightward shift at the end. 
+%
+From the figure, it can be seen that when using the raw camera matrix values as camera representation, the model ignores the final rightward movement.
+%
+With the hybrid camera pose representation, the model exhibits an abrupt shift in the last few frames to achieve the rightward movement.
+%
+In contrast, using the Plücker embedding as the camera representation results in a smoother generated video, with the final rightward movement appearing natural and seamless.
+%
+These results further demonstrate the effectiveness of using Plücker embedding as the camera representation.
+
+\subsection{Lower bound of \te and \rote on RealEstate10K test set} \label{suppsubsec:lower_bounds}
+Since the COLMAP is not 100 percent accuracy, we need to know the lower bounds of the \te and \rote metrics.
+%
+With the sampled video clips~(each has 16 frames) in the RealEstate10K test set, we run the COLMAP on these video clips to get the estimated camera poses.
+%
+Using these camera poses and the ground truth camera poses, we calculate the \te and \rote, results are shown in the~\cref{table:lower_bound}
+
+\begin{table}[t]
+    \centering\small
+    \caption{Lower bound of \te and \rote on RealEstate10K test set.}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabular}{lcc}
+        \toprule
+         & \te$ \downarrow$ & \rote$ \downarrow$ \\
+        \midrule
+        Lower Bounds & 6.93 & 1.02 \\
+        \bottomrule
+    \end{tabular}
+    \label{table:lower_bound}
+\end{table}
+
+\section{More Qualitative Comparisons}
+\label{suppsec:visual_comparison}
+In this section, we first provide more qualitative comparisons between \method with AnimateDiff using the base camera trajectories in the test-to-video~(T2V) setting.
+%
+Then, in the T2V setting, we also deliver more qualitative comparisons between \method and MotionCtrl with the complex camera trajectories extracted from the RealEstate10K test set.
+%
+Finally, more qualitative comparisons between \method and MotionCtrl in the image-to-video~(I2V) setting are given.
+
+\begin{figure}[t]
+	\centering
+	   \includegraphics[width=1.0\linewidth]{images_supp/figure6.pdf}
+	\caption{
+ \textbf{Qualitative comparison between AnimateDiff and \method}.Results of rows 1, 3, and 5 are from AnimateDiff. Results of \method are shown in rows 2, 4, 6, 7. Rows 1 and 2 use the same camera trajectory, pan down. Camera trajectory pan left is adopted by rows 3 and 4. For rows 5 and 6, the camera trajectory pan down is utilized. The result of the last row is generated with the camera trajectory pan left down. Rows 1 and 2 condition on the same text prompt, while rows 3 to 7 condition on another text prompt.}
+	\label{suppfig:compare_ad_cameractrl}
+\end{figure}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure7.pdf}
+	\caption{
+ \textbf{Qualitative comparison between MotionCtrl and \method in T2V setting.} Results of rows 1, 3, 5, and 7 are generated by MotionCtrl, while the results of \method are shown in rows 2, 4, 6, and 8. Every two adjacent rows use the same text prompt and camera trajectory.}
+	\label{suppfig:compare_motionctrl_cameractrl_t2v}
+\end{figure}
+
+\subsection{Qualitative comparisons in the T2V setting}
+\label{suppsubsec:visual_comparison_t2v}
+\noindent \textbf{Comparisons between AnimateDiff and \method.} Results are shown in \cref{suppfig:compare_ad_cameractrl}.
+%
+In row 1, we find that the generated video of AnimateDiff shows the camera movement of pan up not the given camera movement pan down.
+%
+In contrast, the video generated by \method in row 2 follows the desired camera movement.
+%
+Thus, we can conclude that in some situations, AnimateDiff cannot distinguish the object movement from the camera movement.
+%
+Results of rows 3 and 5 exhibit that, though sometimes AnimateDiff can generate the videos with the desired camera movement, it cannot keep the object consistent during the whole video.
+%
+By comparison, \method can generate videos with consistent contents and strictly follows the condition camera trajectory, illustrated in rows 4 and 6.
+%
+Besides, AnimateDiff only supports some simple camera trajectories.
+%
+For other more complex camera trajectories, it does not support even a combination of two base camera trajectories, like the combination of pan left and pan down, while \method can support this trajectory, shown in the last row of \cref{suppfig:compare_ad_cameractrl}.
+
+\noindent\textbf{Comparisons between MotionCtrl and \method.} In \cref{suppfig:compare_motionctrl_cameractrl_t2v}, we provide more qualitative comparisons between the MotionCtrl and \method in the T2V setting. 
+%
+For the trajectories with translation or rotation to a small extent, like the left camera translation in the first trajectory~(rows 1 and 2) and the left rotation at the beginning of the second trajectory~(rows 3 and 4), MotionCtrl does not very sensitive to them.
+%
+It only focuses on the main camera movement, the forward translation.
+%
+By contrast, the generated videos of \method~(rows 2 and 4) accurately obey these small camera trajectories.
+%
+For the third~(rows 5 and 6) and the fourth~(rows 7 and 8) camera trajectories, they contain both camera rotation and translation.
+%
+For the videos generated by MotionCtrl~(rows 5 and 7), however, it focuses more on the camera rotation and ignores the camera translation.
+%
+In contrast, \method can make a good balance between the camera rotation and translation and generate satisfactory videos, shown in rows 6 and 8 of \cref{suppfig:compare_motionctrl_cameractrl_t2v}.
+
+\subsection{Qualitative comparisons in the I2V setting}
+\label{suppsubsec:visual_comparison_i2v}
+Similar to the results of T2V, MotionCtrl still cannot handle the small camera movement well in the I2V setting.
+%
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure8.pdf}
+	\caption{
+\textbf{Qualitative comparison between MotionCtrl and \method in I2V setting.} The condition images are shown in the first images of each row. These images are generated with the SDXL~\citep{sdxl} taking the text prompts located below of every two rows as input. Note that, both MotionCtrl and \method only condition on the conditioning images, not include the text prompts. The rows 1, 3, 5, and 7 are the results of MotionCtrl, while the results of \method are in rows 2, 4, 6, and 8. Every two adjacent rows are generated with the same condition image and the same camera trajectory.}
+	\label{suppfig:compare_motionctrl_cameractrl_i2v}
+\end{figure}
+
+In \cref{suppfig:compare_motionctrl_cameractrl_i2v}, for the results of the first two camera trajectories, compared to the results of our \method~(rows 2 and 4), videos generated by MotionCtrl~(rows 1 and 3) ignore the small camera rotation at the very beginning of the camera trajectories.
+%
+For the third and the fourth camera trajectories, the camera movement extent of MotionCtrl results~(rows 5 and 7) is rather less than that of the \method results~(rows 6 and 8).
+%
+The results of \method can reveal the practical camera movement extent of the trajectories 3 and 4.
+%
+\textbf{We strongly recommend the readers to watch the provided videos in the supplementary file for a more direct understanding.}
+
+Note that, in the I2V setting, both MotionCtrl and \method are implemented on the save video diffusion model, SVD~\citep{svd}, which excludes the influence stemming from the different base video generators.
+%
+Thus, the better camera viewpoint controlling in the generated videos benefits from the better design choices of \method.
+
+\section{More Visualization results}
+\label{suppsec:visualiztion}
+This section provides additional visualization results of \method. 
+%
+Specifically, \cref{suppsubsec:visualization_res_t2v} provides the various domain videos generated by integrating \method with AnimateDiff~\citep{animatediff} in T2V setting.
+% 
+In \cref{suppsubsec:visualization_res_i2v}, we exhibit the generated videos of \method in the I2V setting where the Stable Video Diffusion~(SVD)~\citep{svd} is chosen as the base video generator.
+%
+After that, video results of combining \method with another video control method, SparseCtrl~\citep{sparsectrl} is shown in \cref{suppsubsec:visualization_res_wsparsectrl}.
+%
+Finally, \cref{suppsubsec:suppsec_cameractrl_flexibility} shows the flexibility of \method.
+\subsection{Visualization results of various domain T2V videos}
+\label{suppsubsec:visualization_res_t2v}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure9.pdf}
+	\caption{
+ \textbf{RealEstate10K visual results.} The video generation results of \method. The control camera trajectories and captions are both from RealEstate10K test set.}
+	\label{fig:vis_re10k}
+\end{figure}
+
+\noindent \textbf{Visual results of RealEstate10K domain.} First, with the aforementioned image LoRA model trained on RealEstate10K dataset, and using captions and camera trajectories from RealEstate10K, \method is capable of generating videos within the RealEstate10K domain. Results are shown in \cref{fig:vis_re10k}, the camera movement in generated videos closely follows the control camera poses, and the generated contents are also aligned with the text prompts.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure10.pdf}
+	\caption{
+ \textbf{Using \method on the same caption and different camera trajectories.} The camera control results of \method. Camera trajectories are from RealEstate10K test set, all videos utilize the same text prompts.}
+	\label{fig:vis_same_prompt}
+\end{figure}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure11.pdf}
+	\caption{
+ \textbf{Visual results of natural objects and scenes.} The natural video generation results of \method. \method can be used to control the camera poses during the video generation process of natural objects and scenes.}
+	\label{fig:vis_natural_domain}
+\end{figure}
+
+\noindent \textbf{Visual results of original T2V model domain.} We choose the AnimateDiff V3~\citep{animatediff} as our video generation base model, which is trained on the WebVid-10M dataset. Without the RealEstate10K image LoRA, \method can be used to control the camera poses during the video generation of natural objects and scenes. As shown in \cref{fig:vis_same_prompt}, with the same text prompts, taking different camera trajectories as input, \method can generate almost the same scene, and closely follows the camera trajectories. Besides, \cref{fig:vis_natural_domain} shows more visual results of natural objects and scenes.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure12.pdf}
+	\caption{
+ \textbf{Visual results of stylized objects and scenes.} With the personalized generator RealisticVision~\citep{realisticvision}, \method can be used in the video generation process of stylized videos.}
+	\label{fig:vis_unnatural_domain}
+\end{figure}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure13.pdf}
+	\caption{
+ \textbf{Visual results of cartoon characters.} With the personalized generator ToonYou~\citep{toonyou}, \method can be used in the video generation process of cartoon character videos.}
+	\label{fig:vis_cartoon_domain}
+\end{figure}
+
+\noindent \textbf{Visual results of some personalized video domain.} By replacing the image generator backbone of T2V model with some personalized generator, \method can be used to control the camera poses in the personalized videos. With the personalized generator RealisticVision~\citep{realisticvision}, \cref{fig:vis_unnatural_domain} showcases the results of some stylized objects and scenes, like some uncommon color schemes in the landscape and coastline.  Besides, with another personalized generator ToonYou~\citep{toonyou}, \method can be used in the cartoon character video generation process. Some results are shown in \cref{fig:vis_cartoon_domain}. In both domains, the camera trajectories in the generated videos closely follow the control camera poses.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure14.pdf}
+	\caption{
+ \textbf{Integrating \method with SVD in the I2V setting.} The condition images are located in the right bottom corners of each rows first image. These images are generated by the text-to-image model SDXL with the text prompts down below each row as input. The condition signals of generated videos are only images, not include the text prompts.}
+	\label{suppfig:vis_with_svd}
+\end{figure}
+
+\subsection{I2V visualization results of \method integrated with SVD}
+\label{suppsubsec:visualization_res_i2v}
+By taking the SVD as the base video generator to implement our \method, we can sample videos with desired camera trajectories in the I2V setting.
+%
+\cref{suppfig:vis_with_svd} shows some of them.
+%
+The camera viewpoints of generated videos strictly follow the camera trajectory input, and video content also align with the condition images.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure15.pdf}
+	\caption{
+ \textbf{Integrating \method with other video generation control methods.} Row one to row three express the results by integrating the \method with RGB encoder of SparseCtrl~\citep{sparsectrl}, and row four to row six, shows videos produced with the sketch encoder of SparseCtrl. The condition RGB images and sketch maps are shown in the bottom right corners of the second images for each row. Note that, the camera trajectory of the last row is zoom-in. }
+	\label{suppfig:vis_with_sparsectrl}
+\end{figure}
+
+\subsection{Integrating \method with other video control method}
+\label{suppsubsec:visualization_res_wsparsectrl}
+\cref{suppfig:vis_with_sparsectrl} gives some generated results by integrating the \method with another video control method SparseCtrl~\citep{sparsectrl}. The content of the generated videos follows the input RGB image or sketch map closely, while the camera trajectories of the videos also effectively align with the conditioned camera trajectories.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/enlarged_gap.pdf}
+	\caption{
+ \textbf{Camera movement intensity.} The first two rows taking the pan down camera trajectory as input, with the camera translation interval in the second row being four times that of the first row. The camera trajectory for the third and fourth rows are zoom in, with the camera translation interval in the fourth row being four times that of the third row.}
+	\label{suppfig:camera_move_intensity}
+\end{figure}
+
+\subsection{Flexibility of \method}
+\label{suppsubsec:suppsec_cameractrl_flexibility}
+\noindent \textbf{Different camera movement intensity.} By adjusting the interval between the translation vectors of two adjacent camera poses, we can control the overall intensity of the camera movement.
+%
+As shown in the \cref{suppfig:camera_move_intensity}, we can make the camera movement more intense or more gradual.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/differentk.pdf}
+	\caption{
+ \textbf{Controlling camera movement by adjusting intrinsic.} The first three rows show the generated results using camera pan left, left up, right down, respectively. The last two rows take the zoom in, zoom out camera trajectories as the input. In each camera trajectory, all the camera poses have the same extrinsic matrix, the camera movement is implemented by adjusting the intrinsic parameters, cx and cy for the first three rows, fx and fy for the last two rows.}
+	\label{suppfig:different_k_traj}
+\end{figure}
+
+\noindent \textbf{Controlling camera movement by adjusting intrinsic.}
+Since the Plücker embedding requires internal parameters during the computation, we can achieve camera movement by modifying the camera’s intrinsic parameters.
+%
+As shown in the~\cref{suppfig:different_k_traj}, by changing the position of the camera’s principal point (cx, cy), we can achieve camera translation (as shown in the first three rows).
+%
+By adjusting the focal length (fx, fy), we can achieve a zoom-in and zoom-out effect, as shown in the last two rows.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\linewidth]{images_supp/figure16.pdf}
+	\caption{
+ \textbf{Failure cases.} All results are generated with the \method implemented on AnimateDiffV3 in the T2V setting. The camera trajectory for rows 1 and 2 is the vertical uniform rotation of 100 degrees. The trajectory horizontal uniform rotation 150 degrees is used during the generation of rows 3 and 4.}
+	\label{suppfig:failure_cases}
+\end{figure}
+
+\section{Failure cases}
+\label{suppsec:failure_cases}
+In \cref{suppfig:failure_cases}, we provide some failure cases of \method.
+%
+The main problem for these cases is that when the rotation of the camera trajectory has a large extent, \method cannot properly generate videos with enough rotation.
+%
+The first and second rows take the vertical uniform rotation 100 degrees as input, but the generated videos cannot rotate 100 degrees.
+%
+The same problem is kept for rows 3 and 4, where we desire a horizontal uniform of 150 degrees. 
+%
+However, there is only about a 90-degree rotation of the generated videos.
+%
+The main reason for this failure situation may lie in that the training dataset~(RealEstate10K) does not contain enough camera trajectories with a large degree of rotation.
+%
+Thus, to improve the camera trajectory performance further, a dataset possessing a similar visual appearance to RealEstate10K and a larger camera pose distribution is needed.
+

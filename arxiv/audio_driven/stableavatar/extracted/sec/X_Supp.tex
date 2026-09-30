@@ -1,0 +1,238 @@
+\clearpage
+\setcounter{page}{1}
+% \maketitlesupplementary 
+\appendix
+\section{Supplementary Material}
+
+\subsection{Preliminaries}
+The diffusion model includes a forward diffusion process and a reverse denoising process. In the forward process, inspired by  Rectified Flow~\cite{lipman2022flow}, the Gaussian noise is progressively added to the data sample $\bm{x}_{0}\sim\bm{p}_{\text{data}}$ from the particular data distribution $\bm{p}_{\text{data}}$:
+\begin{equation}\small
+\label{eq:forward_diffusion}
+\begin{aligned}
+    \bm{x}_{t}=(1-t)\bm{x}_{0}+t\bm{e},
+\end{aligned}
+\end{equation}
+where $t \in [0,1]$ refers to the timestep and $\bm{e}$ is sampled from a standard-normal distribution $\mathcal{N}(0,1)$.
+The data sample $\bm{x}_{0}$ is ultimately converted into Gaussian noise $\bm{x}_{T}\sim\mathcal{N}(0,1)$ after $\bm{T}$ diffusion forward steps. 
+In the reverse process, the diffusion model $\bm{\varepsilon}_{\theta}(\bm{x}_{t},t)$ is trained to predict the velocity $\bm{v'}_{t}=d\bm{x}_{t}/dt$ conditioned on the noisy latents $x_{t}$ and the timestep $t$. The MSE loss is applied to train $\bm{\varepsilon}(\cdot)$:
+\begin{equation}\small
+\label{eq:mse_loss}
+\begin{aligned}
+     \mathcal{L} = \mathbb{E}_{\bm{x}_{0},\bm{\varepsilon},t}(\left \| \bm{v'}_{t} -\bm{\varepsilon}_{\theta}(\bm{x}_{t}, t)  \right \|^{2}).
+\end{aligned}
+\end{equation}
+
+\subsection{Sling Window Details}
+Fig. \ref{fig:sliding_window} illustrates a detailed pipeline of our Dynamic Weighted Sliding Window Denoising Strategy (DWSW).
+
+\begin{figure}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{sliding_window.pdf}
+\end{center}
+\vspace{-0.5cm}
+   \caption{The pipeline of our DWSW.
+   }
+\label{fig:sliding_window}
+\vspace{-0.3cm}
+\end{figure}
+
+\subsection{Details of Dataset}
+Regarding the training dataset, our training dataset consists of three parts, including Hallo3~\cite{cui2025hallo3}, Celebv-HQ~\cite{zhu2022celebvhq}, and collected videos from the internet (BilBil, YouTube, and TikTok). 
+We leverage SyncNet~\cite{chung2016out} and Q-Align~\cite{wu2023q} to filter for higher-quality videos by assessing lip-sync accuracy with audio and video fidelity.
+We also employ InsightFace~\cite{deng2019arcface} to filter out videos with a facial confidence score below 0.9. Ultimately, we obtain the refined training dataset, containing approximately 1200 hours of videos.
+
+In terms of the testing dataset, we select 100 unseen videos (2-5 minutes long, FPS=30) from the internet to construct the testing dataset Long100. Some examples are shown in Fig. \ref{fig:long100}.
+The sources of videos come from numerous social media platforms, including YouTube, TikTok, and BiliBili. These videos showcase individuals across ethnicities, genders, portrayed in full-body, half-body, and close-up shots against varied indoor and outdoor settings.
+In contrast to existing open-source testing datasets (HDTF and AVSpeech), our Long100 contains relatively complicated audio rhythms and intricate protagonist appearances. 
+Moreover, the average duration of Long100 (2-5 minutes) is significantly longer than existing open-source testing datasets (2-60 seconds). Long100 also involves multiple human-object interactions, such as instruments, making it more challenging to maintain identity consistency.
+
+\begin{figure}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{long100.pdf}
+\end{center}
+\vspace{-0.5cm}
+   \caption{Examples from Long100.
+   }
+\label{fig:long100}
+\vspace{-0.3cm}
+\end{figure}
+
+\begin{table}[t!]\small
+\caption{Ablation study on different weight assignment.
+}
+\vspace{-0.25in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.75}{
+\begin{tabular}{lcccccc}
+\toprule
+Model         & FVD          & CSIM$\uparrow$           & Sync-C$\uparrow$        & Sync-D        & IQA$\uparrow$           & ASE$\uparrow$           \\ \midrule
+Fixed weights & 705          & 0.838          & 8.08          & 7.18          & 3.73          & 2.25          \\
+Uniformed gap & 594          & 0.847          & 8.15          & 6.94          & 3.82          & 2.33          \\ \midrule
+Ours          & \textbf{532} & \textbf{0.853} & \textbf{8.20} & \textbf{6.83} & \textbf{3.84} & \textbf{2.39} \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\label{table:weight}
+\vspace{-0.2in}
+\end{table}
+
+
+\subsection{Additional Ablation on DWSW}
+\label{supp:ablation_window}
+We further conduct an ablation study on the weight assignment of our Dynamic Weighted Sliding Window Denoising Strategy (DWSM),as shown in Table \ref{table:weight}.
+Fixed weights set all weights of context window to 0.5 and Uniformed gap refers to the weights of each element in the context window following an arithmetic progression.
+We can observe that our logarithmic weighting function achieves the best performance, indicating that the logarithmic function prioritizes the fusion of elements from the previous context window in the early stages, while progressively and smoothly incorporating both context windows in the later stages, thereby facilitating the overall long video smoothness.
+
+
+\begin{table}[t!]\small
+\caption{Comparisons in inference latency and GPU resources. Inference latency (minutes) and GPU memory are measured for generating 81 frames at 480×832 resolution.
+}
+\vspace{-0.25in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.75}{
+\begin{tabular}{lccccc}
+\toprule
+Method         & CSIM$\uparrow$           & Sync-C$\uparrow$        & Sync-D        & GPU Mem & Speed \\ \midrule
+Hallo3~\cite{cui2025hallo3}         & 0.462          & 4.42          & 9.92          & 49.8G       & 13.72     \\
+FantasyTalking~\cite{wang2025fantasytalking} & 0.468          & 1.92          & 11.78         & 44.7G       & 16.40     \\
+HunyuanAvatar~\cite{chen2025hunyuanvideo}  & 0.472          & 4.34          & 10.07         & 26.6G       & 21.98     \\
+MultiTalk~\cite{kong2025let}      & 0.465          & 4.12          & 10.18         & 49.21G       & 23.0     \\
+OmniAvatar~\cite{gan2025omniavatar}     & 0.471          & 4.45          & 9.62          & 40.83G       & 20.31     \\ \midrule
+Ours           & \textbf{0.849} & \textbf{8.24} & \textbf{6.79} & \textbf{18.4G}       & \textbf{2.32}     \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\label{table:gpu}
+\vspace{-0.3in}
+\end{table}
+
+\subsection{Speed and GPU Resource.}
+\label{supp:gpu}
+We compare the inference speed and GPU memory consumption between our StableAvatar and previous models, as shown in Table \ref{table:gpu}.
+Despite being built on a significantly smaller backbone (Wan2.1-1.3B), StableAvatar achieves superior face quality and lip synchronization compared to prior Wan2.1-14B-based models~\cite{wang2025fantasytalking,kong2025let,gan2025omniavatar}, while requiring only half the memory and achieving a tenfold increase in inference speed over the leading competitor OmniAvatar~\cite{gan2025omniavatar}. This demonstrates its strong advantage in long-form avatar video generation.
+
+\subsection{Full/Half-Body Avatar Video Results}
+\label{supp:full_body}
+We perform a qualitative experiment in audio-driven full/half-body avatar animations, as shown in Fig. \ref{fig:full_body}.
+Each reference protagonist interacts with an object, such as an apple or a piano, making it more challenging to preserve appearance consistency and lip synchronization with the given audio.
+We can see that our model is capable of synthesizing full/half-body avatar videos, even involving interactions with external objects.
+
+\subsection{Multi-Avatar Animation}
+\label{supp:multi_avatar}
+To demonstrate the robustness of our StableAvatar, we experiment on a particular reference image involving multiple protagonists, as shown in Fig. \ref{fig:multiple_person}. We can see that our StableAvatar is also capable of handling audio-driven multiple-avatar animations while preserving the original identity and achieving high video fidelity.
+
+\subsection{Cartoon Avatar Video Generation}
+\label{supp:cartoon}
+To validate the diversity of our StableAvatar, we perform experiments on two reference images involving cartoon protagonists, as shown in Fig. \ref{fig:cartoon}. We can observe that our StableAvatar can also handle audio-driven cartoon avatar video generation, highlighting the diversity of our StableAvatar.
+
+
+\subsection{Long Avatar Video Results}
+\label{supp:long_video}
+Fig. \ref{fig:long_video_1}, Fig. \ref{fig:long_video_2}, Fig. \ref{fig:long_video_3}, Fig. \ref{fig:long_video_4}, and Fig. \ref{fig:long_video_5} show additional audio-driven long avatar videos synthesized by our StableAvatar.
+\textbf{Notably, each audio lasts over 3 minutes, and with an FPS of 30, this results in 5400+ synthesized frames. We only display selected frames from the last 10 seconds for brevity.}
+Each case contains complex protagonist's appearance and an intricate audio rhythm pattern.
+We can see that our StableAvatar can perform a wide range of audio-driven avatar animation while simultaneously preserving the protagonist’s appearance, background, and identity, even after synthesizing 5000+ frames.
+For example, in the reference image in the third row of Fig. \ref{fig:long_video_1}, the protagonist wears a mask, making it particularly challenging for the model to perform accurate lip synchronization with audio.
+Moreover, the reference protagonists in the fourth row and the sixth row of Fig. \ref{fig:long_video_4} face the camera at an angle, making it dramatically difficult for the avatar animation model to preserve ID consistency. 
+It is noticeable that our StableAvatar can accurately manipulate the lip, facial expression, and body gesture in the reference image while preserving high-quality identity consistency, even in specific cases involving head shaking and external object interaction.
+Moreover, StableAvatar supports simultaneously animating the avatar and background following the given audio via text prompt description.
+For example, in the reference images in the second row of Fig. \ref{fig:long_video_1} and the sixth row of Fig. \ref{fig:long_video_4}, StableAvatar utilizes text prompts to animate contextual elements—for instance, making the scenery outside a car window shift as the vehicle starts moving, or generating dynamic ocean waves along the coastline.
+
+\subsection{Limitation and Future Work}
+Fig. \ref{fig:limitation} shows one failure case of our StableAvatar. In the given reference image, the protagonist is a non-human creature (fantastical creature), which has significant appearance and structure discrepancies with the common human. Our StableAvatar struggles to find its lip, thereby failing to synchronize its lip with the audio.
+One potential solution is to introduce an additional reference network to explicitly capture the semantic details of the reference images. This part is left as future work. 
+
+\subsection{Ethical Concern}
+Our StableAvatar can animate the given reference image based on the given audio, which can be implemented in various fields, including virtual reality and digital human creation. However, the potential misuse of this model, particularly for creating misleading content on social media platforms, is a concern. To mitigate this, it is essential to use sensitive content detection algorithms.
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{full_body.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{Full/Half-body avatar animation results. The images with red borders are the reference images.}
+\label{fig:full_body}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{multiple_person.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{Audio-driven multiple-avatar animation results. The images with red borders are the reference images.}
+\label{fig:multiple_person}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{cartoon.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{Audio-driven cartoon avatar animation results. The images with red borders are the reference images.}
+\label{fig:cartoon}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{long_video_1.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{Audio-driven long avatar video results (1/5). The images with red borders are the reference images.}
+\label{fig:long_video_1}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{long_video_2.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{Audio-driven long avatar video results (2/5). The images with red borders are the reference images.}
+\label{fig:long_video_2}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{long_video_3.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{Audio-driven long avatar video results (3/5). The images with red borders are the reference images.}
+\label{fig:long_video_3}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{long_video_4.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{Audio-driven long avatar video results (4/5). The images with red borders are the reference images.}
+\label{fig:long_video_4}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{long_video_5.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{Audio-driven long avatar video results (5/5). The images with red borders are the reference images.}
+\label{fig:long_video_5}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{limitation.pdf}
+\end{center}
+\vspace{-0.55cm}
+   \caption{One failure case of our StableAvatar. The images with red borders are the reference images.}
+\label{fig:limitation}
+\vspace{-0.5cm}
+\end{figure*}

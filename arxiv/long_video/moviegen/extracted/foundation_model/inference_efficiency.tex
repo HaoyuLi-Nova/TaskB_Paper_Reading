@@ -1,0 +1,43 @@
+\subsubsection{Improving Inference Efficiency}%
+\label{sec:linear_quad_sampler}
+
+
+\begin{figure}[t!]
+  \centering
+  \begin{tabular}{C{0.45\linewidth}C{0.45\linewidth}}
+    \includegraphics[width=0.39\textwidth]{figures/foundation_model/ms3_inference_deltas.pdf} &
+    \includegraphics[width=0.39\textwidth]{figures/foundation_model/ms3_schedules.pdf} \\
+ (a) Average change in model outputs between inference steps & (b) The linear-quadratic \timeschedule
+  \end{tabular}%
+  \captionof{figure}{\textbf{The linear-quadratic \timeschedule.}
+ (a) Average change in transformer block input \vs output across inference steps, using a 1000-step linear \timeschedule.
+ (b) A 50-step linear and linear-quadratic \timeschedule.
+ Since the biggest changes in the model block inputs/outputs occur at early \timesteps,
+ our scheduler copies the first 25 low \timesteps and bridges the remaining \timesteps
+ with 25 quadratic steps.
+ }
+  \label{fig:deltas}
+\end{figure}
+
+To sample videos efficiently,
+we use the Euler sampler with a unique \timeschedule tailored to our model.
+Empirically, we found that Euler outperforms higher-order solvers like midpoint~\citep{atkinson1991introduction} or adaptive solvers like Dopri5~\citep{dormand1980family}.
+We observed that reducing the number of inference steps for video generation is more challenging than for image generation due to the additional time dimension, \ie, the quality and prompt alignment of the generated motion are more sensitive to the number of inference steps compared to static images.
+For example, videos generated with 250, 500, or 1000 linear steps show noticeable differences in scene composition and motion quality.
+While techniques such as distillation~\citep{salimans2022progressive,kohler2024imagine} can be used to speed up the model inference, they require additional training.
+Next, we show a simple inference-only technique that can lead up to $\sim20\times$ speed up with a few lines of code.
+
+We found that we can closely approximate the quality of an $N$-step video generation process with merely 50 steps by implementing a linear-quadratic \timeschedule.
+This approach follows the first 25 steps of an $N$-step linear schedule and
+then approximates the remaining $N-25$ steps with 25 quadratically placed steps.
+For example, a video generated with 1000 linear steps can be precisely emulated by 25 linear steps followed by 25 quadratic steps,
+whereby the linear steps are identical to the first 25 linear steps of a 1000-step linear schedule.
+The linear-quadratic strategy is predicated on the observation that the first inference steps are pivotal in setting up the scene and motion of the video.
+This is visualized in~\cref{fig:deltas}, where we plot the average change between the input and output of each transformer block at every inference step.
+Similar behavior is observed in the diffusion-based fast video model PAB~\citep{zhao2024pab},
+where the average per-step difference of attention blocks follows a U-shaped pattern,
+compared to the L-shaped curve in~\cref{fig:deltas}.
+Since most changes occur in the first solver steps,
+taking over the first linear steps of an $N$-step schedule followed by much bigger steps is enough to approximate the full $N$-step result.
+The quadratic spacing of the latter steps is crucial, as it emphasizes the importance of the early stages in the flow-matching sequence.
+In practice, we use a 50-step linear-quadratic schedule emulating $N=250$ linear steps for optimal results.

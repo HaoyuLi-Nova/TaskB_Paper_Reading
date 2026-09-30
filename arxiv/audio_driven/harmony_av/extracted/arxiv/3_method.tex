@@ -1,0 +1,322 @@
+\section{Method}
+\label{sec:method}
+
+ \begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figures/framework2.pdf}
+    \vspace{-0.1in}
+    \caption{(a) \textbf{Mitigating Correspondence Drift with Cross-Task Synergy.} Our training paradigm leverages a supervised audio- and video-driven task to provide a strong alignment signal. This instills robust synchronization features in the model, stabilizing the otherwise stochastic joint generation process. (b) \textbf{Overview of the Harmony Model.} The architecture features parallel branches for multimodal inputs. The video stream is conditioned on a reference image and a descriptive prompt. The audio stream is conditioned on a reference audio, an ambient sound description, and a speech transcript. The model then generates a single, synchronized audio-visual result.}
+    \vspace{-0.1in}
+    \label{fig:framework}
+\end{figure*}
+
+
+In this section, we introduce \textbf{\modelname}, a novel framework for joint audio-\yr{video} synthesis designed to overcome the fundamental challenge of cross-modal alignment in diffusion models\yr{, capable of joint audio-video generation on speech, sound effects, and ambient audio}. 
+%Our approach is built on three core contributions: 
+\yr{We introduce three core innovative designs:}
+(1) a \textbf{Cross-Task Synergy} training strategy that \yr{combines the standard joint audio-video generation task with auxiliary 
+% audio-driven video generation task,
+\hutnew{audio-driven video and video-driven audio generation tasks,}  
+}
+% leverag\yr{ing} a high-quality audio-driven signal to accelerate and stabilize the learning of \yr{audio-video} alignment; 
+\hutnew{leveraging the strong, uni-directional supervisory signals from both to accelerate and stabilize the learning of audio-video alignment}
+(2) a \textbf{Global-Local Decoupled Interaction Module} that efficiently \yr{ensures} both fine-grained temporal correspondence and holistic stylistic consistency; 
+and (3) a \textbf{Cross-Task Alignment-Enhanced CFG} mechanism that repurposes guidance \yr{by designing more meaningful negative anchors,} to explicitly amplify audio-\yr{video} synchronization during inference.
+
+% \subsection{Preliminary: Joint Audio-\yr{Video} Diffusion}
+% \label{subsec:preliminary}
+
+% Standard joint audio-\yr{video} synthesis is based on Latent Diffusion Models. The process begins by encoding a video $V$ and its audio $A$ into compact latents, $z_v = \mathcal{E}_v(V)$ and $z_a = \mathcal{E}_a(A)$, using pre-trained autoencoders.
+
+% In the forward process, Gaussian noise is progressively added to these latents over $T$ timesteps according to a fixed schedule:
+% \begin{equation}
+%     z_t = \sqrt{\bar{\alpha}_t} z_0 + \sqrt{1 - \bar{\alpha}_t} \epsilon, \quad \epsilon \sim \mathcal{N}(0, \mathbf{I}).
+% \end{equation}
+
+% The reverse process trains a denoising network, $\epsilon_\theta$, which is fundamentally a \textbf{dual-stream architecture}. It consists of two parallel backbones: a video network dedicated to processing the noisy video latent $z_{v,t}$, and an audio network for the noisy audio latent $z_{a,t}$. To learn synchronization, these networks are explicitly coupled. At each step, they exchange information through an interaction module, typically implemented with cross-attention, allowing the generation of one modality to be conditioned on the state of the other. The entire model is trained to minimize the mean squared error between the true and predicted noise:
+% \begin{equation}
+% \begin{aligned}
+% \mathcal{L} = \mathbb{E}_{t, z_{v,t}, z_{a,t}, \epsilon} [ &||\epsilon_v - \hat{\epsilon}_v(z_{v,t}, z_{a,t}, t)||^2 + \\ &||\epsilon_a - \hat{\epsilon}_a(z_{v,t}, z_{a,t}, t)||^2 ].
+% \end{aligned}
+% \end{equation}
+% However, this standard approach struggles to learn robust alignment from two concurrently noisy signals—a core challenge our work addresses.
+\subsection{Preliminary: Joint Audio-\yr{Video} Diffusion}
+\label{subsec:preliminary}
+
+Joint audio-\yr{video} synthesis typically employs a dual-stream Latent Diffusion Model. After encoding a video $V$ and audio $A$ into latents ($z_v, z_a$), a denoising network $\epsilon_\theta$ is trained to reverse a standard Gaussian noising process. The network consists of parallel video and audio backbones that process their respective noisy latents, $z_{v,t}$ and $z_{a,t}$. Synchronization is learned through an interaction module (e.g., cross-attention) that couples the two streams. The model is optimized by minimizing the noise prediction error for both modalities:
+\begin{small}
+ \begin{equation}
+\mathcal{L} = ||\epsilon_v - \hat{\epsilon}_v(z_{v,t}, z_{a,t}, t)||^2 + ||\epsilon_a - \hat{\epsilon}_a(z_{a,t},z_{v,t},  t)||^2.
+\end{equation}
+\end{small}
+However, this standard approach struggles to learn robust alignment from two concurrently noisy signals—a core challenge our work addresses.
+
+
+\subsection{Cross-Task Synergy for Enhanced Alignment}
+\label{subsec:synergy}
+
+ \begin{figure}[t]
+    \centering
+    \includegraphics[width=0.38\textwidth]{figures/motivation.pdf}
+    \vspace{-0.1in}
+    \caption{Comparison of the audio-video alignment score among different training strategies.}
+    \vspace{-0.2in}
+    \label{fig:motivation}
+\end{figure}
+
+
+
+\subsubsection{The Challenge of Correspondence Drift}
+\label{ssubsec:problem}
+
+\noindent\textbf{Problem Formulation.}
+While recent advancements in joint audio-\yr{video} generation have focused on novel architectures, a fundamental challenge persists: achieving robust cross-modal alignment. We identify the root cause not as an architectural limitation, but as an inherent instability in the training paradigm, a phenomenon we term \textbf{Correspondence Drift}. During the initial stages of joint training, both audio and video signals are heavily diffused with noise. Attempting to learn a correspondence between two concurrently evolving, highly stochastic latent variables \yr{results in} an unstable and inefficient learning target, causing the alignment process to drift and converge slowly.
+
+\noindent\textbf{Empirical Motivation.}
+To empirically validate this hypothesis, we present a comparative analysis in \cref{fig:motivation}. We \yr{compare} the lip-sync alignment scores of an audio-driven \yr{video generation} task versus a joint \yr{audio-video} generation task, utilizing an identical network architecture (detailed in Sec.~\ref{sec:interaction_module}). The results %are unequivocal: 
+\yr{reveal that}
+the audio-driven model, conditioned on a clean audio signal, rapidly converges to a high alignment score; in contrast, the joint generation model exhibits markedly slower convergence. This disparity strongly indicates that anchoring one modality with a deterministic, noise-free signal, \yr{as implemented in the audio-driven model,}
+provides a stable learning gradient, enabling the cross-modal interaction module to efficiently capture alignment cues.
+
+
+
+
+
+\subsubsection{Cross-Task Synergy}
+\label{ssubsec:framework}
+
+\noindent\textbf{%Overall Strategy.
+\yr{Overview of Cross-Task Synergy.}}
+Based on this insight, we propose a novel training framework, \textit{Cross-Task Synergy}, which synergistically combines the standard joint \yr{audio-video} generation task \yr{(the primary task)} with 
+%an auxiliary audio-driven \yr{video generation} task.
+\hutnew{audio-driven video and video-driven audio generation tasks.}
+By leveraging the high-quality\yr{, noise-free} learning signal from the \hutnew{uni-directional supervisory} task, our model efficiently learns intricate audio-\yr{video} correspondences. This pre-learned alignment knowledge then acts as a powerful catalyst, accelerating the convergence and enhancing the final alignment quality of the primary joint generation task.
+
+% \noindent\textbf{Dual-Branch Model Architecture.} 
+% Our model is composed of a video generation \yr{branch} and an audio generation \yr{branch}.
+% The video generation \yr{branch} is built upon the pre-trained Wan2.2-5B~\cite{wan} model, which takes in an image $I$ and \yr{a} text prompt $T_v$ as inputs, and generates \yr{a} video $V$ conditioned on them. 
+% To ensure structural parity, we design an audio generation branch that mirrors \yr{the architecture of} its video counterpart. \hut{This branch is designed to synthesize a target audio clip $A$ \yr{from three} %conditioned on a rich set of 
+% inputs: 
+% a speech transcript $T_s$ (the exact words to be spoken), a descriptive audio caption $T_a$ (specifies how the audio should sound, e.g., vocal emotion, background noise), and an optional reference audio clip $A_r$ (for speaker identity and timbre).} 
+
+% \hut{To \yr{process the conditioning inputs and target}, we employ a multi-encoder setup:} 
+% First, the target audio $A$ and the reference audio $A_r$ are encoded into latent representations using a pre-trained audio VAE ($\mathcal{E}_a$) from MMAudio~\cite{cheng2025mmaudio}, \yr{\textit{i.e.,}}
+% \(z_a = \mathcal{E}_a(A), z_r = \mathcal{E}_a(A_r).\)
+% Next, the textual and descriptive conditions are processed by \yr{separate} semantic encoders to preserve phonetic precision, departing from prior works~\cite{liu2025javisdit, low2025ovi} that use a single encoder:
+% \begin{itemize}
+%     \item A dedicated \textbf{speech-encoder}~\cite{chen2024f5} processes the speech transcript $T_s$ to produce a speech embedding $\mathbf{e}_{\text{speech}}$, capturing the precise phonetic content.
+%     \item A \textbf{T5 encoder}~\cite{chung2023umT5} processes the descriptive audio prompt $T_a$ into an embedding $\mathbf{e}_{\text{prompt}}$, capturing the overall semantic description of the audio, including vocal style and acoustic scene.
+% \end{itemize}
+
+% During the denoising process, these conditioning signals are integrated \yr{together}. To control timbre, the reference latent $z_r$ is prepended to the noisy target latent $z_{a,t}$ along the temporal axis, forming a composite input latent $z'_{a,t}$. This composite latent, along with the speech and prompt embeddings, is then processed by a Multi-Modal Diffusion Transformer (MM-DiT) to predict the noise:
+\noindent\textbf{Dual-Branch Model Architecture.} 
+\hutnew{Our model features a dual-branch architecture for video and audio generation. The video branch adapts the pre-trained Wan2.2-5B model~\cite{wan}. To ensure structural parity, we design a symmetric audio generation branch that synthesizes an audio clip $A$ conditioned on a speech transcript $T_s$ (phonetic content), a descriptive caption $T_a$ (describing the acoustic scene, e.g., vocal emotion or ambient sounds), and a reference audio $A_r$ (timbre). We process these inputs with a multi-encoder setup: an audio VAE~\cite{cheng2025mmaudio} encodes $A$ and $A_r$ into latents $z_a$ and $z_r$. Crucially, departing from prior works~\cite{liu2025javisdit, low2025ovi}, we use separate text encoders to preserve phonetic precision: a dedicated speech-encoder~\cite{chen2024f5} for the transcript $T_s$ ($\to \mathbf{e}_{\text{speech}}$) and a T5 encoder~\cite{chung2023umT5} for the descriptive prompt $T_a$ ($\to \mathbf{e}_{\text{prompt}}$). During denoising, the reference latent $z_r$ is prepended to the noisy target latent $z_{a,t}$, forming a composite input latent $z'_{a,t}$. This composite latent, along with the speech and prompt embeddings, is then processed by a Multi-Modal Diffusion Transformer (MM-DiT) to predict the noise:}
+\begin{equation}
+    \hat{\epsilon}_a = \text{MM-DiT}(\text{concat}(z'_{a,t}, \mathbf{e}_{\text{speech}}, \mathbf{e}_{\text{prompt}}), t_a).
+\end{equation}
+To facilitate effective cross-modal \yr{interaction between the two branches}, we instantiate a bidirectional \yr{global-local decoupled} interaction module at each layer, with further details provided in Sec.~\ref{sec:interaction_module}.
+
+\noindent\textbf{Cross-Task Synergy Training.}
+\yr{We design a} hybrid training strategy \yr{that} realizes the principle of Cross-Task Synergy. By concurrently training on both \yr{the} joint generation \yr{task} and \hut{and two deterministic, single-modality-driven tasks (audio-\yr{driven} video \yr{gen} and video-\yr{driven} audio \yr{gen})}, we provide the model with a stable alignment signal to counteract Correspondence Drift. 
+
+\hutnew{The audio-driven task conditions video generation on the clean audio latent by setting the audio timestep $t_a$ to 0. Symmetrically, the video-driven task conditions audio generation on the clean video latent by setting the video timestep $t_v$ to 0. The total training objective is a weighted sum of the three corresponding losses:}
+\begin{equation}
+\label{eq:total_loss}
+\mathcal{L} = \mathcal{L}_{\text{joint}} + \lambda_v \mathcal{L}_{\text{driven}}^\text{audio} + \lambda_a \mathcal{L}_{\text{driven}}^\text{video},
+\end{equation}
+where $\lambda_v$ and $\lambda_a$ are balancing hyperparameters, and $\mathbf{c}$ represents the set of auxiliary conditions (e.g., text prompts and speech embeddings). The loss components are defined as:
+% \begin{align}
+%     \mathcal{L}_{\text{joint}} &= \mathbb{E}_{(z_{v,t}, z_{a,t}), \epsilon, t, \mathbf{c}} [ ||\epsilon_v - \hat{\epsilon}_v(z_{v,t}, z_{a,t}, t)||^2  \notag \\
+%     & \qquad \qquad + ||\epsilon_a - \hat{\epsilon}_a(z_{a,t}, \mathbf{c}, t)||^2 ], \\
+%     \mathcal{L}_{\text{driven}}^\text{audio} &= \mathbb{E}_{(z_{v,t}, z_{a,0}), \epsilon_v, t} \left[ ||\epsilon_v - \hat{\epsilon}_v(z_{v,t}, z'_{a,0}, t)||^2 \right], \\
+%     \mathcal{L}_{\text{driven}}^\text{video} &= \mathbb{E}_{(z_{a,t}, z_{v,0}), \epsilon_a, t, \mathbf{c}} \left[ ||\epsilon_a - \hat{\epsilon}_a(z_{a,t}, z_{v,0}, \mathbf{c}, t)||^2 \right].
+% \end{align}
+\begin{equation}
+\begin{aligned}
+    \mathcal{L}_{\text{joint}} =& ||\epsilon_v - \hat{\epsilon}_v(z_{v,t}, z_{a,t},\mathbf{c}, t)||^2 \\&+ ||\epsilon_a - \hat{\epsilon}_a(z_{a,t}, z_{v,t}\mathbf{c}, t)||^2, \\
+    \mathcal{L}_{\text{driven}}^\text{audio} =& ||\epsilon_v - \hat{\epsilon}_v(z_{v,t}, z_{a,0},\mathbf{c}, t)||^2, \\
+    \mathcal{L}_{\text{driven}}^\text{video} =& ||\epsilon_a - \hat{\epsilon}_a(z_{a,t}, z_{v,0}, \mathbf{c}, t)||^2.
+\end{aligned}
+\end{equation}
+This bidirectional, synergistic training approach enables our model to achieve faster convergence and a superior degree of final audio-video alignment.
+
+
+
+\subsection{Global-Local Decoupled Interaction Module}
+\label{sec:interaction_module}
+
+\hut{Robust audio-\yr{video} synchronization presents a fundamental tension between two objectives: \textbf{\textit{(1)}} precise, fine-grained temporal alignment and \textbf{\textit{(2)}} holistic, global style consistency \yr{(\textit{e.g.}, emotional tone, ambient features)}. Prior works~\cite{liu2025javisdit, low2025ovi} often attempt to address both with a single, monolithic mechanism like global cross-attention, which conflates these goals and leads to a suboptimal trade-off. To resolve this, we propose a novel \textbf{Global-Local Decoupled Interaction Module} with two specialized components: \textbf{\textit{(1)}} a \textbf{\yr{RoPE}-Aligned Frame-wise Attention} module for precise local synchronization, and \textbf{\textit{(2)}} a \textbf{Global Style Alignment} module for holistic consistency. This decoupled design allows each component to excel at its specific task, resolving the conflict between fine-grained temporal alignment and global style propagation.}
+% \hut{While structural parity is a prerequisite, achieving robust audio-\yr{video} synchronization presents a fundamental tension between two distinct objectives: \textbf{\textit{(1)}} precise, fine-grained temporal alignment and \textbf{\textit{(2)}} holistic, global style consistency \yr{(\textit{e.g.}, emotional tone, ambient environmental features)}. A key limitation of prior works~\cite{liu2025javisdit, low2025ovi} is their attempt to address both challenges with a single, monolithic interaction mechanism, such as global cross-attention \yr{between audio and video streams}. This conflates the two \yr{objectives}, overburdening the model and leading to a suboptimal trade-off where neither objective is fully achieved.}
+
+% \hut{In contrast, our central contribution is a principled decoupling of these two objectives. We propose a novel \textbf{Global-Local Decoupled Interaction Module} composed of two specialized, complementary components: \textbf{\textit{(1)}} a highly efficient \textbf{\yr{RoPE}-Aligned Frame-wise Attention} module dedicated to enforcing precise local\yr{, frame-level} synchronization, and \textbf{\textit{(2)}} a \textbf{Global Style Alignment} module that propagates holistic stylistic attributes without interfering with the temporal alignment process. This \yr{decoupled interaction mechanism} allows each module to excel at its specific task, resolving the trade-off between \yr{fine-grained temporal alignment} %precision 
+% and global consistency.}
+
+
+\subsubsection{\yr{RoPE}-Aligned Frame-wise Attention}
+% \hut{For precise temporal synchronization, we adopt a \textbf{local, frame-wise attention} strategy\yr{, where} each frame only attends to a small, relevant temporal window in the other modality. 
+% Compared to global cross-attention, this approach offers superior fine-grained alignment—such as matching lip movements to phonemes—and is significantly more computationally efficient.}
+
+% \noindent\hut{\textbf{The Challenge of Mismatched Timescales.} However, a direct application of frame-wise attention is problematic. Video and audio latents are sampled at different rates, resulting in different temporal lengths ($T_v \neq T_a$). This \yr{poses} a fundamental challenge: the model often cannot find a \textit{precise} corresponding frame in the other modality. 
+% For instance, the exact %audio 
+% \yr{video} transient corresponding to %a visual 
+% \yr{an audio} cue might occur at a %moment in time 
+% \yr{timepoint} that falls \textit{between} two discrete %audio 
+% \yr{video} latent frames. 
+% A standard attention mechanism, which operates over a discrete set of keys, forces the model to attend to the nearest, but temporally imperfect, frame. This forced approximation introduces temporal jitter and degrades fine-grained synchronization, as the model is perpetually unable to access the exact cross-modal information it requires.}
+
+\hutnew{To achieve precise temporal synchronization, we employ a local frame-wise attention strategy, which is more computationally efficient and better suited for fine-grained alignment than global cross-attention. However, a key challenge arises from the mismatched sampling rates of video and audio latents ($T_v \neq T_a$). This discrepancy means a specific event in one modality can occur at a timepoint that falls \textit{between} two discrete frames in the other. A standard attention mechanism, forced to operate on a discrete set of keys, must attend to the nearest but temporally imperfect frame. This forced approximation introduces temporal jitter and fundamentally degrades fine-grained synchronization.}
+
+\noindent\hut{\textbf{Temporal Alignment via RoPE Scaling.} To resolve this mismatch, we introduce an alignment step prior to the attention operation~\cite{cheng2025mmaudio}. Our key insight is to unify the temporal coordinate spaces of both modalities by dynamically scaling their Rotary Positional Embeddings (RoPE)~\cite{su2024roformer}. Before attention \yr{operation}, we rescale the positional indices of the source modality to match the timeline of the target. For instance, in Audio-to-Video (A2V) attention, an audio frame at index $j$ is mapped to a virtual position $j' = j \cdot (T_v / T_a)$ for its RoPE calculation. This ensures their positional encodings are directly comparable, establishing a strong inductive bias for correct temporal correspondence.}
+
+\noindent\hut{\textbf{Frame-wise Cross-Attention Mechanism.} With the latents now temporally aligned in the RoPE space, we apply a symmetric, bidirectional cross-attention mechanism. 
+\yr{Each frame's attention is confined to a small, relevant temporal window in the other modality.}
+Taking A2V as an example, given a video latent $z_v$ and an audio latent $z_a$, we first reshape $z_v$ to expose its temporal dimension ($z'_v$). For each video frame $i$, we construct a local context window $C_{a,i}$ from adjacent audio frames. Cross-attention is then applied independently for each video frame, attending to its corresponding audio context window:}
+\begin{equation}
+\begin{aligned}
+    &\Delta z'_v[:, i, :, :] = \text{Cross-Attn}(Q_{v,i}, K_{a,i},V_{a,i}), \forall i \in [0, T_v\text{-}1],\\
+    &\yr{Q_{v,i} = z'_v[:, i, :, :] W^Q_{v,i}, K_{a,i} = C_{a,i} W^K_{a,i}, V_{a,i} = C_{a,i} W^V_{a,i}}.
+    %\quad \forall i \in [0, T_v-1].
+\end{aligned}
+\end{equation}
+The Video-to-Audio (V2A) \yr{frame-wise} alignment operates analogously. The updates are then integrated via residual connections:
+\begin{equation}
+\begin{aligned}
+    z_v^{\text{updated}} = z_v + \Delta z'_v, \quad
+    z_a^{\text{updated}} = z_a +  \Delta z_a.
+\end{aligned}
+\end{equation}
+This RoPE-aligned frame-wise mechanism efficiently enforces mutual temporal synchronization, \yr{leveraging} the benefits of local attention while correctly handling disparate timescales.
+
+
+\subsubsection{Global Style Alignment}
+% \hut{While frame-wise attention excels at establishing fine-grained temporal correspondence, its localized nature \yr{inherently limits} the propagation of holistic stylistic attributes, such as \yr{the} overall emotional tone or ambient environmental characteristics\yr{, which require a global context to be consistently maintained.} A critical distinction of our approach lies in how we achieve this global \yr{style} consistency. Prior methods often rely on a single, monolithic global attention mechanism, which conflates the distinct tasks of temporal alignment and \yr{global} style \yr{consistency}. This overburdens the module, making optimization difficult as it must simultaneously learn ``what happens when" and ``what is the overall vibe."}
+
+% \hut{Therefore, we propose a principled decoupling: our RoPE-Aligned Frame-wise Attention is exclusively responsible for precise temporal correspondence, while a dedicated \textbf{Global Style Alignment} module handles holistic consistency. This separation allows each component to specialize, leading to more efficient learning and preventing interference between the two objectives.}
+
+% The core insight is to leverage the reference audio latent, $z_r$, \yr{that provides speaker identity and timbre,} as a compact carrier for global style information. Instead of directly injecting features into the target audio $z_a$, which could disrupt the fine-grained denoising process, we modulate $z_r$ with the global context from the entire video latent $z_v$. This is achieved by treating $z_r$ as the query and $z_v$ as the key and value within a residual cross-attention block:
+\hutnew{While frame-wise attention excels at establishing fine-grained temporal correspondence, its localized nature \yr{inherently limits} the propagation of holistic stylistic attributes, such as \yr{the} overall emotional tone or ambient characteristics, \yr{which require a global context to be consistently maintained}. Prior methods often rely on a single, monolithic global attention mechanism, which conflates the distinct tasks of temporal alignment and \yr{global} style \yr{consistency}, overburdening the module. To address this, we propose a principled decoupling: our RoPE-Aligned Frame-wise Attention is exclusively responsible for precise temporal correspondence, while a dedicated \textbf{Global Style Alignment} module handles holistic consistency. This separation allows each component to specialize, preventing interference between the two objectives.}
+
+\hutnew{Our core insight for global alignment is to leverage the reference audio latent, $z_r$ \yr{(which provides speaker identity and timbre)}, as a compact carrier for style information. Instead of directly modifying the target audio $z_a$ and disrupting its fine-grained denoising, we modulate $z_r$ with the global context from the entire video latent $z_v$. This is achieved by treating $z_r$ as the query and $z_v$ as the key and value within a residual cross-attention block:}
+\begin{equation}
+\begin{aligned}
+    &z_r^{\text{updated}} = z_r + \text{Cross-Attn}(Q_r, K_v, V_v), \\
+    &\yr{Q_r=z_rW^Q_r, K_v=z_vW^K_v, V_v=z_vW^V_v}.
+\end{aligned}
+\end{equation}
+The resulting visually-informed \yr{reference audio} latent $z_r^{\text{updated}}$ is then prepended to the noisy audio latent $z_{a,t}$ (as described in \cref{ssubsec:framework}), allowing the audio generation to condition on a visually-grounded global style.
+This decoupled %approach is highly advantageous. 
+\yr{design offers a key advantage:}
+by \yr{confining} the global style injection to the reference latent, \yr{it prevents interference between} holistic \yr{style} consistency \yr{and} %does not interfere with the 
+precise frame-wise temporal alignment, preserving the stability and fidelity of the final audio generation.
+
+
+
+ \begin{figure}[t]
+    \centering
+    \includegraphics[width=0.38\textwidth]{figures/SyncCFG.pdf}
+    \vspace{-0.1in}
+    \caption{\textbf{SyncCFG} employs the mute audio and static video as the negative anchors to capture the synchronization feature, which can effectively enhance the audio-video alignment.}
+    \vspace{-0.15in}
+    \label{fig:SyncCFG}
+\end{figure}
+
+ 
+\subsection{Synchronization-Enhanced CFG}
+\label{subsec:alignment_cfg}
+
+While Classifier-Free Guidance (CFG) is a powerful technique for conditional generation, its standard application in audio-\yr{video} synthesis fails to explicitly amplify the crucial correspondence between modalities. To address this, we introduce \textbf{Synchronization-Enhanced (SyncCFG)}, a novel scheme that repurposes the guidance mechanism to specifically target and enforce audio-\yr{video} synchronization. Our approach leverages the dual capabilities—joint generation and audio\&video-driven synthesis—acquired during our cross-task training to enhance the alignment signal.
+
+% \subsubsection{Analysis of Standard Guidance Limitations}
+% The standard CFG formulation~\cite{low2025ovi} for a joint audio-\yr{video generation} model is:
+% \begin{equation}
+%     \tilde{\epsilon} = \hat{\epsilon}_{\theta}(\emptyset_v, \emptyset_a) + s \cdot \Big( \hat{\epsilon}_{\theta}(z_{v,t}, z_{a,t}) - \hat{\epsilon}_{\theta}(\emptyset_v, \emptyset_a) \Big).
+% \end{equation}
+% The primary function of this operation is to strengthen the model's adherence to the conditions provided by the video latent $z_{v,t}$ and the audio latent $z_{a,t}$. The positive term, $\hat{\epsilon}_{\theta}(z_{v,t}, z_{a,t})$, inherently contains the desired cross-modal alignment signal. The key challenge is to amplify this specific signal.
+
+% However, the negative anchor, $\hat{\epsilon}_{\theta}(\emptyset_v, \emptyset_a)$, represents a fully unconditional generation. While subtracting this term enhances overall conditionality, it provides a poor baseline for %isolating the 
+% \yr{audio-video} alignment. The resulting guidance vector is a composite that entangles the alignment signal with the individual content signals of each modality. It does not offer a way to specifically amplify the \textbf{interaction} between audio and video, as the baseline is unrelated to the current sample's content.
+
+\subsubsection{Analysis of Standard Guidance Limitations}
+\hutnew{The standard CFG formulation in previous work~\cite{low2025ovi} is used to strengthen the conditioning on a text prompt $c$:}
+\begin{small}
+\begin{equation}
+    \tilde{\epsilon} = \hat{\epsilon}_{\theta}(z_{v,t}, z_{a,t}, \emptyset_c) + s \Big( \hat{\epsilon}_{\theta}(z_{v,t}, z_{a,t}, c) - \hat{\epsilon}_{\theta}(z_{v,t}, z_{a,t}, \emptyset_c) \Big).
+    \label{eq:standard_cfg}
+\end{equation}
+\end{small}
+Here, the guidance pushes the denoising process away from an unconditional (null-text $\emptyset_c$) prediction and towards one that aligns with the text prompt $c$.
+
+\hutnew{The key limitation of standard CFG is that its guidance is oriented solely towards text-adherence. The guidance vector, computed by contrasting the text-conditioned output with a text-unconditioned one, exclusively strengthens how well the output matches the prompt. This process, however, is agnostic to the internal consistency between audio and video. It provides no mechanism to isolate or amplify the crucial \textbf{synchronization} signal between the two streams.}
+% The key limitation is that this process treats the audio-video pair as a monolithic block. The positive term, $\hat{\epsilon}_{\theta}(z_{v,t}, z_{a,t}, c)$, contains the desired cross-modal alignment signal, but it is entangled with signals for text adherence and individual modality content. The negative anchor, $\hat{\epsilon}_{\theta}(z_{v,t}, z_{a,t}, \emptyset_c)$, represents a text-free generation and provides no information about the \textit{internal consistency} between audio and video. Consequently, this guidance vector enhances text-faithfulness but cannot isolate or specifically amplify the \textbf{synchronization} between the audio and video streams.
+
+\subsubsection{SyncCFG Formulation for Video Guidance}
+% To explicitly compute the alignment-enhancing direction, we %must
+% \yr{design} a \textit{more meaningful Negative Anchor}. For video generation, we \yr{design a mute audio-based negative anchor} to isolate the influence of the audio. 
+% We use the audio-driven pathway of our model to predict the noise for the video latent under a ``muted" audio condition \hut{$z_{a,0}^{null}$}. 
+% \yr{The} prediction $\hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,t}, \yr{z_{a,0}^{null}})$ represents the video \yr{prediction} without any audio influence.
+\hutnew{To explicitly compute an alignment-enhancing direction, we aim at isolating the visual dynamics caused by the audio. Our key insight is to design a \textit{more meaningful Negative Anchor} that represents a static baseline—how the video should look in the absence of sound. For instance, for a person speaking, the correct video for a silent audio track would be a still face with a closed mouth.}
+
+\hutnew{We achieve this by creating a ``silent audio" negative anchor. We leverage the audio-driven pathway of our model to predict the noise for the video latent $z_{v,t}$ conditioned on a ``muted" audio input, $z_{a,0}^{null}$. The resulting prediction, $\hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,t}, z_{a,0}^{null})$, represents the model's expectation for this visually static scene.}
+The guided prediction for the video noise $\tilde{\epsilon}_v$ is then formulated as:
+\begin{small}
+\begin{equation}
+\label{eq:cfg_video}
+\begin{aligned}
+    \tilde{\epsilon}_v =& \hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,t}, z_{a,0}^{null}) + \\ &s_v \Big( \hat{\epsilon}_{\theta}^{\text{joint}}(z_{v,t}, z_{a,t}) - \hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,t}, z_{a,0}^{null}) \Big).
+\end{aligned}
+\end{equation}
+\end{small}
+The subtraction term \hutnew{isolates the precise visual modifications—such as mouth movements or object impacts—that are directly correlated with the audio. By amplifying this difference, SyncCFG specifically enhances the synchronization between sound and motion.}
+% the difference between the video prediction \textit{with} audio influence and the prediction \textit{without} it\yr{, which} explicitly represents the directional change in the video latent space required to achieve alignment with the audio.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/comparison.pdf}
+    \vspace{-0.1in}
+    \caption{\textbf{Qualitative Comparison} between Harmony and the state-of-the-art methods, including Universe-1~\cite{wang2025universe} and Ovi~\cite{low2025ovi}.}
+    \vspace{-0.1in}
+    \label{fig:comparison}
+\end{figure*}
+
+
+
+\subsubsection{SyncCFG Formulation for Audio Guidance}
+% \yr{Similarly}, to enhance the influence of the video on audio \yr{generation}, we %define a corresponding guidance signal. 
+% \yr{design a null video-based negative anchor.}
+% %The negative anchor is the joint prediction with a null video latent, $\emptyset_v$, which represents the audio generated without visual context: $\hat{\epsilon}_{\theta}^{\text{joint}}(\emptyset_v, z'_{a,t})$. 
+% \yr{We use the video-driven generation pathway of our model to predict the noise for audio latent under a stable video latent \hutnew{$z_{v,0}^{null}$, which indicates %the audio should be mute.
+% \yr{the video content is static.}
+% }
+% The prediction $\hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,0}^{null}, z_{a,t})$ represents the audio prediction without any visual context.}
+% The guided \yr{prediction for} audio noise $\tilde{\epsilon}_a$ is \yr{then formulated as}:
+
+\hutnew{\yr{Similarly}, for audio guidance, we \yr{design a null video-based negative anchor} to isolate motion-driven sounds. Using a ``static video" latent $z_{v,0}^{null}$, we predict a baseline audio signal $\hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,0}^{null}, z_{a,t})$ that represents the ambient sound of a motionless scene, \yr{as the video content is static}. The guided \yr{prediction for} audio noise $\tilde{\epsilon}_a$ is \yr{then formulated as}:}
+% \begin{small}
+% \begin{equation}
+% \label{eq:cfg_audio}
+% \begin{split}
+%     \tilde{\epsilon}_a = \hat{\epsilon}_{\theta}^{\text{joint}}(\emptyset_v, z'_{a,t}) + s_a \cdot \Big( & \hat{\epsilon}_{\theta}^{\text{joint}}(z_{v,t}, z'_{a,t}) - \hat{\epsilon}_{\theta}^{\text{joint}}(\emptyset_v, z'_{a,t}) \Big).
+% \end{split}
+% \end{equation}
+% \end{small}
+\begin{small}
+\begin{equation}
+\label{eq:cfg_audio}
+\begin{aligned}
+    \tilde{\epsilon}_a = &\hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,0}^{null}, z_{a,t}) +\\& s_a \Big(  \hat{\epsilon}_{\theta}^{\text{joint}}(z_{v,t}, z_{a,t}) - \hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,0}^{null}, z_{a,t}) \Big).
+\end{aligned}
+\end{equation}
+\end{small}
+This approach transforms CFG from a generic conditional amplifier into a targeted mechanism, \yr{effectively} enforcing fine-grained audio-\yr{video} correspondence.
+% \begin{equation}
+%         \mathbf{\hat{\epsilon}_{\theta}^{\text{driven}}(z_{v,0}^{null}, z_{a,t})}
+% \end{equation}
+
+% \begin{equation}
+%         \mathbf{\hat{\epsilon}_{\theta}^{\text{joint}}(z_{v,t}, z_{a,t})}
+% \end{equation}
+
+% \begin{equation}
+%         \mathbf{z_{v,t-1}, z_{a,t-1}}
+% \end{equation}
+

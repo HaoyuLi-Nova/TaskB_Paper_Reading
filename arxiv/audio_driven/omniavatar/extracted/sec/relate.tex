@@ -1,0 +1,48 @@
+\section{Related Work}
+
+\subsection{Video Generation}
+
+Recent progress in video generation builds on the success of diffusion-based image synthesis~\cite{dhariwal2021diffusion,rombach2022high}. UNet-based diffusion models pretrained on images are first extended to the temporal domain. Make-A-Video~\cite{singer2022make} inserts temporal attention to create short clips with strong spatial fidelity, while AnimateDiff~\cite{guo2023animatediff} adds motion-aware modules and cross-frame constraints to improve temporal smoothness and enable human-centric content.
+
+Building on these foundations, models shift toward transformer-based architectures to better capture long-range temporal dependencies and semantic consistency. CogVideo~\cite{yang2024cogvideox} and Goku~\cite{chen2025goku} advance text-to-video generation by leveraging large-scale vision-language pretraining and hierarchical token fusion, enabling fine-grained semantic alignment from text prompts. HunyuanVideo~\cite{kong2024hunyuanvideo} extends this line of work by integrating multimodal prompts into a dual-stream DiT-based framework, supporting precise conditional control across diverse scenarios. Wan~\cite{wan2025wan} further contributes a suite of large-scale video generation models with strong scalability and competitive performance.
+
+\subsection{Audio-Driven Video Generation}
+
+Early audio-driven human animation relies on two-stage pipelines that first predict motion parameters—typically via 3D Morphable Models (3DMM)~\cite{blanz2003face}—and then render frames~\cite{zhang2023sadtalker,shen2023difftalk,wei2024aniportrait}. Although interpretable, these cascaded methods suffer from limited expressiveness and temporal drift.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/pipeline.pdf}
+    \vspace{-0.25in}
+    \caption{\textbf{Overview of OmniAvatar.} Our design integrates the simplicity of Wan~\cite{wan2025wan}. Based on text, image, and audio inputs, OmniAvatar generates lifelike human videos, producing highly realistic and expressive character animations.
+}
+    \vspace{-0.15in}
+    \label{fig:framework}
+\end{figure*}
+
+Driven by diffusion models, recent research converges on \emph{end-to-end} generation. Representative diffusion-based systems introduce multi-stage refinement and long-range attention to boost realism and coherence~\cite{chen2025echomimic,meng2024echomimicv2,xu2024hallo,cui2024hallo2,cui2024hallo3}. V-Express~\cite{wang2024v} leverages conditional dropout or cyclic prediction to balance weak (audio) and strong (visual) cues. Loopy~\cite{jiang2024loopy} leverage long-term motion information to earn
+natural motion patterns. Under data-lean or ambiguous settings, emotion-aware objectives and end-effector guidance refine lip-sync fidelity and facial detail~\cite{tian2024emo,tian2025emo2,wang2025fantasytalking,wei2025mocha,ji2024sonic}. Meanwhile, localized attention and gesture-adaptive conditioning improve controllability and efficiency for semi-body synthesis~\cite{lin2024cyberhost,liu2024tango,guo2024liveportrait}. Toward foundation-level capability, OmniHuman~\cite{lin2025omnihuman} unifies one-stage generation across different identities and scenarios with multiple conditions, whereas HunyuanVideo-Avatar~\cite{chen2025hunyuanvideoavatar} and MultiTalk~\cite{kong2025let} scales to multi-character, high-fidelity human video generation. While current models are still facing challenges in achieving lip-sync accuracy and generating fluid, natural full-body movements simultaneously in audio-driven human video generation.
+
+% Early audio-driven human animation relies on two-stage pipelines that first predict motion parameters---typically via 3D Morphable Models (3DMM)---and then render frames~\cite{zhang2023sadtalker, shen2023difftalk, wei2024aniportrait}. Although interpretable, these cascaded methods suffer from limited expressiveness and temporal drift.
+
+% Driven by diffusion transformers (DiT), recent work moves toward \emph{end-to-end} generation. EchoMimic and the Hallo series extend a DiT backbone with multi-stage refinement and long-range attention to improve realism and motion continuity~\cite{xu2024hallo,cui2024hallo3,chen2025echomimic}. Loopy and V-Express further exploit conditional dropout or cyclic prediction to balance weak (audio) and strong (visual) cues~\cite{jiang2024loopy,wang2024v}.
+
+% Under data-lean or ambiguous settings, Emotion-DiT and FantasyTalking incorporate emotion-aware objectives and end-effector guidance to refine lip-sync and facial nuances~\cite{tian2024emo,wang2025fantasytalking}. Efficiency-oriented approaches such as CyberHost and Tango adopt localized attention or gesture-adaptive conditioning for controllable real-time synthesis~\cite{lin2024cyberhost,liu2024tango}.
+
+% Towards a foundation model, OmniHuman unifies one-stage generation across identities and resolutions~\cite{lin2025omnihuman}, while HunyuanVideo-Avatar achieves multi-character, high-fidelity talking-head video~\cite{chen2025hunyuanvideoavatar}. Despite these strides, robust identity preservation and context-aware body motion across diverse speakers remain open challenges.
+
+
+% \subsection{Audio-Driven Video Generation}
+
+% Audio-driven human animation began with two-stage pipelines such as \textit{SadTalker}~\cite{zhang2023sadtalker}, \textit{DiffTalk}~\cite{shen2023difftalk} and \textit{AniPortrait}~\cite{wei2024aniportrait}, which predict 3DMM coefficients~\cite{blanz2003face} from speech and then render frames; however, the explicit parameterization limits expressiveness and temporal fidelity. Recent work turns to end-to-end diffusion transformers: \textit{EchoMimic}~\cite{chen2025echomimic,meng2024echomimicv2} and the \textit{Hallo} family~\cite{xu2024hallo,cui2024hallo2,cui2024hallo3} insert long-range attention and multi-stage denoising, \textit{Loopy}~\cite{jiang2024loopy} introduces cyclic prediction, and \textit{V-Express}~\cite{wang2024v} balances weak audio with strong visual cues via conditional dropout. Under limited supervision, \textit{Emotion-DiT}~\cite{tian2024emo,tian2025emo2}, \textit{FantasyTalking}~\cite{wang2025fantasytalking} and \textit{MoCha}~\cite{wei2025mocha} leverage emotion objectives or sparse landmarks for finer lip dynamics, while \textit{CyberHost}~\cite{lin2024cyberhost}, \textit{Tango}~\cite{liu2024tango} and \textit{LivePortrait}~\cite{guo2024liveportrait} pursue real-time controllability through localized attention or gesture conditioning. Pushing toward foundation models, \textit{OmniHuman}~\cite{lin2025omnihuman} unifies one-stage generation across identities and resolutions, and \textit{HunyuanVideo-Avatar}~\cite{chen2025hunyuanvideoavatar} extends this to multi-character, high-fidelity talking heads. Nonetheless, reliably preserving identity and generating context-aware full-body motion across diverse speakers remains an open challenge.
+
+
+% Audio-driven human animation has long been explored using two-stage methods~\cite{zhang2023sadtalker,shen2023difftalk,wei2024aniportrait}, which first extract motion parameters—typically via 3D Morphable Models (3DMM)~\cite{blanz2003face}—and then generate video through rendering or warping. While interpretable, these approaches often lack expressive power and temporal coherence.
+
+% Recent approaches increasingly adopt end-to-end diffusion-based frameworks for improved realism and temporal consistency. Methods such as EchoMimic~\cite{chen2025echomimic,meng2024echomimicv2}, the Hallo series~\cite{xu2024hallo,cui2024hallo2,cui2024hallo3}, Loopy~\cite{jiang2024loopy}, and V-Express~\cite{wang2024v} extend DiT architectures with multi-stage refinement, long-term motion modeling, or conditional training to enhance expressiveness, motion continuity, and multimodal control. Meanwhile, several methods~\cite{tian2024emo,tian2025emo2,wang2025fantasytalking,wei2025mocha} focus on generation under weak supervision or ambiguous input, incorporating emotion-aware modeling, end-effector guidance, or perceptual losses to improve fidelity in lip sync and facial dynamics. Others~\cite{lin2024cyberhost,liu2024tango,guo2024liveportrait} address controllability and efficiency through localized attention, gesture-aware conditioning, and portrait retargeting techniques.
+
+% In addition, OmniHuman~\cite{lin2025omnihuman} introduces a unified one-stage generation framework that scales across characters and resolutions, pushing toward foundation-level audio-driven animation. HunyuanVideo-Avatar~\cite{chen2025hunyuanvideoavatar} further supports high-fidelity, emotionally expressive synthesis for multi-character scenarios. Despite these advances, challenges remain in preserving identity and producing nuanced, context-aware motion across diverse speakers and conditions.
+
+
+
+% omnihuman;loopy;mocha;emo;emo2;liveportrait;tango;cyberhost

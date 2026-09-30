@@ -1,0 +1,74 @@
+
+% \input{figures/video_samples.tex}
+
+\begin{figure*}
+%\setlength{\abovecaptionskip}{5pt plus 3pt minus 2pt}
+\centering
+\includegraphics[width=.99\textwidth,trim={0 0.6cm 0 0},clip]{VideoPoetPaper_Dual_Figure3.png}
+\vspace{-2mm}
+\caption{\textbf{\modelname{} Overview}: a versatile video generator that conditions on multiple types of inputs and performs a variety of video generation tasks.}
+\label{fig:info_graphic}
+\vspace{-4mm}
+\end{figure*}
+
+\vspace{-8mm}
+\section{Introduction} 
+\vspace{-1mm}
+\label{sec:intro}
+
+Recently, there has been a surge of generative video models capable of a variety of video creation tasks.
+These include text-to-video~\cite{zhang2023show,singer2022make}, image-to-video~\cite{yu2023video}, video-to-video stylization~\cite{chen2023control,chai2023stablevideo,voleti2022mcvd}, and video editing~\cite{ceylan2023pix2video,wang2023zero,geyer2023tokenflow} among other video applications.
+Most existing models employ diffusion-based methods for video generation. 
+These video models typically start with a pretrained image model, such as Stable Diffusion~\cite{rombach2022high,podell2023sdxl}, that produces high-fidelity images for individual frames, and then fine-tune the model to improve temporal consistency across video frames. 
+
+While Large Language Models (LLMs) are commonly used as foundation models across various modalities including language~\cite{brown2020language}, code~\cite{li2023starcoder,openai2023gpt4}, audio~\cite{rubenstein2023audiopalm}, speech~\cite{agostinelli2023musiclm}, and robotics~\cite{driess2023palm,brohan2023rt}, the diffusion model remains the predominant approach for video generation.
+Although early research has demonstrated the effectiveness
+of LLMs in text-to-image generation, \eg, DALL-E~\cite{ramesh2022hierarchical}, Parti~\cite{yu2022scaling} and~\cite{ding2021cogview}, and text-to-video, \eg, CogVideo~\cite{hong2022cogvideo}), language models have not reached a level of quality on par with video diffusion models in tasks like text-to-video generation as shown in previous studies~\cite{nash2022transframer,villegas2022phenaki}.
+In contrast to training exclusively for text-to-video tasks, the generative model of LLMs in the language domain emphasizes a large pretraining stage to learn a foundation~\cite{bommasani2021opportunities} by examining pretraining tasks that extend beyond text-to-video generation.
+
+A notable advantage of employing LLMs in video generation  
+lies in the ease of integrating existing LLM frameworks. 
+%
+This integration allows for reusing LLM infrastructure and leverages the optimizations our community has developed over many years for LLMs, including optimizations in learning recipes for model scaling~\cite{brown2020language,chowdhery2022palm}, training and inference infrastructure~\cite{du2022glam}, hardware, among other advancements.
+%
+This couples with their flexibility in encoding many diverse tasks in the same model~\cite{raffel2020exploring},
+%~\cite{raffel2020exploring,brown2020language,hoffmann2022training,chowdhery2022palm,nash2022transframer}, 
+which stands in contrast to most diffusion models where architectural changes and adapter modules are the dominant approach used to adapt the model to more diverse tasks~\cite{zhang2023adding}.
+%~\cite{zhang2023adding,chen2023control,esser2023structure,liew2023magicedit}.
+
+In this paper, we exploit language models for video generation, following the canonical training protocols of LLMs in the language domain.
+We introduce \emph{\modelname{}}, a language model for video generation. \modelname{} employs a decoder-only LLM architecture~\cite{anil2023palm,openai2023gpt4} that admits image, video, and audio modalities as discrete tokens, each produced by their respective tokenizer.
+
+The training process of \modelname{} consists of two stages: (1) pretraining and (2) task-adaptation.
+%
+During pretraining, \modelname{} incorporates a mixture of multimodal pretraining objectives within an autoregressive transformer framework.
+%
+After pretraining, the model functions as a versatile multi-task video generation model such as text-to-video, image-to-video, video editing and video-to-video stylization.
+%
+These capabilities are inherently integrated into a single LLM, rather than relying on a separate generative model controlled by text prompts~\citep{tang2023any}.
+%
+During subsequent task-adaptation, the pretrained model can be further fine-tuned either to enhance its generation quality on the training tasks or to perform new tasks.
+
+%\lu{add a disclaimer about the claim not claiming SOTA on the audio, video-to-video, and others; feasibility exploration of many taks in the same model.}
+Experiments show \modelname{}'s state-of-the-art capabilities in generating videos with large and high-fidelity motions. 
+%
+With the powerful capabilities of the transformer architecture, \modelname{} can be straightforwardly trained on a multi-task, multimodal generative objective, allowing for generating consistent and realistic motion driven by text or other prompts. 
+%
+Furthermore, \modelname{} can synthesize coherent long videos of up to 10 seconds by autoregressively extending the content, conditioned on the last second of the generated video. 
+%
+%More results and videos are availalbe in the supplementary material. 
+%MH: move this part to experiment al results.
+%\textcolor{blue}{See the supplementary materials for the generated videos.}
+
+We also demonstrate that \modelname{} is capable of zero-shot video generation. We use the term ``zero-shot video generation'' as \modelname{} processes new text, image, or video inputs that diverge from the training data distribution.
+%
+Furthermore, \modelname{} handles new tasks not included in its training. For example, \modelname{} is able to perform new editing tasks by sequentially chaining tasks together. %\Cref{sec:capabilities_whole}.
+
+Our contribution is a proof of concept demonstrating an understudied approach to high-quality video generation with LLMs, distinct from the dominant diffusion-based methods.
+%
+Specifically, the main contributions include:
+\begin{itemize}[nosep, leftmargin=*]
+    \item A method for training a Large Language Model (LLM) specifically for video generation, utilizing tokenized data that incorporates both text-paired and unpaired videos.
+    \item A video super-resolution method that increases spatial resolution within the latent token space using a bidirectional transformer with efficient windowed local attention.
+    \item Evaluations and demonstrations to highlight  \modelname{}'s competitive and state-of-the-art performance, especially in generating realistic and interesting videos with motion.
+\end{itemize}

@@ -1,0 +1,37 @@
+# configs/config_qb.yaml
+
+dataset_name: 'QB'          
+model_name: 'SADM-Pan'      
+step: 'test'                
+
+# Training settings
+epoch_num: 500
+batch_size: 32
+base_lr: 1e-4
+weight_decay: 1e-6
+hid_channels: 64
+
+# Model input dimensions
+lms_channels: 4             
+pan_channels: 1             
+
+# Data properties
+bit_depth: 11               
+data_range: 2047           
+ratio: 4                    
+
+# Data paths
+train_data_path: '/home/vm1/Proj/pansharpening_data/training_qb/train_qb.h5'
+valid_data_path: '/home/vm1/Proj/pansharpening_data/training_qb/valid_qb.h5'
+test_data_path: '/home/vm1/Proj/pansharpening_data/training_qb/test_qb_multiExm1.h5'
+
+# Testing settings
+test_mode: 'reduced'
+
+# Visualization settings
+rgb_bands: [2, 1, 0]        
+
+# Output directories
+weights_path: 'weights'
+results_path: 'results_qb'  
+save_epoch: 25

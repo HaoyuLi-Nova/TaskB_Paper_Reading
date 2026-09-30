@@ -1,0 +1,26 @@
+
+\begin{table}[h]
+    \centering
+
+    \begin{tabular}{l|l|c|c|c|c}
+        \toprule
+        \textbf{Model} & \textbf{Optimization} & \textbf{TTFC(s)} & \textbf{Gain} & \textbf{TPOC(s)} & \textbf{Gain} \\
+        \midrule
+        \multirow{5}{*}{\makecell[l]{Autoregressive \\ Denoising Model}} 
+            & Baseline     & 73.34 & -      & 45.49 & -      \\
+            & KV Cache     & 73.34 & -      & 23.94 & 1.90X  \\
+            & Ulysses      & 3.86  & 18.0X  & 1.26  & 18.0X  \\
+            & Smooth Quant & 3.00  & 1.29X  & 0.98  & 1.29X  \\
+            & Cuda Graph   & 2.30  & 1.30X  & 0.98  & -      \\
+        \midrule
+        \multirow{3}{*}{\makecell[l]{Vae Decoder}}  
+            & Baseline      & 1.00  & -     & 1.00  & -     \\
+            & Tile Parallel & 0.20  & 5.00X & 0.20  & 5.00X \\
+            & torch.compile & 0.07  & 2.86X & 0.07  & 2.86X \\
+        \midrule
+        End-to-End & - & 2.37 & - & 0.98 & - \\
+        \bottomrule
+    \end{tabular}
+    \caption{Inference Optimization and Latency Gain}
+    \label{tab:opt_and_gain}
+\end{table}

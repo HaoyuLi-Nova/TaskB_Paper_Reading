@@ -1,0 +1,78 @@
+\subsection{Unified Video Editing}
+\label{sec:video_editing}
+
+
+The foundational pre-trained models for text-to-image and text-to-video generation have facilitated the expansion of various downstream tasks and applications, including repainting~\citep{sdinp, propainter}, editing~\citep{sdedit, ip2p, magicbrush, wang2023videocomposer, dreamVideo2}, controllable generation~\citep{controlnet, scedit, wang2024unianimate}, customized generation~\citep{anydoor, wei2025DreamRelation},
+frame reference generation~\citep{cogvideox, i2vadapter}, efficient generation~\citep{wang2023videolcm, yuan2024instructvideo, liu2024timestep}, and ID-referenced video synthesis~\citep{largen, consisid, phantom}. To enhance task flexibility and minimize the overhead associated with deploying multiple models, researchers have increasingly focused on developing unified model architectures~\citep{ominictr, unireal}, such as ACE~\citep{ace, acepp} and OmniGen~\citep{omnigen}. These unified architectures aim to integrate diverse tasks within a single image model, thereby facilitating the creation of various application workflows while maintaining ease of use. In the domain of video, the collaborative transformations in both temporal and spatial dimensions suggest that leveraging a unified model can unlock limitless possibilities for video creation. 
+
+In our previous work, VACE~\citep{vace}, we introduced a unified framework for controllable video generation and editing, addressing tasks such as reference-to-video generation, video-to-video editing, and masked video-to-video editing. Building upon the pre-trained model of \method, we integrate multiple modalities, including images and videos for editing, references, and masks, into the Video Condition Unit (VCU) to support diverse input formats. VACE employs a concept decoupling strategy that enables the model to identify which aspects should be retained and which should be modified, thereby distinctly separating visual modality information in editing and reference tasks. We offer two training modes. The first mode involves training with the VCU as input, fully fine-tuning the entire \method model. The second mode utilizes a pluggable Context Adapter structure in a Res-Tuning~\citep{restuning} manner, allowing support for controllable and editing tasks without modifying the base model's weights but with an increased overall model scale. Leveraging the robust video generation capabilities of \method, this innovative framework demonstrates significant competitiveness in both quantitative and qualitative evaluations. It facilitates the compositional expansion of fundamental tasks, enabling scenarios such as long video re-rendering. Consequently, the framework offers a versatile and efficient solution for video synthesis, opening new avenues for user-driven video content creation and editing.
+
+
+\begin{figure}[t]
+    \scriptsize
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/editing/VideoEditing.png}
+    \caption{Unified controllable generation and editing framework. Frames and masks are tokenized through Concept Decoupling, Context Latent Encode, and Context Embedder. We propose two training strategies for \method: Fully Fine-tuning and Context Adapter Tuning.}
+    \label{fig:framework_editing}
+\end{figure}
+
+
+
+\subsubsection{Model Design}
+
+The Video Condition Unit (VCU), proposed in VACE, serves as an input paradigm that unifies diverse input conditions into textual inputs, frame sequences, and mask sequences. It can be formally represented as follows:
+%
+\begin{equation}
+   V=[T;F;M],
+\end{equation}
+where $T$ is a text prompt, while $F$ and $M$ are sequences of context video frames $\{u_1,u_2,...,u_n\}$ and masks $\{m_1,m_2,...,m_n\}$ respectively. Here, $u$ is in RGB space, normalized to \([-1, 1]\) and $m$ is binary, in which ``1"s and ``0"s symbolize where to edit or not. $F$ and $M$ are aligned both in spatial size $h \times w$ and temporal size $n$. 
+%
+Under this paradigm, we employ the previously described \method-VAE to tokenize the input video frames and mask information into context tokens. 
+%
+As illustrated in  Fig.~\ref{fig:framework_editing} (a), these context tokens are then combined with noisy video tokens to fine-tune the \method model. Additionally, a Context Adapter Tuning strategy is proposed, which allows context tokens to pass through Context Blocks and be reintegrated into the original DiT blocks. This approach facilitates the seamless integration of contextual information, enhancing the model's ability to handle diverse editing and generation tasks without altering the base model's weights.
+
+\begin{figure}[t]
+    \scriptsize
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/editing/video_editing_2_com.pdf}
+    \caption{The visualization results of the proposed VACE.}
+    \label{fig:video_editing_showcase1}
+    \vspace{-2mm}
+\end{figure}
+
+\begin{figure*}[h]
+    \scriptsize
+    \centering
+    \includegraphics[width=0.93\linewidth]{figures/editing/video_editing_com.pdf}
+    \caption{The visualization results of the proposed VACE.}
+    \label{fig:video_editing_showcase2}
+\end{figure*}
+
+Before tokenization, pixel-level context frames and masks are preprocessed using a concept decoupling strategy and then encoded into the latent space. As shown in Fig.~\ref{fig:framework_editing} (b), the concept decoupling strategy explicitly separates the data of different modalities and distributions based on masks into two frame sequences of identical shape: $F_c = F \times M$ and $F_k = F \times (1-M)$, where $F_c$ refers to reactive frames containing all pixels to be modified, while $F_k$ denotes inactive frames that retain all pixels to be preserved, named inactive frames. This mechanism ensures clear task definitions and guarantees the model's convergence across different tasks. $F_c$, $F_k$ are processed by \method-VAE and mapped into the same latent space of $X$, maintaining their spatio-temporal consistency. To avoid any mishmash of images and videos, reference images are separately encoded by the \method-VAE encoder and concatenated back along the temporal dimension, while the corresponding parts need to be removed during decoding. $M$ is directly reshaped and interpolated. After that, $F_c$, $F_k$, and $M$ are mapped into latent spaces and spatio-temporal aligned with $X$ in the shape of $n' \times h' \times w'$.
+
+\begin{figure*}[!t]
+    \scriptsize
+    \centering
+   \includegraphics[width=0.9\linewidth]{figures/editing/wan_showcase.pdf}
+    \caption{The visualization results of advanced video/image editing.}
+    \label{fig:video_editing_showcase3}
+    % \vspace{-10pt}
+\end{figure*}
+
+\subsubsection{Datasets and Implementation}
+
+\textbf{Data construction}. To develop an all-in-one model, the diversity and complexity of data construction must increase. For controllable video generation and editing tasks, input modalities are expanded to include target videos, source videos, local masks, references, and more. Efficient and rapid data acquisition for various tasks necessitates maintaining video quality while performing instance-level analysis and understanding. We begin by performing shot slicing on the video data and initially filtering based on resolution, aesthetic score, and motion amplitude. The first frame is then labeled using RAM~\citep{ram} and processed with Grounding DINO~\citep{groundingdino} for detection, enabling secondary filtering of videos with target areas that are either too small or too large. Additionally, we utilize the propagation operation of SAM2~\citep{sam2} for video segmentation to obtain instance-level information throughout the video. Based on the segmentation results, we further filter instances temporally by calculating the effective frame ratio according to a mask area threshold. The construction for different tasks must be tailored to each task's specific characteristics. For detailed information, refer to the work~\citep{vace}.
+
+\textbf{Implementation details}. We train the controllable and editing model, pre-trained on \method-T2V-14B, to support resolutions up to 720p through a multi-stage training process. Initially, we focus on foundational tasks such as inpainting and extension to complement the pre-trained text-to-video models. 
+%
+This phase incorporates masks and develops contextual generation capabilities in both spatial and temporal dimensions. Subsequently, we expand the task by transitioning from single-input to multiple-input reference frames and from individual to composite tasks. Finally, we enhance the model's quality by fine-tuning it with higher-quality data and longer sequences.
+
+
+\subsubsection{Evaluation}
+
+In Fig.~\ref{fig:video_editing_showcase1} and Fig.~\ref{fig:video_editing_showcase2}, we present the results of the \method single model across various tasks. 
+%
+It is evident that the model achieves a high level of performance in video quality and temporal consistency. Additionally, we demonstrate new applications resulting from the combination of different generative capabilities, as illustrated in Fig.~\ref{fig:video_editing_showcase3} (a). Our model performs effectively on these tasks, showcasing significant potential for capability expansion. 
+%
+The unified controllable generation and editing framework proposed by VACE is also applicable to image generation and editing, as shown in Fig.~\ref{fig:video_editing_showcase3} (b).
+

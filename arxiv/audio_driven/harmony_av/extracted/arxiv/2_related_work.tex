@@ -1,0 +1,18 @@
+\section{Related Work}
+\label{sec:related_work}
+
+
+
+
+
+
+\subsection{Video Generation}
+The field of video generation has rapidly advanced~\cite{animatediff,hunyuanvideo,wan,hu2025ultragen,xue2025ultravideo}, transitioning from early Generative Adversarial Networks (GANs)~\cite{gan} to the now-dominant diffusion models~\cite{ddpm}. Building on their success in image synthesis~\cite{ldm, sdxl,hu2025improving}, models like AnimateDiff~\cite{animatediff} and SVD~\cite{svd} extended diffusion to the temporal domain. Architectures have also evolved from UNets to more powerful Diffusion Transformers (DiT)~\cite{cogvideox, opensoraplan}, with recent open-source models like HunyuanVideo~\cite{hunyuanvideo} and Wan~\cite{wan} achieving state-of-the-art visual quality, which inspired a lot of downstream video generation methods, like video customization~\cite{hu2025hunyuancustom,hu2025polyvivid}, video editing~\cite{liang2025omniv2v,chen2025ivebench}, and camera control~\cite{wang2024motionctrl,hu2024motionmaster,hu2025high}. However, a critical limitation persists across this body of work: a singular focus on the visual modality. By generating silent videos, these models produce content that feels incomplete and lacks the immersive quality of real-world experiences, underscoring the need for cohesive audio-visual synthesis.
+
+% \subsection{Audio-driven Video Generation}
+% To imbue generated videos with an auditory dimension, a significant body of work has explored audio-driven video synthesis. In this paradigm, the process begins by acquiring an audio track, which is either a pre-existing recording or synthesized on-demand using Text-to-Speech (TTS) models~\citep{chen2024f5,du2024cosyvoice}. The subsequent video generation is then conditioned on this fixed audio, with a primary focus on tasks like creating realistic talking heads with precise lip synchronization~\citep{chen2025hunyuanavatar,lin2025omnihuman,cui2024hallo3,hu2025hunyuancustom}. However, this unidirectional workflow imposes a fundamental limitation: it prevents any mutual influence between the modalities. The video generation process can only react to the audio and cannot inform its characteristics. This often leads to a perceptual mismatch, where the audio's timbre or tone feels incongruous with the visual attributes of the speaker or the scene, resulting in a disjointed experience.
+
+
+\subsection{Joint Audio-Video Generation}
+
+Recently, a growing body of research has begun to explore the simultaneous generation of audio and video within a single, unified framework~\citep{liu2025javisdit,ruan2023mmdiffusion,low2025ovi,wang2025universe,wang2025av,xing2024seeing,zhang2025uniavgen}. However, most of the early open-source approaches in this domain were restricted to synthesizing coarse environmental sounds and were unable to generate meaningful human speech~\citep{liu2025javisdit,ruan2023mmdiffusion,ishii2024simple}. This limitation began to be addressed by subsequent models like JAM-Flow~\cite{kwon2025jam} and UniAVGen~\cite{zhang2025uniavgen}, which started to incorporate speech-video joint generation. A significant advancement came with models like UniVerse-1~\citep{wang2025universe} and Ovi~\citep{low2025ovi}, which integrated more powerful audio synthesis components to enable the joint generation of both ambient sounds and human vocals. Despite this progress, a key challenge remains in the detailed alignment of the overall soundscape. These models often struggle to cohesively blend human speech with its surrounding environmental audio in a manner that is acoustically and semantically consistent with the visual context, highlighting a remaining gap in creating truly immersive audio-visual experiences.

@@ -1,0 +1,92 @@
+\begin{figure}[!t]
+    \centering
+    \begin{minipage}{0.47\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/bench/wan-bench.pdf}
+        \caption{The dimensions covered in \method-Bench.}
+        \label{vanbench-struct}
+    \end{minipage}\hfill
+    \begin{minipage}{0.47\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/bench/prompt_dist.pdf}
+        \caption{Distribution of the number of prompts across various dimensions of \method-Bench.}
+        \label{prompt_dist}
+    \end{minipage}
+\end{figure}
+
+
+
+\subsection{Benchmarks}
+
+Existing video generation evaluation methods, such as Fréchet Video Distance (FVD)~\citep{2018Towards} and Fréchet Inception Distance (FID)~\citep{heusel2017gans}, lack alignment with human perception. We propose an automated, comprehensive, and human-aligned \method-Bench for evaluating video generation models. 
+
+
+\method-Bench is composed of three core dimensions: dynamic quality, image quality, and instruction following with 14 fine-grained metrics. We design specific scoring algorithm for each dimension, using traditional detectors for the simple tasks (\eg, object detection) and multi-modal Large Language Models (MLLMs) for the complex tasks. 
+
+
+\textbf{Dynamic quality}. Dynamic quality aims to evaluate the quality and stability of the model in non-static scenarios.
+
+\textit{Large motion generation.} To measure the upper limit of motion generation, prompts are designed to encourage significant motions. 
+%
+We calculate the optical flow of the generated video using RAFT~\citep{2021RAFT} and assess the motion scores by the magnitude of the normalized optical flow.
+
+
+\textit{Human artifacts.}
+Existing evaluation methods lack the ability to detect AI-generated artifacts.
+%
+Thus, we train a YOLOv3-based model~\cite{2018YOLOv3} on 20,000 AI-generated images annotated by humans to identify the locations of artifacts.
+%
+The artifact scores take into account the predicted likelihood, the bounding boxes, and the corresponding duration.
+
+
+\textit{Physical plausibility \& smoothness}. To evaluate physical plausibility, we design prompts to generate physics-related movements (\eg, ball bouncing, object interactions, water flow) and employ Qwen2-VL~\citep{qwenvl}, leveraging its extensive real-world physics knowledge. 
+%
+Through a video question-answer model, we detect violations of physical laws, such as object clipping, unrealistic collisions, or gravity-defying movements.
+To evaluate smoothness, prompts are crafted to include complex motions, with Qwen2-VL identifying artifacts to assess motion fluidity.
+
+
+
+\textit{Pixel-level stability}.
+Pixel-level stability is used to determine if noise frequently appears in the video. We employ optical flow to identify static regions and calculate frame-wise differences within those areas. 
+For stable videos, these differences within static regions are relatively minimal.
+
+
+\textit{ID consistency.} Three kinds of sub-dimensions are considered: human consistency, animal consistency, and object consistency covering different collections of prompts. Frame-level DINO \citep{2021Emerging} features are extracted to compare the frame-wise similarity as the consistency score.
+
+\textbf{Image quality.} The purpose of the image quality dimension is to evaluate the visual quality and aesthetic perception.
+
+
+\textit{Comprehensive image quality.} Measuring the visual quality requires an evaluation of the fidelity and aesthetics. 
+For fidelity, we employ MANIQA \citep{2022MANIQA}, which effectively detects blur and artifacts, ensuring precise clarity assessment. 
+For aesthetics, we utilize two established models: the LAION-based aesthetic predictor~\citep{LAION-AI_aesthetic-predictor_2022} and MUSIQ~\citep{2021MUSIQ}. We compute the final image quality score by averaging these three evaluators.
+
+
+\textit{Scene generation quality.}
+We evaluate two key aspects: frame-wise scene consistency and scene-text alignment. For consistency, we measure CLIP similarity \citep{radford2021learning} across consecutive frames to ensure temporal coherence. 
+For alignment, we compute CLIP similarity between frames and their corresponding text to verify semantic accuracy. 
+We compute the quality score by weighted averaging these metrics.
+
+
+\textit{Stylization.} We employ Qwen2-VL to evaluate the artistic video generation capability through frame-level question answering.
+
+
+\textbf{Instruction following.} Instruction following assesses the model's ability to comprehend and execute textual instructions.
+
+
+\textit{Single object \& multiple objects \& spatial positions.} 
+We employ Qwen2-VL to predict object categories, counts, and spatial relationships within videos. 
+The evaluation score represents the average number of frames that accurately correspond to the given prompts.
+
+
+
+\textit{Camera control.}
+We evaluate five camera movement styles: panning, lifting, zooming in/out, aerial shots, and tracking shots by 130 tailored prompts. For panning, lifting, and zooming, we analyze optical flow via RAFT to assess movement style. 
+For complex aerial and tracking shots, we employ Qwen2-VL to infer camera movement through video question-answering.
+
+\textit{Action instruction following.} We categorize motions into human (\eg, running), animal (\eg, crawling), and object movements (\eg, flying). 
+As evaluating these motions requires prior knowledge of their execution, we employ Qwen2-VL by providing it with keyframes. 
+We query the model for alignment of the action, completion of the action, and presence of artifacts to comprehensively evaluate alignment between text and video.
+
+\textbf{Human feedback guided weighting strategy.}\label{hf-align} We utilize human feedback to assign a comprehensive video quality score, considering that each dimension has a different impact on user preferences rather than simply averaging them.
+We collect over 5,000 pairwise comparisons of videos generated by different models including \method. Users evaluate pairs based on a given text, indicating their preference and assigning approximate scores. 
+The dimension preference weighting is derived from the Pearson correlation between model-generated scores and human-rated scores, serving as a weighting factor in the final score calculation. 

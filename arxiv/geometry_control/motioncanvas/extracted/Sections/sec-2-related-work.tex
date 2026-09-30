@@ -1,0 +1,45 @@
+
+\section{Related Work}
+\label{sec-2-related-work}
+
+\noindent \textbf{Image Animation.} \
+Early work drew heavily on classical graphics techniques, often aiming to reconstruct 3D geometry from a single 2D image and then re-render it at novel views. Notably, \emph{`Journey into the Picture'} established a pipeline for extracting planar layers and synthesizing minimal 3D scenes, while 3D Ken Burns~\cite{niklaus3d} harnessed estimated depth to produce convincing camera parallax, which is further improved in SynSin~\cite{wiles2020synsin}.
+However, these methods are fundamentally limited to generating camera effects on static photographs without object motions. 
+
+Beyond camera motions, another line of work animates only selective parts of an image, generally referred to as \emph{`cinematographs'}~\cite{chuang2005animating}. They manually define different types of motion for different subject classes. More recent works~\cite{mahapatra2023synthesizing, holynski2021animating, fan2022SLR} have employed deep networks to predict motion to generate cinemagraphs. However, these methods can only generate subtle motion for specific classes of elements like clouds, smoke, etc.
+
+%%%%%%% Figure: Overall Pipeline %%%%%%%
+\input{Figures/fig-overall-pipeline}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\vspace*{1mm}
+\noindent \textbf{Image-to-Video Generation.}  \
+The field of video foundation models~\cite{blattmann2023stable,xing2023dynamicrafter,chen2023videocrafter1,videoworldsimulators2024,bar2024lumiere,polyak2024movie,yang2024cogvideox,hacohen2024ltx} has seen significant advances in recent years. These methods demonstrate great abilities to generate highly realistic videos from a single image and a user-specified text prompt. However, they typically offer limited or no user control over the motion in the generated videos, 
+%constraining their suitability 
+thereby limiting their applicability. 
+%to professional video production workflows.
+
+
+\vspace*{1mm}
+\noindent \textbf{Controllable Video Generation.}  \
+Existing works~\cite{wang2024boximator,wu2025draganything,xing2024make,wang2024motionctrl} typically offer one of these three forms of user-guided control: 
+%
+\textbf{(1) Bounding Box Control}~\cite{wang2024boximator,ma2024trailblazer,huang2023factor,li2023trackdiffusion,wu2024motionbooth}.
+They allow users to control object motion by drawing a sequence of bounding boxes starting from the object position. Since these works do not provide controllability for camera motion, the bounding box control alone inevitably introduces ambiguity,~\eg, it is not clear to move objects or the whole scene to follow the bbox positions.
+%
+\textbf{(2) Point Trajectory Control}~\cite{wu2025draganything,niu2025mofa,wang2024motionctrl,mou2024revideo,qiu2024freetraj}.
+While these methods provide decent drag-based motion control using point trajectories, they fail to account for object motion in a 3D-aware manner and are often restricted to only a limited number of trajectories.
+\textbf{(3) Camera Control}~\cite{wang2024motionctrl,he2024cameractrl,yu2024viewcrafter,wang2024akira,bahmani2024ac3d}.
+This line of work provides camera motion control in video generation with explicit 3D camera parameters.  However, the training dataset for these methods is restricted to mostly static scenes and curated domains, so they can only produce few object motions and lack generalizability. 
+
+
+
+
+
+In contrast, our approach provides joint object-level control (via bounding boxes or point trajectories) and camera-level control in a unified framework. 
+%While MotionCtrl~\cite{wang2024motionctrl} tackles these two aspects, it effectively treats them as separate tasks due to dataset constraints (\eg, RealEstate10K provides camera pose labels but mostly contains static scenes). 
+Moreover, none of the prior methods mentioned integrate scene-aware object control, due to a lack of 3D training data. 
+%Our key insight is that \textbf{\textit{``we do not need explicit 3D camera data to achieve camera-controlled video generation.''}}  
+Instead, 
+%by connecting classical graphics insights with recent generators, 
+we train solely on 2D signals (\eg, point trajectories) and allow 3D-aware controls with depth-based synthesis.

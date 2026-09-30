@@ -1,0 +1,62 @@
+\begin{algorithm}[htbp]
+\caption{Dynamic Overlap Stage Search Algorithm w.r.t.~\ref{sec:magiattn_overlap}}
+\label{alg:dynamic-overlap-search}
+\begin{algorithmic}[1]
+\REQUIRE Remote $\mathrm{KV}$/$\mathrm{dKV}$ requests per rank; kernel cost models for FFA ($\mathrm{C}_{ffa}(\cdot)$), \texttt{group-cast} ($\mathrm{C}_{gc}(\cdot)$), and \texttt{group-reduce} ($\mathrm{C}_{gr}(\cdot)$), estimated via offline profiling;
+hyperparameters to control search range: $(min\_chunk\_size$,$max\_num\_chunks)$
+\ENSURE Optimal number of overlap stages for both forward and backward passes
+
+\FOR{each $\mathrm{rank}_i$ in parallel}
+    \STATE \textbf{[Step 1: Communication Partition]} Partition remote $\mathrm{KV}$/$\mathrm{dKV}$ requests into $p_i$ fine-grained communication packages, with sizes bounded by hyperparameters\\$(min\_chunk\_size, max\_num\_chunks)$
+    
+    \STATE \textbf{[Step 2: Cost Evaluation]} 
+    \FOR{$s_i \gets p_i$ to $1$}
+        \STATE Randomly assign $p_i$ communication packages into $s_i$ stages, and pack them
+        \STATE Estimate the overall timeline costs for both forward and backward as:
+        
+        \begin{align*}
+        C^{(fwd)}(s_i) &\gets \sum_{j=0}^{s_i-1} \underbrace{\max \left\{ \mathrm{C}_{gc}(j{+}1),\; \mathrm{C}_{ffa}(j) \right\}}_{\text{overlapped}} + \underbrace{\mathrm{C}_{ffa}(s_i)}_{\text{exposed}} \\
+        C^{(bwd)}(s_i) &\gets \sum_{j=0}^{s_i} \underbrace{\max \left\{ \mathrm{C}_{gc}(j{+}1), \mathrm{C}_{ffa}(j), \mathrm{C}_{gr}(j{-}1) \right\}}_{\text{overlapped}} + \underbrace{\mathrm{C}_{gr}(s_i)}_{\text{exposed}}
+        \end{align*}
+        
+        \COMMENT{Where $\mathrm{C}_{ffa}(0)$ denotes the host computation cost and $\mathrm{C}_{gc}(s_i{+}1),\mathrm{C}_{gr}(0),\mathrm{C}_{gr}(-1)$ are all assigned to $0$ to handle boundary conditions}
+    \ENDFOR
+
+    \STATE \textbf{[Step 3: Local Selection]} 
+    \STATE $s^{*(fwd)}_i \gets \arg\min\limits_{s_i} C^{(fwd)}(s_i)$ \COMMENT{Optimal forward stage count for $\mathrm{rank}_i$}
+    \STATE $s^{*(bwd)}_i \gets \arg\min\limits_{s_i} C^{(bwd)}(s_i)$ \COMMENT{Optimal backward stage count for $\mathrm{rank}_i$}
+\ENDFOR
+
+\STATE \textbf{[Step 4: Global Synchronization]} 
+\STATE $num\_stages^{(fwd)} \gets \max\limits_{i} s^{*(fwd)}_i$ via All-Reduce across all CP ranks
+\STATE $num\_stages^{(bwd)} \gets \max\limits_{i} s^{*(bwd)}_i$ via All-Reduce across all CP ranks
+
+\RETURN $num\_stages^{(fwd)}$, $num\_stages^{(bwd)}$
+
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

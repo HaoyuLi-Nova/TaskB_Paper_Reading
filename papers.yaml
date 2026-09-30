@@ -1,0 +1,1819 @@
+# Master paper catalog for the VideoGen / Controllable Generation reading project.
+# Each entry: id, track, slug, title, venue, year, arxiv, status, priority, deps
+# translation: translations/<track>/<slug>/paper_zh.md  (full Chinese translation)
+# notes: notes/<track>/<slug>/{QA,critique,note}.md  (reading notes — not translations)
+# status: pending | downloading | reading | notes_done | mastered
+# priority: P0 (must) | P1 (important) | P2 (context)
+
+version: 1
+updated: 2026-09-30
+
+tracks:
+  foundations:
+    name: Foundations — 模型结构与自监督前置
+    description: CNN/Transformer/自监督等基础论文（原 Task B），长期作为前置知识与代码学习线
+  base_models:
+    name: Base Models — 生成基座与可控生成插件
+    description: LDM/DiT/Flow 基座 + ControlNet 系条件控制 + 开源图像/视频大模型
+  geometry_control:
+    name: Geometry Control — 相机/物体/角色运动控制
+    description: 视频生成中的相机轨迹、物体运动、角色与多任务控制
+  multi_view:
+    name: Multi-View Generation — 多视角与 3D 一致性
+    description: 多相机同步、单视频重拍、3D 感知视频/多视角扩散
+  streaming:
+    name: Streaming Video Generation — 自回归/流式视频扩散
+    description: Diffusion Forcing / Self Forcing：训练-测试一致性与长视频生成
+  long_video:
+    name: Long Video Generation — 长视频生成方法
+    description: 分层关键帧、免训练外推、token 流、LLM 分镜与长视频综述；Forcing 系见 streaming
+  vla:
+    name: VLA — Vision-Language-Action 具身智能
+    description: 视觉-语言-动作基础模型与机器人操作策略
+  audio_driven:
+    name: Audio-Driven — 语音驱动视频与音色协调
+    description: 音频驱动说话人/人体动画、多人声脸绑定、face/text-guided VC；服务 HarmonizedVisualAudio 项目
+  visual_dubbing:
+    name: Visual Dubbing — 画面译制与跨语言说话脸编辑
+    description: mask/mask-free 口型同步、V2V 译制编辑、跨语言面部表演；服务 Faceglot（SIGGRAPH 2026）
+  eeg_visual:
+    name: EEG Visual Generation — 脑电驱动图像/视频/3D
+    description: 非侵入式 EEG 到图像、视频、3D 的解码与生成；有开源实现的工作优先入库
+  remote_sensing:
+    name: Remote Sensing — 遥感影像融合与 pansharpening
+    description: 全色锐化、多光谱融合、遥感 SSM/Mamba；与视频生成主线正交，按需入库
+  spatial:
+    name: Spatial Understanding — 视觉语言模型的空间理解
+    description: RGB 空间问答、场景级三维语言任务，以及推理时在模型内部形成三维表示；与视频生成主线正交。P0 为 2026 年五篇，P1 为读懂它们所需的上下文，P2 为十一篇之后再看的变体
+
+papers:
+  # ---------- foundations (原 Task B + 背景) ----------
+  - id: deformable_conv
+    track: foundations
+    slug: deformable_conv
+    title: Deformable Convolutional Networks
+    venue: ICCV
+    year: 2017
+    arxiv: "1703.06211"
+    status: notes_done
+    priority: P2
+    translation: translations/foundations/deformable_conv/paper_zh.md
+    code: code/foundations/deformable_conv/
+
+  - id: transformer
+    track: foundations
+    slug: transformer
+    title: Attention Is All You Need
+    venue: NeurIPS
+    year: 2017
+    arxiv: "1706.03762"
+    status: notes_done
+    priority: P2
+    translation: translations/foundations/transformer/paper_zh.md
+    code: code/foundations/transformer/toy/
+
+  - id: dynamic_conv
+    track: foundations
+    slug: dynamic_conv
+    title: "Dynamic Convolution: Attention over Convolution Kernels"
+    venue: CVPR
+    year: 2020
+    arxiv: "1912.03458"
+    status: notes_done
+    priority: P2
+    translation: translations/foundations/dynamic_conv/paper_zh.md
+    code: code/foundations/dynamic_conv/
+
+  - id: jigsaw
+    track: foundations
+    slug: jigsaw
+    title: Unsupervised Learning of Visual Representations by Solving Jigsaw Puzzles
+    venue: ECCV
+    year: 2016
+    arxiv: "1603.09246"
+    status: notes_done
+    priority: P2
+    translation: translations/foundations/jigsaw/paper_zh.md
+    code: code/foundations/jigsaw/
+
+  - id: simclr
+    track: foundations
+    slug: simclr
+    title: A Simple Framework for Contrastive Learning of Visual Representations
+    venue: ICML
+    year: 2020
+    arxiv: "2002.05709"
+    status: notes_done
+    priority: P2
+    translation: translations/foundations/simclr/paper_zh.md
+    code: code/foundations/simclr/
+
+  - id: resnet
+    track: foundations
+    slug: resnet
+    title: Deep Residual Learning for Image Recognition
+    venue: CVPR
+    year: 2016
+    arxiv: "1512.03385"
+    status: notes_done
+    priority: P2
+    translation: translations/foundations/resnet/paper_zh.md
+
+  - id: pspnet
+    track: foundations
+    slug: pspnet
+    title: Pyramid Scene Parsing Network
+    venue: CVPR
+    year: 2017
+    arxiv: "1612.01105"
+    status: notes_done
+    priority: P2
+    translation: translations/foundations/pspnet/paper_zh.md
+
+  - id: mae
+    track: foundations
+    slug: mae
+    title: Masked Autoencoders Are Scalable Vision Learners
+    venue: CVPR
+    year: 2022
+    arxiv: "2111.06377"
+    status: notes_done
+    priority: P2
+    translation: translations/foundations/mae/paper_zh.md
+
+  - id: lora
+    track: foundations
+    slug: lora
+    title: "LoRA: Low-Rank Adaptation of Large Language Models"
+    venue: ICLR
+    year: 2022
+    arxiv: "2106.09685"
+    status: reading
+    priority: P0
+    deps: [transformer]
+    tags: [peft, adapter, low_rank, llm]
+    notes: notes/foundations/lora/critique.md
+    code: code/foundations/lora/
+    one_liner: 冻结预训练权重、注入低秩分解矩阵做适配；无额外推理延迟的参数高效微调
+
+  - id: vit_registers
+    track: foundations
+    slug: vit_registers
+    title: Vision Transformers Need Registers
+    venue: ICLR
+    year: 2024
+    arxiv: "2309.16588"
+    status: notes_done
+    priority: P2
+    deps: [mae]
+    tags: [vit, register, attention, dense_features]
+    notes: notes/foundations/vit_registers/critique.md
+    one_liner: 用可学习 register token 承接 ViT 中被回收的高范数背景 token，清掉特征图伪影
+
+  - id: compact_registers
+    track: foundations
+    slug: compact_registers
+    title: "Efficient Vision-Language Models by Summarizing Visual Tokens into Compact Registers"
+    venue: arXiv
+    year: 2024
+    arxiv: "2410.14072"
+    status: notes_done
+    priority: P2
+    deps: [vit_registers]
+    tags: [vlm, register, token_reduction, efficiency]
+    notes: notes/foundations/compact_registers/critique.md
+    one_liner: 前几层把视觉 token 汇总进少量 register 后丢弃原视觉序列，换吞吐（Victor）
+
+  - id: metaqueries
+    track: foundations
+    slug: metaqueries
+    title: Transfer between Modalities with MetaQueries
+    venue: arXiv
+    year: 2025
+    arxiv: "2504.06256"
+    status: notes_done
+    priority: P2
+    deps: [vit_registers]
+    tags: [mllm, query, diffusion, unified_multimodal]
+    notes: notes/foundations/metaqueries/critique.md
+    one_liner: 可学习 query 作冻结 MLLM 与扩散解码器之间的接口，把理解侧知识转到像素生成
+
+  # ---------- base_models ----------
+  - id: ldm
+    track: base_models
+    slug: ldm
+    title: High-Resolution Image Synthesis with Latent Diffusion Models
+    venue: CVPR
+    year: 2022
+    arxiv: "2112.10752"
+    status: reading
+    priority: P0
+    deps: []
+    tags: [diffusion, latent, unet, foundation]
+    translation: translations/base_models/ldm/paper_zh.md
+    code: code/base_models/ldm/
+    one_liner: 在潜空间做扩散，奠定 Stable Diffusion 系图像生成基座
+
+  - id: sd3
+    track: base_models
+    slug: sd3_rectified_flow
+    title: Scaling Rectified Flow Transformers for High-Resolution Image Synthesis
+    venue: ICML
+    year: 2024
+    arxiv: "2403.03206"
+    status: notes_done
+    priority: P0
+    deps: [ldm]
+    tags: [rectified_flow, dit, mmdit, foundation]
+    translation: translations/base_models/sd3_rectified_flow/paper_zh.md
+    one_liner: Rectified Flow + MM-DiT，SD3 系图像生成范式
+
+  - id: controlnet
+    track: base_models
+    slug: controlnet
+    title: Adding Conditional Control to Text-to-Image Diffusion Models
+    venue: ICCV
+    year: 2023
+    arxiv: "2302.05543"
+    status: notes_done
+    priority: P0
+    deps: [ldm]
+    tags: [control, spatial, adapter, unet]
+    translation: translations/base_models/controlnet/paper_zh.md
+    one_liner: 可训练副本编码空间条件，零卷积注入 UNet 的可控生成范式
+
+  - id: ip_adapter
+    track: base_models
+    slug: ip_adapter
+    title: "IP-Adapter: Text Compatible Image Prompt Adapter for Text-to-Image Diffusion Models"
+    venue: arXiv
+    year: 2023
+    arxiv: "2308.06721"
+    status: notes_done
+    priority: P0
+    deps: [ldm]
+    tags: [control, subject, image_prompt, adapter]
+    translation: translations/base_models/ip_adapter/paper_zh.md
+    one_liner: 解耦的图像提示适配器，与文本提示兼容的主体控制
+
+  - id: gligen
+    track: base_models
+    slug: gligen
+    title: "GLIGEN: Open-Set Grounded Text-to-Image Generation"
+    venue: CVPR
+    year: 2023
+    arxiv: "2301.07093"
+    status: pending
+    priority: P1
+    deps: [ldm]
+    tags: [control, grounding, layout, open_set]
+    one_liner: 开放集 grounding（框/关键点）条件注入的布局可控生成
+
+  - id: ominicontrol
+    track: base_models
+    slug: ominicontrol
+    title: "OminiControl: Minimal and Universal Control for Diffusion Transformer"
+    venue: ICCV
+    year: 2025
+    arxiv: "2411.15098"
+    status: pending
+    priority: P0
+    deps: [sd3, controlnet]
+    tags: [control, dit, universal, parameter_efficient]
+    one_liner: DiT 上极少量参数的统一空间/主体控制
+
+  - id: easycontrol
+    track: base_models
+    slug: easycontrol
+    title: "EasyControl: Adding Efficient and Flexible Control for Diffusion Transformer"
+    venue: ICCV
+    year: 2025
+    arxiv: "2503.07027"
+    status: pending
+    priority: P0
+    deps: [sd3, controlnet, ominicontrol, lora]
+    tags: [control, dit, lora, multi_condition, kv_cache]
+    one_liner: Condition Injection LoRA + 因果注意力/KV Cache 的高效灵活 DiT 控制
+
+  - id: sana
+    track: base_models
+    slug: sana
+    title: "SANA: Efficient High-Resolution Image Synthesis with Linear Diffusion Transformers"
+    venue: arXiv
+    year: 2024
+    arxiv: "2410.10629"
+    status: pending
+    priority: P1
+    deps: [sd3]
+    tags: [efficiency, linear_attention, high_res]
+    one_liner: 线性注意力 DiT，面向高效高分辨率图像生成
+
+  - id: qwen_image
+    track: base_models
+    slug: qwen_image
+    title: Qwen-Image Technical Report
+    venue: arXiv
+    year: 2025
+    arxiv: "2508.02324"
+    status: pending
+    priority: P1
+    deps: [sd3]
+    tags: [foundation, text_rendering, editing, mmdit]
+    one_liner: 强文本渲染与编辑能力的图像生成基座报告
+
+  - id: z_image
+    track: base_models
+    slug: z_image
+    title: "Z-Image: An Efficient Image Generation Foundation Model with Single-Stream Diffusion Transformer"
+    venue: arXiv
+    year: 2025
+    arxiv: "2511.22699"
+    status: pending
+    priority: P1
+    deps: [sd3, sana]
+    tags: [foundation, single_stream, efficiency]
+    one_liner: 单流 DiT 的高效图像生成基座
+
+  - id: bagel
+    track: base_models
+    slug: bagel
+    title: "BAGEL: Emerging Properties in Unified Multimodal Pretraining"
+    venue: arXiv
+    year: 2025
+    arxiv: "2505.14683"
+    status: pending
+    priority: P1
+    deps: [sd3]
+    tags: [unified, multimodal, understanding_generation]
+    one_liner: 统一理解-生成多模态预训练中的涌现能力（用户原文写作 BAGLE）
+
+  - id: wan
+    track: base_models
+    slug: wan
+    title: "Wan: Open and Advanced Large-Scale Video Generative Models"
+    venue: arXiv
+    year: 2025
+    arxiv: "2503.20314"
+    status: pending
+    priority: P0
+    deps: [sd3]
+    tags: [video, foundation, dit, open_source]
+    notes: notes/base_models/wan2.1/
+    code: code/base_models/wan/
+    one_liner: 开源大规模视频 DiT 基座（Wan2.1）
+
+  - id: ovi
+    track: base_models
+    slug: ovi
+    title: "Ovi: Twin Backbone Cross-Modal Fusion for Audio-Video Generation"
+    venue: arXiv
+    year: 2025
+    arxiv: "2510.01284"
+    status: notes_done
+    priority: P0
+    deps: [wan]
+    tags: [audio_video, twin_backbone, dit, fusion, synchronization]
+    translation: translations/base_models/ovi/paper_zh.md
+    notes: notes/base_models/ovi/critique.md
+    code: code/base_models/ovi/
+    one_liner: 对称双 DiT + 块级双向融合的一阶段音视频联合生成
+
+  - id: ltx2
+    track: base_models
+    slug: ltx2
+    title: "LTX-2: Efficient Joint Audio-Visual Foundation Model"
+    venue: arXiv
+    year: 2026
+    arxiv: "2601.03233"
+    status: reading
+    priority: P0
+    deps: [ovi, vit_registers, compact_registers, metaqueries]
+    tags: [audio_video, dual_stream, dit, foundation, joint_generation]
+    translation: translations/base_models/ltx2/paper_zh.md
+    code: code/base_models/ltx2/
+    one_liner: 非对称双流 DiT（14B 视频 + 5B 音频）+ 双向 cross-attn / modality-CFG 的开源 T2AV 基座
+
+  - id: avcontrol
+    track: base_models
+    slug: avcontrol
+    title: "AVControl: Efficient Framework for Training Audio-Visual Controls"
+    venue: arXiv
+    year: 2026
+    arxiv: "2603.24793"
+    status: pending
+    priority: P0
+    deps: [ltx2]
+    tags: [ltx, pose, control, lora, data_synthesis]
+    one_liner: LTX-2 上按模态拆 LoRA 控 depth/pose/camera/audio；Faceglot 生成器 G 的姿态接入参考
+
+  - id: thinking_with_video
+    track: base_models
+    slug: thinking_with_video
+    title: "Thinking with Video: Video Generation as a Promising Multimodal Reasoning Paradigm"
+    venue: CVPR
+    year: 2026
+    arxiv: "2511.04570"
+    status: pending
+    priority: P2
+    deps: [wan]
+    tags: [video, reasoning, paradigm]
+    one_liner: 把视频生成当作多模态推理范式的评测与思考
+
+  # ---------- geometry_control ----------
+  - id: motionctrl
+    track: geometry_control
+    slug: motionctrl
+    title: "MotionCtrl: A Unified and Flexible Motion Controller for Video Generation"
+    venue: SIGGRAPH
+    year: 2024
+    arxiv: "2312.03641"
+    status: pending
+    priority: P0
+    deps: [wan]
+    tags: [camera, object_motion, video_control]
+    one_liner: 统一且可解耦的相机/物体运动控制器
+    translation: translations/geometry_control/motionctrl/paper_zh.md
+
+  - id: cameractrl
+    track: geometry_control
+    slug: cameractrl
+    title: "CameraCtrl: Enabling Camera Control for Video Diffusion Models"
+    venue: ICLR
+    year: 2025
+    arxiv: "2404.02101"
+    status: pending
+    priority: P0
+    deps: [motionctrl]
+    tags: [camera, plucker, video_control]
+    one_liner: Plücker 嵌入的可插拔相机控制模块
+    translation: translations/geometry_control/cameractrl/paper_zh.md
+
+  - id: free_form_motion
+    track: geometry_control
+    slug: free_form_motion_control
+    title: "Free-Form Motion Control: Controlling the 6D Poses of Camera and Objects in Video Generation"
+    venue: ICCV
+    year: 2025
+    arxiv: "2501.01425"
+    status: pending
+    priority: P0
+    deps: [motionctrl, cameractrl]
+    tags: [camera, object_pose, 6d, synthetic_data]
+    translation: translations/geometry_control/free_form_motion_control/paper_zh.md
+    one_liner: 相机与物体 6D 姿态自由形式联合控制
+
+  - id: mimo
+    track: geometry_control
+    slug: mimo
+    title: "MIMO: Controllable Character Video Synthesis with Spatial Decomposed Modeling"
+    venue: arXiv
+    year: 2024
+    arxiv: "2409.16160"
+    status: pending
+    priority: P1
+    deps: [motionctrl]
+    tags: [character, spatial_decompose, video_control]
+    one_liner: 空间分解建模的可控角色视频合成
+
+  - id: draganything
+    track: geometry_control
+    slug: draganything
+    title: "DragAnything: Motion Control for Anything using Entity Representation"
+    venue: ECCV
+    year: 2024
+    arxiv: "2403.07420"
+    status: pending
+    priority: P1
+    deps: [motionctrl]
+    tags: [entity, drag, motion_control]
+    one_liner: 实体表示驱动的任意物体拖拽式运动控制
+    translation: translations/geometry_control/draganything/paper_zh.md
+
+  - id: fulldit
+    track: geometry_control
+    slug: fulldit
+    title: "FullDiT: Multi-Task Video Generative Foundation Model with Full Attention"
+    venue: CVPR
+    year: 2025
+    arxiv: "2503.19907"
+    status: pending
+    priority: P1
+    deps: [wan]
+    tags: [multi_task, full_attention, video_foundation]
+    one_liner: 全注意力多任务视频生成基座
+
+  - id: levitor
+    track: geometry_control
+    slug: levitor
+    title: "LeviTor: 3D Trajectory Oriented Image-to-Video Synthesis"
+    venue: CVPR
+    year: 2025
+    arxiv: "2412.15214"
+    status: pending
+    priority: P1
+    deps: [draganything]
+    tags: [trajectory, depth, i2v, drag]
+    one_liner: 在 2D 拖拽上加相对深度，用聚类点+实例做 3D 轨迹 I2V
+    translation: translations/geometry_control/levitor/paper_zh.md
+
+  - id: motioncanvas
+    track: geometry_control
+    slug: motioncanvas
+    title: "MotionCanvas: Cinematic Shot Design with Controllable Image-to-Video Generation"
+    venue: SIGGRAPH
+    year: 2025
+    arxiv: "2502.04299"
+    status: pending
+    priority: P1
+    deps: [motionctrl, cameractrl]
+    tags: [camera, object_motion, i2v, cinematic]
+    one_liner: 场景空间镜头设计，把相机/物体意图译成 2D 时空条件
+    translation: translations/geometry_control/motioncanvas/paper_zh.md
+
+  - id: 3dtrajmaster
+    track: geometry_control
+    slug: 3dtrajmaster
+    title: "3DTrajMaster: Mastering 3D Trajectory for Multi-Entity Motion in Video Generation"
+    venue: ICLR
+    year: 2025
+    arxiv: "2412.07759"
+    status: pending
+    priority: P1
+    deps: [motionctrl, free_form_motion]
+    tags: [trajectory, 6dof, multi_entity, t2v]
+    one_liner: 多实体 6DoF 轨迹注入器，配 360°-Motion 合成数据
+    translation: translations/geometry_control/3dtrajmaster/paper_zh.md
+
+  - id: ucpe
+    track: geometry_control
+    slug: ucpe
+    title: "Unified Camera Positional Encoding for Controlled Video Generation"
+    venue: CVPR
+    year: 2026
+    arxiv: "2512.07237"
+    status: pending
+    priority: P1
+    deps: [cameractrl]
+    tags: [camera, plucker, ray_encoding, dit]
+    one_liner: Relative Ray Encoding 统一 6DoF/内参/畸变，替代简化针孔相机编码
+    translation: translations/geometry_control/ucpe/paper_zh.md
+
+  - id: echomotion
+    track: geometry_control
+    slug: echomotion
+    title: "EchoMotion: Unified Human Video and Motion Generation via Dual-Modality Diffusion Transformer"
+    venue: ICLR
+    year: 2026
+    arxiv: "2512.18814"
+    status: pending
+    priority: P1
+    deps: [wan]
+    tags: [human_motion, smpl, dit, dual_branch]
+    one_liner: 双分支 DiT 联合生成人体视频与运动，MVS-RoPE 对齐模态
+    translation: translations/geometry_control/echomotion/paper_zh.md
+
+  - id: motioncrafter
+    track: geometry_control
+    slug: motioncrafter
+    title: "MotionCrafter: Dense Geometry and Motion Reconstruction with a 4D VAE"
+    venue: CVPR
+    year: 2026
+    arxiv: "2602.08961"
+    status: pending
+    priority: P1
+    deps: [wan]
+    tags: [4d, reconstruction, scene_flow, vae]
+    one_liner: 4D VAE 从单目视频联合重建稠密几何与 scene flow
+    translation: translations/geometry_control/motioncrafter/paper_zh.md
+
+  # ---------- multi_view ----------
+  - id: zero123
+    track: multi_view
+    slug: zero123
+    title: "Zero-1-to-3: Zero-shot One Image to 3D Object"
+    venue: arXiv
+    year: 2023
+    arxiv: "2303.11328"
+    status: pending
+    priority: P0
+    deps: [ldm]
+    tags: [novel_view, 3d, zero_shot]
+    one_liner: 单图零样本新视角合成，多视角/3D 生成的关键起点
+
+  - id: cat3d
+    track: multi_view
+    slug: cat3d
+    title: "CAT3D: Create Anything in 3D with Multi-View Diffusion Models"
+    venue: arXiv
+    year: 2024
+    arxiv: "2405.10314"
+    status: pending
+    priority: P1
+    deps: [zero123]
+    tags: [multi_view, 3d, diffusion]
+    one_liner: 多视角扩散创造任意 3D 内容
+
+  - id: syncammaster
+    track: multi_view
+    slug: syncammaster
+    title: "SynCamMaster: Synchronizing Multi-Camera Video Generation from Diverse Viewpoints"
+    venue: ICLR
+    year: 2025
+    arxiv: "2412.07760"
+    status: pending
+    priority: P0
+    deps: [cameractrl, wan]
+    tags: [multi_camera, sync, video]
+    one_liner: 多相机多视角同步视频生成
+
+  - id: recammaster
+    track: multi_view
+    slug: recammaster
+    title: "ReCamMaster: Camera-Controlled Generative Rendering from A Single Video"
+    venue: ICCV
+    year: 2025
+    arxiv: "2503.11647"
+    status: pending
+    priority: P0
+    deps: [syncammaster, cameractrl]
+    tags: [recamera, single_video, generative_rendering]
+    one_liner: 单视频输入的相机可控生成式重拍/渲染
+
+  - id: gen3c
+    track: multi_view
+    slug: gen3c
+    title: "GEN3C: 3D-Informed World-Consistent Video Generation with Precise Camera Control"
+    venue: arXiv
+    year: 2025
+    arxiv: "2503.03751"
+    status: pending
+    priority: P0
+    deps: [cameractrl, zero123]
+    tags: [world_consistent, 3d_informed, camera]
+    one_liner: 3D 信息注入的世界一致、精确相机可控视频生成
+
+  - id: querysplat
+    track: multi_view
+    slug: querysplat
+    title: "QuerySplat: Decoupling Geometry and Appearance Representations in 3DGS Prediction"
+    venue: arXiv
+    year: 2026
+    arxiv: "2608.01186"
+    status: pending
+    priority: P1
+    deps: []
+    tags: [3dgs, feed_forward, pose_free, query, vggt]
+    github: https://github.com/inspatio/QuerySplat
+    code: code/multi_view/querysplat/
+    one_liner: 双分支 query 解耦几何/外观的 pose-free feed-forward 3DGS；VGGT-Ω 作几何先验
+
+  # ---------- streaming ----------
+  - id: diffusion_forcing
+    track: streaming
+    slug: diffusion_forcing
+    title: "Diffusion Forcing: Next-token Prediction Meets Full-Sequence Diffusion"
+    venue: arXiv
+    year: 2024
+    arxiv: "2407.01392"
+    status: pending
+    priority: P0
+    deps: [wan]
+    tags: [autoregressive, diffusion, train_test]
+    one_liner: 逐 token 预测与全序列扩散的统一训练范式
+
+  - id: self_forcing
+    track: streaming
+    slug: self_forcing
+    title: "Self Forcing: Bridging the Train-Test Gap in Autoregressive Video Diffusion"
+    venue: arXiv
+    year: 2025
+    arxiv: "2506.08009"
+    status: pending
+    priority: P0
+    deps: [diffusion_forcing]
+    tags: [autoregressive, video, train_test_gap]
+    one_liner: 缩小自回归视频扩散训练-测试差距的 Self Forcing
+
+  - id: streaming_t2v
+    track: streaming
+    slug: streaming_t2v
+    title: "StreamingT2V: Consistent, Dynamic, and Extendable Long Video Generation from Text"
+    venue: CVPR
+    year: 2025
+    arxiv: "2403.14773"
+    status: pending
+    priority: P1
+    deps: [diffusion_forcing]
+    tags: [long_video, chunk_ar, memory]
+    one_liner: CAM 短时记忆 + 外观保持模块的块级自回归长视频
+
+  - id: causvid
+    track: streaming
+    slug: causvid
+    title: "From Slow Bidirectional to Fast Causal Video Generators"
+    venue: arXiv
+    year: 2024
+    arxiv: "2412.07772"
+    status: pending
+    priority: P1
+    deps: [diffusion_forcing]
+    tags: [long_video, causal, distillation]
+    one_liner: 双向 DiT 改因果 + DMD 蒸馏，流式少步生成
+
+  - id: magi_1
+    track: streaming
+    slug: magi_1
+    title: "MAGI-1: Autoregressive Video Generation at Scale"
+    venue: arXiv
+    year: 2025
+    arxiv: "2505.13211"
+    status: pending
+    priority: P1
+    tags: [long_video, chunk_ar, streaming]
+    one_liner: 24 帧 chunk 流水线去噪，峰值显存与总时长解耦
+
+  - id: skyreels_v2
+    track: streaming
+    slug: skyreels_v2
+    title: "SkyReels-V2: Infinite-length Film Generative Model"
+    venue: arXiv
+    year: 2025
+    arxiv: "2504.13074"
+    status: pending
+    priority: P1
+    deps: [diffusion_forcing]
+    tags: [long_video, diffusion_forcing, film]
+    one_liner: MLLM 分镜 + Diffusion Forcing Transformer 的无限长电影生成
+
+  - id: framepack
+    track: streaming
+    slug: framepack
+    title: "Frame Context Packing and Drift Prevention in Next-Frame-Prediction Video Diffusion Models"
+    venue: arXiv
+    year: 2025
+    arxiv: "2504.12626"
+    status: pending
+    priority: P1
+    tags: [long_video, context_compression, anti_drift]
+    one_liner: 历史帧衰减压缩为固定上下文，消费级 GPU 可任意延长
+
+  - id: self_forcing_pp
+    track: streaming
+    slug: self_forcing_pp
+    title: "Self-Forcing++: Towards Minute-Scale High-Quality Video Generation"
+    venue: arXiv
+    year: 2025
+    arxiv: "2510.02283"
+    status: pending
+    priority: P1
+    deps: [self_forcing]
+    tags: [long_video, self_forcing, minute_scale]
+    one_liner: 短视频教师引导自生成长片段，外推到约 4 分钟
+
+  - id: rolling_forcing
+    track: streaming
+    slug: rolling_forcing
+    title: "Rolling Forcing: Autoregressive Long Video Diffusion in Real Time"
+    venue: ICLR
+    year: 2026
+    arxiv: "2509.25161"
+    status: pending
+    priority: P1
+    deps: [self_forcing]
+    tags: [long_video, rolling_window, attention_sink]
+    one_liner: 滚动窗联合去噪 + 起始帧 attention sink，多分钟实时流式
+
+  # ---------- long_video ----------
+  - id: lv_survey
+    track: long_video
+    slug: lv_survey
+    title: "A Survey on Long Video Generation: Challenges, Methods, and Prospects"
+    venue: arXiv
+    year: 2024
+    arxiv: "2403.16407"
+    status: pending
+    priority: P1
+    tags: [long_video, survey]
+    one_liner: 长视频生成综述，分成层规划与时间自回归两范式
+
+  - id: storytelling_survey
+    track: long_video
+    slug: storytelling_survey
+    title: "A Survey on Long-Video Storytelling Generation: Architectures, Consistency, and Cinematic Quality"
+    venue: arXiv
+    year: 2025
+    arxiv: "2507.07202"
+    status: pending
+    priority: P1
+    tags: [long_video, survey, storytelling]
+    one_liner: 长视频叙事生成架构分类：关键帧、chunk、one-shot、token 流
+
+  - id: phenaki
+    track: long_video
+    slug: phenaki
+    title: "Phenaki: Variable Length Video Generation from Open Domain Textual Description"
+    venue: arXiv
+    year: 2022
+    arxiv: "2210.02399"
+    status: pending
+    priority: P2
+    tags: [long_video, token_ar]
+    one_liner: C-ViViT 时空 token + 按文本变化自回归续写变长视频
+
+  - id: nuwa_infinity
+    track: long_video
+    slug: nuwa_infinity
+    title: "NUWA-Infinity: Autoregressive over Autoregressive Generation for Infinite Visual Synthesis"
+    venue: NeurIPS
+    year: 2022
+    arxiv: "2207.09814"
+    status: pending
+    priority: P2
+    tags: [long_video, token_ar]
+    one_liner: 粗网格 AR 套局部 AR，空间与时间都可无限延展
+
+  - id: tats
+    track: long_video
+    slug: tats
+    title: "Long Video Generation with Time-Agnostic VQGAN and Time-Sensitive Transformer"
+    venue: ECCV
+    year: 2022
+    arxiv: "2204.03638"
+    status: pending
+    priority: P2
+    tags: [long_video, hierarchical]
+    one_liner: 稀疏 latent 关键帧 + 插值 Transformer 填中间
+
+  - id: cogvideo
+    track: long_video
+    slug: cogvideo
+    title: "CogVideo: Large-scale Pretraining for Text-to-Video Generation via Transformers"
+    venue: arXiv
+    year: 2022
+    arxiv: "2205.15868"
+    status: pending
+    priority: P2
+    tags: [long_video, hierarchical]
+    one_liner: 先自回归关键帧，再双向注意力插入过渡帧
+
+  - id: nuwa_xl
+    track: long_video
+    slug: nuwa_xl
+    title: "NUWA-XL: Diffusion over Diffusion for eXtremely Long Video Generation"
+    venue: ACL
+    year: 2023
+    arxiv: "2303.12346"
+    status: pending
+    priority: P1
+    tags: [long_video, hierarchical, diffusion]
+    one_liner: 全局关键帧扩散 + 局部递归填充，直接在长视频上训练
+
+  - id: gen_l_video
+    track: long_video
+    slug: gen_l_video
+    title: "Gen-L-Video: Multi-Text to Long Video Generation via Temporal Co-Denoising"
+    venue: arXiv
+    year: 2023
+    arxiv: "2305.18264"
+    status: pending
+    priority: P1
+    tags: [long_video, training_free]
+    one_liner: 重叠短窗口并行共去噪，免训练外推多段文本长视频
+
+  - id: freenoise
+    track: long_video
+    slug: freenoise
+    title: "FreeNoise: Tuning-Free Longer Video Diffusion via Noise Rescheduling"
+    venue: ICLR
+    year: 2024
+    arxiv: "2310.15169"
+    status: pending
+    priority: P1
+    tags: [long_video, training_free]
+    one_liner: 噪声重排 + 局部时间注意力，免训练延长短视频扩散
+
+  - id: seine
+    track: long_video
+    slug: seine
+    title: "SEINE: Short-to-Long Video Diffusion Model for Generative Transition and Prediction"
+    venue: ICLR
+    year: 2024
+    arxiv: "2310.20700"
+    status: pending
+    priority: P2
+    tags: [long_video, chunk_ar, transition]
+    one_liner: 首尾帧条件的生成式过渡，把短 clip 接成更长序列
+
+  - id: videodirectorgpt
+    track: long_video
+    slug: videodirectorgpt
+    title: "VideoDirectorGPT: Consistent Multi-scene Video Generation via LLM-Guided Planning"
+    venue: arXiv
+    year: 2023
+    arxiv: "2309.15091"
+    status: pending
+    priority: P1
+    tags: [long_video, llm_story]
+    one_liner: LLM 扩写分场景剧本再驱动布局到视频生成
+
+  - id: videopoet
+    track: long_video
+    slug: videopoet
+    title: "VideoPoet: A Large Language Model for Zero-Shot Video Generation"
+    venue: arXiv
+    year: 2023
+    arxiv: "2312.14125"
+    status: pending
+    priority: P1
+    tags: [long_video, token_ar]
+    one_liner: MagViT-v2 token + decoder-only LLM 统一 T2V / 续写 / 编辑
+
+  - id: vlogger
+    track: long_video
+    slug: vlogger
+    title: "Vlogger: Make Your Dream a Vlog"
+    venue: arXiv
+    year: 2024
+    arxiv: "2401.09414"
+    status: pending
+    priority: P1
+    tags: [long_video, llm_story]
+    one_liner: LLM 编剧/演员/摄影/配音流水线，分钟级 vlog
+
+  - id: fifo_diffusion
+    track: long_video
+    slug: fifo_diffusion
+    title: "FIFO-Diffusion: Generating Infinite Videos from Text without Training"
+    venue: NeurIPS
+    year: 2024
+    arxiv: "2405.11473"
+    status: pending
+    priority: P1
+    tags: [long_video, training_free]
+    one_liner: 对角去噪队列，显存固定、免训练无限滚
+
+  - id: loong
+    track: long_video
+    slug: loong
+    title: "Loong: Generating Minute-level Long Videos with Autoregressive Language Models"
+    venue: arXiv
+    year: 2024
+    arxiv: "2410.02757"
+    status: pending
+    priority: P1
+    tags: [long_video, token_ar]
+    one_liner: 离散 token + short-to-long 课程，分钟级自回归视频
+
+  - id: storydiffusion
+    track: long_video
+    slug: storydiffusion
+    title: "StoryDiffusion: Consistent Self-Attention for Long-Range Image and Video Generation"
+    venue: NeurIPS
+    year: 2024
+    arxiv: "2405.01434"
+    status: pending
+    priority: P2
+    tags: [long_video, hierarchical, consistency]
+    one_liner: 一致自注意力保持角色，子提示关键帧再插成视频
+
+  - id: moviegen
+    track: long_video
+    slug: moviegen
+    title: "Movie Gen: A Cast of Media Foundation Models"
+    venue: arXiv
+    year: 2024
+    arxiv: "2410.13720"
+    status: pending
+    priority: P2
+    tags: [long_video, oneshot, foundation]
+    one_liner: Meta 联合视频-音频基座，约 16 秒高质量 one-shot
+
+  - id: seedance
+    track: long_video
+    slug: seedance
+    title: "Seedance 1.0: Exploring the Boundaries of Video Generation Models"
+    venue: arXiv
+    year: 2025
+    arxiv: "2506.09113"
+    status: pending
+    priority: P1
+    tags: [long_video, oneshot, multi_shot]
+    one_liner: 原生多镜头 MM-RoPE，一次前向隐式切镜
+
+  - id: storyanchors
+    track: long_video
+    slug: storyanchors
+    title: "StoryAnchors: Generating Consistent Multi-Scene Story Frames for Long-Form Narratives"
+    venue: arXiv
+    year: 2025
+    arxiv: "2505.08350"
+    status: pending
+    priority: P2
+    tags: [long_video, llm_story]
+    one_liner: Step-Video 上的规划层锚点帧，再在锚点间做动画
+
+  # ---------- vla ----------
+  - id: lingbot_vla
+    track: vla
+    slug: lingbot_vla
+    title: "LingBot-VLA: A Pragmatic VLA Foundation Model"
+    venue: arXiv
+    year: 2026
+    arxiv: "2601.18692"
+    status: notes_done
+    priority: P0
+    deps: []
+    tags: [vla, robotics, foundation, efficiency]
+    translation: translations/vla/lingbot_vla/paper_zh.md
+    one_liner: 2 万小时真实机器人数据预训练的实用 VLA 基座，GM-100 评测 SOTA 且训练高效
+
+  # ---------- audio_driven (HarmonizedVisualAudio) ----------
+  # Cross-ref: Ovi / LTX-2 已在 base_models/{ovi,ltx2}；读本 track 时一并打开。
+  - id: wav2lip
+    track: audio_driven
+    slug: wav2lip
+    title: "A Lip Sync Expert Is All You Need for Speech to Lip Generation In the Wild"
+    venue: ACM MM
+    year: 2020
+    arxiv: "2008.10010"
+    status: pending
+    priority: P2
+    deps: []
+    tags: [talking_face, lip_sync, classic]
+    one_liner: 经典口型同步；SyncNet 思路贯穿后续评测
+
+  - id: sadtalker
+    track: audio_driven
+    slug: sadtalker
+    title: "SadTalker: Learning Realistic 3D Motion Coefficients for Stylized Audio-Driven Single Image Talking Face Animation"
+    venue: CVPR
+    year: 2023
+    arxiv: "2211.12194"
+    status: pending
+    priority: P2
+    deps: [wav2lip]
+    tags: [talking_face, 3dmm, classic]
+    one_liner: 音频→3DMM 系数→视频的中间表示路线代表作
+
+  - id: emo
+    track: audio_driven
+    slug: emo
+    title: "EMO: Emote Portrait Alive — Generating Expressive Portrait Videos with Audio2Video Diffusion Model under Weak Conditions"
+    venue: ECCV
+    year: 2024
+    arxiv: "2402.17485"
+    status: pending
+    priority: P2
+    deps: [sadtalker]
+    tags: [talking_face, diffusion, expression]
+    one_liner: 弱条件音频驱动肖像扩散；从中间表示转向端到端生成
+
+  - id: omnihuman
+    track: audio_driven
+    slug: omnihuman
+    title: "OmniHuman-1: Rethinking the Scaling-Up of One-Stage Conditioned Human Animation Models"
+    venue: ICCV
+    year: 2025
+    arxiv: "2502.01061"
+    status: pending
+    priority: P0
+    deps: []
+    tags: [audio_driven, dit, scaling, human_animation]
+    one_liner: 大规模 one-stage 条件人体动画；混合条件缩放范式
+
+  - id: fantasytalking
+    track: audio_driven
+    slug: fantasytalking
+    title: "FantasyTalking: Realistic Talking Portrait Generation via Coherent Motion Synthesis"
+    venue: ACM MM
+    year: 2025
+    arxiv: "2504.04842"
+    status: pending
+    priority: P0
+    deps: [omnihuman]
+    tags: [audio_driven, talking_portrait, lip_sync]
+    one_liner: 双阶段音视频对齐 + 唇部 refine；Harmonized 直接对比之一
+
+  - id: omniavatar
+    track: audio_driven
+    slug: omniavatar
+    title: "OmniAvatar: Efficient Audio-Driven Avatar Video Generation with Adaptive Body Animation"
+    venue: arXiv
+    year: 2025
+    arxiv: "2506.18866"
+    status: pending
+    priority: P1
+    deps: [omnihuman]
+    tags: [audio_driven, full_body, efficiency]
+    one_liner: 高效音频驱动全身/半身动画
+
+  - id: wan_s2v
+    track: audio_driven
+    slug: wan_s2v
+    title: "Wan-S2V: Audio-Driven Cinematic Video Generation"
+    venue: arXiv
+    year: 2025
+    arxiv: "2508.18621"
+    status: pending
+    priority: P1
+    deps: [wan]
+    tags: [audio_driven, wan, cinematic]
+    one_liner: Wan 生态上的音频驱动电影级视频生成
+
+  - id: stableavatar
+    track: audio_driven
+    slug: stableavatar
+    title: "StableAvatar: Infinite-Length Audio-Driven Avatar Video Generation"
+    venue: arXiv
+    year: 2025
+    arxiv: "2508.08248"
+    status: pending
+    priority: P1
+    deps: [omnihuman]
+    tags: [audio_driven, long_video, avatar]
+    one_liner: 面向长视频/无限时长的音频驱动 avatar
+
+  - id: multitalk
+    track: audio_driven
+    slug: multitalk
+    title: "Let Them Talk: Audio-Driven Multi-Person Conversational Video Generation"
+    venue: arXiv
+    year: 2025
+    arxiv: "2505.22647"
+    status: pending
+    priority: P0
+    deps: [omnihuman]
+    tags: [multi_person, audio_binding, conversational]
+    translation: translations/audio_driven/multitalk/paper_zh.md
+    code: code/audio_driven/multitalk/
+    one_liner: 多人对话视频；L-RoPE 等声–人绑定；级联基线视频端
+
+  - id: anytalker
+    track: audio_driven
+    slug: anytalker
+    title: "AnyTalker: Scaling Multi-Person Talking Video Generation with Interactivity Refinement"
+    venue: arXiv
+    year: 2025
+    arxiv: "2511.23475"
+    status: notes_done
+    priority: P0
+    deps: [multitalk]
+    tags: [multi_person, interactivity]
+    translation: translations/audio_driven/anytalker/paper_zh.md
+    notes: notes/audio_driven/anytalker/
+    code: code/audio_driven/anytalker/
+    one_liner: 多人交互缩放；InteractEye 评测来源
+
+  - id: bind_your_avatar
+    track: audio_driven
+    slug: bind_your_avatar
+    title: "Bind-Your-Avatar: Multi-Talking-Character Video Generation with Dynamic 3D-mask-based Embedding Router"
+    venue: arXiv
+    year: 2025
+    arxiv: "2506.19833"
+    status: reading
+    priority: P0
+    deps: [multitalk]
+    tags: [multi_person, mask, embedding_router]
+    translation: translations/audio_driven/bind_your_avatar/paper_zh.md
+    one_liner: 动态 3D-mask embedding router；与时空 mask 最可对照
+    notes: notes/audio_driven/bind_your_avatar/
+    code: code/audio_driven/bindyouravatar/
+
+  - id: interacthuman
+    track: audio_driven
+    slug: interacthuman
+    title: "InteractHuman: Multi-Concept Human Animation with Layout-Aligned Audio Conditions"
+    venue: ICLR
+    year: 2026
+    arxiv: "2506.09984"
+    status: notes_done
+    priority: P1
+    deps: [multitalk]
+    tags: [multi_person, layout, audio_condition]
+    notes: notes/audio_driven/interacthuman/
+    translation: translations/audio_driven/interacthuman/paper_zh.md
+    code: code/audio_driven/interacthuman/
+    one_liner: layout-aligned 多概念音频条件人体动画
+
+  - id: universe1
+    track: audio_driven
+    slug: universe1
+    title: "UniVerse-1: Unified Audio-Video Generation via Stitching of Experts"
+    venue: arXiv
+    year: 2025
+    arxiv: "2509.06155"
+    status: pending
+    priority: P1
+    deps: [ovi]
+    tags: [audio_video, joint_generation]
+    one_liner: stitching-of-experts 音视频联合生成
+
+  - id: harmony_av
+    track: audio_driven
+    slug: harmony_av
+    title: "Harmony: Harmonizing Audio and Video Generation through Cross-Task Synergy"
+    venue: arXiv
+    year: 2025
+    arxiv: "2511.21579"
+    status: pending
+    priority: P1
+    deps: [ovi]
+    tags: [audio_video, joint_generation]
+    one_liner: 跨任务协同的音视频联合生成
+
+  - id: dreamvoice
+    track: audio_driven
+    slug: dreamvoice
+    title: "DreamVoice: Text-Guided Voice Conversion"
+    venue: arXiv
+    year: 2024
+    arxiv: "2406.16314"
+    status: pending
+    priority: P0
+    deps: []
+    tags: [voice_conversion, text_guided, timbre]
+    one_liner: 文本引导 VC；级联**先改音色再生成视频**的音频端动机
+
+  - id: longcat_avatar_15
+    track: audio_driven
+    slug: longcat_avatar_15
+    title: "LongCat-Video-Avatar 1.5 Technical Report"
+    venue: arXiv
+    year: 2026
+    arxiv: "2605.26486"
+    status: pending
+    priority: P0
+    deps: [omnihuman, infinitetalk]
+    tags: [audio_driven, avatar, whisper, production]
+    one_liner: Whisper-large 驱动的生产级数字人生成；Faceglot 用来对照「生成 ≠ 锁镜头译制」
+
+  - id: omnihuman15
+    track: audio_driven
+    slug: omnihuman15
+    title: "OmniHuman-1.5: Instilling an Active Mind in Avatars via Cognitive Simulation"
+    venue: arXiv
+    year: 2025
+    arxiv: "2508.19209"
+    status: pending
+    priority: P1
+    deps: [omnihuman]
+    tags: [audio_driven, mmdit, semantic, avatar]
+    one_liner: MLLM 语义条件 + MMDiT；表情/意图比纯节奏同步更进一步的生成对照
+
+  - id: funcineforge
+    track: audio_driven
+    slug: funcineforge
+    title: "FunCineForge: A Unified Dataset Toolkit and Model for Zero-Shot Movie Dubbing in Diverse Cinematic Scenes"
+    venue: arXiv
+    year: 2026
+    arxiv: "2601.14777"
+    status: pending
+    priority: P1
+    deps: [neural_dubber]
+    tags: [movie_dubbing, timbre, cine_dub_cn, optional]
+    one_liner: 画面/剧本→配音（CineDub-CN）；Faceglot 可选音色模块，与画面编辑正交
+
+  - id: neural_dubber
+    track: audio_driven
+    slug: neural_dubber
+    title: "Neural Dubber: Dubbing for Videos According to Scripts"
+    venue: NeurIPS
+    year: 2021
+    arxiv: "2110.08243"
+    status: pending
+    priority: P1
+    deps: []
+    tags: [movie_dubbing, tts, lip_sync_audio]
+    one_liner: 视频+剧本→语音；电影配音任务的起点，改的是声带不是画面
+
+  - id: instructdubber
+    track: audio_driven
+    slug: instructdubber
+    title: "InstructDubber: Instruction-based Alignment for Zero-shot Movie Dubbing"
+    venue: AAAI
+    year: 2026
+    arxiv: "2512.17154"
+    status: pending
+    priority: P2
+    deps: [neural_dubber, funcineforge]
+    tags: [movie_dubbing, mllm, instruction]
+    one_liner: MLLM 指令对齐语速/情绪的零样本电影配音；FunCineForge 对照基线
+
+  # ---------- visual_dubbing (Faceglot) ----------
+  # Cross-ref: Wan / LTX-2 / AVControl 在 base_models；LongCat / FunCineForge 在 audio_driven。
+  - id: xdub
+    track: visual_dubbing
+    slug: xdub
+    title: "From Inpainting to Editing: Unlocking Robust Mask-Free Visual Dubbing via Generative Bootstrapping"
+    venue: ICML
+    year: 2026
+    arxiv: "2512.25066"
+    status: pending
+    priority: P0
+    deps: [latentsync, wan]
+    tags: [visual_dubbing, mask_free, bootstrap, wan]
+    one_liner: 用 mask-inpainting 造对、训 mask-free V2V 编辑器；Faceglot 最直接对照，数据假设只改嘴
+
+  - id: latentsync
+    track: visual_dubbing
+    slug: latentsync
+    title: "LatentSync: Audio Conditioned Latent Diffusion Models for Lip Sync"
+    venue: arXiv
+    year: 2024
+    arxiv: "2412.09262"
+    status: pending
+    priority: P0
+    deps: [wav2lip]
+    tags: [lip_sync, inpainting, syncnet, trepa]
+    one_liner: 音频条件 latent diffusion 口型 inpaint；X-Dub 生成器与评测 SyncNet 的前驱
+
+  - id: musetalk
+    track: visual_dubbing
+    slug: musetalk
+    title: "MuseTalk: Real-Time High-Fidelity Video Dubbing via Spatio-Temporal Sampling"
+    venue: arXiv
+    year: 2024
+    arxiv: "2410.10122"
+    status: pending
+    priority: P1
+    deps: [wav2lip]
+    tags: [lip_sync, inpainting, realtime, gan]
+    one_liner: 单步 latent inpaint 实时译制；mask-based 路线的效率代表
+
+  - id: infinitetalk
+    track: visual_dubbing
+    slug: infinitetalk
+    title: "InfiniteTalk: Audio-driven Video Generation for Sparse-Frame Video Dubbing"
+    venue: arXiv
+    year: 2025
+    arxiv: "2508.14033"
+    status: pending
+    priority: P0
+    deps: [multitalk]
+    tags: [visual_dubbing, v2v, sparse_frame, full_body]
+    one_liner: 稀疏关键帧 V2V，连头身表情一起跟音频；相对 Faceglot「锁走位只改说话脸」的对照
+
+  - id: omnisync
+    track: visual_dubbing
+    slug: omnisync
+    title: "OmniSync: Towards Universal Lip Synchronization via Diffusion Transformers"
+    venue: NeurIPS
+    year: 2025
+    arxiv: "2505.21448"
+    status: pending
+    priority: P0
+    deps: [latentsync]
+    tags: [lip_sync, mask_free, dit, flow_matching]
+    one_liner: 同 Kling 团队的 mask-free DiT 口型同步；X-Dub 之前的编辑范式
+
+  - id: keysync
+    track: visual_dubbing
+    slug: keysync
+    title: "KeySync: A Robust Approach for Leakage-free Lip Synchronization in High Resolution"
+    venue: arXiv
+    year: 2025
+    arxiv: "2505.00497"
+    status: pending
+    priority: P1
+    deps: [latentsync]
+    tags: [lip_sync, leakage, occlusion, masking]
+    one_liner: 专门打 expression leakage 与遮挡；LipLeak 指标可被 Faceglot 借鉴（反向：我们要主动改表情）
+
+  - id: videoretalking
+    track: visual_dubbing
+    slug: videoretalking
+    title: "VideoReTalking: Audio-based Lip Synchronization for Talking Head Video Editing In the Wild"
+    venue: SIGGRAPH Asia
+    year: 2022
+    arxiv: "2211.14758"
+    status: pending
+    priority: P1
+    deps: [wav2lip]
+    tags: [lip_sync, inpainting, video_editing]
+    one_liner: 野外 talking-head 视频编辑三阶段；SIGGRAPH 线的口型编辑前驱
+
+  - id: difftalk
+    track: visual_dubbing
+    slug: difftalk
+    title: "DiffTalk: Crafting Diffusion Models for Generalized Audio-Driven Portraits Animation"
+    venue: CVPR
+    year: 2023
+    arxiv: "2301.03786"
+    status: pending
+    priority: P2
+    deps: [wav2lip]
+    tags: [lip_sync, diffusion, inpainting]
+    one_liner: 早期音频驱动肖像扩散；mask 泄漏问题被后续工作反复引用
+
+  - id: diff2lip
+    track: visual_dubbing
+    slug: diff2lip
+    title: "Diff2Lip: Audio Conditioned Diffusion Models for Lip-Synchronization"
+    venue: WACV
+    year: 2024
+    arxiv: "2308.09716"
+    status: pending
+    priority: P2
+    deps: [difftalk]
+    tags: [lip_sync, diffusion]
+    one_liner: 音频条件扩散口型同步；X-Dub / OmniSync 实验表里的 GAN→扩散过渡基线
+
+  - id: disenttalk
+    track: visual_dubbing
+    slug: disenttalk
+    title: "DisentTalk: Cross-lingual Talking Face Generation via Semantic Disentangled Diffusion Model"
+    venue: ICME
+    year: 2025
+    arxiv: "2503.19001"
+    status: pending
+    priority: P1
+    deps: [sadtalker]
+    tags: [cross_lingual, 3dmm, talking_face, chdtf]
+    one_liner: 3DMM 语义解耦 + 跨语言 talking face；CHDTF 中文高清集；生成而非锁镜头编辑
+
+  - id: polyglot
+    track: visual_dubbing
+    slug: polyglot
+    title: "Polyglot: Multilingual Style Preserving Speech-Driven Facial Animation"
+    venue: arXiv
+    year: 2026
+    arxiv: "2604.16108"
+    status: pending
+    priority: P1
+    deps: [disenttalk]
+    tags: [cross_lingual, facial_animation, speaking_style]
+    one_liner: 语言特性 + 个人说话风格联合条件的多语 SDFA；支撑「不同语言说话脸不一致」的主张
+
+  - id: openhumanvid
+    track: visual_dubbing
+    slug: openhumanvid
+    title: "OpenHumanVid: A Large-Scale High-Quality Dataset for Enhancing Human-Centric Video Generation"
+    venue: arXiv
+    year: 2024
+    arxiv: "2412.00115"
+    status: pending
+    priority: P2
+    deps: []
+    tags: [dataset, human_centric, skeleton, speech]
+    one_liner: 人体视频+骨架+语音标注；Faceglot 中文侧源语料候选
+
+  # ---------- eeg_visual（有 GitHub 且有 arXiv e-print，可下 TeX）----------
+  - id: nice
+    track: eeg_visual
+    slug: nice
+    title: Decoding Natural Images from EEG for Object Recognition
+    venue: ICLR
+    year: 2024
+    arxiv: "2308.13234"
+    status: reading
+    priority: P1
+    github: https://github.com/eeyhsong/NICE-EEG
+    code: code/eeg_visual/nice/
+    tags: [eeg, image, contrastive]
+    one_liner: CLIP 对比学习做 EEG 图像 zero-shot 检索
+
+  - id: atm
+    track: eeg_visual
+    slug: atm
+    title: Visual Decoding and Reconstruction via EEG Embeddings with Guided Diffusion
+    venue: NeurIPS
+    year: 2024
+    arxiv: "2403.07721"
+    status: reading
+    priority: P1
+    github: https://github.com/ncclab-sustech/EEG_Image_decode
+    code: code/eeg_visual/atm/
+    tags: [eeg, image, diffusion]
+    one_liner: ATM 编码器 + 高低层条件扩散重建图像
+
+  - id: dreamdiffusion
+    track: eeg_visual
+    slug: dreamdiffusion
+    title: "DreamDiffusion: Generating High-Quality Images from Brain EEG Signals"
+    venue: arXiv
+    year: 2023
+    arxiv: "2306.16934"
+    status: reading
+    priority: P1
+    github: https://github.com/bbaaii/DreamDiffusion
+    code: code/eeg_visual/dreamdiffusion/
+    tags: [eeg, image, mae, diffusion]
+    one_liner: masked EEG 预训练后接入 Stable Diffusion
+
+  - id: cognitioncapturer
+    track: eeg_visual
+    slug: cognitioncapturer
+    title: "CognitionCapturer: Decoding Visual Stimuli from Human EEG Signal with Multimodal Information"
+    venue: AAAI
+    year: 2025
+    arxiv: "2412.10489"
+    status: reading
+    priority: P1
+    github: https://github.com/XiaoZhangYES/CognitionCapturer
+    code: code/eeg_visual/cognitioncapturer/
+    tags: [eeg, image, multimodal]
+    one_liner: 图/文/深度专家 + 冻结 SDXL 重建
+
+  - id: necomimi
+    track: eeg_visual
+    slug: necomimi
+    title: "NECOMIMI: Neural-Cognitive Multimodal EEG-informed Image Generation with Diffusion Models"
+    venue: arXiv
+    year: 2024
+    arxiv: "2410.00712"
+    status: reading
+    priority: P2
+    github: https://github.com/ChiShengChen/EEG_gen_img_NECOMIMI
+    code: code/eeg_visual/necomimi/
+    tags: [eeg, image, diffusion]
+    one_liner: NERV 编码器 + CAT Score 评测 EEG 出图
+
+  - id: mindcine
+    track: eeg_visual
+    slug: mindcine
+    title: "MindCine: Multimodal EEG-to-Video Reconstruction with Large-Scale Pretrained Models"
+    venue: ICASSP
+    year: 2026
+    arxiv: "2601.18192"
+    status: reading
+    priority: P0
+    github: https://github.com/KevinZhou6/MindCine
+    code: code/eeg_visual/mindcine/
+    tags: [eeg, video]
+    one_liner: 大规模 EEG 基座 + CausalSeq 做 EEG 到视频
+
+  - id: neuro_3d
+    track: eeg_visual
+    slug: neuro_3d
+    title: "Neuro-3D: Towards 3D Visual Decoding from EEG Signals"
+    venue: CVPR
+    year: 2025
+    arxiv: "2411.12248"
+    status: reading
+    priority: P0
+    github: https://github.com/gzq17/neuro-3D
+    code: code/eeg_visual/neuro_3d/
+    tags: [eeg, 3d]
+    one_liner: EEG-3D 数据集 + 几何/外观解耦点云扩散
+
+  - id: mind2matter
+    track: eeg_visual
+    slug: mind2matter
+    title: "Mind2Matter: Creating 3D Models from EEG Signals"
+    venue: arXiv
+    year: 2025
+    arxiv: "2504.11936"
+    status: reading
+    priority: P2
+    github: https://github.com/sddwwww/Mind2Matter
+    code: code/eeg_visual/mind2matter/
+    tags: [eeg, 3d, language]
+    one_liner: EEG → 文本 → layout 约束 3DGS
+
+  - id: eeg_to_3d
+    track: eeg_visual
+    slug: eeg_to_3d
+    title: "3D-Telepathy: Reconstructing 3D Objects from EEG Signals"
+    venue: arXiv
+    year: 2025
+    arxiv: "2506.21843"
+    status: reading
+    priority: P2
+    github: https://github.com/gegen666/EEGTo3D
+    code: code/eeg_visual/eeg_to_3d/
+    tags: [eeg, 3d, nerf]
+    one_liner: 双自注意 EEG 编码器 + VSD 优化 NeRF
+
+  # ---------- remote_sensing（遥感融合；与视频生成主线正交） ----------
+  - id: s3mamba_pan
+    track: remote_sensing
+    slug: s3mamba_pan
+    title: "S3Mamba-Pan: Spectral–Spatial-Scale Mamba With Frequency-Decoupled Dual-Stream for Pansharpening"
+    venue: IEEE TGRS
+    year: 2026
+    doi: "10.1109/TGRS.2026.3686021"
+    ieee: "11489036"
+    status: reading
+    priority: P2
+    github: https://github.com/FreeZS-a/S3Mamba
+    translation: translations/remote_sensing/s3mamba_pan/paper_zh.md
+    notes: notes/remote_sensing/s3mamba_pan/
+    code: code/remote_sensing/s3mamba_pan/
+    tags: [pansharpening, mamba, ssm, wavelet, remote_sensing]
+    one_liner: 小波频率解耦双流 Mamba + GSA/ADR 做全色锐化
+
+  # ---------- spatial（空间理解；与视频生成主线正交） ----------
+  # 阅读顺序见 arxiv/spatial/README.md。PointLLM / 3D-LLM / LEO / SceneVerse 不入库，表格里见到再翻。
+
+  - id: spatial_vlm
+    track: spatial
+    slug: spatial_vlm
+    title: "SpatialVLM: Endowing Vision-Language Models with Spatial Reasoning Capabilities"
+    venue: arXiv
+    year: 2024
+    arxiv: "2401.12168"
+    status: pending
+    priority: P1
+    deps: []
+    tags: [spatial, vlm, metric_qa, data]
+    one_liner: 用检测、深度和分割自动造以米为单位的空间问答
+
+  - id: spatial_rgpt
+    track: spatial
+    slug: spatial_rgpt
+    title: "SpatialRGPT: Grounded Spatial Reasoning in Vision Language Models"
+    venue: NeurIPS
+    year: 2024
+    arxiv: "2406.01584"
+    status: pending
+    priority: P1
+    deps: [spatial_vlm]
+    tags: [spatial, region, depth, benchmark]
+    one_liner: 区域指代加显式深度，并给出 SpatialRGPT-Bench
+
+  - id: thinking_in_space
+    track: spatial
+    slug: thinking_in_space
+    title: "Thinking in Space: How Multimodal Large Language Models See, Remember, and Recall Spaces"
+    venue: CVPR
+    year: 2025
+    arxiv: "2412.14171"
+    status: pending
+    priority: P1
+    deps: [spatial_vlm]
+    tags: [spatial, video, vsi_bench, cognitive_map]
+    one_liner: 第一人称视频上的 VSI-Bench；认知地图比普通思维链更有效
+
+  - id: mindcube
+    track: spatial
+    slug: mindcube
+    title: "MindCube: Spatial Mental Modeling from Limited Views"
+    venue: ICCV
+    year: 2025
+    arxiv: "2506.21458"
+    status: pending
+    priority: P1
+    deps: [thinking_in_space]
+    tags: [spatial, mental_map, viewpoint, rl]
+    one_liner: 有限视角下先摆心理地图，再做视角转换与假设性移动
+
+  - id: llava_3d
+    track: spatial
+    slug: llava_3d
+    title: "LLaVA-3D: A Simple yet Effective Pathway to Empowering LMMs with 3D Capabilities"
+    venue: ICCV
+    year: 2025
+    arxiv: "2409.18125"
+    status: pending
+    priority: P1
+    deps: []
+    github: https://github.com/ZCMax/LLaVA-3D
+    tags: [spatial, scene_qa, 3d_position, scanqa]
+    one_liner: 给二维图块加三维坐标，沿用二维视觉语言模型做场景问答与定位
+
+  - id: video_3d_llm
+    track: spatial
+    slug: video_3d_llm
+    title: "Video-3D LLM: Learning Position-Aware Video Representation for 3D Scene Understanding"
+    venue: CVPR
+    year: 2025
+    arxiv: "2412.00493"
+    status: pending
+    priority: P1
+    deps: [llava_3d]
+    github: https://github.com/LaVi-Lab/Video-3D-LLM
+    tags: [spatial, video, position_encoding, scene]
+    one_liner: 把三维场景当成视频并加上三维位置编码，用多视角代替直接吃点云
+
+  - id: spatialtree
+    track: spatial
+    slug: spatialtree
+    title: "SpatialTree: How Spatial Abilities Branch Out in MLLMs"
+    venue: CVPR
+    year: 2026
+    arxiv: "2512.20617"
+    status: pending
+    priority: P0
+    deps: [thinking_in_space, mindcube]
+    tags: [spatial, taxonomy, benchmark, auto_think]
+    one_liner: 把空间能力分成四层共 27 个子能力；低层少想、高层多想
+
+  - id: think_with_3d
+    track: spatial
+    slug: think_with_3d
+    title: "Think with 3D: Geometric Imagination Grounded Spatial Reasoning from Limited Views"
+    venue: CVPR
+    year: 2026
+    arxiv: "2510.18632"
+    status: pending
+    priority: P0
+    deps: [mindcube, spatialtree]
+    tags: [spatial, latent_3d, vggt, rl]
+    one_liner: 推理时在语言模型里生成三维隐变量，并与 VGGT 几何特征对齐
+
+  - id: g2vlm
+    track: spatial
+    slug: g2vlm
+    title: "G²VLM: Geometry Grounded Vision Language Model with Unified 3D Reconstruction and Spatial Reasoning"
+    venue: CVPR
+    year: 2026
+    arxiv: "2511.21688"
+    status: pending
+    priority: P0
+    deps: [video_3d_llm, think_with_3d]
+    tags: [spatial, reconstruction, feedforward, reasoning]
+    one_liner: 把前馈三维重建和空间问答放进同一个模型
+
+  - id: spacemind
+    track: spatial
+    slug: spacemind
+    title: "SpaceMind: Camera-Guided Modality Fusion for Spatial Reasoning in Vision-Language Models"
+    venue: CVPR
+    year: 2026
+    arxiv: "2511.23075"
+    status: pending
+    priority: P0
+    deps: [video_3d_llm, thinking_in_space]
+    github: https://github.com/RealMikeDuke/SpaceMind
+    tags: [spatial, vggt, camera, fusion]
+    one_liner: VGGT 管几何、InternViT 管语义，用相机给空间 token 加权和门控
+
+  - id: hispatial
+    track: spatial
+    slug: hispatial
+    title: "HiSpatial: Taming Hierarchical 3D Spatial Understanding in Vision-Language Models"
+    venue: CVPR
+    year: 2026
+    arxiv: "2603.25411"
+    status: pending
+    priority: P0
+    deps: [spatialtree, spatial_rgpt]
+    tags: [spatial, hierarchy, sft, rgbd]
+    one_liner: 四层空间理解，用约五百万张图自动造问答，再加 RGB-D 点图
+
+  - id: spatial_llm
+    track: spatial
+    slug: spatial_llm
+    title: "SpatialLLM: A Compound 3D-Informed Design towards Spatially-Intelligent Large Multimodal Models"
+    venue: CVPR
+    year: 2025
+    arxiv: "2505.00788"
+    status: pending
+    priority: P2
+    deps: [spatial_rgpt]
+    tags: [spatial, training_stage, orientation]
+    one_liner: 比较三维位置和朝向数据该加在预训练、对齐还是指令微调
+
+  - id: think3d
+    track: spatial
+    slug: think3d
+    title: "Think3D: Thinking with Space for Spatial Reasoning"
+    venue: arXiv
+    year: 2026
+    arxiv: "2601.13029"
+    status: pending
+    priority: P2
+    deps: [think_with_3d]
+    tags: [spatial, tool_use, camera, preprint]
+    one_liner: 不改模型内部，让模型调用重建工具并主动转相机
+
+  - id: star_r1
+    track: spatial
+    slug: star_r1
+    title: "STAR-R1: Spatial TrAnsformation Reasoning by Reinforcing Multimodal LLMs"
+    venue: CVPR
+    year: 2026
+    arxiv: "2505.15804"
+    status: pending
+    priority: P2
+    deps: [think_with_3d, mindcube]
+    tags: [spatial, multiview, rl]
+    one_liner: 多视角空间变换推理上的过程监督与强化学习
+
+  - id: spatial_ssrl
+    track: spatial
+    slug: spatial_ssrl
+    title: "Spatial-SSRL: Enhancing Spatial Understanding via Self-Supervised Reinforcement Learning"
+    venue: CVPR
+    year: 2026
+    arxiv: "2510.27606"
+    status: pending
+    priority: P2
+    deps: [think_with_3d]
+    github: https://github.com/InternLM/Spatial-SSRL
+    tags: [spatial, self_supervised, rl]
+    one_liner: 从普通 RGB 或 RGB-D 造可验证奖励，做空间强化学习
+
+  - id: sympl
+    track: spatial
+    slug: sympl
+    title: "Keep it SymPL: Symbolic Projective Layout for Allocentric Spatial Reasoning in Vision-Language Models"
+    venue: CVPR
+    year: 2026
+    arxiv: "2602.19117"
+    status: pending
+    priority: P2
+    deps: [think_with_3d]
+    tags: [spatial, symbolic, allocentric]
+    one_liner: 把以场景为中心的空间题改写成符号投影布局再交给语言模型

@@ -1,0 +1,94 @@
+\appendix
+
+
+\input{tables/instruction_1}
+\input{tables/instruction_2}
+\input{tables/instruction_3}
+\input{tables/instruction_4}
+\input{tables/Framework_ablation_detail}
+\input{tables/Vimeo11K_detail}
+
+% \setcounter{section}{0}
+\section{Top-Down Planning}
+\label{sub:planning}
+
+As depicted in Tab. \ref{tab:instruction_1}, \ref{tab:instruction_2}, \ref{tab:instruction_3} and \ref{tab:instruction_4}, we encourage users to follow the provided example as guidance. 
+These prompts instruct the LLM to generate structured outputs, specifically in the form of JSON code snippets. 
+Concurrently, the examples furnished in these tables qualitatively emphasize the essentiality of a progressive approach in script generation, thereby rendering them qualitatively insightful.
+
+\section{ShowMaker Implementation Details}
+\textbf{Stage-1 Settings}.
+% For architecture, we expand the input channel of the conv-in layer of our base video pre-train model \cite{Wang2023LAVIEHV} from 4 to 9. 
+% Additionally, after we incorporate temporal text cross attention into the U-Net architecture with a total parameter count of 1.3B. 
+% For training, we train the entire U-Net, only excluding the spatial image cross attention parts.
+In terms of architecture, we modify the input channel of the convolutional input layer in our base video pre-training model \cite{Wang2023LAVIEHV}, expanding it from 4 to 9. 
+Furthermore, the integration of temporal text cross attention into the U-Net architecture results in a total parameter count of 1.3 billion. 
+In terms of training, we train the entire U-Net, excluding only the spatial image cross attention components.
+We set the value of the mixed training paradigm $\alpha$ and $m$ to 0.6 and 6 respectively. 
+We establish the probability of dropping both the textual prompt and visual prompt at 0.1.
+The learning rate we employ is 1e-4, and the batch size is 384, comprising a 16-frame video and 6 images per batch. 
+We perform 54,000 steps total, requiring approximately five days to complete. 
+% With the training conducted on 128 A100 units, we perform 54000 steps, requiring approximately five days to complete. 
+It is worth noting that when training image data, the mask probability is set to 1, and the image features do not undergo temporal self attention and temporal text cross attention module.
+
+\noindent\textbf{Stage-2 Settings}.
+For architecture, we incorporate OpenCLIP ViT-H/14 \cite{ilharco2021openclip} as our image encoder. We set the spatial image cross attention $\beta$ to 1 during training.
+For training, the U-Net is frozen while only permitting the training of spatial image cross attention components, thereby limiting the number of trainable parameters to only 22M. 
+We follow a joint approach involving videos and images. 
+However, unlike the first stage, we only need to train the video generation pattern in the second stage. 
+During the training of spatial image cross attention, besides using a textual prompt as a condition, a visual prompt is also needed. 
+The reference image for a given image is the image itself, while for videos, a random frame is selected from it. 
+The probability of dropping both the textual prompt and visual prompt is set to 0.1. 
+The learning rate used is 1e-4, and the batch size is 256, comprising a 16-frame video and 6 images per batch. 
+We perform 62,000 steps, requiring approximately five days to complete. 
+
+For both two stages, the AdamW \cite{Loshchilov2017DecoupledWD} optimizer is consistently employed. 
+All images and videos used during training are subjected to online resizing, yielding a resolution of $320$$\times$$520$ resolution.
+Regarding the video sampling process within the WebVid10M \cite{bain2021frozen}, we adopt a random sampling technique with an interval of 6 frames.
+
+
+
+
+
+\section{Comparison with State-of-the-art}
+
+\textbf{UCF-101} \cite{Soomro2012UCF101AD}.
+To ensure accurate and stable computation of the FVD, we use the same sampling strategy as \cite{Wang2023LAVIEHV}, where a hundred videos are sampled for each class or hand-crafted prompt.
+We first generate the video at a resolution of $320$$\times$$512$ and then resize it to match the $240$$\times$$320$ resolution of UCF-101.
+Initially, videos are generated at a resolution of $320$$\times$$512$. 
+Subsequently, these videos are resized to align with the $240$$\times$$320$ resolution of the UCF-101 dataset.
+For the calculation of FVD \cite{unterthiner2019accurate}, we utilize a codebase derived from \cite{skorokhodov2022styleganv}.
+\noindent\textbf{Kinetics-400} \cite{Kay2017TheKH}.
+For Text-to-Video (T2V) generation within the Kinetics-400 dataset, we employ GPT-4 \cite{OpenAI2023GPT4TR} to construct a hand-crafted prompt that corresponds with each class label. 
+Given the variable video resolutions present in the Kinetics-400 dataset, the ground truth videos are resized to a $320$$\times$$512$ resolution to match our generated videos.
+\textbf{MSR-VTT} \cite{Chen2021TheMT}.
+The MSR-VTT test set comprises 2,990 examples, each accompanied by 20 descriptions. 
+For each example, we generate a video (comprising 16 frames at $320$$\times$$512$ resolution) using one randomly selected prompt. 
+This procedure results in the creation of 2,990 videos.
+The CLIPSIM \cite{Wu2021GODIVAGO} and FID \cite{parmar2022aliased} for the 47,840 frames are then computed following the methodology in \cite{singer2023makeavideo}.
+\textbf{UCF-101 1000 Frames}.
+In alignment with TATS \cite{Ge2022LongVG}, we use the hand-crafted prompts of UCF-101 as \cite{Ge2023PreserveYO} to generate videos and partition the generated long video into clips, each consisting of 16 frames. 
+The FVD is computed between these clips and the ground truth.
+
+
+\section{Ablation Study}
+\label{sub:ablation}
+
+\subsection{Vlog Generation Process}
+As detailed in Tab. \ref{tab:framework_ablation_detail}, we used GPT-4 \cite{OpenAI2023GPT4TR} to automatically generate five scripts, namely \textit{Teddy Travel}, \textit{Alfie Work}, \textit{Tiger Moon}, \textit{Pete Skiing} and \textit{Anna Cooking} respectively.
+Then we uniformly use the planning process of Vlogger to get the Script.
+However, although we use the same Script, MovieFactory \cite{Zhu2023MovieFactoryAM} and Phenaki \cite{villegas2023phenaki} cannot use visual prompts due to their framework design, and can only use textual prompts for video generation.
+
+
+\subsection{Temporal Text Cross Attention (TTCA) and Mixed Training Paradigm (MTP)}
+As detailed in Tab. \ref{tab:vimeo_detail}, we get the video data of Vimeo11K from \href{https://vimeo.com/}{vimeo.com} and then use VideoChat \cite{Li2023VideoChatCV} to caption the videos.
+Vimeo11K mainly contains 10 major categories of videos, namely \textit{Experimental}, \textit{Music}, \textit{Animation}, \textit{Sports}, \textit{Ads and Commercials}, \textit{Travel}, \textit{Branded Content}, \textit{Narrative}, \textit{Comedy}, and \textit{Documentary} respectively.
+The number of videos included in each of the 10 categories is 1003, 1079, 1175, 905, 1229, 1288, 1173, 1010, 1267, and 1064 respectively, for a total of 11293.
+The dataset and code for the test content will be released afterward. 
+
+
+\section{Visualization}
+\label{sub:visualization}
+We place the visualization results generated by our Vlogger in the supplementary material. 
+Under the premise of not disrupting the files within the folder, please click on the following link: \href{https://zhuangshaobin.github.io/Vlogger.github.io/}{Project Page}.
+

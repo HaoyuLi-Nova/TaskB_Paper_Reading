@@ -1,0 +1,273 @@
+\begin{thebibliography}{53}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[AI(2022)]{sd_vae_ft_mse}
+Stability AI.
+\newblock sd-vae-ft-mse.
+\newblock \url{https://huggingface.co/stabilityai/sd-vae-ft-mse}, 2022.
+
+\bibitem[Arjovsky et~al.(2017)Arjovsky, Chintala, and Bottou]{arjovsky2017wasserstein}
+Martin Arjovsky, Soumith Chintala, and L{\'e}on Bottou.
+\newblock Wasserstein generative adversarial networks.
+\newblock In \emph{International conference on machine learning}, pages 214--223. PMLR, 2017.
+
+\bibitem[Bigioi et~al.(2024)Bigioi, Basak, Stypu{\l}kowski, Zieba, Jordan, McDonnell, and Corcoran]{bigioi2024speech}
+Dan Bigioi, Shubhajit Basak, Micha{\l} Stypu{\l}kowski, Maciej Zieba, Hugh Jordan, Rachel McDonnell, and Peter Corcoran.
+\newblock Speech driven video editing via an audio-conditioned diffusion model.
+\newblock \emph{Image and Vision Computing}, 142:\penalty0 104911, 2024.
+
+\bibitem[Blattmann et~al.(2023)Blattmann, Rombach, Ling, Dockhorn, Kim, Fidler, and Kreis]{blattmann2023align}
+Andreas Blattmann, Robin Rombach, Huan Ling, Tim Dockhorn, Seung~Wook Kim, Sanja Fidler, and Karsten Kreis.
+\newblock Align your latents: High-resolution video synthesis with latent diffusion models.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 22563--22575, 2023.
+
+\bibitem[Bulat and Tzimiropoulos(2017)]{bulat2017far}
+Adrian Bulat and Georgios Tzimiropoulos.
+\newblock How far are we from solving the 2d \& 3d face alignment problem?(and a dataset of 230,000 3d facial landmarks).
+\newblock In \emph{Proceedings of the IEEE international conference on computer vision}, pages 1021--1030, 2017.
+
+\bibitem[Che et~al.(2016)Che, Li, Jacob, Bengio, and Li]{che2016mode}
+Tong Che, Yanran Li, Athul~Paul Jacob, Yoshua Bengio, and Wenjie Li.
+\newblock Mode regularized generative adversarial networks.
+\newblock \emph{arXiv preprint arXiv:1612.02136}, 2016.
+
+\bibitem[Chen et~al.(2024)Chen, Cao, Chen, Li, and Ma]{chen2024echomimic}
+Zhiyuan Chen, Jiajiong Cao, Zhiquan Chen, Yuming Li, and Chenguang Ma.
+\newblock Echomimic: Lifelike audio-driven portrait animations through editable landmark conditions.
+\newblock \emph{arXiv preprint arXiv:2407.08136}, 2024.
+
+\bibitem[Cheng et~al.(2022)Cheng, Cun, Zhang, Xia, Yin, Zhu, Wang, Wang, and Wang]{cheng2022videoretalking}
+Kun Cheng, Xiaodong Cun, Yong Zhang, Menghan Xia, Fei Yin, Mingrui Zhu, Xuan Wang, Jue Wang, and Nannan Wang.
+\newblock Videoretalking: Audio-based lip synchronization for talking head video editing in the wild.
+\newblock In \emph{SIGGRAPH Asia 2022 Conference Papers}, pages 1--9, 2022.
+
+\bibitem[Chung and Zisserman(2017)]{chung2017out}
+Joon~Son Chung and Andrew Zisserman.
+\newblock Out of time: automated lip sync in the wild.
+\newblock In \emph{Computer Vision--ACCV 2016 Workshops: ACCV 2016 International Workshops, Taipei, Taiwan, November 20-24, 2016, Revised Selected Papers, Part II 13}, pages 251--263. Springer, 2017.
+
+\bibitem[Chung et~al.(2018)Chung, Nagrani, and Zisserman]{chung2018voxceleb2}
+Joon~Son Chung, Arsha Nagrani, and Andrew Zisserman.
+\newblock Voxceleb2: Deep speaker recognition.
+\newblock \emph{arXiv preprint arXiv:1806.05622}, 2018.
+
+\bibitem[Esser et~al.(2021)Esser, Rombach, and Ommer]{esser2021taming}
+Patrick Esser, Robin Rombach, and Bjorn Ommer.
+\newblock Taming transformers for high-resolution image synthesis.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}, pages 12873--12883, 2021.
+
+\bibitem[Geirhos et~al.(2020)Geirhos, Jacobsen, Michaelis, Zemel, Brendel, Bethge, and Wichmann]{geirhos2020shortcut}
+Robert Geirhos, J{\"o}rn-Henrik Jacobsen, Claudio Michaelis, Richard Zemel, Wieland Brendel, Matthias Bethge, and Felix~A Wichmann.
+\newblock Shortcut learning in deep neural networks.
+\newblock \emph{Nature Machine Intelligence}, 2\penalty0 (11):\penalty0 665--673, 2020.
+
+\bibitem[Goodfellow et~al.(2014)Goodfellow, Pouget-Abadie, Mirza, Xu, Warde-Farley, Ozair, Courville, and Bengio]{goodfellow2014generative}
+Ian Goodfellow, Jean Pouget-Abadie, Mehdi Mirza, Bing Xu, David Warde-Farley, Sherjil Ozair, Aaron Courville, and Yoshua Bengio.
+\newblock Generative adversarial nets.
+\newblock \emph{Advances in neural information processing systems}, 27, 2014.
+
+\bibitem[Guan et~al.(2023)Guan, Zhang, Zhou, Hu, Wang, He, Feng, Liu, Ding, Liu, et~al.]{guan2023stylesync}
+Jiazhi Guan, Zhanwang Zhang, Hang Zhou, Tianshu Hu, Kaisiyuan Wang, Dongliang He, Haocheng Feng, Jingtuo Liu, Errui Ding, Ziwei Liu, et~al.
+\newblock Stylesync: High-fidelity generalized and personalized lip sync in style-based generator.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 1505--1515, 2023.
+
+\bibitem[Guo et~al.(2023)Guo, Yang, Rao, Liang, Wang, Qiao, Agrawala, Lin, and Dai]{guo2023animatediff}
+Yuwei Guo, Ceyuan Yang, Anyi Rao, Zhengyang Liang, Yaohui Wang, Yu Qiao, Maneesh Agrawala, Dahua Lin, and Bo Dai.
+\newblock Animatediff: Animate your personalized text-to-image diffusion models without specific tuning.
+\newblock \emph{arXiv preprint arXiv:2307.04725}, 2023.
+
+\bibitem[Gupta et~al.(2023)Gupta, Mukhopadhyay, Balachandra, Khan, Namboodiri, and Jawahar]{gupta2023towards}
+Anchit Gupta, Rudrabha Mukhopadhyay, Sindhu Balachandra, Faizan~Farooq Khan, Vinay~P Namboodiri, and CV Jawahar.
+\newblock Towards generating ultra-high resolution talking-face videos with lip synchronization.
+\newblock In \emph{Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision}, pages 5209--5218, 2023.
+
+\bibitem[He et~al.(2016)He, Zhang, Ren, and Sun]{he2016deep}
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+\newblock Deep residual learning for image recognition.
+\newblock In \emph{Proceedings of the IEEE conference on computer vision and pattern recognition}, pages 770--778, 2016.
+
+\bibitem[Heusel et~al.(2017)Heusel, Ramsauer, Unterthiner, Nessler, and Hochreiter]{heusel2017gans}
+Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp Hochreiter.
+\newblock Gans trained by a two time-scale update rule converge to a local nash equilibrium.
+\newblock \emph{Advances in neural information processing systems}, 30, 2017.
+
+\bibitem[Ho et~al.(2020)Ho, Jain, and Abbeel]{ho2020denoising}
+Jonathan Ho, Ajay Jain, and Pieter Abbeel.
+\newblock Denoising diffusion probabilistic models.
+\newblock \emph{Advances in neural information processing systems}, 33:\penalty0 6840--6851, 2020.
+
+\bibitem[Jiang et~al.(2024)Jiang, Liang, Yang, Lin, Zhong, and Zheng]{jiang2024loopy}
+Jianwen Jiang, Chao Liang, Jiaqi Yang, Gaojie Lin, Tianyun Zhong, and Yanbo Zheng.
+\newblock Loopy: Taming audio-driven portrait avatar with long-term motion dependency.
+\newblock In \emph{The Thirteenth International Conference on Learning Representations}, 2024.
+
+\bibitem[Kang et~al.(2023)Kang, Zhu, Zhang, Park, Shechtman, Paris, and Park]{kang2023scaling}
+Minguk Kang, Jun-Yan Zhu, Richard Zhang, Jaesik Park, Eli Shechtman, Sylvain Paris, and Taesung Park.
+\newblock Scaling up gans for text-to-image synthesis.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 10124--10134, 2023.
+
+\bibitem[Karras et~al.(2020)Karras, Laine, Aittala, Hellsten, Lehtinen, and Aila]{karras2020analyzing}
+Tero Karras, Samuli Laine, Miika Aittala, Janne Hellsten, Jaakko Lehtinen, and Timo Aila.
+\newblock Analyzing and improving the image quality of stylegan.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}, pages 8110--8119, 2020.
+
+\bibitem[Kingma(2013)]{kingma2013auto}
+Diederik~P Kingma.
+\newblock Auto-encoding variational bayes.
+\newblock \emph{arXiv preprint arXiv:1312.6114}, 2013.
+
+\bibitem[KR et~al.(2019)KR, Mukhopadhyay, Philip, Jha, Namboodiri, and Jawahar]{kr2019towards}
+Prajwal KR, Rudrabha Mukhopadhyay, Jerin Philip, Abhishek Jha, Vinay Namboodiri, and CV Jawahar.
+\newblock Towards automatic face-to-face translation.
+\newblock In \emph{Proceedings of the 27th ACM international conference on multimedia}, pages 1428--1436, 2019.
+
+\bibitem[Liu et~al.(2024)Liu, Du, Fan, Chen, and Yu]{liu2024diffdub}
+Tao Liu, Chenpeng Du, Shuai Fan, Feilong Chen, and Kai Yu.
+\newblock Diffdub: Person-generic visual dubbing using inpainting renderer with diffusion auto-encoder.
+\newblock In \emph{ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, pages 3630--3634. IEEE, 2024.
+
+\bibitem[Lugaresi et~al.(2019)Lugaresi, Tang, Nash, McClanahan, Uboweja, Hays, Zhang, Chang, Yong, Lee, et~al.]{lugaresi2019mediapipe}
+Camillo Lugaresi, Jiuqiang Tang, Hadon Nash, Chris McClanahan, Esha Uboweja, Michael Hays, Fan Zhang, Chuo-Ling Chang, Ming~Guang Yong, Juhyun Lee, et~al.
+\newblock Mediapipe: A framework for building perception pipelines.
+\newblock \emph{arXiv preprint arXiv:1906.08172}, 2019.
+
+\bibitem[Ma et~al.(2023)Ma, Zhang, Wang, Wang, Zhang, and Deng]{ma2023dreamtalk}
+Yifeng Ma, Shiwei Zhang, Jiayu Wang, Xiang Wang, Yingya Zhang, and Zhidong Deng.
+\newblock Dreamtalk: When expressive talking head generation meets diffusion probabilistic models.
+\newblock \emph{arXiv preprint arXiv:2312.09767}, 2023.
+
+\bibitem[Mukhopadhyay et~al.(2024)Mukhopadhyay, Suri, Gadde, and Shrivastava]{mukhopadhyay2024diff2lip}
+Soumik Mukhopadhyay, Saksham Suri, Ravi~Teja Gadde, and Abhinav Shrivastava.
+\newblock Diff2lip: Audio conditioned diffusion models for lip-synchronization.
+\newblock In \emph{Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision}, pages 5292--5302, 2024.
+
+\bibitem[Prajwal et~al.(2020)Prajwal, Mukhopadhyay, Namboodiri, and Jawahar]{prajwal2020lip}
+KR Prajwal, Rudrabha Mukhopadhyay, Vinay~P Namboodiri, and CV Jawahar.
+\newblock A lip sync expert is all you need for speech to lip generation in the wild.
+\newblock In \emph{Proceedings of the 28th ACM international conference on multimedia}, pages 484--492, 2020.
+
+\bibitem[Preechakul et~al.(2022)Preechakul, Chatthee, Wizadwongsa, and Suwajanakorn]{preechakul2022diffusion}
+Konpat Preechakul, Nattanat Chatthee, Suttisak Wizadwongsa, and Supasorn Suwajanakorn.
+\newblock Diffusion autoencoders: Toward a meaningful and decodable representation.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}, pages 10619--10629, 2022.
+
+\bibitem[primepake(2021)]{wav2lip288}
+primepake.
+\newblock wav2lip 288x288.
+\newblock \url{https://github.com/primepake/wav2lip_288x288}, 2021.
+
+\bibitem[Radford et~al.(2023)Radford, Kim, Xu, Brockman, McLeavey, and Sutskever]{radford2023robust}
+Alec Radford, Jong~Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, and Ilya Sutskever.
+\newblock Robust speech recognition via large-scale weak supervision.
+\newblock In \emph{International conference on machine learning}, pages 28492--28518. PMLR, 2023.
+
+\bibitem[Rombach et~al.(2022)Rombach, Blattmann, Lorenz, Esser, and Ommer]{rombach2022high}
+Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj{\"o}rn Ommer.
+\newblock High-resolution image synthesis with latent diffusion models.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}, pages 10684--10695, 2022.
+
+\bibitem[Ronneberger et~al.(2015)Ronneberger, Fischer, and Brox]{ronneberger2015u}
+Olaf Ronneberger, Philipp Fischer, and Thomas Brox.
+\newblock U-net: Convolutional networks for biomedical image segmentation.
+\newblock In \emph{Medical image computing and computer-assisted intervention--MICCAI 2015: 18th international conference, Munich, Germany, October 5-9, 2015, proceedings, part III 18}, pages 234--241. Springer, 2015.
+
+\bibitem[Salimans et~al.(2016)Salimans, Goodfellow, Zaremba, Cheung, Radford, and Chen]{salimans2016improved}
+Tim Salimans, Ian Goodfellow, Wojciech Zaremba, Vicki Cheung, Alec Radford, and Xi Chen.
+\newblock Improved techniques for training gans.
+\newblock \emph{Advances in neural information processing systems}, 29, 2016.
+
+\bibitem[Sauer et~al.(2023)Sauer, Karras, Laine, Geiger, and Aila]{sauer2023stylegan}
+Axel Sauer, Tero Karras, Samuli Laine, Andreas Geiger, and Timo Aila.
+\newblock Stylegan-t: Unlocking the power of gans for fast large-scale text-to-image synthesis.
+\newblock In \emph{International conference on machine learning}, pages 30105--30118. PMLR, 2023.
+
+\bibitem[Simonyan and Zisserman(2014)]{simonyan2014very}
+Karen Simonyan and Andrew Zisserman.
+\newblock Very deep convolutional networks for large-scale image recognition.
+\newblock \emph{arXiv preprint arXiv:1409.1556}, 2014.
+
+\bibitem[Song et~al.(2020)Song, Meng, and Ermon]{song2020denoising}
+Jiaming Song, Chenlin Meng, and Stefano Ermon.
+\newblock Denoising diffusion implicit models.
+\newblock \emph{arXiv preprint arXiv:2010.02502}, 2020.
+
+\bibitem[Srivastava et~al.(2017)Srivastava, Valkov, Russell, Gutmann, and Sutton]{srivastava2017veegan}
+Akash Srivastava, Lazar Valkov, Chris Russell, Michael~U Gutmann, and Charles Sutton.
+\newblock Veegan: Reducing mode collapse in gans using implicit variational learning.
+\newblock \emph{Advances in neural information processing systems}, 30, 2017.
+
+\bibitem[Su et~al.(2020)Su, Yan, Zhu, Zhang, Ge, Sun, and Zhang]{su2020blindly}
+Shaolin Su, Qingsen Yan, Yu Zhu, Cheng Zhang, Xin Ge, Jinqiu Sun, and Yanning Zhang.
+\newblock Blindly assess image quality in the wild guided by a self-adaptive hyper network.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}, pages 3667--3676, 2020.
+
+\bibitem[Tian et~al.(2024)Tian, Wang, Zhang, and Bo]{tian2024emo}
+Linrui Tian, Qi Wang, Bang Zhang, and Liefeng Bo.
+\newblock Emo: Emote portrait alive-generating expressive portrait videos with audio2video diffusion model under weak conditions.
+\newblock \emph{arXiv preprint arXiv:2402.17485}, 2024.
+
+\bibitem[Unterthiner et~al.(2018)Unterthiner, Van~Steenkiste, Kurach, Marinier, Michalski, and Gelly]{unterthiner2018towards}
+Thomas Unterthiner, Sjoerd Van~Steenkiste, Karol Kurach, Raphael Marinier, Marcin Michalski, and Sylvain Gelly.
+\newblock Towards accurate generative models of video: A new metric \& challenges.
+\newblock \emph{arXiv preprint arXiv:1812.01717}, 2018.
+
+\bibitem[Vaswani(2017)]{vaswani2017attention}
+A Vaswani.
+\newblock Attention is all you need.
+\newblock \emph{Advances in Neural Information Processing Systems}, 2017.
+
+\bibitem[Wang et~al.(2023)Wang, Huang, Zhao, Tong, He, Wang, Wang, and Qiao]{wang2023videomae}
+Limin Wang, Bingkun Huang, Zhiyu Zhao, Zhan Tong, Yinan He, Yi Wang, Yali Wang, and Yu Qiao.
+\newblock Videomae v2: Scaling video masked autoencoders with dual masking.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 14549--14560, 2023.
+
+\bibitem[Wang et~al.(2004)Wang, Bovik, Sheikh, and Simoncelli]{wang2004image}
+Zhou Wang, Alan~C Bovik, Hamid~R Sheikh, and Eero~P Simoncelli.
+\newblock Image quality assessment: from error visibility to structural similarity.
+\newblock \emph{IEEE transactions on image processing}, 13\penalty0 (4):\penalty0 600--612, 2004.
+
+\bibitem[Xu et~al.(2024)Xu, Li, Su, Shang, Zhang, Liu, Wang, Van~Gool, Yao, and Zhu]{xu2024hallo}
+Mingwang Xu, Hui Li, Qingkun Su, Hanlin Shang, Liwei Zhang, Ce Liu, Jingdong Wang, Luc Van~Gool, Yao Yao, and Siyu Zhu.
+\newblock Hallo: Hierarchical audio-driven visual synthesis for portrait image animation.
+\newblock \emph{arXiv preprint arXiv:2406.08801}, 2024.
+
+\bibitem[Ye et~al.(2023)Ye, Jiang, Ren, Liu, He, and Zhao]{ye2023geneface}
+Zhenhui Ye, Ziyue Jiang, Yi Ren, Jinglin Liu, Jinzheng He, and Zhou Zhao.
+\newblock Geneface: Generalized and high-fidelity audio-driven 3d talking face synthesis.
+\newblock \emph{arXiv preprint arXiv:2301.13430}, 2023.
+
+\bibitem[Yu et~al.(2024)Yu, He, Zeng, Wang, Guo, Tan, Liu, Chen, and Bian]{yu2024make}
+Runyi Yu, Tianyu He, Ailing Zeng, Yuchi Wang, Junliang Guo, Xu Tan, Chang Liu, Jie Chen, and Jiang Bian.
+\newblock Make your actor talk: Generalizable and high-fidelity lip sync with motion and appearance disentanglement.
+\newblock \emph{arXiv preprint arXiv:2406.08096}, 2024.
+
+\bibitem[Zhang et~al.(2018)Zhang, Isola, Efros, Shechtman, and Wang]{zhang2018unreasonable}
+Richard Zhang, Phillip Isola, Alexei~A Efros, Eli Shechtman, and Oliver Wang.
+\newblock The unreasonable effectiveness of deep features as a perceptual metric.
+\newblock In \emph{Proceedings of the IEEE conference on computer vision and pattern recognition}, pages 586--595, 2018.
+
+\bibitem[Zhang et~al.(2024)Zhang, Liu, Chen, Wu, Zeng, Zhan, He, Huang, and Zhou]{zhang2024musetalk}
+Yue Zhang, Minhao Liu, Zhaokang Chen, Bin Wu, Yubin Zeng, Chao Zhan, Yingjie He, Junxin Huang, and Wenjiang Zhou.
+\newblock Musetalk: Real-time high quality lip synchronization with latent space inpainting.
+\newblock \emph{arXiv preprint arXiv:2410.10122}, 2024.
+
+\bibitem[Zhang et~al.(2021)Zhang, Li, Ding, and Fan]{zhang2021flow}
+Zhimeng Zhang, Lincheng Li, Yu Ding, and Changjie Fan.
+\newblock Flow-guided one-shot talking face generation with a high-resolution audio-visual dataset.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 3661--3670, 2021.
+
+\bibitem[Zhang et~al.(2023)Zhang, Hu, Deng, Fan, Lv, and Ding]{zhang2023dinet}
+Zhimeng Zhang, Zhipeng Hu, Wenjin Deng, Changjie Fan, Tangjie Lv, and Yu Ding.
+\newblock Dinet: Deformation inpainting network for realistic face visually dubbing on high resolution video.
+\newblock In \emph{Proceedings of the AAAI Conference on Artificial Intelligence}, pages 3543--3551, 2023.
+
+\bibitem[Zhong et~al.(2024)Zhong, Li, Cai, Lin, and Li]{zhong2024style}
+Weizhi Zhong, Jichang Li, Yinqi Cai, Liang Lin, and Guanbin Li.
+\newblock Style-preserving lip sync via audio-aware style reference.
+\newblock \emph{arXiv preprint arXiv:2408.05412}, 2024.
+
+\end{thebibliography}

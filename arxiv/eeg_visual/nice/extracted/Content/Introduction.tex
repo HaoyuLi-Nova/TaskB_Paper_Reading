@@ -1,0 +1,52 @@
+\label{sec:introduction}
+Our daily life relies on accurately and rapidly identifying objects in complex visual environments \citep{dicarlo2007untangling}.  
+Researchers have pursued decoding natural images from brain activity, aiming to deepen our understanding of the brain and create user-friendly brain-computer interfaces (BCIs) \citep{kamitani2005decoding, kay2008identifying, gao2021interfacea}. 
+Functional magnetic resonance imaging (fMRI), which records blood oxygen level-dependent signals, has been a popular choice for categorizing objects observed by humans \citep{du2023decoding, horikawa2017generic, allen2022massive}.
+Despite its high spatial resolution, fMRI typically requires several seconds to provide a stable response to a single stimulus, limiting its real-time applicability in daily interactions \citep{NEURIPS2022_bee5125b}.
+Similarly, Magnetoencephalogram (MEG), with high time resolution, has been employed for this purpose, but it is hindered by cost and large devices \citep{cichy2014resolving, hebart2023thingsdata}.
+
+Electroencephalogram (EEG) has emerged as a valuable tool for decoding images based on visual-evoked brain activities \citep{spampinato2017deep}. 
+EEG has high time resolution, low cost, and good portability, but the low signal-to-noise ratio takes problems \citep{pan2022matt, kobler2022spd}. 
+Some efforts have yielded impressive classification results and captured saliency maps using EEG signals \citep{palazzo2021decoding}.
+However, its flawed block-design experiments group images of the same class within one block, resulting in classification that relies on block-level temporal correlation rather than stimulus-related activity \citep{li2021perils}.
+Some studies have achieved above-chance performance but were restricted to much data with one subject data \citep{ahmed2021object}.
+Moreover, available datasets often feature a limited number of image categories, posing challenges for real-world image decoding tasks.
+The latest study has significantly expanded the situation by amassing a large and diverse EEG dataset comprising 16,740 image stimuli spanning 1,854 concepts, employing rapid serial visual presentation \citep{gifford2022large}.  
+While demonstrating the feasibility of image-to-EEG encoding and category separability, this work primarily focused on analyzing electrodes in the occipital and parietal regions, overlooking the inferior temporal cortex plays a necessary role in object recognition \citep{dapello2023aligning}.
+In addition, the work focuses on the peak of pairwise decoding about 110 ms after stimuli onset. 
+Generally, this latency involves visual conduction and primary visual processing by a large margin, insufficient for semantic understanding \cite{xu2023temporal}.
+In short, the issues of multi-class object recognition and biological plausibility warrant further exploration.
+
+Pattern recognition plays a pivotal role in EEG analysis. 
+Existing work has predominantly relied on supervised learning, often dealing with limited data from a few categories \citep{cheng2022vigilancenet}.
+Applying machine learning methods directly, such as support vector machines and deep neural networks, has proven challenging in obtaining intrinsic representations \citep{fu2022multiview, liu2021improvinga}.
+People have performed self-supervised learning and leveraged information from other modalities in computer vision research \citep{NEURIPS2022_259a5df4}. 
+Text replaces the traditional hard labels to enable self-supervised learning to produce superior image representations, often leading to impressive zero-shot results on downstream tasks \citep{radford2021learning}.
+Researchers have also used contrastive learning to obtain consistent embedding of neural recordings across multiple animals \citep{schneider2023learnable}.
+Building upon these insights, we explore the intriguing possibility of recognizing visual objects from EEG signals in a self-supervised manner.
+Another issue pertains to the limitations of commonly employed EEG feature extractors, typically structured around convolutional layers applied separately along temporal and spatial dimensions of raw EEG signals \citep{schirrmeister2017deepa, lawhern2018eegneta, song2023eega}.
+This organization disrupts the correlations between electrode channels, hindering our perceiving spatial properties of brain activity \citep{ding2023lggnet}.
+
+To address the above limitations, we introduce a self-supervised framework to decode image representations from EEG signals, focusing on object recognition. 
+Our approach uses contrastive learning as the bridge connecting image stimuli and EEG responses.
+We feed image-EEG pairs to the model and process them by an image encoder and an EEG encoder separately.
+These modalities are aligned by constraining their cosine similarity, resulting in the ability to perform zero-shot EEG decoding after training, achieving remarkable classification accuracy for previously unseen image categories.
+With the framework, we provide an overall resolving of the visual object recognition processing in our brain from spatial, temporal, spectral, and semantic aspects with comparative experiments.
+The results are consistent with established neuroscientific knowledge, further demonstrating the feasibility of EEG-based image decoding.
+Furthermore, we present two spatial modules with self-attention and graph attention that integrate with the EEG encoder \citep{dosovitskiy2021image, velickovic2018graph}, helping us to emphasize key brain regions relevant to object recognition.
+
+Our main contributions can be summarized as follows:\begin{itemize}
+    \item 
+    We propose a self-supervised framework for EEG-based object recognition with contrastive learning. Remarkable zero-shot performance has been achieved on large and rich datasets.
+    % We propose a novel self-supervised framework that leverages contrastive learning for EEG-based image decoding. Through this framework, we achieve remarkable zero-shot performance on large-scale datasets. 
+    % Our approach demonstrates the potential of using EEG signals to decode visual information and opens up new possibilities for real-world applications.
+    \item
+    We demonstrate the feasibility of investigating natural image information from EEG signals. Extensive experiments affirm the biological plausibility, which brings a resolving of human object recognition from temporal, spatial, spectral, and semantic aspects.    
+    % We demonstrate the feasibility of investigating natural image information from EEG signals. Comprehensive experiments and analyses show reliable biological plausibility, which brings a new pathway to visual brain-computer interfaces.
+    % We provide extensive experiments and analyses to validate the feasibility of decoding natural image information from EEG signals. These experiments not only showcase the high performance of our framework but also establish its biological plausibility. By aligning the EEG signals with visual stimuli, we provide insights into the underlying neural processes involved in visual perception, which can contribute to the development of visual brain-computer interfaces.
+    \item 
+    We apply two plug-and-play modules to capture spatial correlations among EEG channels, offering evidence that the model discerns the spatial dynamics of object recognition.
+
+    % To enhance the spatial correlation modeling within EEG electrode channels, we introduce two plug-in-play modules: self-attention and graph attention. These modules improve the capturing of spatial relationships among EEG channels, leading to more accurate and reliable decoding results. The inclusion of these modules enhances the interpretability and effectiveness of our framework.
+\end{itemize}
+

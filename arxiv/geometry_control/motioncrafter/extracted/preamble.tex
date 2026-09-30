@@ -1,0 +1,99 @@
+%% This file contains a number of tweaks that are typically applied to the main document.
+%% They are not enabled by default, but can be enabled by uncommenting the relevant lines.
+
+%%
+%% Inline annotations; for predefined colors, refer to "dvipsnames" in the xcolor package:
+%% https://tinyurl.com/overleaf-colors
+%%
+
+
+%%
+%% disable for camera ready / submission by uncommenting these lines  
+%%
+% \renewcommand{\TODO}[1]{}
+% \renewcommand{\todo}[1]{#1}
+
+%%
+%% work harder in optimizing text layout. Typically shrinks text by 1/6 of page, enable
+%% it at the very end of the writing process, when you are just above the page limit
+%%
+% \usepackage{microtype}
+
+%%
+%% fine-tune paragraph spacing
+%%
+\renewcommand{\paragraph}[1]{\vspace{.5em}\noindent\textbf{#1.}}
+
+%%
+%% globally adjusts space between figure and caption
+%%
+\setlength{\abovecaptionskip}{.5em}
+
+
+%%
+%% Allows "the use of \paper to refer to the project name"
+%% with automatic management of space at the end of the word
+%%
+\usepackage{xspace}
+\newcommand{\method}{MotionCrafter\xspace}
+
+%%
+%% Commonly used math definitions
+%%
+% \DeclareMathOperator*{\argmin}{arg\,min}
+% \DeclareMathOperator*{\argmax}{arg\,max}
+
+%%
+%% Tigthen underline
+%%
+% \usepackage{soul}
+% \setuldepth{foobar}
+
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{multirow}
+\usepackage{adjustbox}
+\usepackage{fontawesome}
+\usepackage{xcolor,colortbl}
+\usepackage{bm}
+\usepackage{nicefrac}
+\usepackage{cuted}
+\usepackage{smartref}
+\definecolor{light}{gray}{0.95}
+
+\newcommand{\first}[1]{\textbf{#1}}
+\newcommand{\second}[1]{\underline{#1}}
+\newcommand{\notzs}[1]{\textcolor[rgb]{0.5, 0.5, 0.5}{#1$^*$}}
+\newcommand{\boldstartspace}[1]{\medskip\noindent\textbf{#1}}
+
+\def\showcomments{}    % ← 注释掉这一行即可关闭所有注释
+
+
+\ifdefined\showcomments
+    \newcommand{\tocite}{\textcolor{red}{[TOCITE]~}}
+    \newcommand{\chuanxia}[1]{\textcolor{teal}{[chuanxia\@: #1]}}
+    \newcommand{\ruijie}[1]{{\color{blue}ruijie: #1}}
+    \newcommand{\red}[1]{{\color{red}#1}}
+    \newcommand{\todo}[1]{{\color{red}#1}}
+    \newcommand{\TODO}[1]{\textbf{\color{red}[TODO: #1]}}
+    \newcommand{\wbhu}[1]{{\color{orange}#1}}
+    \newcommand{\jf}[1]{{\color{red}{[JF: #1]}}}
+\else
+    % 关闭时定义为空
+    \newcommand{\tocite}{}
+    \newcommand{\chuanxia}[1]{}
+    \newcommand{\ruijie}[1]{}
+    \newcommand{\red}[1]{}
+    \newcommand{\todo}[1]{}
+    \newcommand{\TODO}[1]{}
+    \newcommand{\wbhu}[1]{}
+    \newcommand{\jf}[1]{}
+\fi
+
+
+\newcommand{\Ra}{\textbf{\color{magenta}{R1}}}
+\newcommand{\Rb}{\textbf{\color{blue}{R2}}}
+\newcommand{\Rc}{\textbf{\color{cyan}{R3}}}

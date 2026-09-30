@@ -1,0 +1,877 @@
+\documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2025
+
+% ready for submission
+\usepackage[preprint]{neurips_2025}
+
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2025}
+
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2025}
+
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2025}
+
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+
+
+\usepackage{graphicx}
+\usepackage[normalem]{ulem}
+\useunder{\uline}{\ul}{}
+\usepackage{multirow}
+
+\title{Let Them Talk: Audio-Driven Multi-Person Conversational Video Generation}
+
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
+
+
+\author{%
+ Zhe Kong$^{1,2,3}$\thanks{Equal Contribution.}, Feng Gao$^{2*}$, Yong Zhang$^2$\thanks{Corresponding Author.}, Zhuoliang Kang$^2$, Xiaoming Wei$^2$,  \\ \textbf{Xunliang Cai$^2$, Guanying Chen$^1$, Wenhan Luo$^{3\dag}$}
+ \\\\
+ $^1$Shenzhen Campus of Sun Yat-sen University, \quad $^2$Meituan \\
+ $^3$Division of AMC and Department of ECE, HKUST
+ \\ \vspace{-0.6em} \\ 
+\url{https://meigen-ai.github.io/multi-talk/}
+}
+
+
+\begin{document}
+
+
+
+\maketitle
+
+\begin{figure}[h!]
+    \vspace{-1cm}
+    \centering
+    \includegraphics[width=1.00\linewidth]{figs/teaser.pdf}
+    \caption{We propose MultiTalk, a novel framework for audio-driven multi-person conversational video generation. Given a multi-stream audio input and a prompt, MultiTalk generates a video containing interactions following the prompt, with consistent lip motions aligned with the audio.}
+    \label{fig:teaser}
+\end{figure}
+
+\begin{abstract}
+% situation summary
+% novel task: Multi-Person Conversational Video Generation
+% investigation: Multi-stream audio injection  -> region-aware
+% (1) adaptive person localization (2) L-ROPE for the binding an audio  to the specified person. 
+% Meanwhile, training strategy to 
+
+Audio-driven human animation methods, such as talking head and talking body generation, have made remarkable progress in generating synchronized facial movements and appealing visual quality videos. However, existing methods primarily focus on single human animation and struggle with multi-stream audio inputs, facing incorrect binding problems between audio and persons. Additionally, they exhibit limitations in instruction-following capabilities. To solve this problem, in this paper, we propose a novel task: Multi-Person Conversational Video Generation, and introduce a new framework, MultiTalk, to address the challenges during multi-person generation. Specifically, for audio injection, we investigate several schemes and propose the Label Rotary Position Embedding (L-RoPE) method to resolve the audio and person binding problem. Furthermore, during training, we observe that partial parameter training and multi-task training are crucial for preserving the instruction-following ability of the base model. MultiTalk achieves superior performance compared to other methods on several datasets, including talking head, talking body, and multi-person datasets, demonstrating the powerful generation capabilities of our approach.
+
+\end{abstract}
+
+
+\section{Introduction}
+
+% Video diffusion models \cite{chen2024videocrafter2,blattmann2023stable,wang2025wan} have made remarkable progress in producing highly realistic video content and smooth motion. These advancements have sparked growing interest in audio-driven human animation. 
+Audio-driven human animation aims to generate natural and vivid human-centric videos with synchronized facial expressions and body movements from audio control signals. This field has made significant progress recently, and existing methods can be roughly divided into two categories: talking head generation and talking body generation.
+
+% Early methods \cite{guan2023stylesync,zhang2023sadtalker,cheng2022videoretalking,pang2023dpe,yin2022styleheat,gong2023toontalker,wang2024v} mainly focus on talking head generation, typically relying on audio-to-motion models to convert motion cues into intermediate representations, such as 3D Morphable Models (3DMM) \cite{tran2018nonlinear} or predefined motion templates. However, these methods often struggle to accurately capture subtle expressions and realistic motions, significantly limiting resolution and video quality.
+% With the remarkable progress in diffusion models, certain end-to-end audio-driven models \cite{tian2024emo,xu2024hallo,cui2024hallo3,chen2025echomimic,li2024latentsync,jiang2024loopy} have eliminated the need for intermediate representations. These diffusion-based methods produce vivid synthesis results and enhance the quality and expressiveness of one-shot video generation.
+Most human animation methods \cite{tian2024emo,xu2024hallo,cui2024hallo3,chen2025echomimic,li2024latentsync,jiang2024loopy} focus on talking head generation. These methods utilize diffusion models to match audio features to visual frames, enabling the synthesis of vivid talking head videos with enhanced video quality and realistic facial expressions. However, they are constrained to achieve precise audio-aligned facial movements and often neglect other related motions, such as hand and body.
+Recently, several methods \cite{lincyberhost,lin2025omnihuman,tian2025emo2,meng2024echomimicv2,wang2025fantasytalking} have utilized video diffusion models \cite{guo2023animatediff,lin2025diffusion,wang2025wan} and successfully achieved talking body generation. By leveraging mixed data training strategies or using additional hand pose data, they can synchronize body movements with the audio.
+Despite these advancements, several constraints remain. Existing methods primarily target single-person animation and cannot handle multi-person scenarios, such as conversational video generation. They lack the capability for dual-stream audio injection. Additionally, they exhibit limitations in instruction-following capabilities. For instance, generated videos may fail to precisely follow instructions when a text prompt describes a large range of body movement.
+
+
+
+% face constraints in body movements and fail to precisely follow text instructions. Furthermore, these methods are unable to handle scenarios where reference images contain multiple people or the audio condition consists of multi-stream audio.
+
+% are driven by chatting audio or where the input reference images depict multiple-person scenes.
+% When audio is provided, it often results in incorrect audio binding, causing all characters in the reference image to be animated simultaneously.
+% However, they are primarily restricted to talking head generation without supporting talking body generation. To tackle this issue, several methods \cite{lincyberhost,lin2025omnihuman,tian2025emo2,meng2024echomimicv2,wang2025fantasytalking} propose mixed data training strategies or provide additional hand pose data, successfully synchronizing facial expressions and body movements, thus transforming talking heads into talking bodies.
+
+
+% 早亲focus 人脸，最近：运动不够 不支持多人交互。
+% 我们提出了一个新问题，。比之前问题更难
+
+In this paper, we propose a new task: audio-driven multi-person conversational video generation. This task has diverse applications, including multi-character movie scenes making and e-retailers' livestreaming. Compared to audio-driven single-human animation, this task presents three main challenges: 1) As conversations involve audio from multiple persons, the model should accommodate multi-stream audio inputs; 2) Each person within the conversation should be driven by only one audio stream to prevent incorrect face and audio binding; 3) Each person in the generated video is dynamic, requiring an adaptive method for person localization.
+Despite the success of existing methods in achieving subtle expressions and realistic motions for a single person, challenges remain in creating multiple-person videos. Specifically, existing methods cannot handle multi-stream input audio and are limited to a single audio stream. Additionally, when reference images contain multiple people, the audio tends to drive all individuals to speak simultaneously, resulting in consistent lip motions across all persons. This complicates the achievement of alternating speech in conversational video.
+
+% As a result, precisely animating each character individually remains challenging.
+
+
+% Although existing methods have achieved promising results in human animation, they still struggle to handle more complex scenes.
+% Current approaches typically support utilize single audio as signal to animation only one character and are unable to tackle more sophisticated scenarios, such as using dialogue as driven sign or animating multiple characters within reference image. Recently, audio synthesis characterized by dialogues, like NotebookLM \footnote{https://notebooklm.google} and DIA \footnote{https://github.com/nari-labs/dia}, has made significant progress and facilitates video generation driven by these dialogue cues. To meet this complex demand, we explore a powerful yet underexplored approach in this work, utilizing dialogues as control signals to drive dual-character animation in interactive scenes.
+
+
+% Although existing methods have achieved promising results in human animation, they still struggle to handle more complex scenes.
+% The existing methods only support single audio as driving signal for single character animation. And they cannot handle complex situations such as adopt dialogue as driven audio or driving multiple characters in a video clip. Recently, audio synthesis characterized by dialogues, like NotebookLM, has made significant progress and facilitates video generation driven by these dialogue cues. To address this complexity, in this work, we explore the powerful yet underexplored approach of using dialogue as control signals to drive dual-character animation in interactive scenes.
+
+% For instance, NotebookLM is capability to synthesize dialogues between two characters in a dual-host podcast format; and certain text-to-speech models can realistically simulate human conversations.
+% These progress highlight the growing trend toward generating videos that are synchronized with these synthesized dialogues. 
+
+
+
+% This function can benefit the film dialogue and television production process by saving time, reducing costs, and simplifying production processes. Moreover, dual-human portrait image animation has applications beyond animation production, including webcasting and social media content creation. As a result, there is considerable demand for dialogues-driven dual-human animation technologies.
+
+% Compared to audio-driven single-human animation, the main difficulty for dialogue-driven dual-human animation lies in two aspects: 1) As dialogues involve audio for two characters, the model must accommodate dual audio inputs. 2) Each audio track within the dialogues should drive only one character's speech, preventing ambiguous audio binding issues.
+% Despite the success of existing methods in achieving subtle expressions and realistic motions for single human animation, challenges still remain in creating interactive dialogue scenes. 
+% Current approaches struggle with scenarios that involve dialogues, frequently encountering ambiguous audio binding issues.
+% Specifically, when input reference images featuring dual characters, audio tends to drive both characters to talking simultaneously. 
+% Consequently, the dual characters often exhibit consistent lip motions aligned with the audio, complicating the achievement of alternating speech dynamics. As a result, precisely animating each character individually remains a challenging.
+
+
+
+% Despite the success of existing methods in achieving subtle expressions and realistic motions for individual characters, challenges persist in dialogues scenes with interactive. Current approaches struggle with scenarios that involve dialogue or reference images featuring dual characters, often face ambiguous audio binding issues, leading to both individuals speaking simultaneously and complicating the precise animation of each person individually, thus resulting in unsatisfactory outcomes.
+
+% To solve the aforementioned issues, we propose MultiTalk, a multiple-person visual podcast framework to solve the multi-audio binding issue in interactive scenes. To accurately bind multiple audio stream to specific persons, we propose a Label Rotary Position Embedding (L-RoPE) method. By assigning the identical labels to audio embeddings and video latents, we successfully activate specific regions in the audio cross-attention map, thereby solve the incorrect audio binding problem. Besides, we found an interesting observation: The training data is of great importance and the model cannot achieve satisfactory follow instruction capacity utilizing only talking head and talking body data for model training. Through some experimental comparison, we found that the rate of data is extremely important. After supplementing a subset of training data with human-object interaction features, the model's instruction-following ability is markedly preserved.
+
+
+To complete this new task, we propose a novel framework, MultiTalk, for audio-driven multi-person conversational video generation. Multi-stream audio injection often encounters incorrect binding between the audio and the person. We investigate several schemes for audio injection and introduce the Label Rotary Position Embedding (L-RoPE) method. By assigning identical labels to audio embeddings and video latents, it effectively activates specific regions within the audio cross-attention map, thereby resolving incorrect binding issues. Furthermore, we explore a set of training strategies, including multi-stage training, partial parameter training, and multi-task training. Our observations highlight the importance of the latter two strategies. After incorporating a multi-event dataset for image-to-video, the instruction-following ability of the base model is preserved.
+
+
+% Furthermore, our observations highlight the importance of multi-task training. The model fails to achieve satisfactory instruction-following capabilities when trained solely with talking head and talking body data. Experimental comparisons reveal that the balance of data types is crucial. By supplementing the training dataset with a subset of human-object interaction data, the model's instruction-following ability is significantly enhanced.
+
+
+% To address the aforementioned issues, we propose xxx, the first dialogue-driven human generation framework for interactive scene, incorporating capabilities for both single and dual-human animation. We leverage Wan2.1-I2V \cite{wang2025wan}, a DiT-based diffusion model, as our foundational video model to fully exploit its generative priors in human body generation. Initially, we equip the model with audio-driven human animation capabilities through the integration of an audio cross-attention layer. However, this simple design still cannot resolve the ambiguous identity binding issues when getting a dialogue input. To solve this problem, we introduce the Label Rotary Position Embedding (L-RoPE) method for dual-human animation. Specifically, by assigning the identical labels to audio embeddings and video latents, we successfully activate specific regions in the audio cross-attention map, thereby binding audio to a particular character. Moreover, we found that the instruction-following capability of our model is significantly influenced by the characteristics of the training data. After supplementing the model with a subset of training data featuring human-object interactions, the model's instruction-following ability is markedly enhanced.
+
+Our main contributions are summarized as follows:
+(1) We propose a novel task, \textit{i.e.,} audio-driven multi-person conversational video generation, and introduce a novel framework to address the challenges.
+(2) We investigate several schemes for multi-stream audio injection and propose the Label Rotary Position Embedding method to resolve the inaccurate audio binding problem in multi-person video generation.
+(3) We explore a set of training strategies, including multi-stage training, partial parameter training, and multi-task training. We observe that the latter two are crucial for preserving the instruction-following ability of the base model, especially with limited compute resources and data. The multi-event dataset for the image-to-video is quite crucial.  
+% When an additional image-to-video task is supplemented during training, the model achieves good performance in multi-event video generation.
+(4) We conduct evaluations on various datasets, such as talking face, talking body, and multi-person conversation. The results demonstrate the effectiveness of the proposed method.
+
+% \begin{itemize}
+% \item We propose a novel task, \textit{i.e.,} audio-driven multi-person conversational video generation, and introduce a novel framework to address the challenges.
+% \item We investigate several schemes for multi-stream audio injection and propose the Label Rotary Position Embedding method to resolve the inaccurate audio binding problem in multi-person video generation.
+% \item We explore a set of training strategies, including multi-stage training, partial parameter training, and multi-task training. We observe that the latter two are crucial for preserving the instruction-following ability of the base model, especially with limited compute resources and data. The multi-event dataset for the image-to-video is quite crucial.  
+% % When an additional image-to-video task is supplemented during training, the model achieves good performance in multi-event video generation.
+% \item We conduct evaluations on various datasets, such as talking face, talking body, and multi-person conversation. The results demonstrate the effectiveness of the proposed method.
+% \end{itemize}
+
+
+
+
+\section{Related Work}
+
+\subsection{Audio-driven Human Animation}
+
+
+Pioneering audio-driven human animation works \cite{guan2023stylesync,zhang2023sadtalker,cheng2022videoretalking,pang2023dpe,yin2022styleheat,gong2023toontalker,wang2024v} typically consist of two components. They first employ an audio-to-motion model to transform motion signals into intermediate representations such as 3DMM \cite{tran2018nonlinear} and FLAME \cite{song2022audio}. Subsequently, motion-to-video rendering techniques, such as GANs, are employed to project these intermediate representations into dynamic portrait animations. Despite notable successes, limitations in audio-to-motion models' ability to capture intricate facial expressions and head movements significantly constrain the authenticity and naturalness of synthesized videos.
+
+Recently, end-to-end audio-to-video synthesis methods \cite{tian2024emo,wei2024aniportrait,xu2024hallo,chen2025echomimic,cui2024hallo3,ji2024sonic,li2024latentsync,jiang2024loopy} omit intermediate representation and directly utilize a single diffusion model to integrate audio cues with facial dynamics. These methods demonstrate enhanced potential, exhibiting superior naturalness and consistent portrait animation capability. However, they are constrained to support only head movement.
+To achieve audio-driven body animation, CyberHost \cite{lincyberhost} proposes a one-stage audio-driven talking body generation framework equipped with a Region Attention Module and Human-Prior-Guided Conditions to address common synthesis degradations in half-body animation. EMO2 \cite{tian2025emo2} introduces a two-stage framework, first generating hand movements and subsequently using them as control signals in the second stage to enable holistic facial expressions and upper body motions. OmniHuman \cite{lin2025omnihuman} employs a mixed data training strategy with multimodal motion conditioning to overcome the scarcity of high-quality data. EchomimicV2 \cite{meng2024echomimicv2} proposes an Audio-Pose Dynamic Harmonization strategy, requiring an additional hand pose sequence as input alongside audio.
+However, these audio-driven human animations can only animate a single person and cannot achieve multi-stream audio-driven image animation.
+
+% Recently, video diffusion models have made remarkable progress in producing highly realistic video content and smooth motion. A key factor driving this advancement is the large-scale training data and strong generative capabilities of the Diffusion Transformer-based (DiT) network architecture. Expanding the training dataset enables DiT networks to learn motion priors for various objects and scenes. With its excellent generalization ability, it provides a powerful visual backbone for various downstream tasks.
+
+\subsection{Video Diffusion Model}
+
+The success of text-to-image diffusion models and their downstream applications \cite{rombach2022high,podell2023sdxl,ruiz2023dreambooth,kong2024omg} has sparked considerable interest in exploring their potential for video generation. Video diffusion models can be roughly divided into two categories: text-to-video models and image-to-video models.
+Early video diffusion models \cite{chen2023videocrafter1,blattmann2023stable,guo2023animatediff} typically leverage the U-Net architecture for video generation, attempting to extend the 2D U-Net pretrained on text-to-image tasks into 3D to generate continuous video frames. Recent works \cite{yang2024cogvideox,kong2024hunyuanvideo,wang2025wan} have adopted a DiT (Diffusion-in-Transformer) architecture \cite{peebles2023scalable}, significantly advancing video generation technology. These DiT-based methods replace the U-Net with a Transformer, incorporating a 3D VAE as the encoder and decoder. By expanding the training dataset, DiT networks learn motion priors for various objects and scenes. Video diffusion models demonstrate substantial potential in tackling intricate video generation tasks and provide a strong visual backbone for various downstream tasks \cite{zhao2024stereocrafter,ye2024stylemaster,xuetowards,wang2024generative}.
+Due to its excellent performance in human generation, a DiT-based image-to-video diffusion model is adopted as the backbone of our method to fully leverage its human generative prior.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.00\linewidth]{figs/pipeline.pdf}
+    \caption{The overall pipeline of the proposed MultiTalk framework. Our framework incorporates an additional audio cross-attention layer to support audio conditions. To achieve multi-person conversational video generation, we propose a Label Rotary Position Embedding (L-RoPE) for multi-stream audio injection.}
+    \label{fig:pipeline}
+\end{figure}
+
+\section{Method}
+
+The overall architecture of the proposed method is illustrated in Fig. \ref{fig:pipeline}, showcasing an audio-driven multi-person conversational video generation framework. In Section \ref{sec:pre}, we first briefly describe the network architecture of the video foundational model. Then, in Section \ref{sec:single-human}, we introduce the integration of audio conditions via an audio cross-attention mechanism for single-person animation. Subsequently, in Section \ref{sec:dual-human}, we present our investigation into multi-stream audio injection and introduce the proposed L-RoPE method for audio and person binding. In Section \ref{sec:training}, we explain our training strategy. Finally, we describe our method for long video generation in Section \ref{sec:longgen}.
+
+
+
+
+\subsection{Preliminaries}
+\label{sec:pre}
+
+% The proposed method is based on the latent diffusion model, which employs a Variational Autoencoder (VAE) Encoder to map an image from the pixel space to the latent space. The latent diffusion model consists of a forward process and a reverse process in the latent space, trained to convert random noise into high-resolution videos through an iterative sampling process. The training objective of the diffusion model is to train a denoising network $\epsilon_\theta$ that aims to minimize the difference between the added noise and the predicted noise:
+% \begin{equation}
+% \mathcal{L(\theta)} = E_{t \sim U[1, T]}||\epsilon_\theta(z_t, t, c) - y||^2_2,
+% \end{equation}
+% where $c$ denotes the input conditions.
+
+In this study, we adopt a DiT-based video diffusion model as our foundational model, which is built upon the DiT architecture and incorporates a 3D Variational Autoencoder (VAE). This design achieves compression in both spatial and temporal dimensions. A textual encoder is utilized to generate the text-conditioned input, denoted as $c_{text}$. 
+Additionally, the extracted global context from the CLIP image encoder \cite{radford2021learning} is injected into the DiT model along with $c_{text}$ via decoupled cross-attention.
+
+
+
+\subsection{Audio-Driven Single Person Animation}
+\label{sec:single-human}
+
+Our foundational model is an image-to-video diffusion model capable of animating a reference image to generate a video. However, it does not natively support audio as an input. To incorporate an additional audio condition, we add layers consisting of layer normalization and an audio cross-attention mechanism after the text cross-attention in each DiT block.
+
+
+\paragraph{Audio Embedding Extraction}
+To extract acoustic audio embeddings, we employ Wav2Vec \cite{baevski2020wav2vec}, a widely utilized audio feature extractor. In audio-driven human animation, since current motion is influenced by both preceding and succeeding audio frames, we follow \cite{tian2024emo} and concatenate audio embeddings proximal to the current frames, described as follows:
+\begin{equation}
+\label{eq:concat-audio}
+a_i = Concat(a_{i- \left \lfloor \frac{k}{2} \right \rfloor}, \cdots, a_{i}, \cdots, a_{i+ \left \lfloor \frac{k}{2} \right \rfloor})
+\end{equation}
+where $k$ denotes the context length.
+
+In the audio cross-attention layer, queries are derived from video latents, while keys and values originate from audio embeddings. These elements execute frame-by-frame attention calculations. Due to the temporal compression of the 3D VAE, the frame length of video latents is shorter than that of audio embeddings, complicating direct calculations between them.
+To address this, we propose an audio adapter for audio compression. Specifically, suppose the input audio contains $l$ frames.
+We first divide the audio embedding into the initial frame $a_1$ and the subsequent frames $a_{\left [2:l\right ] }$ along the temporal dimension. Next, we downsample $a_{\left [2:l\right ] }$ get $Down(a_{\left [2:l\right ] })$, and then encode $a_1$ with $Down(a_{\left [2:l\right ] })$ separately through several MLP layers. After concatenating, we encode the concatenated features to obtain the compressed audio condition $c_a$. This process is represented as: 
+\begin{equation}
+c_a = MLP(Concat(MLP(a_1), MLP(Down(a_{\left [2:l\right ] })))).
+\end{equation}
+
+
+% the audio token frame length $l$ is different from the video latent length $f$. 
+
+% Specifically, $l=4*f+1$, where $4$ denotes the temporal compression rate of 3D VAE. To address this, we propose an audio adapter for audio tokens' temporal compression. As shown in Fig. \ref{}, given an input audio token sequence $c_{a} \in R^{l \times k \times s \times c}$ compose $l$ frames, we first divide $c_a$ a into two parts, the first frame $c_a^1$ and the remaining frames $c_a^{\left [2:l  \right ] }$. And then, we will re-divide the remaining frames $c_a^{\left [2:l  \right ] }$ into $f$ groups on average, each containing $4$ consecutive frames.
+% \begin{equation}
+% c_a^{\left [2:l  \right ] } = \left \{g_a^{1}, \cdot, g_a^{i}, \cdots, g_a^{f}  \right \} 
+% \end{equation}
+% For the $i$ group $g_a^{i} \in R^{4 \times k \times s \times c}$, $g_a^{i}=\left \{g_a^{4i-2}, g_a^{4i-1}, g_a^{4i}, g_a^{4i+1} \right \} $. For each group, we will divide them into the first frame $g_a^i[1]$, the last frame $g_a^i[-1]$, and the rest as intermediate frames $g_a^i[1:-1]$. As shown in Eq. \ref{eq:concat-audio}, due to each frame contains $k$ frames of adjacent features. For the first frame $g_a^i[1]$, we take the first $k//2+1$ contextual length features. For the last frame $g_a^i[-1]$, we take the last $k//2+1$ contextual length features. For intermediate frames $g_a^i[2:-2]$, we take the middle contextual features. Subsequently, each group concatenates these derived contextual features and gets $sample_a$. The finally derived compressed audio tokens can be reformulated as :
+% \begin{equation}
+% c_{ca} = MLP(MLP(c_{a}^1) \odot MLP(sample_a))
+% \end{equation}
+% where $\odot$ denotes the concatenation operation.
+
+\subsection{Audio-Driven Multi-Person Animation}
+\label{sec:dual-human}
+
+
+
+% Existing audio-driven human animation cannot deal with multiple humans with interaction audio. When inputting an audio with a reference image containing multiple humans, existing methods cannot synchronize the audio only with the lips of the specified person. The provided audio will simultaneously drive all the humans. Not to mention the case when the input audio contains interactions of multiple humans, models are required to animate different humans in different time intervals. The existing methods cannot deal with case that involves human interactions between visual and audio. They only support the simplest scenario of using a single audio to animate a single person.
+
+% Current audio-driven human animation techniques struggle to accommodate scenarios involving multiple humans with interactions between visual and audio. When the input audio contains human interactions between multiple people, the model cannot drive different characters separately at different speaking intervals, like in real dialogue scenes. The existing method can only support the basic scenario that using a single audio without an interactive to animate a single individual.
+
+% Existing audio-driven human animation techniques face challenges in addressing complex scenarios involving dual humans with interactions. Specifically, current methods are limited to handling a single audio input and cannot support dialogues characterized by dual-human audio. Furthermore, when supplied with a reference image containing two humans, these approaches often result in ambiguous identity binding, where the single audio stream animates both individuals simultaneously, lacking control over distinct characters within the video. To tackle this issue, we propose an audio-driven dual-human video generation framework tailored for generating talking body animations.
+
+Existing methods fail to address the problem of multi-human generation driven by multi-audio streams. In this paper, we introduce a novel task: audio-driven multi-person conversational video generation. To tackle this challenge, we propose a new framework, MultiTalk, specifically designed to handle multi-stream audio injection and rectify incorrect audio and person binding. The overall architecture of MultiTalk is depicted in Fig.\ref{fig:pipeline}. We first investigate several schemes for multi-stream audio injection. Then, to accurately identify each person's motion region in generated videos, we propose an adaptive person localization method. Finally, we introduce the proposed L-RoPE method to effectively bind audio and persons.
+
+% which consists of a chatting audio injection scheme and an adaptive person localization
+% The core idea of our approach is to first locate the visual regions of dynamic subjects. Then, we bind the dialogue-characterized audio to the visual regions of different subjects in audio cross-attention using our proposed L-RoPE method.
+
+
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.00\linewidth]{figs/audio-inject.pdf}
+    \caption{Investigation on different injection strategies for multi-stream audio condition.}
+    \label{fig:audio-inject}
+\end{figure}
+
+
+
+\paragraph{Multi-stream Audio Injection Schemes.} 
+
+Multi-person conversational video generation, unlike single audio-driven video generation, requires the model to accommodate multi-stream audio inputs. To find an effective method for audio injection, we explore four distinct injection schemes, as illustrated in Fig. \ref{fig:audio-inject}.
+
+Our first attempt involved directly concatenating the multi-stream audio embeddings $z_{a1}$ and $z_{a2}$, then calculating the audio cross-attention results with video latent $z_t$, as shown in Fig. \ref{fig:audio-inject} a). 
+Another strategy is to calculate the multi-stream audio embeddings $z_{a1}$ and $z_{a2}$ separately with $z_t$, and then followed by an adding operation to calculate these two components, as seen in Fig.\ref{fig:audio-inject} b). However, these two attempts failed to bind the multi-stream audio with its corresponding video latent region. The network cannot learn to bind audio to different persons  through training directly. 
+Given that the individuals in the generated video are typically positioned on the left and right sides, we attempted to simplify binding by splitting the video latents into left and right segments, as demonstrated in Fig. \ref{fig:audio-inject}c). Each video latent segment computes attention results with the corresponding audio embedding separately, and the two attention results are concatenated as the final output. Although this attempt successfully binds multi-stream audio to different persons, its generalization capacity is limited. Specifically, it is only effective for videos with minimal movement range. When a person exhibits extensive motion, directly applying this simple operation results in audio binding failures.
+To address these shortcomings, we propose an adaptive method for multi-stream audio injection, named L-RoPE, as illustrated in Fig. \ref{fig:audio-inject}d).
+
+
+
+\paragraph{Adaptive Person Localization.}
+
+% We first need to locate the visual regions of dynamic subjects. The dynamic subjects in our dialogue scene include: human1, human2, and background. In this audio-driven human-animation task, in addition to audio input, a reference image is also required. A promising solution is to initially locate the specified region in the reference image and then use the same region across all video frames. However, some subjects, like humans, are dynamic in the video, and their visual regions change in every frame. Directly applying this simple operation will result in inaccurate region localization, leading to subsequent audio binding failures. Therefore, to address this issue, we propose an adaptive dynamic subject localization solution for the visual region.
+
+
+Before utilizing L-RoPE, the model must adaptively track the localization of each individual.
+Given a reference image $I$ contains two persons, we first find the subject localization within $I$, resulting in the set $M = \left \{ M_{p1}, M_{p2}, M_{b}  \right \}  $. Here, $M_{p1}$ and $M_{p2}$ represent the mask regions for each person, and $M_{b}$ denotes the mask covering the background in the reference image. Collectively, they satisfy the relation $I = M_{h1} \cup M_{h2} \cup M_{b}$.
+The self-attention map reflects the similarity of generated video latents across different frames. In the I2V model, the first frame of the video also serves as the reference image, enabling the creation of a reference-image-to-video attention map $A_{r2v}\in R ^{fhw \times 1hw}$, as depicted in Fig. \ref{fig:attention} a). Here, $f$ denotes the frame length in latent space, while $h$ and $w$ represent the height and width, respectively. 
+Since the reference image contains multiple subjects within $M$, we calculate the average similarity of each latent in $z_t$ with the subjects in the reference image, yielding $S \in R^{fhw \times 3}$. In this matrix, $S (i, j) $ represents the similarity between the $i$-th token in the video latents and the $j$-th subject in $M$. By leveraging the similarity captured in the self-attention map, we can adaptively locate each person in the video.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.90\linewidth]{figs/attention.pdf}
+    \caption{Analysis for different components in the DiT. a) We utilize the reference-image-to-video self-attention map in DiT for person localization. b) We assign different labels to the multiple subjects in the video. c) Assigning a close label for video and audio can activate a specific region in the audio cross-attention map.}
+    \label{fig:attention}
+\end{figure}
+
+
+% We assign a label $L(i, j)\in \left \{h_1, h_2, b  \right \} $ to each latent in the video according to its highest similarity with one of these subjects in $G$. Finally, we achieved the goal of locating each dynamic subject in the video region.
+
+
+
+
+% To achieve audio-driven dual-human animation, we need to derive the motion regions for different characters and the background. Due to our task being video generation, we cannot obtain the motion region of the generated video in advance. Hence, one promising solution is to first derive the human region in the reference image and then whole video utilize the same region as the reference image for each frame. However, the motion regions of characters in different frames of the generated video vary. To search for these dynamic motion regions, we propose using the 3D full attention of the video to locate the motion regions of characters and backgrounds.
+
+% Given a reference image, we first condition visual comprehension and derive the corresponding mask region for the humans and background. Assuming the reference image contains two characters, $M_1$ and $M_2$ represent each person's mask, and $M_b$ represents the background area. We then utilize these mask $M=\{M_1, M_2, M_b\}$ to calculate the dynamic human region for video utilize the 3D full attention in DiT.
+
+% The 3D attention map reflects the similarity of generated video features in both temporal and spatial dimensions. As shown in Fig.\ref{}, since in Wan2.1, the first frame in the video is also the reference. Hence, we can get the reference image to video attention map. Since we have obtained the position information of the characters and background separately through $M$ in the reference image. Therefore, we can obtain the similarity between each latent of each frame and in the reference image based on the attention map. In this way, each latents in the video will be allocated to a regions, whether it belongs to human1, human2, or background. Therefore, we can obtain the dynamic region of each character in the video.
+
+% The 3D attention map represents the similarity of generated video features across both temporal and spatial dimensions. As illustrated in Fig.\ref{}, in the Wan2.1 framework, the first frame of the video also serves as the reference image, enabling the creation of a reference image-to-video attention map. 
+% Since we already know the region represented by each late in the reference image. Therefore, according to the attention map, the similarity between the reference image and the video can be calculated separately, one by one. For the i-th latent in the video, the similarity between it and each latent in the reference image can be obtained.
+% We calculated the average similarity of $i$ and multi region in reference image and classify i with the same label as the highest similarity region in reference image.
+% % The category of the element with the highest similarity to i in the final reference image also belongs to the category of i element. 
+% In this way, we can calculate the category of each latent in the video. And finally, we can get the dynamic human region of the video.
+
+
+
+
+
+\paragraph{L-RoPE for Audio and Person Binding.} 
+
+Rotary Position Embedding (RoPE) \cite{su2024roformer} is a relative positional encoding technique that effectively captures inter-token relationships in large language models (LLMs). Known for its proficiency in modeling long sequences, RoPE has also been employed in video diffusion models, such as CogVideoX \cite{yang2024cogvideox}, Hunyuan Video \cite{kong2024hunyuanvideo}, and Wan \cite{wang2025wan}, among others, to facilitate multi-resolution, multi-aspect ratio, and variable duration video generation. It is utilized to generate position-aware query and key embeddings for time, height, and width within the video latents during the self-attention layer of the DiT block.
+In this paper, we introduce the Label Rotary Position Embedding (L-RoPE) method, aimed at binding multi-stream audio to multiple persons within the audio cross-attention layers of the DiT block.
+% Specifically, in the audio cross-attention, the queries are from the video latents, while the keys and values are from the audio embeddings.
+
+Specifically, take the query $q$ as an example. $q$ is a sequence of $N$ vectors $\left \{q_i  \right \}_{i=1}^N $. We compute an angle $\theta_i$ for each vector $q_i$ using its label $l_i \in \mathbb{R}$, and rotate $q_i$ with $\theta_i$ to obtain $\hat{q}_i$:
+\begin{equation}
+\theta_{i} = l_i * \theta_{base} 
+\end{equation}
+\begin{equation}
+\hat{q}_i = LRoPE(q_i,l_i)=q_ie^{l_i\theta_i}
+\end{equation}
+where $\theta_{base}$ is a pre-defined base angle.
+
+% Specifically, we incorporate label information $m$ 
+% and $n$ into the query $q$ and key $k$, obtaining $q_m$, $k_n$.
+% , respectively:
+% \begin{equation}
+% q_m = f(q, m) = l_m * q 
+% \end{equation}
+% \begin{equation}
+% k_n = f(k, n) = l_n*k  
+% \end{equation}
+% where $l_m$ and $l_n$ denote the label-driven rotary matrix for $q$ and $k$, respectively.
+% We compute the base rotary matrix, which is then multiplied by our provided label to derive the rotary angle in $l_m$ and $l_n$. 
+
+In the audio cross-attention mechanism, queries are derived from the video latent $z_t$, whereas keys and values originate from the multi-stream audio embeddings $z_{a1}$ and $z_{a2}$. Appropriately assigning labels $l$ to video and multi-stream audio is crucial.
+As depicted in Fig. \ref{fig:attention}b, video latents encompass regions corresponding to multiple persons and the background. We adopt a specific strategy for label assignment.
+For person regions, due to varying sensitivity driven by audio in different parts of the body, we first assign a numerical range for each person, $(a,b)$. Then, we determine the category $C \in \mathbb{R}^{fhw}$ of each vector in $q$ through $argmax_j(S\left [i,j  \right ])_{i=1}^{fhw}$ . Finally, taking the first person as an example, the label for person1 can be calculated through the normalization function, $Norm(S\left [i,j  \right ]_{j=C[person1]}, a, b)=\frac{s_{i,j}-min(S_{,j})}{max(S_{,j})-min(S_{,j})}*(b-a)+a$.
+This method is applied for each person in the same manner, but using different label ranges. Specifically, we define the visual label range as $\{0-4\}$ for the first person and $\{20-24\}$ for the second person.
+Conversely, for the background and dual audio, they directly utilize a static value as their label. The background should not be associated with audio, hence we assign it the label $12$. For multi-audio embedding, as shown in Fig. \ref{fig:audio-inject}d, we first concatenate the multi-stream audio embeddings and subsequently assign different labels $c_{a1}$ and $c_{a2}$ to them. To bind the multi-stream audio with the two persons respectively, we set $c_{a1}$ as 2 and $c_{a2}$ as 22.
+
+% $S\left [i,j  \right ]_{i=1}^{fhw} $
+% $Norm(s_{i,j},a,b)=\frac{s_{i,j}-min(S_{,j})}{max(S_{,j})-min(S_{,j})}*(b-a)+a$
+% In this way, the visual tokens belonging to different persons pay more attention to the corresponding audio tokens,  while the background tokens have no preference for different audio tokens, thus maximally inheriting the capabilities of the original model.
+
+
+\subsection{Training Strategy}
+\label{sec:training}
+
+\textbf{Two-stage training.}
+The training stages and associated data sources are essential for achieving effective multi-person animation. We divide the training process into two stages, progressively enhancing the model’s capabilities in audio and lip synchronization.
+The first stage primarily focuses on developing the model's ability to animate a single person. Subsequently, in the second stage, we employ training data that contains dual-stream audio to facilitate multi-human animation.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/instract.pdf}
+    \vspace{-0.5cm}
+    \caption{Instruction-following capability comparison between different training strategies.}
+    \label{fig:instract}
+    \vspace{0.5cm}
+\end{figure}
+
+\textbf{Partial Parameter Training.} 
+In our method, only the network parameters in the audio cross-attention and audio adapter are updated, while all other network parameters are frozen during training. We also compare this strategy with full parameter training. Our findings indicate that network training parameters are crucial; when the compute resources and data are limited, fully parameterized training can lead to not only the degradation in the model's instruction-following ability, especially for motion and interaction, but also cause hand and object distortion. Conversely, training only the audio cross-attention does not result in this issue and the instruction-following ability of the base model can be well preserved.
+
+
+\textbf{Multi-task training.}
+During training, we adopt a multi-task hybrid paradigm, dividing model training into multiple tasks, including audio + image to video (AI2V) training and image to video (I2V) training. Different tasks utilize distinct training data while sharing the same network parameters. For AI2V tasks, both the reference image and audio are used as conditions. In the I2V task, the audio condition is removed by zeroing the audio embedding. Additionally, the training data used for the I2V task is unique, comprising mainly of multi-event videos with interactions among human, object, and scene, which is crucial for the alignment between the motion description in the prompt and the generated video. 
+
+Multi-task training substantially impacts the results, as shown in Fig.\ref{fig:instract}. Utilizing only talking head and talking body data for AI2V training diminishes the network's instruction-following capability. Conversely, incorporating I2V training allows the model to retain its instruction-following ability.
+
+\subsection{Long Video Generation}
+\label{sec:longgen}
+
+Although the model can generate video lengths of up to a few frames, this is still insufficient for real-world applications. To address this issue, we introduce an autoregressive-based method to facilitate long video inference. Specifically, within the I2V model, the first frame of the video is typically used as the condition for inference. In contrast, we incorporate the last $5$ frames of the previously generated video as additional conditions for inference. Following 3D VAE compression, these conditional frames are reduced to $2$ frames of latent noise. We pad zeros to the subsequent frames and concatenate them with latent noise and a video mask. These are then input into DiT for inference, enabling longer video generation.
+
+\section{Experiments}
+
+\subsection{Settings}
+
+\paragraph{Datasets.} We collect a video dataset of about 2K hours for the first stage training, which covers the face or body of a single talking person. We also collect about 200K video clips that contain multiple events and human-object/environment interactions. The average clip duration is about 10 seconds. For the second stage training, we collect 100 hours of videos consisting of conversations between two persons. 
+For evaluation, we employ three distinct types of testing datasets: the talking head dataset, the talking body dataset, and the dual-human talking body dataset with interactive scenarios.
+For the talking head dataset, we employ two publicly available datasets, HDTF \cite{zhang2021flow}, and CelebV-HQ \cite{zhu2022celebvhq} for evaluation purposes. For the talking body dataset, we utilize the EMTD \cite{meng2024echomimicv2} dataset. Since we are the first to propose a dual-human talking body task, no public dataset is available. We collect a dataset containing $40$ videos (referred to as MTHM) sourced from the internet.
+
+\paragraph{Evaluation Metrics.} 
+We utilize the commonly used metrics to evaluate the methods. Frechet Inception Distance (FID) \cite{heusel2017gans} and Fréchet Video Distance (FVD) \cite{unterthiner2019fvd} are used to assess the quality of the generated data.  Expression-FID (E-FID) is used to evaluate the expressiveness of the facial in the generated video.  Sync-C \cite{chung2017out} and Sync-D \cite{chung2017out} are utilized to measure the synchronization between audio and lip movements. 
+
+\paragraph{Implementation Details.} 
+We adopted Wan2.1-I2V-14B as the foundational video diffusion model for our experiments. The model is trained using a constant learning rate of $2e-5$, incorporating a warm-up strategy, and optimized using the AdamW optimizer.
+During training, we only fine-tuned the audio cross-attention layer and adapter while keeping other layers frozen. 
+The proposed method was trained using $64$ NVIDIA H800-80G GPUs. In stage $1$ of the training process, the batch size was set to $64$, whereas in stage $2$, the batch size was adjusted to $32$.
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+% \usepackage[normalem]{ulem}
+% \useunder{\uline}{\ul}{}
+\begin{table*}[]
+\centering
+\caption{Quantitative comparison with other competing methods on talking head generation, including HDTF and CelebV-HQ datasets.}
+% \setlength\tabcolsep{10pt}
+\label{tab:head}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{c|ccccc|ccccc}
+\hline
+\multirow{2}{*}{Methods} & \multicolumn{5}{c|}{HDTF}                                                       & \multicolumn{5}{c}{CelebV-HQ}                                                    \\ \cline{2-11} 
+                         & Sync-C↑       & Sync-D↓       & E-FID↓        & FID↓           & FVD↓           & Sync-C↑       & Sync-D↓       & E-FID↓        & FID↓           & FVD↓            \\ \hline
+AniPortrait \cite{wei2024aniportrait}             & 3.09          & 10.94         & 1.32          & 32.83          & 112.21         & 2.09          & 11.29         & 1.66          &  37.17    & 250.24          \\
+VExpress \cite{wang2024v}                & 5.79          & 8.37          & 8.92          & 60.49          & 200.60         & 4.30          & 8.98          & 10.01         & 67.34          & 345.87          \\
+Echomimic \cite{chen2025echomimic}               & 5.36          & 8.99          & 1.27          & 60.82          & 240.07         & 4.16          & 9.55          & 2.87          & 63.72          & 318.08          \\
+Hallo3 \cite{cui2024hallo3}                  & 6.55          & 8.49          & {\ul 1.12}          & 33.98          & 153.31         & 5.57          & 8.58          &  1.51    & 40.81          & {\ul 212.91}    \\
+Sonic \cite{ji2024sonic}                   &  8.35    & \textbf{6.43} & {1.22}    & { 29.53}    & \textbf{89.34} &  6.68    &  7.31    & 1.85          & 39.89          & 224.48          \\
+Fantasy Talking \cite{wang2025fantasytalking}         & 3.61          & 10.78         & 1.36          & 32.64          &  103.01   & 3.14          & 10.43         & 1.77          & 37.54          & 218.43          \\ \hline
+MultiTalk-single (Ours)         & \textbf{ 8.54}          & {\ul 6.69}         & \textbf{1.00}          & \textbf{24.01}          & {\ul 95.99}   & {\ul 7.07}          & \textbf{7.13}         & \textbf{1.41}          & \textbf{32.31}          & 219.19          \\ 
+MultiTalk-multiple (Ours)                     & {\ul 8.53} & { 6.81}    & { 1.24} & {\ul 27.27} & 124.06         & \textbf{7.33} & {\ul 7.18} & {\ul 1.48} & {\ul 34.08} & \textbf{184.86} \\ \hline
+\end{tabular}%
+}
+\end{table*}
+
+
+
+
+\begin{table}[]
+\centering
+\caption{Quantitative comparison with other competing methods on talking body generation, including EMTD dataset.}
+\setlength\tabcolsep{13pt}
+\label{tab:body}
+\resizebox{.8\columnwidth}{!}{%
+\begin{tabular}{c|ccccc}
+\hline
+Methods         & Sync-C↑       & Sync-D↓       & E-FID↓        & FID↓           & FVD↓            \\ \hline
+Echomimic v2 \cite{meng2024echomimicv2}  &  6.31    &  8.41    & 1.91    & 35.99    & \textbf{163.60} \\
+Fantasy Talking \cite{wang2025fantasytalking} & 3.32          & 11.41         & 1.98          & 37.68          & 284.29          \\ \hline
+MultiTalk-single (Ours)  & {\ul 8.18}          & \textbf{7.28}         & {\ul 1.67}          & {\ul 32.05}          & {\ul 221.86}          \\ 
+MultiTalk-multiple (Ours)            & \textbf{8.34} & {\ul 7.30} & \textbf{1.51} & \textbf{31.93} &  238.77    \\ \hline
+\end{tabular}%
+}
+\end{table}
+
+
+\subsection{Comparisons with Competing Methods}
+
+\paragraph{Quantitative Evaluation.}
+To verify the effectiveness of our method, we compare it with several state-of-the-art human animation methods. For talking head generation, we compare with AniPortrait \cite{wei2024aniportrait}, VExpress \cite{wang2024v}, EchoMimic \cite{chen2025echomimic}, Hallo3 \cite{cui2024hallo3} Sonic \cite{ji2024sonic} and Fantasy Talking \cite{wang2025fantasytalking}. For talking body comparison, we compare with EchoMimicV2 \cite{meng2024echomimicv2} and Fantasy Talking \cite{wang2025fantasytalking}.
+
+Quantitative comparisons, including both talking head and talking body analyses, are presented in Table \ref{tab:head} and Table \ref{tab:body}, respectively. Our method surpasses most other approaches across a majority of metrics, exhibiting superior performance in lip synchronization and video quality, which underscores the effectiveness of our approach.
+
+
+\begin{figure}[]
+    \centering
+    \includegraphics[width=1\linewidth]{figs/single-comp.pdf}
+    \caption{Qualitative comparison with other competing methods.}
+    \label{fig:single-comp}
+\end{figure}
+
+\paragraph{Qualitative Evaluation.}
+
+To demonstrate the visual effectiveness of the proposed method, we compare and visualize the results alongside some competitive methods, as shown in Fig. \ref{fig:single-comp}. Upon providing instructions via a text prompt, only our method successfully responded to the instructions, highlighting its robust instruction-following capability. Additionally, our method generates fewer artifacts in the produced video, attesting to the quality of our approach.
+
+As the first method for multi-person generation, there is no directly comparable approach available. We compare our method with the video concatenation technique, which involves generating the left and right video patches separately and subsequently concatenating them. The comparison results are presented in Fig. \ref{fig:comp-multi}. Our method effectively handles interactive scenarios, avoiding inconsistencies between the left and right segments of the video. Besides, we also visualize the self-attention map for the specific person, highlighted in the red box. Our method can adaptively identify the localization of the person, thereby benefiting the audio binding.
+
+\subsection{Analyses}
+
+\paragraph{Multi-stream vs Single-stream.}
+Our initial model for multi-stream audio training is derived from a single human animation model. To investigate whether multi-stream audio training would lead to performance degradation, we compared the performance of the single human animation model with multiple human animation models on both the talking head and talking body datasets. The results, presented in Table \ref{tab:head} and Table \ref{tab:body}, show that our multiple human animation models achieve performance comparable to that of the single human animation models, indicating that multi-stream audio training does not result in model degradation. 
+% On the multi-human dataset, MTHM, we also make a comparison, as shown in Fig.\ref{tab:ablation} b) and c). 
+
+
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.00\linewidth]{figs/comp-multi.pdf}
+    \vspace{-0.8cm}
+    \caption{Qualitative comparison with video concat method in multi-human animation.}
+    \label{fig:comp-multi}
+    \vspace{-0.3cm}
+\end{figure}
+
+
+
+
+
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+% \usepackage{graphicx}
+\begin{table}[]
+\centering
+\caption{Ablation study about the label range selection in L-RoPE on MTHM dataset. }
+%a) and b) are conducted on our multi-person model, and c) are conducted on our single-person model.}
+\label{tab:ablation}
+\resizebox{.85\columnwidth}{!}{%
+\begin{tabular}{c|cccc|ccccc}
+\hline
+\multirow{2}{*}{Variant} & \multicolumn{2}{c}{Label for video} & \multicolumn{2}{c|}{Label for audio} & \multirow{2}{*}{Sync-C↑} & \multirow{2}{*}{Sync-D↓} & \multirow{2}{*}{E-FID↓} & \multirow{2}{*}{FID↓} & \multirow{2}{*}{FVD↓} \\ \cline{2-5}
+                         & person1         & person2           & person1           & person2          &                          &                          &                         &                       &                       \\ \hline
+a)                       & 0--2        & 2--4          & 1                 & 3                & 7.47                     & 7.22                     & 3.22                    & 52.87                 & 506.49                \\
+b)                       & 0--4        & 20--24        & 2                 & 22               & 7.56                     & 7.13                     & 3.16                    & 54.20                 & 508.01                \\ \hline
+% c)                       &                 &                   &                   &                  & 7.42                     & 7.17                     & 3.35                    & 53.35                 & 549.59                \\ \hline
+\end{tabular}%
+}
+\vspace{-0.5cm}
+\end{table}
+
+\paragraph{Label Selection for L-RoPE}
+To validate the effectiveness of L-RoPE within MultiTalk, we conduct an ablation study focusing on label range selection. The evaluation dataset is the collected conversation data, MTHM. The experimental results are presented in Table \ref{tab:ablation}. These results demonstrate that different label choices for various persons yield comparable metrics, indicating that L-RoPE is not sensitive to label range variations. 
+% In our final method, we adopt the same label range as variant b).
+
+
+
+
+
+% \section{Limitation}
+
+% Given an audio containing multi-person conversational speech, our method relies on separating the input audio into multiple streams based on speaker ID before generation. Existing audio separation methods often fail to achieve good performance, producing incomplete results and mixing multiple people's audio tracks together. Consequently, when inaccurate multi-stream audio is used as a condition, our method cannot achieve satisfactory results. Although manually conducting audio separation can yield good results, it is time-consuming.
+
+\section{Conclusion}
+
+This paper introduces a novel task: audio-driven multi-person conversational video generation, and presents a new framework, MultiTalk, to accomplish this task. Multi-stream audio conditions are effectively injected using the proposed L-PoRE method, ensuring accurate audio and person binding. Furthermore, our findings demonstrate that partial parameter training and multi-task training are essential for maintaining the instruction-following ability of the base model, equipping our model with powerful instruction-following capability.
+
+\textbf{Limitation.} We observe that our method performs better using real audio than using synthesized audio in terms of facial expression. The reason might be that we use real audio data for training. We will explore to mitigate the gap between real and synthesized audio for animation in the future work.  
+
+
+
+\clearpage
+
+\bibliographystyle{unsrt}
+\bibliography{egbib}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\appendix
+
+% \section{Technical Appendices and Supplementary Material}
+
+\section{Dataset and Implementation Details}
+
+\subsection{Dataset Details}
+In this paper, we utilize three distinct testing datasets: the talking head dataset, the talking body dataset, and the dual-human talking body dataset with interactive scenarios. For the talking head and talking body datasets, we employ conventional evaluation techniques for comparison with other methods. However, for the dual-human talking body dataset, where each reference image contains two persons, we evaluate Sync-C, Sync-D, and E-FID by splitting the video into two segments: the left part and the right part. Each segment contains only one person and their corresponding audio. We then average the scores of these two segments to derive the final result for this dataset. Fig.\ref{fig:multi-dataset} showcases some examples of our dual-human dataset.
+
+\setcounter{figure}{7}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/dataset.pdf}
+    \caption{Some examples of our MTHM dataset.}
+    \label{fig:multi-dataset}
+\end{figure}
+
+\subsection{Sample Details}
+In all the experiments and evaluations conducted within this paper, we utilize 40 sampling steps. To filter out undesired variations in diffusion models, we employ the following negative prompt during sampling: "bright tones, overexposed, static, blurred details, subtitles, style, works, paintings, images, static, overall gray, worst quality, low quality, JPEG compression residue, ugly, incomplete, extra fingers, poorly drawn hands, poorly drawn faces, deformed, disfigured, misshapen limbs, fused fingers, still picture, messy background, three legs, many people in the background, walking backwards." Additionally, we employ Qwen-VL for reference image captioning.
+
+\section{Analyses}
+
+\subsection{Full Parameter Training vs Cross-attention Training}
+
+We compare full parameter training with fine-tuning only the audio cross-attention layer. Our findings indicate that network training parameters are crucial. When compute resources and data are limited, fully parameterized training can lead not only to degradation in the model's instruction-following ability, especially for motion and interaction, but also to hand and object distortion. Conversely, training only the audio cross-attention does not result in these issues, and the instruction-following ability of the base model is well preserved. The comparison results between full parameter training and cross-attention training are shown in Fig. \ref{fig:ablation-train}. It can be seen that full parameter training degrades the model's instruction-following ability and causes hand distortion.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/ablation-train.pdf}
+    \caption{Comparison between full parameter training and cross-attention training.}
+    \label{fig:ablation-train}
+\end{figure}
+
+\subsection{Long Video Generation}
+
+Utilizing the autoregressive-based method facilitates the long video generation of our method. The experimental results for long video generation are shown in Fig.\ref{fig:long}. This example shows a generated result containing $305$ frames.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/long.pdf}
+    \caption{The generation result of long videos.}
+    \label{fig:long}
+\end{figure}
+
+% \subsection{Audio Inject Comparisons}
+
+% In our method, we explore four distinct schemes for multi-audio injection, as depicted in Fig. 3. The injection methods corresponding to Fig. 3a and Fig. 3b, shown in Fig. \ref{fig:audio-inject-fail}a and Fig. \ref{fig:audio-inject-fail}b, respectively, fail to bind multi-audio inputs to multiple individuals, resulting in lip movements that are not synchronized with the audio. The injection methods corresponding to Fig. 3c and Fig. 3d are shown in Fig. \ref{fig:audio-inject-success}c and Fig. \ref{fig:audio-inject-success}d, respectively. When the person in the generated video exhibits large motion, the person in the red box fails to generate a synchronized lip motion in variant c, but variant d successfully binds the audio to the person, demonstrating the generalization capability of our method.
+
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=1.0\linewidth]{figs/audio-inject-fail.pdf}
+%     \caption{The multi-audio injection results corresponding to Fig 3a) and 3b), respectively. These two attempts fail to bind the multi-audio to the person.}
+%     \label{fig:audio-inject-fail}
+% \end{figure}
+
+
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width=1.0\linewidth]{figs/audio-inject-succ.pdf}
+%     \caption{The multi-audio injection results corresponding to Fig 3c) and 3d), respectively. }
+%     \label{fig:audio-inject-success}
+% \end{figure}
+
+\section{Societal Impacts}
+
+This paper introduces an effective tool for audio-driven multi-person conversational video generation to the community. However, there exists a risk wherein malicious entities could exploit this framework to generate fake videos of celebrities, potentially misleading the public. This concern is not unique to our approach but is a shared consideration across various human animation methodologies.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% \newpage
+% \section*{NeurIPS Paper Checklist}
+
+% %%% BEGIN INSTRUCTIONS %%%
+% The checklist is designed to encourage best practices for responsible machine learning research, addressing issues of reproducibility, transparency, research ethics, and societal impact. Do not remove the checklist: {\bf The papers not including the checklist will be desk rejected.} The checklist should follow the references and follow the (optional) supplemental material.  The checklist does NOT count towards the page
+% limit. 
+
+% Please read the checklist guidelines carefully for information on how to answer these questions. For each question in the checklist:
+% \begin{itemize}
+%     \item You should answer \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item \answerNA{} means either that the question is Not Applicable for that particular paper or the relevant information is Not Available.
+%     \item Please provide a short (1–2 sentence) justification right after your answer (even for NA). 
+%    % \item {\bf The papers not including the checklist will be desk rejected.}
+% \end{itemize}
+
+% {\bf The checklist answers are an integral part of your paper submission.} They are visible to the reviewers, area chairs, senior area chairs, and ethics reviewers. You will be asked to also include it (after eventual revisions) with the final version of your paper, and its final version will be published with the paper.
+
+% The reviewers of your paper will be asked to use the checklist as one of the factors in their evaluation. While "\answerYes{}" is generally preferable to "\answerNo{}", it is perfectly acceptable to answer "\answerNo{}" provided a proper justification is given (e.g., "error bars are not reported because it would be too computationally expensive" or "we were unable to find the license for the dataset we used"). In general, answering "\answerNo{}" or "\answerNA{}" is not grounds for rejection. While the questions are phrased in a binary way, we acknowledge that the true answer is often more nuanced, so please just use your best judgment and write a justification to elaborate. All supporting evidence can appear either in the main paper or the supplemental material, provided in appendix. If you answer \answerYes{} to a question, in the justification please point to the section(s) where related material for the question can be found.
+
+% IMPORTANT, please:
+% \begin{itemize}
+%     \item {\bf Delete this instruction block, but keep the section heading ``NeurIPS Paper Checklist"},
+%     \item  {\bf Keep the checklist subsection headings, questions/answers and guidelines below.}
+%     \item {\bf Do not modify the questions and only use the provided macros for your answers}.
+% \end{itemize} 
+ 
+
+% %%% END INSTRUCTIONS %%%
+
+
+% \begin{enumerate}
+
+% \item {\bf Claims}
+%     \item[] Question: Do the main claims made in the abstract and introduction accurately reflect the paper's contributions and scope?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: Our our contributions:(1) propose a novel task (2) propose a framework as solution (3)training strategies, are accurately reported in the abstract and the introduction.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the abstract and introduction do not include the claims made in the paper.
+%         \item The abstract and/or introduction should clearly state the claims made, including the contributions made in the paper and important assumptions and limitations. A No or NA answer to this question will not be perceived well by the reviewers. 
+%         \item The claims made should match theoretical and experimental results, and reflect how much the results can be expected to generalize to other settings. 
+%         \item It is fine to include aspirational goals as motivation as long as it is clear that these goals are not attained by the paper. 
+%     \end{itemize}
+
+% \item {\bf Limitations}
+%     \item[] Question: Does the paper discuss the limitations of the work performed by the authors?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: We discuss the limitations in the conclusion section.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper has no limitation while the answer No means that the paper has limitations, but those are not discussed in the paper. 
+%         \item The authors are encouraged to create a separate "Limitations" section in their paper.
+%         \item The paper should point out any strong assumptions and how robust the results are to violations of these assumptions (e.g., independence assumptions, noiseless settings, model well-specification, asymptotic approximations only holding locally). The authors should reflect on how these assumptions might be violated in practice and what the implications would be.
+%         \item The authors should reflect on the scope of the claims made, e.g., if the approach was only tested on a few datasets or with a few runs. In general, empirical results often depend on implicit assumptions, which should be articulated.
+%         \item The authors should reflect on the factors that influence the performance of the approach. For example, a facial recognition algorithm may perform poorly when image resolution is low or images are taken in low lighting. Or a speech-to-text system might not be used reliably to provide closed captions for online lectures because it fails to handle technical jargon.
+%         \item The authors should discuss the computational efficiency of the proposed algorithms and how they scale with dataset size.
+%         \item If applicable, the authors should discuss possible limitations of their approach to address problems of privacy and fairness.
+%         \item While the authors might fear that complete honesty about limitations might be used by reviewers as grounds for rejection, a worse outcome might be that reviewers discover limitations that aren't acknowledged in the paper. The authors should use their best judgment and recognize that individual actions in favor of transparency play an important role in developing norms that preserve the integrity of the community. Reviewers will be specifically instructed to not penalize honesty concerning limitations.
+%     \end{itemize}
+
+% \item {\bf Theory assumptions and proofs}
+%     \item[] Question: For each theoretical result, does the paper provide the full set of assumptions and a complete (and correct) proof?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: \answerNA{}
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include theoretical results. 
+%         \item All the theorems, formulas, and proofs in the paper should be numbered and cross-referenced.
+%         \item All assumptions should be clearly stated or referenced in the statement of any theorems.
+%         \item The proofs can either appear in the main paper or the supplemental material, but if they appear in the supplemental material, the authors are encouraged to provide a short proof sketch to provide intuition. 
+%         \item Inversely, any informal proof provided in the core of the paper should be complemented by formal proofs provided in appendix or supplemental material.
+%         \item Theorems and Lemmas that the proof relies upon should be properly referenced. 
+%     \end{itemize}
+
+%     \item {\bf Experimental result reproducibility}
+%     \item[] Question: Does the paper fully disclose all the information needed to reproduce the main experimental results of the paper to the extent that it affects the main claims and/or conclusions of the paper (regardless of whether the code and data are provided or not)?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: We present the implementation details in the experiment section.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include experiments.
+%         \item If the paper includes experiments, a No answer to this question will not be perceived well by the reviewers: Making the paper reproducible is important, regardless of whether the code and data are provided or not.
+%         \item If the contribution is a dataset and/or model, the authors should describe the steps taken to make their results reproducible or verifiable. 
+%         \item Depending on the contribution, reproducibility can be accomplished in various ways. For example, if the contribution is a novel architecture, describing the architecture fully might suffice, or if the contribution is a specific model and empirical evaluation, it may be necessary to either make it possible for others to replicate the model with the same dataset, or provide access to the model. In general. releasing code and data is often one good way to accomplish this, but reproducibility can also be provided via detailed instructions for how to replicate the results, access to a hosted model (e.g., in the case of a large language model), releasing of a model checkpoint, or other means that are appropriate to the research performed.
+%         \item While NeurIPS does not require releasing code, the conference does require all submissions to provide some reasonable avenue for reproducibility, which may depend on the nature of the contribution. For example
+%         \begin{enumerate}
+%             \item If the contribution is primarily a new algorithm, the paper should make it clear how to reproduce that algorithm.
+%             \item If the contribution is primarily a new model architecture, the paper should describe the architecture clearly and fully.
+%             \item If the contribution is a new model (e.g., a large language model), then there should either be a way to access this model for reproducing the results or a way to reproduce the model (e.g., with an open-source dataset or instructions for how to construct the dataset).
+%             \item We recognize that reproducibility may be tricky in some cases, in which case authors are welcome to describe the particular way they provide for reproducibility. In the case of closed-source models, it may be that access to the model is limited in some way (e.g., to registered users), but it should be possible for other researchers to have some path to reproducing or verifying the results.
+%         \end{enumerate}
+%     \end{itemize}
+
+
+% \item {\bf Open access to data and code}
+%     \item[] Question: Does the paper provide open access to the data and code, with sufficient instructions to faithfully reproduce the main experimental results, as described in supplemental material?
+%     \item[] Answer: \answerNo{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: \answerNo{}
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that paper does not include experiments requiring code.
+%         \item Please see the NeurIPS code and data submission guidelines (\url{https://nips.cc/public/guides/CodeSubmissionPolicy}) for more details.
+%         \item While we encourage the release of code and data, we understand that this might not be possible, so “No” is an acceptable answer. Papers cannot be rejected simply for not including code, unless this is central to the contribution (e.g., for a new open-source benchmark).
+%         \item The instructions should contain the exact command and environment needed to run to reproduce the results. See the NeurIPS code and data submission guidelines (\url{https://nips.cc/public/guides/CodeSubmissionPolicy}) for more details.
+%         \item The authors should provide instructions on data access and preparation, including how to access the raw data, preprocessed data, intermediate data, and generated data, etc.
+%         \item The authors should provide scripts to reproduce all experimental results for the new proposed method and baselines. If only a subset of experiments are reproducible, they should state which ones are omitted from the script and why.
+%         \item At submission time, to preserve anonymity, the authors should release anonymized versions (if applicable).
+%         \item Providing as much information as possible in supplemental material (appended to the paper) is recommended, but including URLs to data and code is permitted.
+%     \end{itemize}
+
+
+% \item {\bf Experimental setting/details}
+%     \item[] Question: Does the paper specify all the training and test details (e.g., data splits, hyperparameters, how they were chosen, type of optimizer, etc.) necessary to understand the results?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: Details are provided in the experiment section.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include experiments.
+%         \item The experimental setting should be presented in the core of the paper to a level of detail that is necessary to appreciate the results and make sense of them.
+%         \item The full details can be provided either with the code, in appendix, or as supplemental material.
+%     \end{itemize}
+
+% \item {\bf Experiment statistical significance}
+%     \item[] Question: Does the paper report error bars suitably and correctly defined or other appropriate information about the statistical significance of the experiments?
+%     \item[] Answer: \answerNo{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: We use the commonly used metrics that do not involve error bars.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include experiments.
+%         \item The authors should answer "Yes" if the results are accompanied by error bars, confidence intervals, or statistical significance tests, at least for the experiments that support the main claims of the paper.
+%         \item The factors of variability that the error bars are capturing should be clearly stated (for example, train/test split, initialization, random drawing of some parameter, or overall run with given experimental conditions).
+%         \item The method for calculating the error bars should be explained (closed form formula, call to a library function, bootstrap, etc.)
+%         \item The assumptions made should be given (e.g., Normally distributed errors).
+%         \item It should be clear whether the error bar is the standard deviation or the standard error of the mean.
+%         \item It is OK to report 1-sigma error bars, but one should state it. The authors should preferably report a 2-sigma error bar than state that they have a 96\% CI, if the hypothesis of Normality of errors is not verified.
+%         \item For asymmetric distributions, the authors should be careful not to show in tables or figures symmetric error bars that would yield results that are out of range (e.g. negative error rates).
+%         \item If error bars are reported in tables or plots, The authors should explain in the text how they were calculated and reference the corresponding figures or tables in the text.
+%     \end{itemize}
+
+% \item {\bf Experiments compute resources}
+%     \item[] Question: For each experiment, does the paper provide sufficient information on the computer resources (type of compute workers, memory, time of execution) needed to reproduce the experiments?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: Compute resource information are presented in the experiment part. 
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not include experiments.
+%         \item The paper should indicate the type of compute workers CPU or GPU, internal cluster, or cloud provider, including relevant memory and storage.
+%         \item The paper should provide the amount of compute required for each of the individual experimental runs as well as estimate the total compute. 
+%         \item The paper should disclose whether the full research project required more compute than the experiments reported in the paper (e.g., preliminary or failed experiments that didn't make it into the paper). 
+%     \end{itemize}
+    
+% \item {\bf Code of ethics}
+%     \item[] Question: Does the research conducted in the paper conform, in every respect, with the NeurIPS Code of Ethics \url{https://neurips.cc/public/EthicsGuidelines}?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: The research follows the rules. 
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the authors have not reviewed the NeurIPS Code of Ethics.
+%         \item If the authors answer No, they should explain the special circumstances that require a deviation from the Code of Ethics.
+%         \item The authors should make sure to preserve anonymity (e.g., if there is a special consideration due to laws or regulations in their jurisdiction).
+%     \end{itemize}
+
+
+% \item {\bf Broader impacts}
+%     \item[] Question: Does the paper discuss both potential positive societal impacts and negative societal impacts of the work performed?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: We discuss the broader impacts in the supplementary.
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that there is no societal impact of the work performed.
+%         \item If the authors answer NA or No, they should explain why their work has no societal impact or why the paper does not address societal impact.
+%         \item Examples of negative societal impacts include potential malicious or unintended uses (e.g., disinformation, generating fake profiles, surveillance), fairness considerations (e.g., deployment of technologies that could make decisions that unfairly impact specific groups), privacy considerations, and security considerations.
+%         \item The conference expects that many papers will be foundational research and not tied to particular applications, let alone deployments. However, if there is a direct path to any negative applications, the authors should point it out. For example, it is legitimate to point out that an improvement in the quality of generative models could be used to generate deepfakes for disinformation. On the other hand, it is not needed to point out that a generic algorithm for optimizing neural networks could enable people to train models that generate Deepfakes faster.
+%         \item The authors should consider possible harms that could arise when the technology is being used as intended and functioning correctly, harms that could arise when the technology is being used as intended but gives incorrect results, and harms following from (intentional or unintentional) misuse of the technology.
+%         \item If there are negative societal impacts, the authors could also discuss possible mitigation strategies (e.g., gated release of models, providing defenses in addition to attacks, mechanisms for monitoring misuse, mechanisms to monitor how a system learns from feedback over time, improving the efficiency and accessibility of ML).
+%     \end{itemize}
+    
+% \item {\bf Safeguards}
+%     \item[] Question: Does the paper describe safeguards that have been put in place for responsible release of data or models that have a high risk for misuse (e.g., pretrained language models, image generators, or scraped datasets)?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: \answerNA{}
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper poses no such risks.
+%         \item Released models that have a high risk for misuse or dual-use should be released with necessary safeguards to allow for controlled use of the model, for example by requiring that users adhere to usage guidelines or restrictions to access the model or implementing safety filters. 
+%         \item Datasets that have been scraped from the Internet could pose safety risks. The authors should describe how they avoided releasing unsafe images.
+%         \item We recognize that providing effective safeguards is challenging, and many papers do not require this, but we encourage authors to take this into account and make a best faith effort.
+%     \end{itemize}
+
+% \item {\bf Licenses for existing assets}
+%     \item[] Question: Are the creators or original owners of assets (e.g., code, data, models), used in the paper, properly credited and are the license and terms of use explicitly mentioned and properly respected?
+%     \item[] Answer: \answerYes{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: Those works are properly cited in the paper. 
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not use existing assets.
+%         \item The authors should cite the original paper that produced the code package or dataset.
+%         \item The authors should state which version of the asset is used and, if possible, include a URL.
+%         \item The name of the license (e.g., CC-BY 4.0) should be included for each asset.
+%         \item For scraped data from a particular source (e.g., website), the copyright and terms of service of that source should be provided.
+%         \item If assets are released, the license, copyright information, and terms of use in the package should be provided. For popular datasets, \url{paperswithcode.com/datasets} has curated licenses for some datasets. Their licensing guide can help determine the license of a dataset.
+%         \item For existing datasets that are re-packaged, both the original license and the license of the derived asset (if it has changed) should be provided.
+%         \item If this information is not available online, the authors are encouraged to reach out to the asset's creators.
+%     \end{itemize}
+
+% \item {\bf New assets}
+%     \item[] Question: Are new assets introduced in the paper well documented and is the documentation provided alongside the assets?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: \answerNA{}
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not release new assets.
+%         \item Researchers should communicate the details of the dataset/code/model as part of their submissions via structured templates. This includes details about training, license, limitations, etc. 
+%         \item The paper should discuss whether and how consent was obtained from people whose asset is used.
+%         \item At submission time, remember to anonymize your assets (if applicable). You can either create an anonymized URL or include an anonymized zip file.
+%     \end{itemize}
+
+% \item {\bf Crowdsourcing and research with human subjects}
+%     \item[] Question: For crowdsourcing experiments and research with human subjects, does the paper include the full text of instructions given to participants and screenshots, if applicable, as well as details about compensation (if any)? 
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: \answerNA{}
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not involve crowdsourcing nor research with human subjects.
+%         \item Including this information in the supplemental material is fine, but if the main contribution of the paper involves human subjects, then as much detail as possible should be included in the main paper. 
+%         \item According to the NeurIPS Code of Ethics, workers involved in data collection, curation, or other labor should be paid at least the minimum wage in the country of the data collector. 
+%     \end{itemize}
+
+% \item {\bf Institutional review board (IRB) approvals or equivalent for research with human subjects}
+%     \item[] Question: Does the paper describe potential risks incurred by study participants, whether such risks were disclosed to the subjects, and whether Institutional Review Board (IRB) approvals (or an equivalent approval/review based on the requirements of your country or institution) were obtained?
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: \answerNA{}
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the paper does not involve crowdsourcing nor research with human subjects.
+%         \item Depending on the country in which research is conducted, IRB approval (or equivalent) may be required for any human subjects research. If you obtained IRB approval, you should clearly state this in the paper. 
+%         \item We recognize that the procedures for this may vary significantly between institutions and locations, and we expect authors to adhere to the NeurIPS Code of Ethics and the guidelines for their institution. 
+%         \item For initial submissions, do not include any information that would break anonymity (if applicable), such as the institution conducting the review.
+%     \end{itemize}
+
+% \item {\bf Declaration of LLM usage}
+%     \item[] Question: Does the paper describe the usage of LLMs if it is an important, original, or non-standard component of the core methods in this research? Note that if the LLM is used only for writing, editing, or formatting purposes and does not impact the core methodology, scientific rigorousness, or originality of the research, declaration is not required.
+%     %this research? 
+%     \item[] Answer: \answerNA{} % Replace by \answerYes{}, \answerNo{}, or \answerNA{}.
+%     \item[] Justification: \answerNA{}
+%     \item[] Guidelines:
+%     \begin{itemize}
+%         \item The answer NA means that the core method development in this research does not involve LLMs as any important, original, or non-standard components.
+%         \item Please refer to our LLM policy (\url{https://neurips.cc/Conferences/2025/LLM}) for what should or should not be described.
+%     \end{itemize}
+
+% \end{enumerate}
+
+\end{document}

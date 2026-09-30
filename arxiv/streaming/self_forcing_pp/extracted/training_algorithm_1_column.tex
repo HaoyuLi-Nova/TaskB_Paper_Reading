@@ -1,0 +1,21 @@
+\begin{algorithm}[H]
+  \caption{Self-Forcing++ with Backward Noise Initialization (ours)}
+  \small
+  \begin{algorithmic}[1]
+    \Require Student \(G_{\theta}\), teacher \(T_{\phi}\), cache size \(L\); 
+             rollout length \(N \gg 5\)s; slice length \(K\) (5s);
+             denoise steps \(\{t_1,\dots,t_T\}\)
+    \Loop
+      \State \(V \gets \mathrm{Rollout}(G_{\theta}, N, L)\)  
+      \State Pick \(i \sim \{1,\dots,N{-}K{+}1\}\), set \(W \gets V[i:i{+}K{-}1]\) \Comment{uniform slice}
+      \State Sample \(t \sim \{t_1,\dots,t_T\}\) \
+      \State Backward noise initialization: 
+             \(x_t(W) \gets \text{BackwardNoiseInit}(W, t)\) 
+      \State \(\mathcal{L}_{\mathrm{DMD}} \gets 
+             \mathrm{DMD}(G_{\theta}(x_t(W), t),~T_{\phi}(x_t(W), t))\)
+      \State \(\theta \gets \theta - \eta \nabla_{\theta}\mathcal{L}_{\mathrm{DMD}}\)
+    \EndLoop
+    \State $R \gets \mathrm{OpticalFlowReward}(G_\theta)$;\quad $\theta \gets \mathrm{GRPO\_update}(\theta, R)$ 
+  \end{algorithmic}
+    \label{alg:alg1}
+\end{algorithm}

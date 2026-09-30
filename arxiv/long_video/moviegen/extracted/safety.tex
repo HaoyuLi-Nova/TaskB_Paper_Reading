@@ -1,0 +1,9 @@
+\par \noindent \textbf{Safety considerations.}
+The \OURS cast of foundation models were developed for research purposes and need multiple improvements before deploying them.
+We consider a few risks from a safety viewpoint.
+Any real world usage of these models requires considering such aspects.
+Our models learn to associate text and optionally additional inputs like video to output modalities like image, video and audio.
+It is also likely that our models can learn unintentional associations between these spaces.
+Moreover, generative models can also learn biases present in individual modalities, \eg, visual biases present in the video training data or the language used in the text prompts.
+Our study in this paper is limited to text inputs in the English language.
+Finally, when we do deploy these models, we will incorporate safety models that can reject input prompts or generations that violate our policies to prevent misuse.

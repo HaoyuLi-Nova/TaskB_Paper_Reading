@@ -1,0 +1,16 @@
+\section{Related Works}
+
+\subsection{Video Diffusion Model}
+Diffusion models have become the de facto standard for visual synthesis, scaling from high-fidelity image generation \citep{rombach2022high, esser2024scaling, peebles2023scalable} to video \citep{blattmann2023stable, lin2024open, wan2025wan} and 3D assets \citep{long2024wonder3d, xiang2025structured, yang2025wonder3d++, liu2023syncdreamer, zhao2025hunyuan3d}. 
+The core architecture, typically a Diffusion Transformer (DiT) \citep{peebles2023scalable} operating in the latent space of a VAE, was originally designed for static images.
+By extending the 2D attention to a 3D full attention \citep{wan2025wan, kong2024hunyuanvideo} or inserting additional temporal attention layers \citep{blattmann2023stable, gao2025seedance}, the diffusion model is adapted for the temporal coherent video generation. 
+Regarding conditioning, instead of using conventional cross-attention to inject text prompts, MMDiT \citep{esser2024scaling} employs a distinct approach. It processes visual and textual tokens with separate weights and then concatenates them as input to the attention mechanism. This design facilitates a bidirectional flow of information between the two modalities.
+To further improve the temporal coherence, VideoJAM \citep{chefer2025videojam} introduced to incorporate explicit motion prior to video models through predicting optical flow in addition to appearance. 
+Instead of focusing on dense, low-level motion like optical flow to model short-term temporal motion, our work focuses on leveraging the SMPL \citep{loper2023smpl} parameter as a high-level, structured human kinematics. 
+
+\subsection{Conditional Human Video Generation}
+Recent advancements in diffusion models have significantly improved the quality of human video generation. Building upon pre-trained diffusion models, methods like DisCo \citep{wang2024disco} and Follow-Your-Pose \citep{ma2024follow} adapt the ControlNet architecture to guide generation using 2D human keypoints. Other works, such as MagicAnimate \citep{xu2024magicanimate} and Animate Anyone \citep{hu2024animate}, employ dedicated pose guidance modules to encode 2D pose sequences and inject them as conditioning.
+Another branch of research uses rendered 3D human models for conditioning. For instance, Champ \citep{zhu2024champ} utilizes rendered SMPL \citep{loper2023smpl} models as guidance frames for video generation. 
+Following this direction, RealisDance \citep{zhou2024realisdance, zhou2025realisdance} guides generation by concatenating multiple visual pose representations—such as outputs from HaMeR \citep{pavlakos2024reconstructing} and DWPose \citep{yang2023effective}, alongside rendered SMPL models—along the channel dimension.
+Similarly, Human4DiT \citep{shao2024human4dit} generates free-view human videos conditioned on rendered SMPL models and camera poses.
+While powerful, these methods share a fundamental architectural limitation: they are strictly conditional generators. In contrast, we introduce a unified architecture that treats human motion parameters and video as coupled modalities, enabling both joint generation and cross-modal completion.

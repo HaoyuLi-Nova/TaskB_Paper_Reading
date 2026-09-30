@@ -1,0 +1,26 @@
+\begin{table}[h]
+  \small
+  \setlength{\tabcolsep}{1.5pt} % tighten columns a bit more to accommodate new column
+  \vspace{-1em}
+  \caption{
+    Full quality evaluation on VBench. 
+  }
+  \vspace{0.5em}
+  \label{tab:quality}
+  \centering
+  \resizebox{\textwidth}{!}{
+  \begin{tabular}{l|ccccccc|c}
+      \toprule
+      \multirow{2}{*}{Model}  
+      &  \scriptsize Subject  & \scriptsize Background  & \scriptsize Temporal  & \scriptsize Motion   & \scriptsize Dynamic  & \scriptsize Aesthetic & \scriptsize Imaging & \scriptsize Quality \\
+       & \scriptsize Consistency   & \scriptsize Consistency &  \scriptsize Flickering   & \scriptsize Smoothness & \scriptsize  Degree & \scriptsize Quality   & \scriptsize Quality & \scriptsize Score\\
+
+    \midrule
+    CausVid~\citep{yin2025slow}         &89.50&90.00&\textbf{99.41}&98.06&63.88&61.82&65.30&80.89 \\
+    Self Forcing~\citep{huang2025self}  &88.61&89.53&98.90&98.57&\textbf{68.05}&60.60&68.98&81.39 \\ 
+    Rolling Forcing (Ours)              &\textbf{94.80}&\textbf{95.69}&98.93&\textbf{98.63}&60.14&\textbf{62.81}&\textbf{72.31}&\textbf{84.08} \\
+    \bottomrule
+  \end{tabular}
+  }
+
+\end{table}

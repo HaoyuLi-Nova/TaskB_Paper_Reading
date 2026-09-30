@@ -1,0 +1,153 @@
+\appendix
+
+\section{Implementation Details}
+\label{app:implementation}
+
+Our implementation is largely based on the open-source code of Wan2.1~\cite{wang2025wan} and CausVid~\cite{yin2025causvid}. The attention implementation of Diffusion Forcing and Teacher Forcing baselines is based on FlexAttention~\cite{Dong2024FlexAA}, while the attention in Self Forcing is based on FlashAttention-3~\cite{shah2024flashattention}.
+
+\paragraph{Noise schedule and model parameterization.}
+Following the Wan2.1 series, we adopt the flow matching framework~\cite{lipmanflow, liu2022flow}, with time step shifting $t^\prime(k, t) = (kt / 1000) / (1 + (k-1)(t / 1000)) \cdot 1000$ and a shift factor $k=5$. The forward process is specified as $x_t = \frac{t^\prime}{1000} x + \frac{1 - t^\prime}{1000} \epsilon, \epsilon \sim \mathcal{N}(0, I)$ with $t \in [0, 1000]$.
+% Following the Wan2.1 series, we adopt the flow matching framework~\cite{lipmanflow, liu2022flow}, where the forward process is specified as $x_t = \frac{t}{1000} x + \frac{1 - t}{1000} \epsilon, \epsilon \sim \mathcal{N}(0, I)$ with $t \in [0, 1000]$.
+% % \TODO{Describe shifting.}
+% Additionally, we employ a time step shifting $t^\prime(k) = (kt / 1000) / (1 + (k-1)(t / 1000)) \cdot 1000$.
+
+The data prediction model is given by:
+\begin{align}
+    G_\theta(x, t, c) = c_{\text{skip}} \cdot \epsilon - c_{\text{out}} \cdot v_\theta(c_{\text{in}} \cdot x_t, c_{\text{noise}}(t^\prime), c).
+\end{align}
+We keep the preconditioning coefficients the same as the base models' configuration, i.e., $c_{\text{skip}} = c_{\text{in}} = c_{\text{out}} = 1$ and $c_{\text{noise}}(t) = t$.
+Our few-step diffusion process employs a uniform 4-step schedule $[t_4, t_3, t_2, t_1]=[1000, 750, 500, 250]$.
+
+
+
+\paragraph{Prompt preprocessing.} We use the VidProS subset from VidProM~\cite{wangvidprom}, which contains around 1M semantically unique user-written text-to-video prompts. We filter out prompts that are too short (less than 20 characters), contain command line arguments (e.g., --ar 16:9), or have a NSFW probability greater than 0.01 for any annotated category~(toxicity, obscenity, identity attack, insult, threat, and sexual explicitness). This results in a total of around 250k prompts. We then expand those prompts with \texttt{Qwen/Qwen2.5-7B-Instruct}~\cite{yang2024qwen2}, using the system prompt~(English version) provided in the open-source implementation of Wan2.1~\cite{wang2025wan}. For VBench evaluation, we similarly rewrite the test prompts using \texttt{Qwen/Qwen2.5-7B-Instruct}.
+We note that the VBench results of the Wan2.1 base model are also obtained with prompt rewriting, and we report baseline results with prompt rewriting, provided that the model supports such enhancements.
+
+% \paragraph{Distribution matching loss}
+\paragraph{Training details.}
+% \subsection{Training details}
+Most of our training runs use 64 NVIDIA GPUs (80GB memory each) with a per-GPU batch size of 1. We implement gradient accumulation for configurations requiring a larger effective batch size than 64. Our DMD training runs take only approximately 1.5 hours to converge, while SiD/GAN training takes 2-3 hours on 64 H100 GPUs.
+We initialize the real score network and critic network using the pretrained weights of the base model.
+We list all other training configurations, as well as the choice of real score network and critic network for different distribution matching objectives, in Table~\ref{tab:training-hyperparameters}. We describe detailed training configurations for each distribution matching objective below.
+
+For DMD, the gradient of the reverse Kullback-Leibler divergence is given by~\cite{yin2024one, wang2023prolificdreamer, luo2023diffinstruct}:
+\begin{align}
+\label{eqn:DMD-gradient}
+    \nabla_\theta  \mathbb E_{t}[D_\text{KL}(p_{\theta, t} \| p_{\text{data}, t})] = -\mathbb E_{t, \hat x_t \sim q_{t|0}(\hat x_t | \hat x), \hat x \sim p_\theta(\hat x)} \left[ (s_{\text{real}}(\hat x_t, t) - s_{\text{fake}}(\hat x_t, t))\frac{\partial \hat x}{\partial \theta}\right],
+    % \left(s_{\text{real}}(x_t, t)\right),
+\end{align}
+where $s_\text{real}(\cdot, t)$ is the score function for $p_{\text{data}, t}$, approximated by a pretrained diffusion model $f_\phi(\cdot, t)$, also referred to as the real score network, and $s_{\text{fake}}(\cdot, t)$ is the score function for $p_{\theta, t}$ and is learned through a critic network $f_\psi(\cdot, t)$ via the standard diffusion loss. The gradient in Eqn.~\eqref{eqn:DMD-gradient} is equivalent to the following loss function:
+\begin{align}
+    \mathcal L_{\text{DMD}}(\theta) = \mathbb E_{t, \hat x_t, \hat x}\left[ \frac{1}{2}\left\| \hat x - \mathrm{sg}\left[\hat x  - (f_\psi(\hat x_t, t) - f_\phi(\hat x_t, t))\right]\right\|^2\right],
+\end{align}
+where $\mathrm{sg}[\cdot]$ denotes the stop gradient operator.
+
+
+Similar to the pipeline of DMD, the SiD loss is given by~\cite{zhou2024score}:
+\begin{align}
+    \mathcal L_{\text{SiD}}(\theta) = \mathbb E_{t, \hat x_t, \hat x}\left[ (f_\phi(\hat x_t, t) - f_\psi(\hat x_t, t))^T (f_\psi(\hat x_t, t) - \hat x) + (1 - \alpha) \| f_{\phi}(\hat x_t , t) - f_\psi(\hat x_t, t)\|^2 \right],
+\end{align}
+which can be shown that the case of $\alpha = 0.5$ corresponds the gradient of the Fisher divergence $\mathbb E_{t, p_{\theta, t}}[\| \nabla \log p_{\theta, t}\ - \nabla \log p_{\text{data}, t}\|^2]$ ~\cite{luo2024one, huang2024flow}. Empirically, it is observed that the second term often leads to unstable training and thus $\alpha=1$ is typically adopted for better performance~\cite{zhou2024score, zhou2025adversarial}, which is also followed in this work.
+
+% \guande{Specify the hyperparameter corresponding to the loss}
+
+\input{tables/implement_details}
+
+For GAN training, we add additional cross-attention layers and classification heads to the initialized critic network. We employ relativistic loss~\cite{jolicoeurrelativistic} and approximate the regularization terms~(R1 and R2) using finite difference following Seaweed-APT~\cite{lin2025diffusion}. Specifically, we perturb the noisy real/fake data with additional small Gaussian noise and encourage the discriminator output to be similar to the original one. The final training objective is defined as:
+\begin{align}
+    & \mathcal{L}_{\text{reg}} = \frac{1}{2} \mathbb{E}_{t, x_t, \hat{x}_t, \epsilon, \hat{\epsilon}} \left[ \| f_\psi(x_t) - f_\psi(x_t+\sigma \cdot \epsilon ) \|_2^2 + \| f_\psi(\hat{x}_t) - f_\psi(\hat{x}_t + \sigma \cdot \hat{\epsilon} ) \|_2^2 \right] \\
+    & \mathcal{L}_{D}(\psi) = -\mathbb{E}_{t, x_t, \hat{x}_t} \left[ \log \left( \text{sigmoid} \left(f_\psi(x_t) - f_\psi(\hat{x}_t) \right)\right) \right] + \lambda\mathcal{L}_{\text{reg}} \\
+    & \mathcal{L}_{G}(\theta) = -\mathbb{E}_{t, x_t, \hat{x}_t} \left[ \log \left( \text{sigmoid} \left(f_\psi(\hat{x}_t) - f_\psi(x_t) \right)\right) \right]
+\end{align}
+where $x_t\sim p_{\text{data}, t}$, $\hat{x}_t\sim p_{\theta, t}$ are the noisy real and fake data, respectively, $\epsilon$ and $\hat{\epsilon}$ are Gaussian noise sampled from $\mathcal{N}(0, 1)$, and $f_\psi$ is the critic network (discriminator) of GAN. We use $\lambda=30$, $\sigma=0.05$ for all experiments.  For a video generated from the output of the $s$-th step~(see Algorithm~\ref{alg:self_forcing} for details), we find that only sampling $t$ from $[t_{s-1}, t_{s}]$ helps stabilize the training. We also adopt a large batch size of 768 for training stability.
+
+
+\section{Importance of local attention training in rolling KV cache}
+\label{app:qualitative}
+
+% Fig.~\ref{fig:comp_5s} presents qualitative comparisons of video generation results between our approach and three baselines, all sharing the same model architecture. Both Wan2.1-1.3B\cite{wang2025wan} and SkyReels-V2-1.3B~\cite{chen2025skyreels} adopt bidirectional attention and require many denoising steps, resulting in significantly slower inference compared to our method, as shown in the main paper. We also compare with CausVid~\cite{yin2025causvid}, a few-step autoregressive video diffusion model trained using the diffusion forcing (DF) paradigm. Our approach achieves competitive visual fidelity relative to the two slower models while delivering noticeably higher quality than CausVid. Specifically, videos generated by CausVid exhibit color drifting and quality degradation over time, whereas our self-forcing trained model effectively addresses this fundamental issue.
+
+
+
+
+We qualitatively ablate two training settings for video extrapolation using the rolling KV cache technique. In the naive baseline, the model is trained such that every chunk always attends to the first chunk during denoising. In contrast, our proposed method restricts the attention window to prevent the model from attending to the first chunk when denoising the last chunk. As shown in Fig.~\ref{fig:comp_10s}, the naive baseline exhibits visual artifacts when extrapolating videos beyond the training context length, whereas our proposed solution mitigates this issue.
+
+
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figures/comp_10s-compressed.pdf}
+  \caption{\textbf{Qualitative comparisons on video extrapolation.} We present a visual comparison between the naive baseline and our proposed technique for rolling KV cache-based video extrapolation. Compared to our method using local attention window training, extrapolated video frames from the naive baseline exhibit severe visual artifacts.}
+  \label{fig:comp_10s}
+\end{figure}
+
+
+\section{VBench Scores Across All Dimensions}
+
+
+\label{app:vbench}
+\begin{wrapfigure}{r}{0.6\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/radar.pdf}
+  \caption{\textbf{VBench scores visualization.} We compare Self Forcing with SkyReels-V2~\cite{chen2025skyreels}, Wan2.1-1.3B~\cite{wang2025wan}, MAGI-1~\cite{magi1}, and CausVid~\cite{yin2025causvid} using all 16 VBench metrics.}
+  \label{fig:radar}
+  \vspace{-3em}
+\end{wrapfigure}
+
+In Fig.~\ref{fig:radar}, we evaluate Self Forcing~(both chunk-wise and frame-wise AR versions) using all 16 VBench metrics against representative models.
+Self Forcing generally outperforms other models in terms of semantic alignment, evidenced by the high scores in scene, object class, multiple objects, and human action dimensions. Our methods also achieve good frame-wise quality, as indicated by the high scores in aesthetic quality and imaging quality.
+% Our models perform slightly less well in alignment with artistic styles and camera motion, captured by appearance style and temporal style scores, respectively. This is likely because such highly specific knowledge needs to be learned during pre-training.
+% , and our model is not able to perform much better than the base model in these two aspects.
+Our frame-wise AR variant exhibits more dynamic motion~(high dynamic degree score) but worse temporal consistency~(worse background consistency, motion smoothness, and larger temporal flickering) than the chunk-wise AR variant.
+
+% \begin{table*}[ht!]
+%   \centering
+%   \begin{adjustbox}{width=1\textwidth}
+%   \begin{tabular}{lccccccccccccccccccc}
+%   \toprule
+%   \textbf{Method} & \textbf{Total Score} & \textbf{Quality Score} & \textbf{Semantic Score} & \textbf{Subject Consistency} & \textbf{Background Consistency} & \textbf{Temporal Flickering} & \textbf{Motion Smoothness} & \textbf{Dynamic Degree} & \textbf{Aesthetic Quality} & \textbf{Imaging Quality} & \textbf{Object Class} & \textbf{Multiple Objects} & \textbf{Human Action} & \textbf{Color} & \textbf{Spatial Relationship} & \textbf{Scene} & \textbf{Appearance Style} & \textbf{Temporal Style} & \textbf{Overall Consistency} \\
+%   \midrule
+%   Vchitect  & 82.24 & 83.54 & 77.06 & 96.83 & 96.66 & 98.57 & 98.98 & 63.89 & 60.41 & 65.35 & 86.61 & 68.84 & 97.20  & 87.04 & 57.55 & \textbf{56.57} & 23.73 & 25.01 & 27.57 \\
+%   Jimeng    & 81.97 & 83.29 & 76.69 & 97.25 & 98.39 & 99.03 & 98.09 & 38.43 & \textbf{68.80}  & 67.09 & 89.62 & 69.08 & 90.10  & 89.05 & 77.45 & 44.94 & 22.27 & 24.7 & 27.10 \\
+%   CogVideoX & 81.61 & 82.75 & 77.04 & 96.23 & 96.52 & 98.66 & 96.92 & 70.97 & 61.98 & 62.90 & 85.23 & 62.11 & 99.40  & 82.81 & 66.35 & 53.20 & \textbf{24.91} & \textbf{25.38} & \textbf{27.59} \\
+%   Vidu      & 81.89 & 83.85 & 74.04 & 94.63 & 96.55 & 99.08 & 97.71 & 82.64 & 60.87 & 63.32 & 88.43 & 61.68 & 97.40  & 83.24 & 66.18 & 46.07 & 21.54 & 23.79 & 26.47 \\
+%   Kling     & 81.85 & 83.39 & 75.68 & \textbf{98.33} & 97.60 & \textbf{99.30} & \textbf{99.40} & 46.94 & 61.21 & 65.62 & 87.24 & 68.05 & 93.40  & \textbf{89.90}  & 73.03 & 50.86 & 19.62 & 24.17 & 26.42 \\
+%   CogVideoX1.5-5B & 82.17 & 82.78 & \textbf{79.76} & 96.87 & \textbf{97.35} & 98.88 & 98.31 & 50.93 & 62.79 & 65.02 & 87.47 & 69.65 & 97.20  & 87.55 & \textbf{80.25} & 52.91 & 24.89 & 25.19 & 27.30 \\
+%   Gen-3     & 82.32 & 84.11 & 75.17 & 97.10  & 96.62 & 98.61 & 99.23 & 60.14 & 63.34 & 66.82 & 87.81 & 53.64 & 96.40  & 80.90  & 65.09 & 54.57 & 24.31 & 24.71 & 26.69 \\
+%   \textbf{Self Forcing}      & \textbf{84.27} & \textbf{85.65} & 78.75  & 97.53 & 97.19 & 96.24 & 98.05 & \textbf{92.69}  & 64.15 & \textbf{68.88}  & \textbf{92.99}  & \textbf{72.15} & \textbf{99.80}  & 80.17 & 64.65 & 56.58 & 24.27 & 25.33 & 27.51 \\
+%   % \midrule
+%   % Bidirectional Teacher & 82.10 & 83.12 & 78.01 & 90.26 & 95.07 & 95.16 &
+%   % 97.88 & 92.22 & 65.18 & 66.54 & 90.30 & 71.62 & 99.80 & 79.50 & 64.20 & 53.11& 24.19 & 26.03 & 27.63 \\
+%   \bottomrule
+%   \end{tabular}
+%   \end{adjustbox}
+%   \caption{Full comparison on VBench using all 16 metrics. The best scores are in bold. Please zoom in for details. TODO: Update numbers}
+%   \label{tab:vbench_long}
+% \end{table*}
+
+
+
+
+\section{Broader Societal Impact}
+\label{app:broader_impact}
+Generative modeling—particularly for videos—carries significant potential for misuse. It can lead to serious societal consequences, most notably the spread of disinformation through deepfakes that become increasingly difficult to distinguish from authentic content. Additionally, these models can reinforce harmful stereotypes and amplify existing societal biases without careful governance and responsible deployment.
+
+Our research on real-time video generation creates additional complexities, as it removes one of the practical barriers (computational cost) that currently limits widespread misuse. While our methods enable positive applications like creative content production and accessibility tools, we acknowledge the dual-use nature of this technology and encourage continued research into detection methods, watermarking techniques, and policy frameworks that can help mitigate potential harms.
+
+
+
+\section{User Study Details}
+\label{app:user_study}
+% We conduct user studies to evaluate different methods based on user preferences on Amazon MTurk.
+In the user preference study, we show users two videos side by side using the same text prompt.
+We ask the users to select the one that is overall better, considering both quality and prompt alignment. Detailed instructions are shown in Fig.~\ref{fig:user_study_instruction}.
+We use all 1003 prompts from MovieGenBench~\cite{polyak2024movie} and each prompt is evaluated by a single user.
+% We provide a compensation of \$0.03 per HIT.
+
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{figures/user_study.jpg}
+  \caption{\textbf{User study instruction screenshots.}}
+  \label{fig:user_study_instruction}
+\end{figure}

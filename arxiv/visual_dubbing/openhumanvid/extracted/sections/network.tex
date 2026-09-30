@@ -1,0 +1,22 @@
+
+
+
+
+\section{Network}
+
+\noindent\textbf{Baseline Diffusion Transformer Network.}
+The proposed baseline transformer diffusion network is based on the CogVideoX architecture~\cite{yang2024cogvideox} and utilizes a causal 3D VAE~\cite{kingma2022autoencoding} for video compression, achieving temporal and spatial factors of 4 and 8, respectively. Latent variables are formatted as sequential inputs, while textual inputs are encoded into embeddings using the T5 model~\cite{raffel2020exploring}. These inputs are processed together in a stacked Expert Transformer network, incorporating Adaptive Layer Normalization for alignment and 3D RoPE~\cite{su2024roformer} to improve the model's capacity for temporal dynamics and long-range dependencies within video frames.
+
+\noindent\textbf{Extension to Baseline.} 
+In light of our dataset, our objective is to enhance the video generation model's capability to produce human subjects while maintaining identity appearance and generating facial expressions and human motions that accurately and naturally correspond to textual captions. However, when the pretrained baseline model is further trained on new data, it risks overfitting to the new task, which can lead to catastrophic forgetting. This phenomenon results in the model losing the broad knowledge acquired during the pretraining phase.
+
+To address this challenge, we adopt the Low-Rank Adaptation (LoRA) technique. 
+Specifically, LoRA~\cite{hu2021lora} targets the residual components of the model, denoted as \(\Delta W\), which is incorporated into the original weight matrix as follows:
+$W' = W + \Delta W$.
+Here, \(\Delta W\) is expressed as the product of two low-rank matrices:
+$\Delta W = AB^T, \quad A \in \mathbb{R}^{n \times d}, \, B \in \mathbb{R}^{m \times d}, \, d < n, \, d < m$.
+By focusing on the smaller matrices \(A\) and \(B\) rather than the full weight matrix \(W\), LoRA significantly reduces the computational and memory overhead during training. 
+
+As shown in Figure~\ref{fig:network_pipeline}, this technique leverages the proposed data to train the new parameters, thereby circumventing the need to retrain all model parameters and enhancing the model's ability to generate high-quality human representations aligned with textual descriptions.
+
+%Through the implementation of LoRA, illustrated in Figure~\ref{fig:network_pipeline}, we aim to retain the valuable knowledge acquired during pretraining while effectively adapting to new data, thereby enhancing the model's ability to generate high-quality human representations aligned with textual descriptions.

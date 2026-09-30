@@ -1,0 +1,104 @@
+
+
+\section{Introduction}
+
+
+With recent advances in diffusion models, the progress of video generation has been accelerated considerably. Leading open-source frameworks including Wan~\citep{wan2025wan}, Huanyuan Video~\citep{kong2024hunyuanvideo}, and CogVideoX~\citep{yang2024cogvideox}, complemented by commercial systems such as Veo and Keling, have catalyzed broad academic and industrial adoption. However, current video generation foundation models still have critical challenges in balancing multidimensional requirements, particularly in prompt following, motion plausibility, and visual fidelity.
+To address these limitations, we present \textit{\textbf{Seedance 1.0}}, a foundational video generation model with native support bilingual (Chinese/English) video generation and multi-task versatility encompassing text-to-video synthesis and image-guided video generation. Seedance 1.0 integrates four key technical improvements:
+
+\begin{itemize}[leftmargin=*]
+
+ \item \textbf{\textit{Multi-Source Data with Comprehensive Video Captioning.}} Through multi-stage, multi-perspective curation and dataset balancing, we construct a large-scale high-quality video dataset spanning diverse categories, styles, and sources. This enables a comprehensive learning of rich scenarios, topics, and action dynamics. Our precision video captioning system ensures accurate interpretation of user instructions while enabling fluent generation of complex video narratives.
+
+ \item \textbf{\textit{Efficient Architecture Design.}}  
+ In our design, we decouple spatial and temporal layers with an interleaved multimodal positional encoding. This allows our model to jointly learn both text-to-video and image-to-video in a single model, and natively support multi-shot video generation. In particular, the decoupled layers are integrated with carefully-designed window attentions which further improve model efficiency considerably in both training and inference.
+ 
+ 
+ %Based on decoupled spatial and temporal layers, our framework demonstrates extremely high training and inference efficiency. With interleaved multimodal positional encoding and unified multi-task modeling, our framework natively supports multi-shot video generation. The unified design efficiently handles diverse tasks (text-to-video, image-to-video, etc.) within a single unified model.
+
+ \item \textbf{\textit{Enhanced Post-Training Optimization.}}  We use a small set of carefully collected data for SFT, which is followed by a video-tailored RLHF algorithm (Reinforcement Learning from Human Feedback). We develop feedback-driven learning algorithms using multiple well-developed reward models, which allow us to considerably improve our performance on both T2V and I2V, in terms of motion naturalness, structural coherence, and visual fidelity.
+ 
+ 
+% Utilizing comprehensive fine-tuning datasets, multi-dimensional reward models, and feedback-driven learning algorithms, our post-training process significantly improves motion naturalness, structural coherence, and visual fidelity. A video-tailored RLHF (Reinforcement Learning from Human Feedback) algorithm empowers the unified model to achieve state-of-the-art performance on both T2V and I2V tasks.
+
+
+ \item \textbf{\textit{Inference Acceleration.}} We proposed a multi-stage distillation framework to reduce the number of function evaluations (NFE) required for generation, with inference infrastructure optimization techniques, achieving over 10× end-to-end speedup with no degradation in model performance. 
+ %Seedance 1.0 can generate a 5-second video at 1080p resolution only with 41.4 seconds (nvidia-L20), which is substantially faster than other commercial counterparts.
+
+\end{itemize} 
+
+Compared with contemporary models, Seedance 1.0 exhibits four distinguishing characteristics:
+
+\begin{itemize}[leftmargin=*]
+
+\item \textbf{\textit{Comprehensive Generation Capabilities.}}
+Seedance 1.0 achieves superior spatiotemporal coherence and structural stability, demonstrating exceptional motion fluidity and physical plausibility. The model produces photorealistic visuals with nuanced textures and compositional richness, attaining state-of-the-art performance across both proprietary evaluation suites and authoritative third-party benchmarks.
+
+
+\item \textbf{\textit{Precision Instruction Following.}}
+Through comprehensive learning of diverse scenarios, entities, and action semantics, Seedance 1.0 precisely interprets complex user specifications. It robustly handles multi-agent interactions, adaptive camera control, and stylistic variations while maintaining narrative continuity.
+
+
+
+\item \textbf{\textit{Multi-Shot Narrative Capability.}} Seedance 1.0 natively supports coherent multi-shot storytelling with stable view transitions while maintaining consistent subject representation across temporal-spatial transformations.
+
+
+\item \textbf{\textit{Ultra-Fast Generation Experience.}} With multiple model acceleration techniques, Seedance 1.0 significantly reduces inference costs: it can generate a 5-second video at 1080p resolution only with 41.4 seconds (NVIDIA-L20), which is substantially faster than other commercial counterparts.
+
+
+\end{itemize} 
+Seedance 1.0 will be integrated into multiple platforms in June 2025, including Doubao\footnotemark[1] and Jimeng\footnotemark[2]. We envision it becoming an essential productivity tool for enhancing professional workflows and daily creative applications.
+
+\footnotetext[1]{https://www.doubao.com/chat/create-video}
+\footnotetext[2]{https://jimeng.jianying.com/ai-tool/video/generate}
+
+
+
+
+% %\item \textbf{\textit{Complex Attributes Adherence}}:
+
+% \item \textbf{\textit{Alignment with complicated prompts}}:
+% Prompt following can be further enhanced, especially in numerical precision and multi-object spatial relationships. 
+
+% \item \textbf{\textit{Fine-grained typographic generation}}:
+% Seedream 2.0 is still limited in generating high-fidelity small-size text characters, multi-line contextual compositions, and intricate typographic details.
+
+
+% \item \textbf{\textit{Suboptimal visual aesthetics and fidelity}}:
+% Capturing nuanced aesthetic qualities, such as the beauty of cinematic scenes and the texture of portraits, remains challenging.
+
+% \item \textbf{\textit{Limited image resolutions}}:
+% Fundamental models restrict native output to small resolution (e.g.,512 $\times$ 512px), necessitating reliance on post-processing super-resolution pipelines.
+
+
+% \end{itemize}
+
+% Our methodology introduces four key technical improvements. First, at the data stratum, we approximately doubled the dataset size with improved quality by using a new dynamic sampling mechanism, which is built on two orthogonal axes: image cluster distribution and textual semantic coherence.
+% %
+% Second, we incorporate a number of efficient training approaches in the pre-training stage, including i) mixed-resolution training, ii) a cross-modality RoPE, iii) a representation alignment loss, iv) resolution-aware timestep sampling. This allows for better scalability and generalizability, resulting in better visual-language alignment.
+% Third, in post-training, we utilize diverse aesthetic captions in SFT, and a VLM-based reward model to further enhance the model's overall performance. Finally, in model acceleration, we encourage stable sampling via consistent noise expectation, effectively reducing the number of function evaluations (NFE) during inference.  
+
+% Compared to Seedream 2.0, Seedream 3.0 shows significant advances in multiple dimensions:
+
+% \begin{itemize}[leftmargin=*]
+
+
+
+% \item \textbf{\textit{Comprehensive capability enhancement}}：Demonstrates strong user preference and significant advancements in key capabilities, including text-image alignment, compositional structure, aesthetic quality and text rendering.
+
+% \item \textbf{\textit{Enhanced text rendering performance}}: Achieves significantly enhanced text rendering performance, particularly excelling in generating small-size text characters in both Chinese and English, and high-aesthetic long-text layouts. Seedream 3.0 represents a pioneering solution for the challenges of small-text generation and aesthetically pleasing long-text composition, outperforming human-designed templates from platforms like Canva in graphic design output.
+
+
+% \item \textbf{\textit{Aesthetic improvement}}: 
+% Substantial improvement in image aesthetic quality, delivering exceptional performance in cinematic scenarios and enhanced realism in portrait generation.
+
+% \item \textbf{\textit{Native high-resolution output}}: Offers native support for 2K resolution output, eliminating the need for post-processing. Also, compatible with higher resolutions and adaptable to diverse aspect ratios.
+
+% \item \textbf{\textit{Efficient inference cost}}: With several model acceleration techniques, Seedream 3.0 can reduce its inference cost considerably and generates an image of 1K resolution using only ~{}3.0 seconds (without PE), which is much faster than other commercial models.
+
+% \end{itemize}
+% Seedream 3.0 was integrated into multiple platforms in early April 2025,  including Doubao\protect\footnotemark[1] and Jimeng\protect\footnotemark[2]. We fervently hope that Seedream 3.0 can become a practical tool to improve productivity in all aspects of work and daily life.
+
+% \footnotetext[1]{https://www.doubao.com/chat/create-image}
+% \footnotetext[2]{https://jimeng.jianying.com/ai-tool/image/generate}
+

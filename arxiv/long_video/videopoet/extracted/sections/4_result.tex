@@ -1,0 +1,196 @@
+
+%-------------------------------------------------------------------------
+
+
+
+
+\vspace{-3mm}
+\section{Experiments} \label{sec:experiments}
+% \vspace{-1mm}
+
+%-------------------------------------------------------------------------
+\vspace{-1mm}
+\subsection{Experimental Setup}
+% \vspace{-1mm}
+
+%\vspace{-5mm}
+\paragraph{Training tasks.}
+We train the model on a mixture of pretraining tasks as detailed in~\Cref{sec:task_prompt_design}.
+%
+We finetune a model on a high-quality training subset for text-to-video evaluations, as discussed in \Cref{sec:training}.
+%
+Unless explicitly stated, we do not finetune on specific tasks for evaluations.
+
+\vspace{-4mm}
+\paragraph{Datasets.} 
+\label{sec:exp_data}
+We train on a total of 1B image-text pairs and $\sim$270M videos ($\sim$100M with paired text, of which $\sim$50M are used for high-quality finetuning,  and $\sim$170M with paired audio) from the public internet and other sources, \ie around 2 trillion tokens across all modalities. 
+%
+% Both text and sound are rather noisy and may not match the visual content.
+%
+The data has been filtered to remove egregious content and sampled to improve contextual and demographic diversity.
+
+\input{tables/pretrain}
+
+\vspace{-4mm}
+\paragraph{Evaluation protocol.}
+We employ a zero-shot generation evaluation protocol, 
+as the model has not been trained on the training data of target benchmarks.
+%
+Specifically, the evaluation benchmark includes two text-to-video generation datasets, MSR-VTT~\cite{xu2016msr} and UCF-101~\cite{soomro2012ucf101}, as well as the frame prediction task on Kinetics 600 (K600)~\cite{carreira2018short}, in which the first 5 frames are provided as the condition to predict the next 11 frames. We also include inpainting and outpainting tasks~\cite{yu2023magvit} on Something-Something V2 (SSv2)~\cite{goyal2017something}. 
+% Additionally, we assess stylization tasks using a subset of the DAVIS dataset\footnote{\url{https://davischallenge.org/}}~\cite{Perazzi2016davis}, as further detailed below.
+
+We employ widely used metrics such as Fréchet Video Distance (FVD)~\cite{unterthiner2018towards}, CLIP similarity score~\cite{wu2021godiva}, and Inception Score (IS)~\cite{saito2020train} for evaluation. 
+%
+Note that the specific metrics and evaluation methods vary across different datasets. Detailed information on these variations can be found in \Cref{sec:appendix-evaluation}. 
+\textcolor{black}{
+We include examples of the generated videos in the supplementary materials.}
+%More results and videos are availalbe in the supplementary material. 
+
+\vspace{-2mm}
+\subsection{Pretraining Task Analysis}
+\vspace{-2mm}
+We investigate the learning capabilities of different combinations of pretraining tasks using a model with 300 million parameters. 
+%
+All task combinations are trained using a learning rate of $10^{-3}$ for the same number of steps (300k) with a batch size of 1024.
+
+For the analysis of pretraining tasks, we consider text-to-video (T2V), text-to-image (T2I), and four self-supervised learning (SSL) tasks: frame prediction (FP), central inpainting and central outpainting (Painting)~\cite{yu2023magvit} and audio-video continuation (AVCont) where the model is provided with the first frame and its corresponding audio to predict the subsequent 16 frames and matching audio. 
+% %
+% We use uniform sampling among the selected tasks,
+% %
+% When fewer tasks are selected, they are trained more extensively. 
+% %
+For each video task, we uniformly select 20\% of training samples from a random subset of 50 million videos.
+%
+For the text-to-image task, we randomly sample 50 million text-image pairs from our training dataset.
+%
+For tasks involving audio, our sampling is exclusive to videos that contain an audio track.
+
+The evaluation results are presented in \Cref{tab:pretraining}.
+%
+We assess a model across the four tasks within the zero-shot evaluation benchmark: the T2V task on MSR-VTT~\cite{xu2016msr} and UCF 101~\cite{soomro2012ucf101}, the FP on K600~\cite{carreira2018short}, and central inpainting and outpainting on SSv2~\cite{goyal2017something}. The audio generation results (FAD) are reported in \Cref{fig:model_scale_b} of the Appendix.
+%
+In these experiments, we employ a single model to perform all the tasks. 
+%The evaluation on K600 and SSv2 are is detailed in~\Cref{sec:ssl_task}. And the evaluation on the text-to-video task will be discussed in \Cref{sec:exp_t2v}.
+The model is not trained on the training data of these evaluation datasets, and thus it is a zero-shot evaluation.
+
+The top rows of~\Cref{tab:pretraining} depict each pretraining task configuration of the 300 million parameter model, which are comparable in their setups.
+%
+Our evaluation benchmarks span diverse visual domains, posing a challenge to achieving consistent improvement across all of them.
+%
+Nevertheless, incorporating all pretraining tasks results in the best overall performance, on average, across all evaluated tasks. 
+%
+Additionally, the significant disparity observed in the ``SSL'' row suggests the limitations of self-supervised training and underscores the necessity for text-paired data during training. Both single-task and multi-task models are trained for the same number of steps. The minor decrease in performance of multi-task training in~\Cref{tab:pretraining} might be due to the insufficient training of each task.
+%
+The last row, ``ALL (8B)'', is the model with 8 billion parameters, trained on the pretraining tasks as discussed in \Cref{sec:method} and utilized significantly more compute. 
+
+\input{tables/humaneval}
+
+\vspace{-2mm}
+\subsection{Comparison with the State-of-the-Art}
+% \vspace{-2mm}
+\input{tables/t2v}
+\paragraph{Text-to-Video (T2V).}
+\label{sec:exp_t2v}
+\Cref{tab:t2v_sota} shows zero-shot text-to-video evaluation results on the common MSR-VTT~\cite{xu2016msr} and UCF-101~\cite{soomro2012ucf101} datasets. 
+%
+Our model performs favorably in terms of CLIP similarity and FVD scores on MSR-VTT and UCF-101. 
+%
+The pretrained foundation model already achieves competitive performance on all metrics.
+%
+After finetuned on high-quality subset of text-video pairs, \modelname{} achieves even better CLIPSIM on MSR-VTT.
+%
+More details on the evaluation settings can be found in~\Cref{sec:appendix-evaluation}.
+
+
+
+\vspace{-4mm}
+\paragraph{Human Evaluations with Text-to-Video (T2V).}
+% \lu{need to replace it with the latest user study. Please reduce the length and put the rest to Appendix.}
+We analyze \modelname{} using human raters and compare with other recent
+models: Show-1~\cite{zhang2023show},
+VideoCrafter~\cite{chen2023videocrafter1}, Phenaki~\cite{villegas2022phenaki},  Pika~\cite{pika2023},  Gen2~\cite{runway2023}, WALT~\cite{gupta2023photorealistic}
+and Lumiere~\cite{bar2024lumiere}.
+Show-1, VideoCrafter, Pika, Gen2, WALT 
+and Lumiere are video diffusion models
+while Phenaki is a token-based model using  masked token modeling~\cite{chang2022maskgit}.
+We ran the most up-to-date model versions as of January 2024
+and note that WALT and Lumiere were concurrently developed
+and not available during initial submission of this paper.
+
+We first develop a unified evaluation prompt bank consisting of $\sim 250$
+selected prompts from a variety of categories and styles.
+%
+Our prompts are
+sourced from published prompt sets 
+(\eg, Show-1, Video LDM~\cite{blattmann2023align}).
+%
+We select the prompts prior to generating videos
+and fix these choices after initial selection. 
+%
+We also select preferentially for prompts that contain an explicit mention of motion so that the evaluation would not be biased for models that generate high quality videos that are almost still (e.g., ``person jumping off of a chair'' over ``person standing on a chair''). 
+Note that due to time constraints, 
+our experiments for Pika and Gen2 were run on a subset of
+50 prompts due to having to submit these manually via their web
+interface.  These 50 prompts were pre-selected (before any evaluations 
+were run) so as to be representative of the entire set.
+%
+
+
+For this user study we use the fine-tuned version of \modelname{} as discussed in \Cref{sec:training}.
+% The finetuned model discussed in \Cref{sec:training} is used for the user study.
+% We then compare each model against \modelname{}
+As part of our system we also use a fixed
+negative prompt for all inference calls
+as well as lightweight prompt rewriting.
+We then compare \modelname{} against alternative models
+in side-by-side fashion for each prompt. Raters are shown videos generated by two models at a time (in randomized order so as to not bias raters). We refer readers to 
+Appendix~\ref{sec:appendix-human-evaluation}
+for more details of our methodology.
+
+%
+Not all methods generate videos at the same size, aspect ratio, 
+or framerate, and we thus resize and resample
+each video to a fixed area while maintaining its original aspect ratio as well as common framerate. 
+%
+Raters are then asked to compare the videos along 5 dimensions and
+for each dimension to report which video is better. 
+%
+The 5 dimensions are: (1) text fidelity (which video follows the text prompt most faithfully), (2) video quality, (3) motion ``interestingness'', (4) motion realism, and (5) temporal consistency.
+%
+Raters are required to go through a collection of training examples for each of these 5 dimensions before they begin. 
+
+Our findings are summarized in \Cref{fig:human_t2v_evals}, where
+green and pink bars  represent the  proportion  of trials  where \modelname{} was \textit{preferred} 
+% an alternative,
+% \textit{similar to}, 
+or \textit{less preferred} over an alternative, respectively.
+%
+% Experiments where the green segment is larger than the pink
+% segment means that \modelname{} is preferred over the alternative on average.
+We observe that 
+\modelname{} is competitive with state of the art video
+diffusion models despite taking a dramatically different approach, even outperforming these baseline models
+along most dimensions.  
+More specifically,  
+%(text fidelity, quality, motion interestingness and realism) 
+\modelname{} achieves significant wins along
+motion interestingness and realism and
+Lumiere~\cite{bar2024lumiere} which is diffusion based and concurrent to our work, is the only model that outperforms \modelname{} on
+Video Quality.
+
+% On temporal consistency, \modelname{} shows performance on-par with Phenaki and VideoCrafter but slightly underperforms the Show-1 model.
+% %
+% This is due to an inherent trade-off with motion interestingness, \ie, a static scene is more temporally consistent but is less interesting.
+% %
+% More interesting larger motions necessitate more possibilities of producing noticable artifacts vs. safer small motions.
+% %
+
+
+
+
+
+
+\subsection{Runtime}
+
+For a batch size of 4 videos and generating 17 frames at 8fps using TPUv5p (4 chips) accelerators, our base model runs in 34s, the detokenizer (converting tokens to pixels) requires 1.3s and super-resolution is 6.8s — thus, amortized run time is about 5 seconds per second of output video. Note that our model has not been optimized, and any acceleration techniques applicable to standard LLMs could be applied here as well.

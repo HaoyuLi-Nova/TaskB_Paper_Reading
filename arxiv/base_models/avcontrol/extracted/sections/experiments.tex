@@ -1,0 +1,77 @@
+We evaluate AVControl on standard benchmarks, demonstrate its extendability across diverse modalities, and analyze training efficiency.
+
+\subsection{Experimental Setup}
+\label{sec:setup}
+We train all LoRAs on top of LTX-2~\cite{hacohen2026ltx2}, a frozen joint audio-visual foundation model. Each per-modality LoRA is trained independently on a single H100 GPU; full training details are provided in the supplementary (Table~\ref{tab:training_details}).
+
+We use fixed generation parameters across all evaluations: constant seed~42, CFG~1.0, and LoRA strength~1.0. The low guidance scale reflects LTX-2's distilled inference mode; the control signal provided via the parallel canvas supplies sufficient structural context, making high guidance scales unnecessary.
+
+For quantitative evaluation, we adopt the VACE Benchmark~\cite{jiang2025vace} (20~samples each for depth, pose, inpainting, and outpainting). We use the exact same published input videos and control signals as all baselines, ensuring a fair comparison against reported numbers. We report six VBench~\cite{huang2024vbench} metrics: Aesthetic Quality (AQ), Background Consistency (BC), Dynamic Degree (DD), Imaging Quality (IQ), Motion Smoothness (MS), and Subject Consistency (SC).
+
+\subsection{Quantitative Evaluation}
+\label{sec:quant}
+
+\input{tables/comparison_depth_pose}
+
+Table~\ref{tab:vbench_comparison} reports VBench metrics on the VACE Benchmark. Our method achieves the highest average score on all four tasks.
+
+\paragraph{Depth and pose.} Our method outperforms VACE by 2.9 points on depth and 2.3 on pose, while maintaining high dynamic degree (68.4 depth, 84.2 pose) and avoiding the over-constraining failure mode of methods like ControlVideo (DD of 10--25).
+
+\paragraph{Inpainting and outpainting.} We use the same inpainting LoRA for both tasks. Our method outperforms VACE by 3.8~points on inpainting and 2.3~points on outpainting, with gains driven by substantially higher aesthetic quality (+8.4) and imaging quality (+8.4) on inpainting.
+
+\input{figures/qualitative_comparison}
+
+Figure~\ref{fig:qualitative_comparison} presents a qualitative comparison with VACE on the benchmark. Our outputs exhibit higher structural fidelity while maintaining natural motion and visual quality.
+
+\subsection{Extended Modalities}
+\label{sec:modalities}
+
+\input{figures/modality_gallery}
+
+Beyond the benchmark controls, we demonstrate the breadth of modalities the framework supports (Figure~\ref{fig:modality_gallery}). Each modality uses its own LoRA, and adding a new one requires no retraining of existing ones. We support ControlNet-style modalities (depth, pose, canny), video editing (inpainting/outpainting, detailing), and composited controls (e.g., masked depth with pose for Blender rendering). We also train a \emph{sparse tracks} LoRA for point-trajectory-based motion control, similar to ATI~\cite{wang2025ati}, with tracks extracted via AllTracker~\cite{harley2025alltracker}. More results are demonstrated in the supplementary video.
+
+\paragraph{Camera trajectory control.}
+\label{sec:camera}
+We support two modes of camera control: (1)~generating diverse camera motions from a single input image, and (2)~re-rendering an existing video at a new camera trajectory while preserving the original scene motion. For the latter, we estimate full camera parameters (extrinsics and intrinsics, including per-frame FOV) from the source video using SpatialTrackerV2~\cite{xiao2025spatialtracker}, then re-render each frame at the desired camera configuration. Optionally, rendering from a different timestamp retimes the output. Training uses a synthetic dataset of synchronized moving cameras, similar to ReCamMaster~\cite{bai2025recammaster}.
+Unlike ReCamMaster~\cite{bai2025recammaster}, which controls only camera extrinsics, our camera LoRAs also control intrinsics, specifically field of view (FOV). This enables simulating focal length changes and effects such as the dolly zoom (``vertigo effect''), which is impossible with extrinsics-only methods.
+
+\input{tables/comparison_camera}
+
+Table~\ref{tab:camera_comparison} compares our camera control against dedicated methods on the ReCamMaster Benchmark~\cite{bai2025recammaster}. We evaluate on 200~randomly sampled videos across 10~trajectory types. Our method achieves the highest CLIP-F score (99.13\%), surpassing ReCamMaster (98.74\%). Our COLMAP-based RotErr is 6.00$^\circ$, though SfM fails on 27\% of our videos, likely underestimating the true average error. SpatialTrackerV2 tracking on all 200~videos yields 3.55$^\circ$ (not directly comparable to baselines). While dedicated camera control architectures achieve lower rotation error, our camera LoRA is a lightweight adapter on a general-purpose audio-visual model and additionally controls camera intrinsics (FOV), which extrinsics-only methods cannot.
+
+\paragraph{Audio-visual applications.}
+\label{sec:av}
+Audio-visual modalities are qualitatively different from the video-only controls above: training uses audio pairs, and the generated output spans both modalities (see supplementary video for qualitative results). We demonstrate two audio modalities: \emph{audio intensity control} and \emph{speech-to-ambient}, plus the cross-modal \emph{who-is-talking} control. Each audio LoRA is trained on audio-only pairs, yet at inference time generates both audio and video in a single joint pass: training on a single modality, deploying on both.
+
+\emph{Audio intensity control} generates audio whose temporal dynamics follow visual content, addressing the same task as ReWaS~\cite{jeong2024rewas} and CAFA~\cite{benita2025cafa}. We train a single LoRA on the joint model rather than a dedicated video encoder and adapter on a unimodal backbone. The reference canvas carries the original video with its audio replaced by an energy-envelope sonification.
+
+\input{tables/comparison_audio_intensity}
+
+Table~\ref{tab:audio_intensity} compares our intensity LoRA against dedicated video-to-audio methods on 254 VGGSound~\cite{chen2020vggsound} test samples. We report FAD, KL, IS (via PANNS~\cite{kong2020panns}) and audio-visual alignment (IB via ImageBind~\cite{girdhar2023imagebind}), following~\cite{benita2025cafa}. Our method achieves the highest IS (34.51), indicating diverse and class-distinctive audio generation. As expected, FAD and KL are higher because our model generates both audio and video jointly in a single pass rather than specializing in audio-only synthesis, and trains on 20--25$\times$ less data (7.8K vs.\ 160--200K samples). Notably, our IB score (0.13) is within 0.02 of ReWaS (0.15), a dedicated V2A model, despite our fundamentally different architecture: a single lightweight LoRA on a joint audio-visual backbone with no dedicated video encoder. Additionally, our audio quality (FAD) is capped by the quality of the LTX-2 vocoder.
+
+\emph{Speech-to-ambient} embeds clean speech within ambient sounds matching a text-described scene. It operates in two modes: \emph{audio replacement} (AV$\to$A), where the video's audio is replaced while preserving the video, and \emph{joint generation} (A$\to$AV), where both audio and video are generated from the speech signal and a text prompt. The LoRA is trained on 2{,}600 paired samples in 5{,}000 steps.
+
+\emph{Who-is-talking control} demonstrates an inherently cross-modal control: given a reference encoding spatial layout (bounding boxes) and temporal activity (which speaker is active when), the model generates multi-person talking video with synchronized lip motion and audio. The reference is abstract (colored rectangles on a black background, colored when speaking and gray when silent), yet the parallel canvas maps this to realistic video with joint audio.
+
+To compare with MultiTalk~\cite{kong2025multitalk}, we start from the \emph{same raw inputs}: per-speaker identity references and separated audio tracks. We generate a first frame conditioned on the reference images, derive a bounding-box activity map via voice activity detection, and mix all tracks into a single audio signal. Our method supports an arbitrary number of speakers, unlike MultiTalk which is limited to two, and can generate audio jointly when none is provided.
+
+\input{tables/comparison_whoistalking}
+
+Table~\ref{tab:whoistalking} compares on the HDTF benchmark. Our method achieves strong expression quality (E-FID~0.18) and visual fidelity (FID~12.31), outperforming all baselines on both. Lip-sync scores lag behind dedicated methods, as expected for a single general-purpose LoRA without purpose-built audio cross-attention.
+
+\subsection{Ablations and Analysis}
+\label{sec:efficiency}
+
+Individual LoRAs range from 200~steps to 15{,}000~steps, with an aggregate budget of ${\sim}$55{,}000 steps across all trained modalities, less than one third of VACE's~\cite{jiang2025vace} 200{,}000 and comparable to a single specialized method like BulletTime~\cite{wang2025bullettime} (40K iterations). See Figure~\ref{fig:training_efficiency} in the supplementary for a visual comparison.
+
+\paragraph{Training convergence.}
+Training loss plateaus early for spatially-aligned controls. For depth, VBench scores reach 81.1 at 1{,}000 steps and 81.6 at 3{,}000 steps. The rapid convergence is consistent with LoRA fine-tuning existing weights rather than training new projections from scratch.
+
+\paragraph{LoRA rank.}
+LoRA ranks 32, 64, and 128 for depth yield VBench averages of 80.9, 81.3, and 81.6, a spread of less than 1~point. We use rank~128 as the default for a small quality margin.
+
+\paragraph{Parallel canvas vs.\ spatial concatenation.}
+A concatenation-based baseline (analogous to IC-LoRA~\cite{huang2024iclora}) trained with the same data, schedule, and rank fails to follow the depth signal (Figure~\ref{fig:canvas_vs_concat}), confirming the conditioning mechanism is the critical factor.
+
+\paragraph{Generalization from synthetic data.}
+Several LoRAs (camera-from-video, cut-on-action, local edit) are trained exclusively on synthetic or generated data yet generalize to real-world videos without fine-tuning. See the supplementary for details.

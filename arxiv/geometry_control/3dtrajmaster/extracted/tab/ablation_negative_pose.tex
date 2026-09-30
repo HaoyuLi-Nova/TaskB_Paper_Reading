@@ -1,0 +1,26 @@
+\begin{table}[!ht]
+
+\caption{Ablation Study on Negative Pose Sequences.}
+\label{tab:ablation_neg_pose}
+
+\centering
+\begin{threeparttable}
+\resizebox{.92\textwidth}{!} 
+{
+\begin{tabular}{ccccccccccc}
+\toprule
+&  \multicolumn{3}{c}{ Video Quality } & \multicolumn{2}{c}{ 3D Trajectory Accuracy } \\
+\cmidrule(lr){2-4} 
+\cmidrule(lr){5-6} 
+Negative Condition & FVD  & FID  & CLIPSIM $\uparrow$ & TransErr (m)  & RotErr (deg)  \\
+
+\midrule
+Neg. Pose = Static Motions  & 2141.39 & 118.22 & 0.3360 & \textbf{0.371} & \textbf{0.448} \\
+Neg. Pose = Pos. Pose  & \textbf{1976.01} & \textbf{106.45} & \textbf{0.3429} & 0.546 & 0.493 \\
+\bottomrule
+
+\end{tabular}
+}
+
+\end{threeparttable}
+\end{table}

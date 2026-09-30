@@ -1,0 +1,31 @@
+\paragraph{Computation Load-Balance.}\label{sec:magiattn_comp}
+
+
+
+
+In context-parallelism (CP) settings, different CP ranks may be assigned heterogeneous attention masks, resulting in imbalanced computational workloads across ranks. Ring-Attention~\citep{ring_flash_attention_issue2} employs a specialized partitioning strategy designed specifically for causal attention, which limits its applicability to more general attention patterns. To overcome this limitation, we propose a generic and efficient \texttt{dispatch solver} that enables balanced workload distribution across CP ranks for a broad range of attention types.
+
+First, to enable finer-grained control, we propose a chunk-wise permutable sharding strategy (Fig~\ref{fig:magiattn_overview} (2)). Specifically, the entire mask is evenly partitioned along the query-dimension into dispatch chunks, each associated with a submask area: $\{(C_i, \mathrm{Area}(C_i))\}_{i=1}^n$, where $C_i$ indicates i-th dispatch chunk, $\mathrm{Area}(C_i)$ is the mask area of $C_i$, $n$ is $\frac{seqlen}{dispatch\_chunk\_size}$, and $dispatch\_chunk\_size$ is a hyperparameter controlling granularity. 
+These dispatch chunks are then equally assigned to $cp\_size$ buckets, with each bucket containing the exact same number of dispatch chunks to ensure token-level load balance in non-attention modules, attaching with a summed submask area, denoted as $\{(B_j, \mathrm{SumArea}(B_j))\}_{j=1}^{cp\_size}$.
+
+
+With above strategy, we could fine-grained control the computational workloads of each CP rank, and the load-balancing dispatch becomes a combinatorial optimization problem, defined as finding an optimal mapping function $f^*: \{C_i\}_{i=1}^n \rightarrow \{B_j\}_{j=1}^{cp\_size}$ as follows
+
+\begin{align}
+    &f^* = \arg \min\limits_{f}\max\limits_{j}\left\{\mathrm{SumArea}(B_j)\right\} \label{eq:comp_load_balance}\\
+    &\text{s.t.}\;\;|B_j| = \frac{n}{cp\_size}, \;\; seqlen \;\%\; (cp\_size \times dispatch\_chunk\_size) = 0\nonumber
+\end{align}
+
+
+However, this optimization is a known NP-hard problem, making it impractical to find an optimal solution on-the-fly during each training iteration, especially given the varying mask patterns across micro-batches. Thus, we propose an efficient greedy algorithm (as shown in Alg.~\ref{alg:minhp}) that provides a suboptimal yet effective solution within $O(n\log n)$ complexity.
+
+
+
+
+
+
+
+
+
+
+

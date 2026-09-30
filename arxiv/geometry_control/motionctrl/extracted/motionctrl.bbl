@@ -1,0 +1,367 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{43}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[pik({[n.\,d.]})]%
+        {pikalab}
+ \bibinfo{year}{[n.\,d.]}\natexlab{}.
+\newblock \showarticletitle{https://www.pika.art/}.
+\newblock
+
+
+\bibitem[Bain et~al\mbox{.}(2021)]%
+        {bain2021frozen}
+\bibfield{author}{\bibinfo{person}{Max Bain}, \bibinfo{person}{Arsha Nagrani}, \bibinfo{person}{G{\"u}l Varol}, {and} \bibinfo{person}{Andrew Zisserman}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Frozen in time: A joint video and image encoder for end-to-end retrieval}. In \bibinfo{booktitle}{\emph{ICCV}}.
+\newblock
+
+
+\bibitem[Blattmann et~al\mbox{.}(2023a)]%
+        {blattmann2023stable}
+\bibfield{author}{\bibinfo{person}{Andreas Blattmann}, \bibinfo{person}{Tim Dockhorn}, \bibinfo{person}{Sumith Kulal}, \bibinfo{person}{Daniel Mendelevitch}, \bibinfo{person}{Maciej Kilian}, \bibinfo{person}{Dominik Lorenz}, \bibinfo{person}{Yam Levi}, \bibinfo{person}{Zion English}, \bibinfo{person}{Vikram Voleti}, \bibinfo{person}{Adam Letts}, {et~al\mbox{.}}} \bibinfo{year}{2023}\natexlab{a}.
+\newblock \showarticletitle{Stable video diffusion: Scaling latent video diffusion models to large datasets}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2311.15127}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Blattmann et~al\mbox{.}(2023b)]%
+        {blattmann2023align}
+\bibfield{author}{\bibinfo{person}{Andreas Blattmann}, \bibinfo{person}{Robin Rombach}, \bibinfo{person}{Huan Ling}, \bibinfo{person}{Tim Dockhorn}, \bibinfo{person}{Seung~Wook Kim}, \bibinfo{person}{Sanja Fidler}, {and} \bibinfo{person}{Karsten Kreis}.} \bibinfo{year}{2023}\natexlab{b}.
+\newblock \showarticletitle{Align your latents: High-resolution video synthesis with latent diffusion models}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2023b)]%
+        {chen2023videocrafter1}
+\bibfield{author}{\bibinfo{person}{Haoxin Chen}, \bibinfo{person}{Menghan Xia}, \bibinfo{person}{Yingqing He}, \bibinfo{person}{Yong Zhang}, \bibinfo{person}{Xiaodong Cun}, \bibinfo{person}{Shaoshu Yang}, \bibinfo{person}{Jinbo Xing}, \bibinfo{person}{Yaofang Liu}, \bibinfo{person}{Qifeng Chen}, \bibinfo{person}{Xintao Wang}, {et~al\mbox{.}}} \bibinfo{year}{2023}\natexlab{b}.
+\newblock \showarticletitle{Videocrafter1: Open diffusion models for high-quality video generation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2310.19512}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2023a)]%
+        {chen2023motion}
+\bibfield{author}{\bibinfo{person}{Tsai-Shien Chen}, \bibinfo{person}{Chieh~Hubert Lin}, \bibinfo{person}{Hung-Yu Tseng}, \bibinfo{person}{Tsung-Yi Lin}, {and} \bibinfo{person}{Ming-Hsuan Yang}.} \bibinfo{year}{2023}\natexlab{a}.
+\newblock \showarticletitle{Motion-conditioned diffusion model for controllable video synthesis}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2304.14404}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Ding et~al\mbox{.}(2021)]%
+        {t2i3}
+\bibfield{author}{\bibinfo{person}{Ming Ding}, \bibinfo{person}{Zhuoyi Yang}, \bibinfo{person}{Wenyi Hong}, \bibinfo{person}{Wendi Zheng}, \bibinfo{person}{Chang Zhou}, \bibinfo{person}{Da Yin}, \bibinfo{person}{Junyang Lin}, \bibinfo{person}{Xu Zou}, \bibinfo{person}{Zhou Shao}, \bibinfo{person}{Hongxia Yang}, {et~al\mbox{.}}} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Cogview: Mastering text-to-image generation via transformers}.
+\newblock \bibinfo{journal}{\emph{NeurIPS}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Esser et~al\mbox{.}(2023)]%
+        {esser2023structure}
+\bibfield{author}{\bibinfo{person}{Patrick Esser}, \bibinfo{person}{Johnathan Chiu}, \bibinfo{person}{Parmida Atighehchian}, \bibinfo{person}{Jonathan Granskog}, {and} \bibinfo{person}{Anastasis Germanidis}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Structure and content-guided video synthesis with diffusion models}. In \bibinfo{booktitle}{\emph{ICCV}}.
+\newblock
+
+
+\bibitem[Guo et~al\mbox{.}(2023)]%
+        {guo2023animatediff}
+\bibfield{author}{\bibinfo{person}{Yuwei Guo}, \bibinfo{person}{Ceyuan Yang}, \bibinfo{person}{Anyi Rao}, \bibinfo{person}{Yaohui Wang}, \bibinfo{person}{Yu Qiao}, \bibinfo{person}{Dahua Lin}, {and} \bibinfo{person}{Bo Dai}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{AnimateDiff: Animate Your Personalized Text-to-Image Diffusion Models without Specific Tuning}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2307.04725}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[He et~al\mbox{.}(2022)]%
+        {he2022lvdm}
+\bibfield{author}{\bibinfo{person}{Yingqing He}, \bibinfo{person}{Tianyu Yang}, \bibinfo{person}{Yong Zhang}, \bibinfo{person}{Ying Shan}, {and} \bibinfo{person}{Qifeng Chen}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Latent video diffusion models for high-fidelity long video generation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2211.13221}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Ho et~al\mbox{.}(2022)]%
+        {ho2022imagen}
+\bibfield{author}{\bibinfo{person}{Jonathan Ho}, \bibinfo{person}{William Chan}, \bibinfo{person}{Chitwan Saharia}, \bibinfo{person}{Jay Whang}, \bibinfo{person}{Ruiqi Gao}, \bibinfo{person}{Alexey Gritsenko}, \bibinfo{person}{Diederik~P Kingma}, \bibinfo{person}{Ben Poole}, \bibinfo{person}{Mohammad Norouzi}, \bibinfo{person}{David~J Fleet}, {et~al\mbox{.}}} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Imagen video: High definition video generation with diffusion models}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2210.02303}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Ho et~al\mbox{.}(2020)]%
+        {ho2020denoising}
+\bibfield{author}{\bibinfo{person}{Jonathan Ho}, \bibinfo{person}{Ajay Jain}, {and} \bibinfo{person}{Pieter Abbeel}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Denoising diffusion probabilistic models}.
+\newblock \bibinfo{journal}{\emph{NeurIPS}} (\bibinfo{year}{2020}).
+\newblock
+
+
+\bibitem[Hu et~al\mbox{.}(2021)]%
+        {lora}
+\bibfield{author}{\bibinfo{person}{Edward~J Hu}, \bibinfo{person}{Yelong Shen}, \bibinfo{person}{Phillip Wallis}, \bibinfo{person}{Zeyuan Allen-Zhu}, \bibinfo{person}{Yuanzhi Li}, \bibinfo{person}{Shean Wang}, \bibinfo{person}{Lu Wang}, {and} \bibinfo{person}{Weizhu Chen}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Lora: Low-rank adaptation of large language models}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2106.09685}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Huang et~al\mbox{.}(2024)]%
+        {huang2023vbench}
+\bibfield{author}{\bibinfo{person}{Ziqi Huang}, \bibinfo{person}{Yinan He}, \bibinfo{person}{Jiashuo Yu}, \bibinfo{person}{Fan Zhang}, \bibinfo{person}{Chenyang Si}, \bibinfo{person}{Yuming Jiang}, \bibinfo{person}{Yuanhan Zhang}, \bibinfo{person}{Tianxing Wu}, \bibinfo{person}{Qingyang Jin}, \bibinfo{person}{Nattapol Chanpaisit}, {et~al\mbox{.}}} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Vbench: Comprehensive benchmark suite for video generative models}.
+\newblock  (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Kingma and Ba(2014)]%
+        {adam}
+\bibfield{author}{\bibinfo{person}{Diederik~P Kingma} {and} \bibinfo{person}{Jimmy Ba}.} \bibinfo{year}{2014}\natexlab{}.
+\newblock \showarticletitle{Adam: A method for stochastic optimization}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1412.6980}} (\bibinfo{year}{2014}).
+\newblock
+
+
+\bibitem[Li et~al\mbox{.}(2023)]%
+        {blip2}
+\bibfield{author}{\bibinfo{person}{Junnan Li}, \bibinfo{person}{Dongxu Li}, \bibinfo{person}{Silvio Savarese}, {and} \bibinfo{person}{Steven Hoi}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models}. In \bibinfo{booktitle}{\emph{ICML}}.
+\newblock
+
+
+\bibitem[Mou et~al\mbox{.}(2024)]%
+        {mou2024t2i}
+\bibfield{author}{\bibinfo{person}{Chong Mou}, \bibinfo{person}{Xintao Wang}, \bibinfo{person}{Liangbin Xie}, \bibinfo{person}{Yanze Wu}, \bibinfo{person}{Jian Zhang}, \bibinfo{person}{Zhongang Qi}, {and} \bibinfo{person}{Ying Shan}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{T2i-adapter: Learning adapters to dig out more controllable ability for text-to-image diffusion models}. In \bibinfo{booktitle}{\emph{AAAI}}.
+\newblock
+
+
+\bibitem[Radford et~al\mbox{.}(2021)]%
+        {clip}
+\bibfield{author}{\bibinfo{person}{Alec Radford}, \bibinfo{person}{Jong~Wook Kim}, \bibinfo{person}{Chris Hallacy}, \bibinfo{person}{Aditya Ramesh}, \bibinfo{person}{Gabriel Goh}, \bibinfo{person}{Sandhini Agarwal}, \bibinfo{person}{Girish Sastry}, \bibinfo{person}{Amanda Askell}, \bibinfo{person}{Pamela Mishkin}, \bibinfo{person}{Jack Clark}, {et~al\mbox{.}}} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Learning transferable visual models from natural language supervision}. In \bibinfo{booktitle}{\emph{ICML}}.
+\newblock
+
+
+\bibitem[Ramesh et~al\mbox{.}(2022)]%
+        {t2i5}
+\bibfield{author}{\bibinfo{person}{Aditya Ramesh}, \bibinfo{person}{Prafulla Dhariwal}, \bibinfo{person}{Alex Nichol}, \bibinfo{person}{Casey Chu}, {and} \bibinfo{person}{Mark Chen}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Hierarchical text-conditional image generation with clip latents}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2204.06125}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Ramesh et~al\mbox{.}(2021)]%
+        {t2i2}
+\bibfield{author}{\bibinfo{person}{Aditya Ramesh}, \bibinfo{person}{Mikhail Pavlov}, \bibinfo{person}{Gabriel Goh}, \bibinfo{person}{Scott Gray}, \bibinfo{person}{Chelsea Voss}, \bibinfo{person}{Alec Radford}, \bibinfo{person}{Mark Chen}, {and} \bibinfo{person}{Ilya Sutskever}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Zero-shot text-to-image generation}. In \bibinfo{booktitle}{\emph{ICML}}.
+\newblock
+
+
+\bibitem[Rombach et~al\mbox{.}(2022)]%
+        {ldm}
+\bibfield{author}{\bibinfo{person}{Robin Rombach}, \bibinfo{person}{Andreas Blattmann}, \bibinfo{person}{Dominik Lorenz}, \bibinfo{person}{Patrick Esser}, {and} \bibinfo{person}{Bj{\"o}rn Ommer}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{High-resolution image synthesis with latent diffusion models}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Ronneberger et~al\mbox{.}(2015)]%
+        {unet}
+\bibfield{author}{\bibinfo{person}{Olaf Ronneberger}, \bibinfo{person}{Philipp Fischer}, {and} \bibinfo{person}{Thomas Brox}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{U-net: Convolutional networks for biomedical image segmentation}. In \bibinfo{booktitle}{\emph{MICCAI}}.
+\newblock
+
+
+\bibitem[Saharia et~al\mbox{.}(2022)]%
+        {t2i1}
+\bibfield{author}{\bibinfo{person}{Chitwan Saharia}, \bibinfo{person}{William Chan}, \bibinfo{person}{Saurabh Saxena}, \bibinfo{person}{Lala Li}, \bibinfo{person}{Jay Whang}, \bibinfo{person}{Emily~L Denton}, \bibinfo{person}{Kamyar Ghasemipour}, \bibinfo{person}{Raphael Gontijo~Lopes}, \bibinfo{person}{Burcu Karagol~Ayan}, \bibinfo{person}{Tim Salimans}, {et~al\mbox{.}}} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Photorealistic text-to-image diffusion models with deep language understanding}.
+\newblock \bibinfo{journal}{\emph{NeuIPS}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Saito et~al\mbox{.}(2017)]%
+        {saito2017temporal}
+\bibfield{author}{\bibinfo{person}{Masaki Saito}, \bibinfo{person}{Eiichi Matsumoto}, {and} \bibinfo{person}{Shunta Saito}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Temporal generative adversarial nets with singular value clipping}. In \bibinfo{booktitle}{\emph{ICCV}}.
+\newblock
+
+
+\bibitem[Seitzer(2020)]%
+        {fid}
+\bibfield{author}{\bibinfo{person}{Maximilian Seitzer}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \bibinfo{title}{{pytorch-fid: FID Score for PyTorch}}.
+\newblock \bibinfo{howpublished}{\url{https://github.com/mseitzer/pytorch-fid}}.
+\newblock
+
+
+\bibitem[Singer et~al\mbox{.}(2022)]%
+        {singer2022make}
+\bibfield{author}{\bibinfo{person}{Uriel Singer}, \bibinfo{person}{Adam Polyak}, \bibinfo{person}{Thomas Hayes}, \bibinfo{person}{Xi Yin}, \bibinfo{person}{Jie An}, \bibinfo{person}{Songyang Zhang}, \bibinfo{person}{Qiyuan Hu}, \bibinfo{person}{Harry Yang}, \bibinfo{person}{Oron Ashual}, \bibinfo{person}{Oran Gafni}, {et~al\mbox{.}}} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Make-a-video: Text-to-video generation without text-video data}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2209.14792}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Skorokhodov et~al\mbox{.}(2022)]%
+        {skorokhodov2022stylegan}
+\bibfield{author}{\bibinfo{person}{Ivan Skorokhodov}, \bibinfo{person}{Sergey Tulyakov}, {and} \bibinfo{person}{Mohamed Elhoseiny}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Stylegan-v: A continuous video generator with the price, image quality and perks of stylegan2}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Tulyakov et~al\mbox{.}(2018)]%
+        {tulyakov2018mocogan}
+\bibfield{author}{\bibinfo{person}{Sergey Tulyakov}, \bibinfo{person}{Ming-Yu Liu}, \bibinfo{person}{Xiaodong Yang}, {and} \bibinfo{person}{Jan Kautz}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Mocogan: Decomposing motion and content for video generation}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Unterthiner et~al\mbox{.}(2018)]%
+        {fvd}
+\bibfield{author}{\bibinfo{person}{Thomas Unterthiner}, \bibinfo{person}{Sjoerd Van~Steenkiste}, \bibinfo{person}{Karol Kurach}, \bibinfo{person}{Raphael Marinier}, \bibinfo{person}{Marcin Michalski}, {and} \bibinfo{person}{Sylvain Gelly}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Towards accurate generative models of video: A new metric \& challenges}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1812.01717}} (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[Vondrick et~al\mbox{.}(2016)]%
+        {vondrick2016generating}
+\bibfield{author}{\bibinfo{person}{Carl Vondrick}, \bibinfo{person}{Hamed Pirsiavash}, {and} \bibinfo{person}{Antonio Torralba}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Generating videos with scene dynamics}.
+\newblock \bibinfo{journal}{\emph{NeuIPS}} (\bibinfo{year}{2016}).
+\newblock
+
+
+\bibitem[Wang et~al\mbox{.}(2019)]%
+        {wang2019few}
+\bibfield{author}{\bibinfo{person}{Ting-Chun Wang}, \bibinfo{person}{Ming-Yu Liu}, \bibinfo{person}{Andrew Tao}, \bibinfo{person}{Guilin Liu}, \bibinfo{person}{Jan Kautz}, {and} \bibinfo{person}{Bryan Catanzaro}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Few-shot video-to-video synthesis}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1910.12713}} (\bibinfo{year}{2019}).
+\newblock
+
+
+\bibitem[Wang et~al\mbox{.}(2023)]%
+        {wang2023videocomposer}
+\bibfield{author}{\bibinfo{person}{Xiang Wang}, \bibinfo{person}{Hangjie Yuan}, \bibinfo{person}{Shiwei Zhang}, \bibinfo{person}{Dayou Chen}, \bibinfo{person}{Jiuniu Wang}, \bibinfo{person}{Yingya Zhang}, \bibinfo{person}{Yujun Shen}, \bibinfo{person}{Deli Zhao}, {and} \bibinfo{person}{Jingren Zhou}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{VideoComposer: Compositional Video Synthesis with Motion Controllability}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2306.02018}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Wu et~al\mbox{.}(2023b)]%
+        {wu2022tune}
+\bibfield{author}{\bibinfo{person}{Jay~Zhangjie Wu}, \bibinfo{person}{Yixiao Ge}, \bibinfo{person}{Xintao Wang}, \bibinfo{person}{Stan~Weixian Lei}, \bibinfo{person}{Yuchao Gu}, \bibinfo{person}{Yufei Shi}, \bibinfo{person}{Wynne Hsu}, \bibinfo{person}{Ying Shan}, \bibinfo{person}{Xiaohu Qie}, {and} \bibinfo{person}{Mike~Zheng Shou}.} \bibinfo{year}{2023}\natexlab{b}.
+\newblock \showarticletitle{Tune-a-video: One-shot tuning of image diffusion models for text-to-video generation}. In \bibinfo{booktitle}{\emph{ICCV}}.
+\newblock
+
+
+\bibitem[Wu et~al\mbox{.}(2023a)]%
+        {wu2023lamp}
+\bibfield{author}{\bibinfo{person}{Ruiqi Wu}, \bibinfo{person}{Liangyu Chen}, \bibinfo{person}{Tong Yang}, \bibinfo{person}{Chunle Guo}, \bibinfo{person}{Chongyi Li}, {and} \bibinfo{person}{Xiangyu Zhang}.} \bibinfo{year}{2023}\natexlab{a}.
+\newblock \showarticletitle{LAMP: Learn A Motion Pattern for Few-Shot-Based Video Generation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2310.10769}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Xue et~al\mbox{.}(2022)]%
+        {xue2022advancing}
+\bibfield{author}{\bibinfo{person}{Hongwei Xue}, \bibinfo{person}{Tiankai Hang}, \bibinfo{person}{Yanhong Zeng}, \bibinfo{person}{Yuchong Sun}, \bibinfo{person}{Bei Liu}, \bibinfo{person}{Huan Yang}, \bibinfo{person}{Jianlong Fu}, {and} \bibinfo{person}{Baining Guo}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Advancing high-resolution video-language representation with large-scale video transcriptions}. In \bibinfo{booktitle}{\emph{CVPR}}.
+\newblock
+
+
+\bibitem[Yin et~al\mbox{.}(2023a)]%
+        {yin2023dragnuwa}
+\bibfield{author}{\bibinfo{person}{Shengming Yin}, \bibinfo{person}{Chenfei Wu}, \bibinfo{person}{Jian Liang}, \bibinfo{person}{Jie Shi}, \bibinfo{person}{Houqiang Li}, \bibinfo{person}{Gong Ming}, {and} \bibinfo{person}{Nan Duan}.} \bibinfo{year}{2023}\natexlab{a}.
+\newblock \showarticletitle{Dragnuwa: Fine-grained control in video generation by integrating text, image, and trajectory}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2308.08089}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Yin et~al\mbox{.}(2023b)]%
+        {yin2023nuwa}
+\bibfield{author}{\bibinfo{person}{Shengming Yin}, \bibinfo{person}{Chenfei Wu}, \bibinfo{person}{Huan Yang}, \bibinfo{person}{Jianfeng Wang}, \bibinfo{person}{Xiaodong Wang}, \bibinfo{person}{Minheng Ni}, \bibinfo{person}{Zhengyuan Yang}, \bibinfo{person}{Linjie Li}, \bibinfo{person}{Shuguang Liu}, \bibinfo{person}{Fan Yang}, {et~al\mbox{.}}} \bibinfo{year}{2023}\natexlab{b}.
+\newblock \showarticletitle{Nuwa-xl: Diffusion over diffusion for extremely long video generation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2303.12346}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2023)]%
+        {ControlNet}
+\bibfield{author}{\bibinfo{person}{Lvmin Zhang}, \bibinfo{person}{Anyi Rao}, {and} \bibinfo{person}{Maneesh Agrawala}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Adding conditional control to text-to-image diffusion models}. In \bibinfo{booktitle}{\emph{ICCV}}.
+\newblock
+
+
+\bibitem[Zhao et~al\mbox{.}(2023)]%
+        {zhao2023motiondirector}
+\bibfield{author}{\bibinfo{person}{Rui Zhao}, \bibinfo{person}{Yuchao Gu}, \bibinfo{person}{Jay~Zhangjie Wu}, \bibinfo{person}{David~Junhao Zhang}, \bibinfo{person}{Jiawei Liu}, \bibinfo{person}{Weijia Wu}, \bibinfo{person}{Jussi Keppo}, {and} \bibinfo{person}{Mike~Zheng Shou}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{MotionDirector: Motion Customization of Text-to-Video Diffusion Models}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2310.08465}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Zhao et~al\mbox{.}(2022)]%
+        {zhao2022particlesfm}
+\bibfield{author}{\bibinfo{person}{Wang Zhao}, \bibinfo{person}{Shaohui Liu}, \bibinfo{person}{Hengkai Guo}, \bibinfo{person}{Wenping Wang}, {and} \bibinfo{person}{Yong-Jin Liu}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Particlesfm: Exploiting dense point trajectories for localizing moving cameras in the wild}. In \bibinfo{booktitle}{\emph{ECCV}}.
+\newblock
+
+
+\bibitem[Zhou et~al\mbox{.}(2022)]%
+        {zhou2022magicvideo}
+\bibfield{author}{\bibinfo{person}{Daquan Zhou}, \bibinfo{person}{Weimin Wang}, \bibinfo{person}{Hanshu Yan}, \bibinfo{person}{Weiwei Lv}, \bibinfo{person}{Yizhe Zhu}, {and} \bibinfo{person}{Jiashi Feng}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Magicvideo: Efficient video generation with latent diffusion models}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2211.11018}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Zhou et~al\mbox{.}(2018)]%
+        {zhou2018stereo}
+\bibfield{author}{\bibinfo{person}{Tinghui Zhou}, \bibinfo{person}{Richard Tucker}, \bibinfo{person}{John Flynn}, \bibinfo{person}{Graham Fyffe}, {and} \bibinfo{person}{Noah Snavely}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Stereo magnification: Learning view synthesis using multiplane images}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1805.09817}} (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[Zhou et~al\mbox{.}(2021)]%
+        {t2i4}
+\bibfield{author}{\bibinfo{person}{Yufan Zhou}, \bibinfo{person}{Ruiyi Zhang}, \bibinfo{person}{Changyou Chen}, \bibinfo{person}{Chunyuan Li}, \bibinfo{person}{Chris Tensmeyer}, \bibinfo{person}{Tong Yu}, \bibinfo{person}{Jiuxiang Gu}, \bibinfo{person}{Jinhui Xu}, {and} \bibinfo{person}{Tong Sun}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Lafite: Towards language-free training for text-to-image generation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2111.13792}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\end{thebibliography}

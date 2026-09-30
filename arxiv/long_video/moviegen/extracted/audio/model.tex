@@ -1,0 +1,83 @@
+
+\subsection{Model}
+We adopt the flow-matching~\citep{flow-matching} based generative models and the diffusion transformer (DiT)~\citep{dit} model architecture.
+Additional conditioning modules are added to provide control.
+\cref{fig:audio_model} illustrates the model architecture.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/audio/MovieGen_Audio_Model_v4.pdf}
+    \caption{\textbf{\mvga{} model diagram.} Yellow blocks denote input, blue blocks denote pre-trained and frozen modules, gray blocks denote operations without learnable parameters, green blocks denote learnable modules, and the pink block shows the output velocity $u(\bx_t, \bc, t; \theta)$. Conditioning input $\bc$ includes masked audio context, video, and text. $\bx_t$ is a sample from $p_t$, and $t$ is the flow time step. For audio context, we replace the masked frames with zeros for DAC-VAE output.
+    }
+    \label{fig:audio_model}
+\end{figure}
+
+\subsubsection{Flow-matching}
+We also use the Flow Matching~\citep{flow-matching} objective as described in~\cref{sec:t2v_training_objective} to train the \mvga{} model.
+The same optimal transport path is used for constructing $\bx_{t}$ which is now an audio sample in the latent space that we will describe in \cref{sec:audio_repr_and_cond}, and the same logit-normal distribution is used for sampling flow-step $t$.
+Instead of conditioning only on text prompt embedding $\bp$, \mvga{} is conditioned on multimodal prompt $\bc$ which will be described in \cref{sec:audio_repr_and_cond}.
+
+We choose diffusion-style models~\citep{Ho2020DenoisingDP, song2020denoising} over discrete token-based language models~\citep{kreuk2022audiogen} because
+(1) it shows strong empirical performance in sound, music, and speech generation~\citep{liu2023audioldm, ghosal2023text, majumder2024tango, shen2023naturalspeech, huang2023noise2music},
+(2) its non-autoregressive nature permits flexible generation direction, and can be used for both infilling or out-filling in both directions,
+(3) modeling audio in continuous space enables applications of techniques such as SDEdit~\citep{meng2021sdedit} for editing and multi-diffusion~\citep{bar2023multidiffusion} for infinite-length audio generation,
+(4) it enables users to flexibly trade-off quality for runtime through configuring ODE parameters,
+and enjoys recent advancement in distillation or consistency training techniques that boost quality significantly at a much lower runtime.
+On the other hand, we choose flow-matching over diffusion because we found it achieves better training efficiency, inference efficiency, and performance compared to diffusion models as shown in recent works~\citep{lan2024high, le2023voicebox, vyas2023audiobox, prajwalmusicflow, mehta2024matcha, sd3}.
+
+\subsubsection{Diffusion Transformer}
+\mvga{} adopts the diffusion transformer (DiT) architecture~\citep{dit},
+which modulates the  outputs of normalization layers with scale and bias,
+and outputs of self-attention and feed-forward layers with scale in each transformer block~\citep{vaswani2017attention}.
+A multi-layer perceptron (MLP) takes the flow time embedding as input and predicts the six modulation parameters (four scales and two biases).
+The MLP is shared across all layers, different from the original DiT, and only layer-dependent biases are added to the MLP outputs.
+This saves parameters without sacrificing performance. The next section describes how other inputs are conditioned.
+
+
+\subsubsection{Audio Representation and Conditioning Modules}\label{sec:audio_repr_and_cond}
+
+\textbf{Audio.}
+The latent diffusion framework~\citep{rombach2021highresolution} is adopted,
+where data (48kHz) is represented as compact 1D latent features of shape $T \times C$ at a much lower frame rate (25Hz) and $C=128$ extracted from a separately trained DAC-VAE (Descript Audio Codec~\citep{kumar2024high} with variational autoencoder~\citep{kingma2013auto} formulation) model.
+Compared to the commonly used Encodec~\citep{Defossez2022HighFN} features (75Hz, 128-d) for 24kHz audio in audio diffusion models~\citep{shen2023naturalspeech, vyas2023audiobox},
+our DAC-VAE offers a lower frame rate (75Hz$\rightarrow$25Hz), a higher audio sampling rate (24kHz$\rightarrow$48kHz), and much higher audio reconstruction quality.
+Specifically, to outperform Encodec under a similar bitrate, DAC adopts the multi-scale STFT discriminators to reduce the periodicity artifacts and adds the Snake~\citep{ziyin2020neural} activation function to introduce periodic inductive biases inspired by the BigVGAN~\citep{lee2022bigvgan} architecture.
+Although the code factorization technique of DAC also greatly reduces the quantization errors for much better reconstruction, discrete tokens are not necessary for diffusion-style models.
+Therefore, we remove the residual vector quantizer (RVQ)~\citep{van2017neural, gray1984vector} from the DAC and trained with the variational autoencoder (VAE)~\citep{kingma2013auto} objective (which adds a KL-regularization to encourage latents to be normally distributed).
+This significantly boosts the reconstruction performance especially at more compressed frame rates (25Hz).
+
+\textbf{Video.}
+Long-prompt MetaCLIP fine-tuned from MetaCLIP~\citep{xu2023demystifying} is used to extract a 1024-dimension embedding for each frame in a video.
+Since the frame rate of the video might not match that of the audio, we take the nearest visual frame for each audio frame.
+The resampled sequence is then projected to the DiT model dimension with a gated linear projection layer and added to the audio features frame by frame.
+Adding visual and audio features frame by frame improves video-audio alignment compared to concatenating features along the time dimension,
+because the former provides direct supervision of video-audio frame alignment.
+We have also explored reconstruction-based features extracted from a video-autoencoder for conditioning,
+which is expected to preserve more video details compared to contrastive features.
+However, the results were significantly worse and also slows down training due to the large feature dimension per frame.
+We concluded that the Long-prompt MetaCLIP features trained with a contrastive objective~\citep{oord2018representation, radford2021learning} encodes higher level semantic information that eases learning while keeping sufficient low-level details to capture the timing of each motion for the model to produce motion-aligned sound effects.
+
+\textbf{Audio context.}
+We follow the Voicebox~\citep{le2023voicebox} and Audiobox~\citep{vyas2023audiobox} frameworks and condition on partially masked target audio, which we coined \textit{audio context}.
+This enables the model to infill (or out-fill, depending on where the mask is) audio that is coherent with the context.
+Without conditioning on context, the audio would sound incoherent and change abruptly when stitching together audio segments generated independently given only the video, especially when audio contains heavy ambient sound or music.
+Audio context is also represented as a DAC-VAE feature sequence, and is concatenated with the noised audio latent along the channel dimension frame by frame.
+For masked frames, we replace it with zero-vectors.
+To perform audio generation without any audio context, we simply input a zero-vector sequence for audio context.
+
+\textbf{Text.}
+We use text to provide additional guidance on target audio quality, sound events, and music style if music is present, which we collectively refer to as the \textit{audio caption}, details of which is described in \cref{sec:audio_cap}.
+T5-base~\citep{raffel2020exploring} is used to encode an audio caption into a sequence of 768-dimensional features, where sequence length is capped at 512 tokens.
+We insert a cross-attention layer right after the self-attention layer and before the feed-forward layer in each DiT transformer block for conditioning.\\
+
+Putting it together, we denote an $N_{aud}$ frame-long sample at flow-step $t$ as $\bx_t \in \mathbb{R}^{N_{aud} \times 128}$,
+and conditioning input as $\bc = \{\bc_{vid}, \bc_{ctx}, \bc_{txt}\}$,
+where $\bc_{vid} \in \mathbb{R}^{N_{aud} \times 1024}$ is the resampled Long-prompt MetaCLIP features,
+$\bc_{ctx} \in \mathbb{R}^{N_{aud} \times 128}$ is the masked DAC-VAE features that serves as audio context,
+and $\bc_{txt} \in \mathbb{R}^{N_{txt} \times 768}$ is the T5 text feature sequence of $N_{txt}$ tokens long.
+At each step, the model predicts a velocity $u(\bx_t, \bc, t; \theta) \in \mathbb{R}^{N_{aud} \times 128}$ that can be used to estimate $x_{t+\Delta t}$ during inference.
+We use an additional subscript to index a subsequence when necessary. For example, $\bc_{vid,15:25}$ denotes a 10-frame segment starting on the 15th frame (0-based).
+
+\input{audio/capability.tex}
+
+\input{audio/config.tex}

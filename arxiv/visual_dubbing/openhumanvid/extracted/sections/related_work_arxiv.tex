@@ -1,0 +1,115 @@
+% \begin{figure*}[!t]  
+%     \centering  
+%     \includegraphics[width=17cm,height=3.13cm]{figs/source_data_statistics.png} % Replace 'example-image' with your image file name  
+%     \caption{The statistical analysis of the source data.
+%     This analysis elucidates the distribution of various video types, including films, television shows, and documentaries with various time durations.
+%     Additionally, we examine the categorization of these videos, their resolutions, and the keywords associated with textual captions.
+%     \textcolor{red}{@Liwei}}
+%     \label{fig:blank_image}  
+% \end{figure*} 
+
+\begin{figure*}[!t]
+    \centering
+    \begin{subfigure}{0.23\linewidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{figs/source_data_category.png} 
+        \caption{Video categories}  
+        \label{fig:source_data_category}  
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.23\linewidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{figs/source_data_duration.png}  
+        \caption{Video duration}  
+        \label{fig:source_data_duration}  
+    \end{subfigure}%
+    \hfill
+    \begin{subfigure}{0.23\linewidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{figs/source_data_resolution.png}  
+        \caption{Video resolution}  
+        \label{fig:source_data_resolution}  
+    \end{subfigure}  
+    \begin{subfigure}{0.23\linewidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{figs/source_data_keywords.png}  
+        \caption{Caption keywords}  
+        \label{fig:source_data_keywords}  
+    \end{subfigure}%
+    % \vspace{-2mm}
+    \caption{The statistical analysis of the source data.
+    This analysis elucidates the distribution of various video types, including films, television shows, and documentaries of various time durations.
+    Additionally, we examine the categorization of these videos, their resolutions, and the keywords associated with textual captions.}
+    \label{fig:source_data}
+    % \vspace{-2mm}
+\end{figure*}
+
+\begin{table*}[!t]
+\centering
+\resizebox{0.95\textwidth}{!}{
+\begin{tabular}{@{}ccccccccc@{}}
+\toprule
+ Dataset name & Year&Domain & \# Videos &Total length (hours)&Caption type&Motion type& Resolution \\ 
+\midrule
+ WebVid-10M\cite{bain2021frozen}&2021&Open&10M&52K&Short&Text&360P\\
+  Panda-70M\cite{chen2024panda}&2024&Open&70M&167K&Short&Text&720P\\
+  OpenVid-1M\cite{nan2024openvid}&2024&Open&1M&2K&Long&Text&512P\\
+  Koala-36M\cite{wang2024koala}&2024&Open&36M&172K&Long&Text&720P\\
+  \midrule
+  UCF-101\cite{soomro2012ucf101}& 2012&Human action & 13.3K & 26.7&Short&Text&240P\\
+  NTU RGB+D\cite{shahroudy2016ntu}&2014&Human action&114K&37&-&3D pose, depth&1080P\\
+  MSP-Avatar\cite{sadoughi2015msp}&2015&Human action&74&3&-&Speech audio,  landmark, pose&1080P\\
+  ActivityNet\cite{caba2015activitynet}  & 2017&Human action & 100K & 849 & Short& Text& - \\
+  TikTok-v4 \cite{chang2023magicdance} & 2023 &Human dance& 350 & 1& -&Skeleton & -  \\
+  \midrule
+Ours&2024&Human&52.3M&70.6K&Short, long, structured&Text, skeleton pose, speech audio&720P\\
+Ours (filtered)&2024&Human&13.2M&16.7K&Short, long, structured&Text, skeleton pose, speech audio&720P\\
+\bottomrule
+\end{tabular}
+}
+% \vspace{-2mm}
+\caption{The comparative analysis of our dataset against previous general and human video datasets. 
+We enhance the textual captions by incorporating short, long, and structured formats that reflect human characteristics. 
+Additionally, we integrate skeleton sequences derived from DWPose~\cite{yang2023effective} and corresponding speech audio filtered through SyncNet~\cite{raina2022syncnet} to enrich the dataset with contextual human motion data.}
+\vspace{-1mm}
+\label{tab:datasets}
+\end{table*}
+
+\section{Related Work}
+\noindent\textbf{Diffusion Video Generation.}
+Video generation primarily utilizes two methodologies: diffusion-based and autoregressive methods. Diffusion-based methods can be further categorized into U-Net-based and Diffusion Transformer (DiT)-based architectures, depending on the design of the denoising network.
+U-Net-based diffusion models~\cite{ho2022video, ho2022imagen, blattmann2023align, xu2024hallo, cui2024hallo2, zhu2024champ, zhang2024tora} have seen significant advancements through seminal works such as Video Diffusion Models (VDMs)~\cite{ho2022video}, Imagen Video~\cite{ho2022imagen}, and Align Your Latents~\cite{blattmann2023align}. These approaches extend traditional image diffusion architectures to accommodate temporal data by integrating temporal dimensions into the latent space or by jointly training on image and video datasets. Recent open-source models, including Stable Video Diffusion~\cite{blattmann2023stable} and ModelScopeT2V~\cite{wang2023modelscope} have further improved accessibility and performance, enabling high-resolution video synthesis with enhanced temporal coherence.
+In contrast, DiT-based methods, exemplified by models such as Sora~\cite{liu2024sora}, Open-Sora~\cite{opensora}, Vidu~\cite{bao2024vidu}, and CogVideoX~\cite{yang2024cogvideox}, leverage transformer architectures that operate on spatiotemporal patches of video latent codes. This strategy facilitates the generation of longer, higher-resolution videos with improved coherence and dynamism by effectively capturing long-range dependencies in both spatial and temporal dimensions. The emergence of diffusion transformers and autoregressive models highlights the increasing demand for large-scale, high-quality data, which this paper addresses within the human domain.
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=0.93\textwidth]{figs/datapipeline1.png} 
+    % \vspace{-2.5mm}
+    \caption{
+The data processing pipeline.
+The inputs are 105K hours of raw data from films, television shows, and documentaries, 
+and the outputs are filtered high-quality videos that include textual captions—both short and long, as well as structured captions containing human information—and specific motion conditions related to individuals, such as skeleton sequences and speech audio. 
+This pipeline consists of four key steps: video preprocessing, which involves basic decoding, cropping, and segmentation of the video; 
+and video quality filtering, which assesses various quality metrics including luminance, blur, aesthetics, motion and technical quality. 
+Then the human skeleton and speech audio are extracted from the video clips. 
+An initial textual caption are generated with MiniCPM and CogVLM, voting by BLIP2 and reorgnized by the classic Llama model to obtain textual captions of different types.
+Furthermore, the pipeline incorporates an advanced human quality filtering stage that aligns textual captions with the appearance, expressions, and pose movements of individuals, promoting fine-grained alignment between the textual information and the visual characteristics of the subjects.}
+\label{fig:data_pipeline}
+% \vspace{-mm}
+\end{figure*}
+
+\noindent\textbf{General Video Dataset.}
+High-quality video-language datasets are crucial for advancing general video generation tasks. 
+Notable large-scale datasets, such as HD-VILA-100M~\cite{xue2022advancing} and HowTo100M~\cite{miech2019howto100m}, utilize automatic speech recognition (ASR) for annotation; however, the captions generated often fail to adequately represent the video content, thereby limiting their utility for training purposes. 
+WebVid-10M~\cite{bain2021frozen} stands out as a pioneering open-scenario text-to-video dataset, comprising 10.7 million text-video pairs with a cumulative duration of 52,000 hours. 
+Panda-70M~\cite{chen2024panda} assembles 70 million high-resolution video samples characterized by strong semantic coherence. 
+InternVid~\cite{wang2023internvid} leverages large language models to autonomously construct a video-text dataset, resulting in the generation of 234 million video clips accompanied by text descriptions. 
+OpenVid-1M~\cite{nan2024openvid} provides expressive captions and curates 433,000 1080P videos, and its high-quality subset, OpenVidHD-0.4M, enhances high-resolution video generation.
+Koala-36M~\cite{wang2024koala} includes 36 million video clips at a resolution of 720P, offering structured captions that average 200 words per segmented video clip, thereby improving the alignment between text and video content. 
+Despite the advancements represented by these datasets, they exhibit a relative lack of diversity in terms of identity and motion within the human category, as well as deficiencies in high-quality textual captions, skeleton representations, and speech audio as motion conditions.
+
+% \noindent\textbf{Human Video Dataset.}
+% To support human image animation tasks, diverse and large-scale human-centric video datasets are essential. Real-world datasets collected from the Internet, such as the TikTok~\cite{jafarian2021learning}, contains over 300 dance video sequences shared on a social media, totaling more than 100,000 images. To expand dataset sizes cost-effectively, several synthetic datasets have been introduced. For example, SURREAL~\cite{varol2017learning} is a large-scale dataset featuring synthetically-generated but realistic images of people rendered from 3D sequences of human motion capture data. HSPACE~\cite{bazavan2021hspace} generates animations by fitting a human body model, offering diversity in characters, motions, and scenes. SynBody~\cite{yang2023synbody} is a large-scale synthetic dataset for human perception and modeling, sampling 10,000 animatable subjects. BEDLAM~\cite{black2023bedlam} renders people in realistic scenes and uses physics simulations to achieve realistic clothing effects. HumanVid~\cite{wang2024humanvid} introduces a synthetic dataset combined with a high-quality real-world video dataset, specifically designed for human image animation.
+% While these datasets excel in specific tasks, they are not well-suited for pre-training or fine-tuning general video generative models in the human domain.
+\noindent\textbf{Human Video Datasets.}
+Diverse and large-scale human-centric video datasets are essential for advancing human image animation tasks. Real-world datasets collected from the Internet, such as TikTok~\cite{jafarian2021learning}, contain over 300 dance video sequences shared on social media platforms, totaling more than 100,000 images. UCF101~\cite{soomro2012ucf101} is a widely used action recognition dataset comprising realistic action videos collected from YouTube, organized into 101 action categories. NTU RGB+D~\cite{shahroudy2016ntu} is a large-scale dataset specifically designed for human action recognition, consisting of 56,880 samples spanning 60 action classes. Similarly, ActivityNet~\cite{caba2015activitynet} offers samples from 203 activity classes, totaling of 849 hours of video content. BEDLAM~\cite{black2023bedlam} generates realistic scenes of people using physics simulations to create accurate clothing effects, while HumanVid~\cite{wang2024humanvid} integrates synthetic and high-quality real-world video datasets tailored specifically for human image animation. Despite the utility of these datasets for specific tasks, they remain inadequate for pre-training or fine-tuning general video generative models in the human domain due to limitations in diversity, scale, and the specific motion conditions required for such models.

@@ -1,0 +1,55 @@
+% \begin{table*}[t]
+% \centering
+% % \resizebox{\columnwidth}{!}{%
+% \begin{tabular}{l|l|ccc|cc|ccc}
+% \toprule
+% \multirow{2}{*}{Method} & \multirow{2}{*}{Eye Blink} & \multicolumn{3}{c|}{Lip Synchronization} & \multicolumn{2}{c|}{Head Motion}  & \multicolumn{3}{c}{Video Quality} \\
+% \cline{3-10}
+% &  & LSE-C$\uparrow$ & LSC-D & LMD & Diversity$\uparrow$ & Beat Align$\uparrow$ & FID & CPBD$\uparrow$ & CSIM$\uparrow$ \\
+% \hline
+% Real Video & N./A. &8.211 &6.982 &0 & 0.259 & 0.271 & 0 & 0.428 \\
+% \rowcolor{lightgray!30} Wav2Lip~\cite{wav2lip} & N./A. &10.221 &5.535 &2.268 &N./A. & N./A. &21.725 &0.368\\
+% \rowcolor{lightgray!30} PC-AVS~\cite{pcavs} & from ref. &9.053 &6.355 &3.391 & N./A. & N./A. &69.127 &0.206\\
+% MakeItTalk~\cite{zhou2020makelttalk} & automatic &5.110 &10.059 &2.735 &0.257 &0.268 &28.243 &0.283\\
+% Wang~\etal~\cite{rhythmichead} & automatic & \\
+% Audio2Head~\cite{wang2021audio2head} & automatic &7.357 &7.535 &2.373  &0.181 &0.267 &24.392 &0.281 \\
+% PIRenderer~\cite{ren2021pirenderer} & automatic \\
+
+% Ours & controllable & 7.290 &7.772 &2.493 & \textbf{0.278} & \textbf{0.293} & \textbf{22.057} & \textbf{0.335} \\
+% \bottomrule
+% \end{tabular}
+% \vspace{-1em}
+% % }
+% \caption{
+% Comparison with the state-of-the-art method on HDTF dataset. We evaluate Wav2Lip~\cite{wav2lip} and PC-AVS~\cite{pcavs} in the one-shot settings. PC-AVS requires additional head pose reference as reference. We fix the head pose for comparison. Notice that, Wav2Lip achieves better video quality due to it only animate the lip region. We evaluate . \todo{fill all the numbers, fixed the problem of metrics of PC-AVS. Calculating the CSIM? Removing LMD to reduce the weakness.}
+% }
+% \vspace{-0.05in}
+% \label{tab:compare}
+% \end{table*}
+
+\begin{table*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|cc|cc|ccc}
+\toprule
+\multirow{2}{*}{Method} & \multicolumn{2}{c|}{Lip Synchronization} & \multicolumn{2}{c|}{Learned Head Motion}  & \multicolumn{3}{c}{Video Quality} \\ \cline{2-8}
+ & LSE-C$\uparrow$ & LSE-D & Diversity$\uparrow$ & Beat Align$\uparrow$ & FID  & CPBD$\uparrow$ & CSIM$\uparrow$  \\
+\hline % 0.271 &
+Real Video  & 6.209 & 7.911 & 0.4879 & 0.266 &0 & 0.099 & 1.000 \\
+\rowcolor{lightgray!30} Wav2Lip*~\cite{wav2lip}  & 7.640 &7.099  &N./A. & N./A. &19.293 &0.107 &0.936 \\
+\rowcolor{lightgray!30} PC-AVS**~\cite{pcavs}  &7.168 &7.443  & N./A. & N./A. &111.043 &0.074 &0.494 \\
+MakeItTalk~\cite{zhou2020makelttalk}  &3.756 &10.222  &\textbf{0.5230} &0.275 &23.501 &0.063 &0.883 \\
+Audio2Head~\cite{wang2021audio2head} &5.266 &8.788   &0.2064 &0.273 &54.694 &0.098 &0.602 \\
+Wang~\etal~\cite{wang2021one} &3.441 &10.519 &0.2547 &0.272 &42.092 &\textbf{0.136} &0.750  \\
+% PIRenderer~\cite{ren2021pirenderer} & automatic \\
+Ours & \textbf{5.571} &\textbf{8.503} & 0.5211 & \textbf{0.277} &\textbf{22.738} & 0.081 & \textbf{0.893}  \\
+\bottomrule
+\end{tabular}
+}
+
+\caption{
+Comparison with the state-of-the-art method on VoxCeleb2~\cite{voxceleb} dataset under \textit{cross-identity} setting.   Wav2Lip* achieves the best video quality since it only animates the lip region while other regions are the same as the original frame. In cross-identity setting, PC-AVS** is evaluated using the reference pose from the driving video and fails in some samples.
+}
+
+\label{tab:vox_crossid}
+\end{table*}

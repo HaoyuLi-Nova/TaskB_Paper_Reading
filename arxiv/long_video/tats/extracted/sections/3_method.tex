@@ -1,0 +1,160 @@
+\section{Methodology}
+\label{sec:method}
+In this section, we first briefly recap the VQGAN framework and describe its extension to video generation. 
+Next, we present our time-agnostic VQGAN and time-sensitive transformer models for long video generation (Figure~\ref{fig:architecture}).
+
+\subsection{Extending the VQGAN framework for video generation}
+
+Vector Quantised Variational AutoEncoder (VQVAE)~\cite{van2017neural}
+% ~\xiyin{AutoEncoder? capitalize E} 
+uses a discrete bottleneck as the latent space for reconstruction. 
+An autoregressive model such as a transformer is then used to model the prior distribution of the latent space. 
+VQGAN~\cite{esser2021taming} is a variant of VQVAE that uses perceptual and GAN losses to achieve better reconstruction quality when increasing the bottleneck compression rates.
+
+\topic{Vanilla video VQGAN.} 
+We adapt the VQGAN architecture for video generation by replacing its 2D convolution operations with 3D convolutions. 
+Given a video $\mathbf{x} \in \mathbb{R}^{T\times H\times W\times 3}$, the VQVAE consists of an encoder $f_\mathcal{E}$ and a decoder $f_\mathcal{G}$. 
+The discrete latent tokens $\mathbf{z} = \mathbf{q}(f_\mathcal{E}(\mathbf{x})) \in \mathbb{Z}^{t\times h\times w}$ with embeddings $\mathbf{c}_z \in \mathbb{R}^{t\times h\times w \times c}$ are computed using a quantization operation $\mathbf{q}$ which applies nearest neighbor search using a trainable codebook $\mathcal{C}=\{\mathbf{c}_i\}_{i=1}^K$. The embeddings of the tokens are then fed into the decoder to reconstruct the input $\hat{\mathbf{x}}=f_\mathcal{G}(\mathbf{c}_z)$. 
+The VQVAE is trained with the following loss:    
+$$\begin{aligned}
+\mathcal{L}_\text{vqvae}=\underbrace{\|\mathbf{x}-\hat{\mathbf{x}}\|_1}_{\mathcal{L}_{\text {rec}}}+\underbrace{\|\mathrm{sg}[f_\mathcal{E}(\mathbf{x})]-\mathbf{c}_z\|_{2}^{2}}_{\mathcal{L}_{\text {codebook }}}+\underbrace{\beta\|\mathrm{sg}\left[\mathbf{c}_z\right]-f_\mathcal{E}(\mathbf{x})\|_{2}^{2}}_{\mathcal{L}_{\text {commit }}}
+\end{aligned},$$ 
+where $\mathrm{sg}$ is a stop-gradient operation and we use $\beta=0.25$ following the VQGAN paper~\cite{esser2021taming}. 
+We optimize $\mathcal{L}_{\text {codebook}}$ using an EMA update
+and circumvent the non-differentiable quantization step $\mathbf{q}$ with a straight-through gradient estimator~\cite{van2017neural}. 
+VQGAN additionally adopts a perceptual loss~\cite{johnson2016perceptual,zhang2018unreasonable} and a discriminator $f_\mathcal{D}$ to improve the reconstruction quality. 
+Similar to other GAN-based video generation models~\cite{Tulyakov_2018_CVPR,clark2019adversarial}, we use two types of discriminators in our model - % \TFH{One might argue that the temporal discriminator should be able to encourage both frame fidelity and temporal coherence} 
+a spatial discriminator $f_{\mathcal{D}_s}$ that takes in random reconstructed frames $\hat{\mathbf{x}}_i \in \mathbb{R}^{H\times W\times 3}$ to encourage frame quality and a temporal discriminator $f_{\mathcal{D}_t}$ that takes in the entire reconstruction $\hat{\mathbf{x}} \in \mathbb{R}^{T\times H\times W\times 3}$ to penalize implausible motions:
+$$
+\mathcal{L}_\text{disc}= \log f_{\mathcal{D}_{s / t}}(\mathbf{x}) + \log(1 - f_{\mathcal{D}_{s / t}}(\hat{\mathbf{x}}))
+$$
+We also use feature matching losses~\cite{wang2018high,wang2018video} to stabilize the GAN training:
+$$
+\mathcal{L}_\text{match}=\sum_{i} p_i \left\|f_{\mathcal{D}_{s / t}/\text{VGG}}^{(i)}(\mathbf{\hat{\mathbf{x}}})-f_{\mathcal{D}_{s / t}/\text{VGG}}^{(i)}\left(\mathbf{\mathbf{x}}\right)\right\|_{1},
+$$
+where $f_{\mathcal{D}_{s / t}/\text{VGG}}^{(i)}$ denotes the $i^\text{th}$ layer 
+of either a trained VGG network~\cite{simonyan2014very} or discriminators with a scaling factor $p_i$. 
+When using a VGG network, this loss is known as the perceptual loss~\cite{zhang2018unreasonable}. 
+$p_i$ is a learned constant for VGG and the reciprocal of the number of elements in the layer for discriminators.
+Our overall VQGAN training objective is as follows: 
+$$
+\begin{aligned}
+    & \min _{f_\mathcal{E},f_\mathcal{G}, \mathcal{C}}\left(\max _{f_{\mathcal{D}_s}, f_{\mathcal{D}_t}}\left(\lambda_\text{disc} \mathcal{L}_\text{disc} \right)\right)+\\
+    & \min _{f_\mathcal{E},f_\mathcal{G}, \mathcal{C}}\left(\lambda_\text{match} \mathcal{L}_\text{match}+\lambda_\text{rec} \mathcal{L}_\text{rec}+ \mathcal{L}_\text{codebook}+\beta\mathcal{L}_\text{commit}\right)
+\end{aligned}
+$$
+Directly applying GAN losses to VideoGPT~\cite{yan2021videogpt} or 3D VQGAN~\cite{esser2021taming} leads to training stability issues. In addition to the feature matching loss, we discuss other necessary architecture choices and training heuristics in supp. mat. A.1.
+% Appendix~\ref{sec:video_vqgan}.
+
+\topic{Autoregressive prior model.} 
+After training the video VQGAN, each video can be encoded into its discrete representation $\mathbf{z}=\mathbf{q}(f_\mathcal{E}(\mathbf{x}))$. 
+Following VQGAN~\cite{esser2021taming}, we unroll these tokens into a 1D sequence using the row-major 
+order frame by frame. 
+We then train a transformer $f_\mathcal{T}$ to model the prior categorical distribution of $\mathbf{z}$ in the dataset autoregressively:
+$$p(\mathbf{z}) = p(\mathbf{z}_{0})\prod_{i=0}^{t\times h\times w-1}p(\mathbf{z}_{i+1}|\mathbf{z}_{0:i}),$$ 
+where $p(\mathbf{z}_{i+1}|\mathbf{z}_{0:i}) = f_\mathcal{T}(\mathbf{z}_{0:i})$ and $\mathbf{z}_0$ is given as the start of sequence token.
+We train the transformer to minimize the negative log-likelihood over training samples:
+$$
+\mathcal{L}_{\text {transformer }}=\mathbb{E}_{\mathbf{z} \sim p(\mathbf{z}_{\text{data}})}[-\log p(\mathbf{z})]
+$$
+At inference time, we randomly sample video tokens from the predicted categorical distribution $p(\mathbf{z}_{i+1}|\mathbf{z}_{0:i})$ in sequence and feed them into the decoder to generate the videos $\hat{\mathbf{x}}=f_\mathcal{G}(\hat{\mathbf{c}}_z)$. 
+To synthesize videos longer than the training length, we generalize sliding attention window for our use~\cite{brown2020language} . 
+A similar idea has been used in 2D to generate images of higher resolution~\cite{esser2021taming}.
+We denote the $j^{th}$ temporal slice of $\mathbf{z}$ to be $\mathbf{z}^{(j)} \in \mathbb{Z}^{h\times w}$, where $0\le j \le t-1$. 
+For instance, to generate $\mathbf{z}^{(t)}$ that is beyond the training length, we condition on the $t-1$ slices before it to match the transformer sequence length $p(\mathbf{z}^{(t)}|\mathbf{z}^{(1:t-1)}) = f_\mathcal{T}(\mathbf{z}^{(1:t-1)})$. 
+However, as shown in Figure~\ref{fig:motivation}, when paired with sliding window attention, the vanilla video VQGAN and transformer cannot generate longer videos without quality degradation. 
+Next, we discuss the reason and a simple yet effective fix. 
+
+% \guan{Does training length $t$ means the transformer temporal sequence length is $t+1$? It feels a bit confusing to me.} \sg{fixed}
+% \xiyin{I have not read the remaining sections. but I think the last few sentences might not fit well in this section. my understanding is that this section is about preliminary modeling on VQGAN+transformer for video generation. but we have not talked about our approach yet. Or do you want to say sth here to highlight the motivation for the following sections? if so, maybe a little rephrase to make it more clear.}
+
+
+% \devi{It might be better to talk about the GAN part VQGAN a bit more than the 2D to 3D switch? Not sure -- the GAN part feels more interesting to me. And maybe talk about what we hope the discrminator loss captures in the context of videos?} 
+% \devi{We were deep in the details of talking about zero-padding and such. So feels odd to now switch to higher-level discussion. Either describe this first, or end earlier paragraph at a higher level, then say what the next few subsectios have, or something else to make the transition smoother.} 
+
+% We denote the clips whose length is $T^\prime$ frames and starting from the frame $T_s$ with the lowercase $x = \mathbf{x}_{T_s:T_s+T^\prime} \in \mathbb{R}^{T^\prime\times H\times W\times 3}$, and its encoded tokens with $z = f_\mathcal{E}(x) \in \mathbb{Z}^{t^\prime\times h\times w}$. 
+% \devi{Is it common to use $\mathbb{R}$ for this? The pixels are discrete from 0 to 255, or may be mapped to 0 to 1, right? If this is common notation, that seems fine.} \sg{I saw some papers that used $\mathbb{R}$, but I see your concerns.}
+% Note that $T^\prime << T$ since $T^\prime$ is often $16$ in practice and $T$ can be much larger for real videos.
+% \devi{Have people worked with millions? May be worth saying that in most existnig work it is blah, in this work we'll explore upto 1024, but movies have millions? Or does that feel distracting at this stage?} 
+% \devi{why starting at 2?} 
+% \devi{I think we should explain a bit in words what it does, and what the idea / motivation behind the sliding window setup us is. Just in a sentence or two.} 
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/method/architecture.pdf}
+    \caption{\textbf{Overview of the proposed framework.} Our model contains two modules: time-agnostic VQGAN and time-sensitive transformer. The former compresses the videos both temporally and spatially into discrete tokens without injecting any dependence on the relative temporal position, which allows the usage of a sliding window during inference for longer video generation. The latter uses a hierarchical transformer for capturing longer temporal dependence.}
+    \label{fig:architecture}
+\end{figure}
+
+\subsection{Time-Agnostic VQGAN}
+When the Markov property holds, a transformer with a sliding window can generate arbitrarily long sequences as demonstrated in long article generation~\cite{brown2020language}. 
+However, a crucial premise that has been overlooked is that the transformer needs to see sequences that start with tokens similar to $\mathbf{z}^{(1:t-1)}$ during training to predict token $\mathbf{z}^{t}$. 
+This premise breaks down in VQGAN. We provide some intuitions about the reason and defer a detailed discussion to supp. mat. A.2.
+% Appendix~\ref{sec:time_agnostic_detail}. 
+
+Different from natural language modeling where the tokens come from realistic data, VQGAN tokens are produced by an encoder $f_\mathcal{E}$ which by default adopts zero paddings for the desired output shape.
+When a short video clip is encoded, the zero paddings in the temporal dimension also get encoded and affect the output tokens, causing an unbalanced effects to tokens at different temporal position~\cite{islam2019much,kayhan2020translation,xu2021positional,alsallakh2021mind}. 
+The tokens closer to the temporal boundary will be affected more significantly. 
+As a result, for real data to match $\mathbf{z}^{(1:t-1)}$, they have to contain these zero-frames, which is not the case in practice. 
+Therefore, removing those paddings in the temporal dimension is crucial for making the encoder \emph{time-agnostic} and enabling sliding window.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/method/paddings-main.pdf}
+    \caption[Caption for LOF]{\textbf{Illustration of the temporal effects induced by different paddings}. Real frame padding makes the encoder temporally shift-equivariant\protect\footnotemark ~ but introduces extra computations. Replicate padding makes decent approximation to the real frames while bringing no computational overhead.}
+    \label{fig:padding_main}
+\end{figure}
+
+After removing all the padding, one needs to pad real frames to both ends of the input videos to obtain the desired output size~\cite{karras2021alias,skorokhodov2021stylegan}. 
+Note that the zeros are also padded in the intermediate layers when applied, and importantly, they need not be computed. 
+But, if we want to pad with realistic values, the input needs to be padded long enough to cover the entire receptive field, and all these extra values in the intermediate layers need to be computed. 
+The number of needed real frames can be as large as $\mathcal{O}(Ld)$, where $L$ is the number of layers and $d$ is the compression rate in the temporal direction
+% ~\xiyin{is this for spatial or temporal or both?} 
+of the video. 
+Although padding with real frames makes the encoder fully time agnostic, it can be expensive with a large compression rate or a deep network. 
+In addition, frames near both ends of the videos need to be discarded for not having enough real frames to pad, and consequently some short videos in the dataset may be completely dropped.
+
+Instead of padding with real values, we propose to approximate real frames with the values close to them. 
+An assumption, which is often referred to as the ``boring videos'' assumption in the previous literature~\cite{carreira2017quo}, is to assume that the videos are frozen beyond the given length. 
+Following the assumption, the last boundary slices can be used for padding without computation. 
+More importantly, this can be readily implemented by the replicate padding mode using a standard machine learning library. 
+An illustration of the effects induced by different paddings can be found in Figure~\ref{fig:padding_main}. 
+\footnotetext{The expressions \textit{temporally shift-equivariant} and \textit{time-agnostic} will be used interchangeably hereinafter.}
+Other reasonable assumptions can also be adopted and may correspond to different padding modes. 
+For instance, the reflected padding mode can be used if videos are assumed to play in reverse beyond their length, which introduces more realistic motions than the frozen frames. 
+% In Appendix~\ref{sec:padding},
+In supp. mat. A.3, we provide a careful analysis of the time dependence when applying different padding types and numbers of padded real frames. 
+We find that the replicate padding alone resolves the issue well in practice and inherits the low computational cost merit of zero paddings. 
+Therefore, in the following experiments, we use the replicate paddings and no real frames padded. 
+
+\subsection{Time-Sensitive Transformer}
+The time-agnostic property of the VQGAN makes it feasible to generate long videos using a transformer with sliding window attention. 
+However, long video generation does need temporal information! 
+To maintain a consistent theme running from the beginning of the video to the end requires the capacity to model long-range dependence. 
+And besides, the spirit of a long video is in its underlying story, which requires both predicting the motions in the next few frames and the ability to plan on how the events in the video proceed. 
+This section discusses the time-sensitive transformer for improved long video generation.
+
+Due to the probabilistic nature of transformers, errors can be introduced when sampling from a categorical distribution, which then accumulate over time.
+% A trade-off between the quality and diversity can be made using top-$k$ sampling, where only the top $k$ tokens in the vocabulary are sampled from. 
+% When $k$ is the vocabulary size, the sampling algorithm is unbiased. When $k=1$, the algorithm is a deterministic maximum likelihood estimation.~\xiyin{this is not very clear to me how this is trade-off between quality and diversity. do you mean when top k is the whole vocab, it is optimizing for diversity, and when 1 means quality? but we observe that increase top k also improves quality? Also, the next sentence starts to talk about sth else, the hierarchical modeling, so consider starting a new paragraph?} 
+% We discuss this more in the experiment section. 
+One common strategy to improve the long-term capacity is to use a hierarchical model~\cite{fan2018hierarchical,castrejon2021hierarchical} to reduce the chance of drifting away from the target theme. 
+% \devi{It is much more clear here than in intro what the purpose of the hierarchical model is. And generally why we want to maintain the temporal info. The time-agnostic and time-sensitive components don't feel entirely disconnected here. Try to simplify the intro to cover the main points in a smooth flow without going into too many nuanced arguments. The intro is currently quite long.}
+Specifically, we propose to condition one interpolation transformer on the tokens generated by the other autoregressive transformer that outputs more sparsely sampled tokens. 
+The autoregressive transformer is trained in a standard way but on the sampled frames with larger intervals. 
+For the interpolation transformer, it fills in the missing frames between any two adjacent frames generated by the autoregressive transformer. 
+To do so, we propose interpolation attention as shown in Figure~\ref{fig:architecture}, where the predicted tokens attend to both the previously generated tokens in a causal way and the tokens from the sparsely sampled frames at both ends. 
+A more detailed description can be found in supp. mat. A.4.
+% Appendix~\ref{sec:attention}. 
+We consider an autoregressive transformer that generates $4\times$ more sparse video tokens. 
+% ~\xiyin{more sparse could be confusing? not sure. can say fewer video tokens to be safe?}
+Generalizing this model to even more extreme cases such as video generation based on key-frames would be an interesting future work.
+% Generating a storyline behind every interesting video is a difficult task by itself~\cite{see2019massively,fan2018hierarchical}. \devi{is this talking about generating a story given a video? that's not really relevant for us, right? in general the ``story'' connection is pretty weak. Should we drop these references and this sentence?} 
+
+Another simple yet effective way to improve the long period coherence is to provide the underlying ``storyline'' of the desired video directly. 
+% \devi{Ah, this is all flowing much better than in the intro!} 
+The VQVAE framework has been shown effective in conditional image generation~\cite{esser2021taming,ramesh2021zero}. 
+We hence consider several kinds of conditional information that provide additional temporal information such as audio~\cite{chatterjee2020sound2sight}, text~\cite{wu2021godiva}, and so on. 
+To utilize conditional information for long video generation, we use either a tokenizer or an additional VQVAE to discretize the text or audio and prepend the obtained tokens to the video tokens and remove the start of the sequence token $\mathbf{z}_0$. 
+At inference time, we extend the sliding window by simultaneously applying it to the conditioned tokens and video tokens.

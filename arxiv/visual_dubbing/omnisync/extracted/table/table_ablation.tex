@@ -1,0 +1,17 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+% \usepackage{graphicx}
+\begin{table}[]
+\caption{\textbf{Ablation study} for our method.}
+\label{tab:ablation}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+Methods                                                                         & FID ↓           & FVD ↓            & CSIM ↑         & NIQE ↓         & BRISQUE ↓       & HyperIQA ↑      & LSE-C ↑       \\ \midrule
+Ours                                                                            & \textbf{15.710} & \textbf{287.168} & \textbf{0.814} & \textbf{5.321} & \textbf{29.588} & \textbf{57.288} & 7.06          \\
+\begin{tabular}[c]{@{}l@{}}w/o Timestep-Dependent\\ Sampling Strategy\end{tabular} & 21.552          & 549.768          & 0.727          & 5.462          & 30.346          & 56.204          & 7.00          \\
+\begin{tabular}[c]{@{}l@{}}w/o Progressive Noise \\ Initialization\end{tabular} & 16.731          & 361.282          & 0.805          & 5.349          & 29.789          & 56.511          & 7.03          \\
+w/ Low Static CFG                                                                      & -               & -                & -              & 5.359          & 29.724          & 56.568          & 4.16          \\
+w/ High Static CFG                                                                     & 22.725          & 348.335          & 0.782          & 5.473          & 29.678          & 56.289          & \textbf{7.10} \\ \bottomrule
+\end{tabular}}
+\end{table}

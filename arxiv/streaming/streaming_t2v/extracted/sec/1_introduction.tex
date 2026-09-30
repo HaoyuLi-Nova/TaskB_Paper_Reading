@@ -1,0 +1,60 @@
+\section{Introduction}
+\label{sec:intro}
+
+The emergence of diffusion models \cite{DDPM_paper,DDIM_paper,stable_diff,Dalle2_paper} has sparked significant interest in text-guided image synthesis and manipulation.
+%In recent years, with the raise of Diffusion Models \cite{DDPM_paper,DDIM_paper,stable_diff,Dalle2_paper}, the task of text-guided image synthesis and manipulation gained enormous attention from the community. 
+Building on the success in image generation, they have been extended to text-guided video generation  \cite{video-diffusion-models,Modelscope,AlignYourLatents,chen2023seine,make-a-video,girdhar2023emu,SVD,guo2023animatediff,li2023videogen,zhang2023show1,guo2023sparsectrl,text2video-zero,villegas2022phenaki}.
+%The huge success in image generation led to the further extension of diffusion models to generate videos conditioned by textual prompts \cite{video-diffusion-models,Modelscope,AlignYourLatents,chen2023seine,make-a-video,girdhar2023emu,SVD,guo2023animatediff,li2023videogen,zhang2023show1,guo2023sparsectrl,text2video-zero,villegas2022phenaki}.
+
+Despite the impressive generation quality and text alignment, the majority of existing approaches such as  \cite{video-diffusion-models,Modelscope,AlignYourLatents,SVD,zhang2023show1,opensora,opensoraplan} are mostly focused on generating short frame sequences (typically of $16$, $24$, or recently $384$ frame-length).  
+%Recent developments utilize temporal video compressors to extend video generation to up to 384 frames (\cite{opensora,opensoraplan}), but exhibit  limited motion.
+However, short videos generators are limited in real-world use-cases such as ad making, storytelling, etc. 
+
+The na\"ive approach of training video generators on long videos (\eg $\geq 1200$ frames) is usually impractical. Even for generating short sequences, it typically  requires expensive training (\eg $260K$ steps and $4.5K$ batch size  in order to generate $16$ frames \cite{Modelscope}). 
+%When trained only on short videos, video quality commonly degrades  when generators are made to output long videos (see Sect. \cite{?}).
+
+Some approaches  \cite{oh2023mtvg,AlignYourLatents,video-diffusion-models,opensora}
+thus extend baselines by autoregressively generating short videos based on the last frame(s) of the preceding chunk.
+%
+Yet, simply concatenating the noisy latents of a video chunk with the last frame(s) of the preceding chunk leads to poor conditioning with inconsistent scene transitions 
+%% EXTERNAL REFERENCE ATTENTION
+% (see \secrefcustom{sec:appendix.ablation_studies}). 
+(see Sec.\ \textcolor{linkblue}{A.3}).
+Some works \cite{SVD,2023i2vgenxl,wang2024videocomposer,dai2023animateanything,xing2023dynamicrafter} integrate also CLIP \cite{CLIP_paper} image embeddings of the last frame of the preceding chunk, which slightly improves consistency. However, they are still prone to inconsistencies across chunks 
+%% EXTERNAL REFERENCE ATTENTION
+% (see \figrefcustom{fig:dynamicrafter-inconsistencies})
+(see Fig.\ \textcolor{linkblue}{A.7})
+due to the CLIP image encoder losing crucial information necessary for accurately reconstructing the conditional frames.
+The concurrent work SparseCtrl \cite{guo2023sparsectrl} utilizes a sparse encoder for conditioning. 
+To match the size of the inputs, its architecture requires to concatenate additional zero-filled frames to the conditioning frames before being plugged into sparse encoder. However, this inconsistency in the input leads to inconsistencies in the output (see \secrefcustom{sec:exp_comparison_with_baselines}). 
+
+Our experiments (see \secrefcustom{sec:exp_comparison_with_baselines}) reveal that in fact all assessed image-to-video methods produce video stagnation or strong quality degradation when applied autoregressively by conditioning on the last frame of the preceding chunk. 
+%Moreover, we observed that  all image-to-video methods that we evaluated in our experiments (see \secrefcustom{sec:exp_comparison_with_baselines}) lead eventually to video stagnation,  when applied autoregressively by conditioning on the last frame of the previous chunk. 
+
+To overcome the weaknesses of current works, we propose \textbf{\textit{StreamingT2V}}, an autoregressive text-to-video method equipped with long/short-term memory blocks that  generates long videos without temporal inconsistencies.
+
+To this end, we propose the \textbf{\textit{Conditional Attention Module (CAM)}} which, due to its attentional nature, effectively borrows the content information from the previous frames to generate new ones, while not restricting their motion by the previous structures/shapes.
+Thanks to CAM, our results are smooth and with artifact-free video chunk transitions. 
+
+Current methods not only exhibit temporal inconsistencies and video stagnation, but also experience alterations in object appearance/characteristics (see \eg SEINE \cite{chen2023seine} in 
+%% EXTERNAL REFERENCE ATTENTION
+% \figrefcustom{appendix:fig:testset-compare-2})
+Fig. \textcolor{linkblue}{A.4})
+and a decline in video quality over time (see \eg SVD \cite{SVD} in \figrefcustom{fig:comparison-to-sota}).
+This occurs as  only the last frame(s) of the preceding chunk are considered, thus overlooking long-term dependencies in the autoregressive process. 
+%
+%The reason is that, due to conditioning only on the last frame(s) of the previous chunk, they overlook the long-term dependencies of the autoregressive process. 
+To address this issue we design an \textbf{\textit{Appearance Preservation Module (APM)}} that extracts object and global scene details from an initial image, to condition the video generation with that information, ensuring consistency in object and scene features  throughout the autoregressive process.   
+
+To further enhance the quality and resolution of our long video generation, we adapt a video enhancement model for autoregressive generation.
+To this end, we apply the SDEdit \cite{meng2021sdedit} approach on a high-resolution text-to-video model and  enhance consecutive 24-frame chunks (overlapping with 8 frames) of our video.
+To make the chunk enhancement transitions smooth, we design a \textbf{\textit{randomized blending}} approach for seamless merging of overlapping chunks.
+
+Experiments show that StreamingT2V generates long and temporal consistent videos from text without video stagnation. 
+To summarize, our contributions are three-fold:
+\begin{itemize}
+    \item We introduce \textbf{\textit{StreamingT2V}}, an autoregressive approach for seamless synthesis of extended video content 
+    using short and long-term dependencies. 
+    \item Our \textbf{\textit{Conditional Attention Module (CAM)}} and \textbf{\textit{Appearance Preservation Module (APM)}} ensure the natural continuity of the global scene and object characteristics of generated videos.
+    \item We seamlessly enhance generated long videos by introducing our \textbf{\textit{randomized blending approach}} of consecutive overlapping chunks.
+\end{itemize}

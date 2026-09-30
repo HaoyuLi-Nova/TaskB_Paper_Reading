@@ -1,0 +1,161 @@
+\section{Method}
+\label{sec:method}
+Illustrated in Fig. \ref{fig:framework}, StableAvatar is based on the commonly used Wan2.1~\cite{wan2025} following previous works~\cite{wang2025fantasytalking, kong2025let, gan2025omniavatar}.
+The audio is first fed to Wav2Vec~\cite{baevski2020wav2vec} to gain audio embeddings, which are subsequently refined for reducing latent distribution error accumulation via our Audio Adapter.
+The refined audio embeddings are then fed to the denoising DiT.
+More details are described in Sec. \ref{sec: audio_adapter}.
+Following~\cite{wan2025}, a reference image is processed through the diffusion model via two pathways: 
+(1) Concatenated with zero-filled frames along the temporal axis and transformed into a latent code by a frozen 3D VAE Encoder~\cite{wan2025}. The latent code is further concatenated with compressed video frames and binary masks (the first frame is 1 and all subsequent frames are 0) in the channel axis.
+(2) Encoded by the CLIP Image Encoder~\cite{radford2021learning} to obtain image embeddings, which are fed to each image-audio cross-attention block of a denoising DiT, to modulate the synthesized appearance. 
+
+We replace the original input video frames with random noise during inference, while the other inputs stay the same. 
+We propose a novel Audio Native Guidance to replace conventional CFG~\cite{ho2022classifier} for further facilitating lip synchronization and facial expression, as detailed in Sec. \ref{sec: inner_guidance}.
+We introduce a dynamic weighted sliding-window denoising strategy that fuses latent over time to enhance the video smoothness during long video generation, as detailed in Sec. \ref{sec: sliding_window}.
+
+\subsection{Timestep-aware Audio Adapter}
+\label{sec: audio_adapter}
+Our goal is to generate infinite-length avatar videos under the guidance of the audio while preserving the content consistency.
+Previous works~\cite{cui2025hallo3, wang2025fantasytalking, gan2025omniavatar, chen2025hunyuanvideo, kong2025let, ji2025sonic, meng2025echomimicv2} exhibit significant face and body distortions, along with color drift, in avatar videos longer than 15 seconds. This issue is attributed to their audio modeling, which directly injects the third-party off-the-shelf audio embeddings~\cite{baevski2020wav2vec} into diffusion models via cross-attention.
+Current diffusion backbones~\cite{blattmann2023stable, wan2025, kong2024hunyuanvideo} lack audio-related priors, causing significant latent distribution errors to accumulate across video clips when injecting audio embeddings into the diffusion. This results in the latent distribution of subsequent segments gradually drifting away from the optimal distribution. To address this, we propose a novel Timestep-aware Audio Adapter, in which the audio embeddings go through multiple affine modulations and cross-attention blocks to interact with timestep embeddings and latents as shown in Fig. \ref{fig:framework}.
+
+Concretely, following~\cite{tian2024emo, kong2025let}, we first use Wav2Vec~\cite{baevski2020wav2vec} to extract the raw audio embeddings $\bm{a}$. As the current state is influenced by preceding and succeeding audio frames, we then concatenate them proximal to the current frames, gaining audio embeddings $\bm{emb}_{aud}$:
+\begin{equation}\small
+\label{eq:audio_embeddings}
+\begin{aligned}
+     \bm{emb}_{aud}^{i}=\mathtt{Concat}(\bm{a}^{i-k},..., \bm{a}^{i},...,\bm{a}^{i+k}),
+\end{aligned}
+\end{equation}
+where $2k+1$ is the context length. We further feed $\bm{emb}_{aud}$ to our Audio Adapter for addressing the error accumulation issue. Given a timestep, following~\cite{wan2025}, the DiT uses two successive MLP layers to obtain overall timestep embeddings $\bm{e}\in{\cal{R}}^{1 \times D}$ and projected timestep embeddings $\bm{e0}\in{\cal{R}}^{6 \times D}$. $D$ refers to the latent dimension. 
+In diffusion pretraining, latents are tightly coupled with the timestep embeddings. Each timestep embedding corresponds to a distinct latent distribution, revealing a strong correlation between the latents and the timestep embeddings.
+Due to this strong correlation, applying timestep-aware affine modulations to $\bm{emb}_{aud}$ can implicitly bridge the joint relationship between $\bm{emb}_{aud}$ and latents $\bm{z}_{i}$, enabling the diffusion model to more effectively capture joint audio-latent features, thereby overcoming the scarcity of audio priors. The modulations (scale and shift) are the same as those in the DiT for domain consistency:
+\begin{equation}\small
+\label{eq:audio_embeddings}
+\begin{aligned}
+     \bm{emb}_{aud}^{\lambda}&=\mathtt{LN}(\mathtt{MLP}(\bm{emb}_{aud}), \\
+     \bm{emb}_{aud}^{\gamma}&=\bm{e0}[2]*(\bm{emb}_{aud}^{\lambda}*(1+\bm{e0}[1])+\bm{e0}[0])+\bm{emb}_{aud}^{\lambda},
+\end{aligned}
+\end{equation}
+where $\mathtt{LN}(\cdot)$ is Layer Norm. $\mathtt{MLP}(\cdot)$ aims to project $\bm{emb}_{aud}$ onto the latent dimension. To further explicitly enhance joint audio-latent modeling, we perform cross-attention between $\bm{emb}_{aud}^{\gamma}$ (Query) and $\bm{z}_{t}$ (Key and Value), with the outputs modulated by $\bm{e0}$ as follows:
+\begin{equation}\small
+\label{eq:modulation}
+\begin{aligned}
+     \bm{emb}_{aud}^{'}&=\mathtt{CAttn}(\mathtt{LN}(\bm{emb}_{aud}^{\gamma}), \bm{z}_{t})+\mathtt{LN}(\bm{emb}_{aud}^{\gamma}), \\
+     \bm{emb}_{aud}^{\eta}&=\mathtt{MLP}(\mathtt{LN}(\bm{emb}_{aud}^{'})*(1+\bm{e0}[4])+\bm{e0}[3]), \\
+     \bm{emb}_{aud}^{*}&=\bm{emb}_{aud}^{'}+\bm{e0}[5]*\bm{emb}_{aud}^{\eta},
+\end{aligned}
+\end{equation}
+where $\mathtt{CAttn}(\bm{x}, \bm{y})$ refers to cross-attention operation, in which $\bm{x}$ is the Query and $\bm{y}$ is the Value and Key. 
+To more comprehensively establish the joint relationship between latents and audio representations, $\bm{emb}_{aud}^{*}$ is modulated by $\bm{e}$ to gain the refined audio embeddings $\bar{\bm{a}}_{t}$:
+\begin{equation}\small
+\label{eq:final_modulation}
+\begin{aligned}
+     \bm{e}&=\mathtt{Repeat}(\bm{e})+\bm{r}, \\
+     \bar{\bm{a}}_{t}&=\mathtt{MLP}(\bm{emb}_{aud}^{*}*(1+\bm{e}[1])+\bm{e}[0]),
+\end{aligned}
+\end{equation}
+where $\mathtt{Repeat}(\cdot)$ and $\bm{r}$ refer to duplicating along the channel dimension twice and learnable parameters.
+We ultimately inject $\bar{\bm{a}}_{t}$ into the DiT via cross attention:
+\begin{equation}\small
+\label{eq:injection}
+\begin{aligned}
+     \bar{\bm{z}}_{t}&=\mathtt{CAttn}(\bm{z}_{t}, \bar{\bm{a}}_{t})+\mathtt{CAttn}(\bm{z}_{t},\bm{emb}_{img}),
+\end{aligned}
+\end{equation}
+where $\bm{emb}_{img}$ refers to the image embeddings.
+
+\subsection{Audio Native Guidance}
+\label{sec: inner_guidance}
+To further enhance audio synchronization and facial expression, we propose a novel Audio Native Guidance mechanism to replace the conventional CFG~\cite{ho2022classifier}, which does not take joint audio-latent relationship into consideration.
+We modify the denoising score function~\cite{song2020score} to steer the denoising process forward in a way that maximizes both audio synchronization and naturalness.
+In particular, according to our Audio Adapter, $\bar{\bm{a}}_{t}$ depends on the latents and the given audio. Thus, we treat $\bar{\bm{a}}_{t}$ as an additional prediction of the DiT, guiding the diffusion model to capture the joint audio-latent distribution, conditioned on the external signal and model parameters. The denoising process is given by:
+\begin{equation}\small 
+\label{eq:sampling}
+\begin{aligned}
+     \bar{\bm{p}}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}] | \bm{A})\propto\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}] | \bm{A})\bm{p}_{\theta}(\bm{A}|[\bm{z}_{t}, \bar{\bm{a}}_{t}])^{\alpha}\bm{p}_{\theta}(\bar{\bm{a}}_{t}|\bm{z}_{t}, \bm{A})^{\beta},
+\end{aligned}
+\end{equation}
+where $\bar{\bm{p}}_{\theta}(\cdot)$, $\bm{p}_{\theta}(\cdot)$, and $\bm{A}$ refer to the modified sampling process, original sampling process, and audio. 
+$\alpha$ and $\beta$ are guidance scales.
+Following Bayes’ Theorem, we obtain:
+\begin{equation}\small 
+\label{eq:bayes}
+\begin{aligned}
+     &\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}] | \bm{A})(\frac{\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}],\bm{A})}{\bm{p}_{\theta}(\bm{z}_{t}, \bar{\bm{a}}_{t})})^{\alpha}(\frac{\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}],\bm{A})}{\bm{p}_{\theta}(\bm{z}_{t}, \bm{A})})^{\beta} \\
+     \rightarrow&\quad \bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}] | \bm{A})(\frac{\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}]|\bm{A})\bm{p}_{\theta}(\bm{A})}{\bm{p}_{\theta}(\bm{z}_{t}, \bar{\bm{a}}_{t})})^{\alpha}(\frac{\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}]|\bm{A})}{\bm{p}_{\theta}(\bm{z}_{t}|\bm{A})})^{\beta}.
+\end{aligned}
+\end{equation}
+As $\bm{p}_{\theta}(\bm{A})$ is a constant probability, we remove it as follows:
+\begin{equation}\small 
+\label{eq:constant}
+\begin{aligned}
+     \bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}] | \bm{A})(\frac{\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}]|\bm{A})}{\bm{p}_{\theta}(\bm{z}_{t}, \bar{\bm{a}}_{t})})^{\alpha}(\frac{\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}]|\bm{A})}{\bm{p}_{\theta}(\bm{z}_{t}|\bm{A})})^{\beta}.
+\end{aligned}
+\end{equation}
+We further convert Eq. \ref{eq:constant} to the score function format:
+\begin{equation}\small 
+\label{eq:score_function}
+\begin{aligned}
+     &(1+\alpha+\beta)\nabla_{\theta}\log\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}]|\bm{A}) \\
+     &-\alpha\nabla_{\theta}\log\bm{p}_{\theta}([\bm{z}_{t}, \bar{\bm{a}}_{t}])-\beta\nabla_{\theta}\log\bm{p}_{\theta}(\bm{z}_{t}|\bm{A}).
+\end{aligned}
+\end{equation}
+Thus, the inference formulation can be described as:
+\begin{equation}\small 
+\label{eq:inference}
+\begin{aligned}
+     &(1+\alpha+\beta)\bm{D}([\bm{z}_{t}, \bar{\bm{a}}_{t}],\bm{y}, \bm{I}, \bm{A};\theta) \\
+     &-\alpha\bm{D}([\bm{z}_{t}, \bar{\bm{a}}_{t}],\bm{y}, \bm{I}, \emptyset;\theta)-\beta\bm{D}([\bm{z}_{t}, \emptyset], \bm{y}, \bm{I}, \bm{A};\theta),
+\end{aligned}
+\end{equation}
+where $\bm{D}(\cdot)$, $\bm{y}$, and $\bm{I}$ refer to the diffusion model, text prompt, and reference image. Notably, $\bm{I}$ and $\bm{y}$ are not guidance factors, as we find that incorporating $\bm{I}$ and $\bm{y}$ into the guidance substantially increases GPU resource consumption and does not significantly improve visual quality.
+The Audio Native Guidance mechanism regards $\bar{\bm{a}}_{t}$ as an additional prediction target for the diffusion model, allowing the model to be guided by the joint audio-latent distribution, thereby ensuring that audio and latents are strongly correlated during the denoising process. It significantly reduces distribution error accumulation in audio-driven video generation, even when the base model lacks audio priors.
+
+\begin{algorithm}[t!]
+\caption{Dynamic Weighted Sliding-Window Strategy}
+\label{alg:sliding_window}
+\begin{algorithmic}[1]
+\small 
+\State \textbf{Input:} {$\bm{emb}_{aud}^{[0,L]}$, $T$, $\bm{z}_{T}^{[0,L]}$, $\bm{D}(\cdot)$, $l~(l<L)$, $m$, $\bm{y}$, $\bm{I}$} 
+    \State \textbf{for} $t \in \{T, \ldots, 1\}$ \textbf{do} \hfill $\triangleright$ $T$ is denoising steps
+        \State \hspace{0.5em} $\text{start index }s=0$ \hfill $\triangleright$ $m$ is overlap length between windows
+        \State \hspace{0.5em} $\text{end index }e=s+l$ \hfill $\triangleright$ $l$ is video clip/window length
+        \State \hspace{0.5em} $\text{previous end index }e_{prev}=e$ \hfill $\triangleright$ $\bm{z}_{T}^{[0,L]}$ are noised latents
+        \State \hspace{0.5em} \textbf{while} $e\le L$ \textbf{do} \hfill $\triangleright$ $\bm{I}$ is the reference image
+        \State \hspace{1.2em} $\bm{z}_{t-1}^{[s, e]}=\bm{D}(\bm{z}_{t}^{[s, e]},\bm{emb}_{aud}^{[s, e]},t,\bm{y},\bm{I})$ \hfill $\triangleright$ $\bm{y}$ is the text
+        \State \hspace{1.2em} \textbf{if} $s\ne0$ and $t \ne T$: \hfill $\triangleright$ $\mathtt{log1p}(x)$ is $\log(x+1)$
+        \State \hspace{1.8em} $\bm{w}=\mathtt{np.linspace}(0,1,\text{num\_samples=}m)$
+        \State \hspace{1.8em} $\bm{w}=\mathtt{np.log1p}(\bm{w} * (\mathtt{np.exp}(1) - 1))$
+        \State \hspace{1.8em} $\bm{w}=\frac{\bm{w}-\mathtt{min}(\bm{w})}{\mathtt{max}(\bm{w})-\mathtt{min}(\bm{w})}$
+        \State \hspace{1.8em} $\bm{z}_{t-1}^{[s,s+m]}=\bm{w}*\bm{z}_{t-1}^{[s,s+m]}+(1-\bm{w})*\bm{z}_{t-1}^{[e_{prev}-m,e_{prev}]}$
+        \State \hspace{1.2em}  \textbf{if} $e<L$: \hfill $\triangleright$ \text{It's for the edge case of the final clip}
+        \State \hspace{1.8em} $e_{prev}=e, s=s+(l-m)$
+        \State \hspace{1.8em}  $e=\mathtt{min}(s+l, L)$
+        \State \hspace{1.2em}  \textbf{else}: \textbf{break}
+    \State \textbf{return} $\bm{z}_{0}^{[0,L]}$
+\end{algorithmic}
+\vspace{-0.1cm}
+\end{algorithm}
+
+\subsection{Dynamic Weighted Sliding-Window Strategy}
+\label{sec: sliding_window}
+To improve the smoothness of synthesized long avatar videos, we further propose a Dynamic Weighted Sliding-Window Strategy (DWSW) during inference.
+Compared with the previous sling-window denoising strategy~\cite{ji2025sonic},  overlapping latents between adjacent windows are fused using a sliding window mechanism, where the fusion weights follow a logarithmic interpolation based on the relative frame indices, as described in the Algorithm \ref{alg:sliding_window} and Fig. \ref{fig:sliding_window}.
+$L$ is the VAE-compressed total video length.
+The fused latents are injected back into both adjacent windows, ensuring that both boundaries of the central window consist of blended features. Leveraging a logarithmic weighting function introduces a progressive smoothing effect in the transitions between video clips. Early stages experience a more pronounced weight variation, while later stages exhibit subtle shifts, resulting in seamless continuity across video clips.
+
+\subsection{Training}
+\label{sec: training}
+We use the reconstruction loss to train our model, with trainable components including attention modules of a Dit and an Audio Adapter.
+We introduce face masks $\bm{M}_{face}$ and lip masks $\bm{M}_{lip}$, extracted by Mediapipe~\cite{lugaresi2019mediapipe} from the input video frames to enhance the modeling of face regions:
+\begin{equation}\small
+\label{eq:loss}
+\begin{aligned}
+     \mathcal{L}=\begin{cases}
+  \mathbb{E}_{\theta}(\left \| (\bm{z}_{gt}-\bm{z}_{\theta})\odot  \bm{M}_{face}  \right \|^{2}) ,~~~0.4\le\bm{q}<0.5& \\
+  \mathbb{E}_{\theta}(\left \| (\bm{z}_{gt}-\bm{z}_{\theta})\odot  \bm{M}_{lip}  \right \|^{2}) ,~~~~~~~\bm{q}\ge0.5&  \\
+  \mathbb{E}_{\theta}(\left \| (\bm{z}_{gt}-\bm{z}_{\theta})\odot  (1+\bm{M}_{face}+\bm{M}_{lip})  \right \|^{2}) , \text{otherwise}& 
+\end{cases}
+\end{aligned}
+\end{equation}
+where $\bm{z}_{gt}$ and $\bm{z}_{\varepsilon}$ refer to diffusion latents and denoised latents, respectively. $\bm{q}$ is a random variable uniformly distributed over the interval $[0, 1]$.
+This piecewise objective separately supervises lip synchronization and facial expression, enabling more targeted learning.

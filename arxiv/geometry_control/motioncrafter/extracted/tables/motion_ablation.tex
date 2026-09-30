@@ -1,0 +1,31 @@
+\begin{table}[t]
+\centering
+% \renewcommand{\arraystretch}{1.1}
+\caption{\textbf{Ablation study on motion VAE}.
+Comparison of different designs across three dynamic scene flow datasets.
+Again, we report results on both VAE and U-Net.
+}
+\label{tab:ablation_motion}
+\vspace{-0.5em}
+\begin{adjustbox}{width=\linewidth}
+\begin{tabular}{@{}l c cc cc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & 
+\multirow{2}{*}{\textbf{Fusion Type}} & 
+\multicolumn{2}{c}{\textbf{Spring}~\cite{Mehl2023_Spring}} &
+\multicolumn{2}{c}{\textbf{Point Odyssey}~\cite{zheng2023pointodyssey}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6}
+ &  & EPE & APD$_{0.03}\uparrow$ & EPE & APD$_{0.03}\uparrow$ \\
+\midrule
+VAE - 5 & Original &  6.43 & 50.49 & 1.55 & 91.68 \\
+VAE - 6 & Offset &  1.83 & 83.51 & 2.00 & 86.66 \\
+VAE - 7 & Separate &  \textbf{0.66} & \textbf{96.75} & \textbf{0.77} & \textbf{94.74} \\
+VAE - 8 & Unify &  0.88 & 94.78 & \textbf{0.77} & 94.19 \\
+\midrule
+Unet -III & Separate & 6.37 & 65.94 & 3.65 & 63.19 \\
+Unet - IV & Unify & \textbf{5.16} & \textbf{72.81} & \textbf{3.49} & \textbf{66.36} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\vspace{-0.5em}
+\end{table}

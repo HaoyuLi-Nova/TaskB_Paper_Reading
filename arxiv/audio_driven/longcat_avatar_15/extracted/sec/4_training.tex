@@ -1,0 +1,86 @@
+\section{Training}
+
+The training pipeline of LongCat-Video-Avatar 1.5 consists of three 
+progressive stages: Base Model Training, RLHF Training, 
+and Acceleration Training.  
+The first stage establishes the foundational capability of audio-driven 
+avatar generation. The model is trained to synthesize temporally coherent 
+and identity-preserving video conditioned on speech signals. 
+The second stage leverages Reinforcement Learning from Human Feedback 
+(RLHF)~\cite{ouyang2022training}, specifically employing Group Relative 
+Policy Optimization (GRPO)~\cite{shao2024deepseekmath} to align the 
+model's outputs with human preferences. This stage improves perceptual 
+quality, expressiveness, and overall generation fidelity beyond what 
+supervised training alone can achieve, ensuring that synthesized avatars 
+are more natural and visually appealing to human observers.
+The third stage focuses on optimizing inference efficiency. Through 
+dedicated acceleration training, the model achieves high-quality avatar 
+video synthesis at significantly reduced computational cost, enabling 
+practical deployment without sacrificing generation quality.
+
+\noindent\textbf{Base Model Training.}
+We adopt the flow matching framework~\cite{lipman2022flow} for the 
+generative process. Given a clean video latent $x_0$, a noise 
+sample $\epsilon \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, 
+and a timestep $t \in [0, 1]$, the noisy latent $x_t$ is 
+constructed via linear interpolation:
+\begin{equation}
+    x_t = (1 - t) \cdot x_0 + t \cdot \epsilon.
+    \label{eq:xt}
+\end{equation}
+The network is trained to predict the velocity 
+$v_{\text{pred}}(x_t, c, t; \theta)$, 
+where $c$ denotes the task conditions (\emph{e.g.}, text prompts, audios  
+and conditional image/video latents), and $\theta$ denotes
+the model parameters. The training objective minimizes MSE against
+ ground truth velocity $v_t = x_0 - \epsilon$:
+\begin{equation}
+    \mathcal{L} = \mathbb{E}_{\epsilon, x_0, c, t}
+    \left\| v_{\text{pred}}(x_t, c, t; 
+    \theta) - v_t \right\|^2.
+    \label{eq:loss}
+\end{equation}
+The base model training consists of multiple progressive stages,  as
+outlined in Table~\ref{tab:training_stages}. the training begins with low-resolution pretraining, where the model 
+learns the fundamental correspondence between speech signals and facial 
+dynamics at a coarse spatial scale, establishing the core audio-driven 
+generation capability.
+Once the model demonstrates stable audio-driven capability, the training 
+transitions to a high-resolution stage, enabling the model to synthesize 
+fine-grained visual details and produce high-fidelity avatar videos with 
+improved spatial quality.
+A reference image module is subsequently introduced into the training 
+pipeline, allowing the model to incorporate identity and appearance 
+information from a given reference image. This stage equips the model 
+with the ability to generate identity-preserving avatars conditioned on 
+arbitrary reference inputs.
+Finally, the model is trained on a large-scale multi-person dialogue 
+dataset, extending its capability to handle multi-person conversational 
+scenarios where multiple identities interact in a coherent and temporally 
+consistent manner.
+
+
+
+
+
+\noindent\textbf{RLHF Training.}
+Following the base model training, we further improve the model 
+performance through a post-training stage. Specifically, we adopt 
+the GRPO method described in Section~\ref{sec:grpo}, incorporating 
+multiple video quality-related reward signals to guide the optimization process.
+We adopt most training hyperparameters and optimization settings from LongCat-Video~\cite{team2025longcat}. For the proposed multi-clip extension, we set the maximum rollout length to 5 clips and randomly sample the actual number of sequential clips during training. To keep training tractable, only the final clip contributes to GRPO optimization, while earlier clips are used solely as temporal context for subsequent rollout. For image-to-video, and video-continuation tasks, we further perform a first-frame hand-presence check with MediaPipe hand detection, which increases the proportion of hand-relevant training samples.
+
+
+
+
+\noindent\textbf{Acceleration Training.}
+We adopt the method described in Section~\ref{sec:fsg} for model distillation, 
+enabling the distilled model to achieve generation quality comparable 
+to 50-step inference using only 8 steps. During this stage, we observe 
+that prolonged training leads to a noticeable degradation in visual 
+realism. Therefore, we train the model for 400 steps, at which 
+point the model achieves the best generation fidelity before 
+quality decline sets in. Specifically, the generator learning rate is 
+set to $2 \times 10^{-5}$, the fake score learning rate is set to 
+$4 \times 10^{-6}$, and the update ratio between the generator and 
+the fake scorer is set to $1\!:\!5$.

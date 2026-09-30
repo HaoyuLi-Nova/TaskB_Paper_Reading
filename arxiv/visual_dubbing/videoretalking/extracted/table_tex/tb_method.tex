@@ -1,0 +1,24 @@
+\begin{table*}[!htb]
+\centering
+\caption{Quantitative results on LRS2 and HDTF datasets.}
+\setlength{\abovecaptionskip}{0.1cm}
+\vspace{-1em}
+\label{tab:quantitative}
+\begin{tabular}{l |cccc c cccc}
+\toprule
+\multirow{3}{*}{}  & \multicolumn{4}{c}{LRS2 Dataset} & & \multicolumn{4}{c}{HDTF Dataset} \\
+\cline{2-5} \cline{7-10}
+& \multicolumn{2}{c}{Visual Quality} & \multicolumn{2}{c}{Lip-Sync} &  & \multicolumn{2}{c}{Visual Quality} & \multicolumn{2}{c}{Lip-Sync} \\
+ & FID & CPBD$\uparrow$ & LSE-D & LSE-C$\uparrow$ &  & FID & CPBD$\uparrow$ & LSE-D & LSE-C$\uparrow$ \\
+\hline
+LipGAN~\cite{lipgan} &       5.168 & 0.2615 & 9.609 & 3.062 & & 7.684 & 0.2754  & 9.943 & 4.052 \\
+Wav2Lip w/o GAN~\cite{wav2lip} &     5.069 & 0.2607 & 7.116 & 6.889 & & 7.358 & 0.2764 & \textbf{8.689} & \textbf{5.427} \\
+Wav2Lip~\cite{wav2lip} &  \textbf{3.911} & 0.2714 & 7.191 & 6.870 & & 5.632 & 0.2763 & 8.895  & 5.228 \\
+%PC-AVS~(One-Shot)~\cite{pc-avs}  &      15.678& 0.2276 & 7.086 & 6.878 & &-&-&-&- \\
+PC-AVS~\cite{pc-avs} &       12.800& 0.2085 & 7.666 & 5.974 & &-&-&-&- \\
+% Wav2Lip~(Ours run) &         4.966 & 0.2560 & 7.422 & 6.214 & & 23.128 & 0.2725  & 9.818  & 4.177 \\
+Ours &                       5.193 & \textbf{0.2809} & \textbf{6.519} & \textbf{7.089} & & \textbf{4.504} & \textbf{0.2903} & 9.359  & 4.518 \\
+\bottomrule
+\end{tabular}
+\vspace{-1em}
+\end{table*}

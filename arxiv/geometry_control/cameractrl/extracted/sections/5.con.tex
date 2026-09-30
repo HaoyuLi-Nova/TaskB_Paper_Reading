@@ -1,0 +1,23 @@
+\section{Discussion}\label{sec:conclusion}
+
+In this work, we present \method, a method that addresses the limitations of existing models in precise camera control for video generation. 
+%
+By learning a plug-and-play camera control module, \method enables accurate control over camera viewpoints. 
+%
+Plücker embeddings are adopted as the primary representation of camera parameters, providing a comprehensive description of camera pose information by encoding geometric interpretations. 
+%
+Through a comprehensive study on training data, it is found that using data with similar appearance to the base model and diverse camera pose distributions, such as RealEstate10K, achieves the best trade-off between generalizability and controllability.
+%
+Experimental results demonstrate the effectiveness of \method. 
+
+\noindent \textbf{Ethics Statement.}
+\method enhances video generation technology by providing precise control over camera viewpoints, significantly improving the realism and interactivity of many applications.
+%
+Conversely, \method could raise some ethical concerns, particularly in the realms of privacy and the potential for creating some misleading contents. 
+%
+There is a critical need for ethical oversight and more advanced deepfake detectors to manage these risks and ensure the proper usage of \method. 
+
+\noindent \textbf{Reproducibility Statement.}
+We provide detailed implementation of our training method in the main text~\cref{subsec:implementation} and~\cref{suppsubsec:train_detail}. 
+%
+We also provide the model architecture of camera encoder in~\cref{suppsubsec:camera_encoder_arch}. 

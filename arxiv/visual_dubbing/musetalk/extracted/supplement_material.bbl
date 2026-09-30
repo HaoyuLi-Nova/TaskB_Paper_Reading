@@ -1,0 +1,48 @@
+\begin{thebibliography}{8}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Arjovsky et~al.(2017)Arjovsky, Chintala, and Bottou]{arjovsky2017wasserstein}
+Martin Arjovsky, Soumith Chintala, and L{\'e}on Bottou.
+\newblock Wasserstein generative adversarial networks.
+\newblock In \emph{International conference on machine learning}, pages 214--223. PMLR, 2017.
+
+\bibitem[Li et~al.(2024)Li, Zhang, Xu, Xie, Feng, Peng, and Xing]{li2024latentsync}
+Chunyu Li, Chao Zhang, Weikai Xu, Jinghui Xie, Weiguo Feng, Bingyue Peng, and Weiwei Xing.
+\newblock Latentsync: Audio conditioned latent diffusion models for lip sync.
+\newblock \emph{arXiv preprint arXiv:2412.09262}, 2024.
+
+\bibitem[Peng et~al.(2024)Peng, Hu, Shi, Zhu, Zhang, Zhao, He, Liu, and Fan]{peng2024synctalk}
+Ziqiao Peng, Wentao Hu, Yue Shi, Xiangyu Zhu, Xiaomei Zhang, Hao Zhao, Jun He, Hongyan Liu, and Zhaoxin Fan.
+\newblock Synctalk: The devil is in the synchronization for talking head synthesis.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 666--676, 2024.
+
+\bibitem[Prajwal et~al.(2020)Prajwal, Mukhopadhyay, Namboodiri, and Jawahar]{prajwal2020lip}
+KR Prajwal, Rudrabha Mukhopadhyay, Vinay~P Namboodiri, and CV Jawahar.
+\newblock A lip sync expert is all you need for speech to lip generation in the wild.
+\newblock In \emph{Proceedings of the 28th ACM international conference on multimedia}, pages 484--492, 2020.
+
+\bibitem[Tian et~al.(2024)Tian, Wang, Zhang, and Bo]{tian2024emo}
+Linrui Tian, Qi Wang, Bang Zhang, and Liefeng Bo.
+\newblock Emo: Emote portrait alive generating expressive portrait videos with audio2video diffusion model under weak conditions.
+\newblock In \emph{European Conference on Computer Vision}, pages 244--260. Springer, 2024.
+
+\bibitem[Wang et~al.(2021)Wang, Li, Zhang, and Shan]{wang2021towards}
+Xintao Wang, Yu Li, Honglun Zhang, and Ying Shan.
+\newblock Towards real-world blind face restoration with generative facial prior.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}, pages 9168--9178, 2021.
+
+\bibitem[Xie et~al.(2022)Xie, Wang, Zhang, Dong, and Shan]{xie2022vfhq}
+Liangbin Xie, Xintao Wang, Honglun Zhang, Chao Dong, and Ying Shan.
+\newblock Vfhq: A high-quality dataset and benchmark for video face super-resolution.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}, pages 657--666, 2022.
+
+\bibitem[Zhang et~al.(2021)Zhang, Li, Ding, and Fan]{zhang2021flow}
+Zhimeng Zhang, Lincheng Li, Yu Ding, and Changjie Fan.
+\newblock Flow-guided one-shot talking face generation with a high-resolution audio-visual dataset.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}, pages 3661--3670, 2021.
+
+\end{thebibliography}

@@ -1,0 +1,28 @@
+\begin{table}[h]
+% \vspace{-1em}
+\centering
+\caption{
+\textbf{Ablation on different training paradigm.}
+}
+\label{tab:diffusion_vs_determ}
+% \vspace{-0.5em}
+\begin{adjustbox}{width=\linewidth}
+\begin{tabular}{@{}l cc cc cc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Training Type}} & 
+\multicolumn{2}{c}{\textbf{Monkaa}} &
+\multicolumn{2}{c}{\textbf{Sintel}} &
+\multicolumn{2}{c}{\textbf{DDAD}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& 
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ \\
+\midrule
+Diffusion &  {30.11} & {65.49} & {35.95} & {53.82} & 24.58 & 67.54 \\
+Deterministic &  \textbf{25.88} & \textbf{74.01} & \textbf{32.46} & \textbf{63.14} & \textbf{21.27} & \textbf{72.82} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+% \vspace{-1em}
+\end{table}

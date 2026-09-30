@@ -1,0 +1,11 @@
+\section{Related Work}
+\label{sec:related_work}
+
+
+\textbf{Dataset with Motion Annotations.}~Most datasets~\cite{MotionCtrl,DragNUWA} focus on operation within the image space.~However, camera and object motions are coupled in this space, while limiting the movement scope. On the other hand, only a few real datasets~\cite{Direct-A-Video,RealEstate-10K,MVImageNet} provide camera pose, and these primarily focus on static scenes without dynamic objects. Some synthetic datasets~\cite{SynBody,BEDLAM,WHAC,HumanVid} provide pose annotations for both objects and camera, yet their 3D assets are predominantly human-centric, limiting category diversity. More discussions are in Sec~\ref{sec:dataset3.1}.
+
+
+
+\noindent\textbf{Motion Control Methods.}
+Most existing works \cite{CameraCtrl,PEEKABOO,CamCo,Tora,3DTrajMaster} can only control either object motion or viewpoint change. For methods that support manipulation of both the camera and objects, Direct-a-Video~\cite{Direct-A-Video} can only simulate basic movements and simultaneous control in MotionCtrl~\cite{MotionCtrl} often results in suboptimal outcomes as noted in its study~\cite{MotionCtrl}. More discussions are in \cref{sec:approach}.
+

@@ -1,0 +1,71 @@
+\subsection{Inference}
+\label{sec:inference_1}
+
+The primary objective of inference optimization is to minimize the latency of video generation. Unlike training, the inference process involves multiple sampling steps, typically around 50. Accordingly, we employ techniques such as quantization and distributed computing to reduce the time required for each individual step. Additionally, we leverage the attention similarities between steps to decrease the overall computational load. Furthermore, for classifier-free guidance (CFG)~\citep{ho2022classifierfreediffusionguidance}, we exploit its inherent similarities to further minimize computational requirements.
+
+
+\subsubsection{Parallel Strategy}
+
+
+\begin{wrapfigure}{r}{0.5\linewidth}
+    \vspace{-1.2em}
+    \includegraphics[width=0.3\textheight]{figures/infra/scaling.png}
+    \vspace{-0.4em}
+    \caption{Scaling inference via multiple GPUs.}
+    \label{fig:scaling}
+    \vspace{-0.4em}
+\end{wrapfigure}
+%
+As discussed in Sec.~\ref{4d_parallel}, we utilize Context Parallel to reduce the latency of generating a single video when scaling to multiple GPUs. Additionally, for large models like \method 14B, we adopt model sharding to mitigate GPU memory constraints.
+%
+\emph{Model Sharding Strategy}:  Given the long sequence lengths during inference, FSDP incurs less communication overhead compared to TP and allows for computation overlap. Therefore, we adopt the FSDP method for model sharding, consistent with our training approach.
+%
+\emph{Context Parallel Strategy}: We employ the same 2D Context Parallelism as that in the training stage, with RingAttention serving as the outer loop and Ulysses operating as the inner loop. Equipped with 2D Context Parallel and FSDP parallel strategy, DiT achieves nearly linear speedup on the \method 14B model, as shown in the Fig.~\ref{fig:scaling}.
+
+
+\subsubsection{Diffusion Cache}
+We conduct a thorough analysis of the \method model and identify the following characteristics in its inference process:
+\begin{itemize}
+    \item Attention similarity: Within the same DiT block, attention outputs across different sampling steps exhibit significant similarity.
+    \item CFG similarity: In the later stages of sampling, there is a notable similarity between conditional and unconditional DiT outputs.
+\end{itemize}
+
+These findings are also highlighted in recent works, such as DiTFastAttn~\citep{yuan2024ditfastattn} and FasterCache~\citep{lv2024fastercache}.
+We leverage these characteristics to implement diffusion caching to reduce the computational workload.
+In practice, we tailor the diffusion cache to the \method model to ensure lossless performance. Specifically, we use the validation set to select certain steps for caching:
+\begin{itemize}
+    \item Attention cache: For the attention component, we perform an attention forward pass every few steps and cache the results, reusing the cached results for the other steps.
+    \item CFG cache: For the unconditional part, we perform a DiT forward pass every few steps and reuse the conditional results for the other steps. Additionally, we apply residual compensation methods similar to FasterCache to prevent the degradation of fine details.
+\end{itemize}
+After applying diffusion caching to the \method 14B text-to-video model, we have improved the inference performance by 1.62×.
+
+
+
+
+\subsubsection{Quantization}
+
+\noindent\textbf{FP8 GEMM.} We found that using FP8 precision for the GEMM operations, combined with per-tensor quantization on the weights and per-token quantization on the activations in the sampling steps, incurs minimal performance loss. Thus we apply FP8 quantization to all GEMM operations in the DiT block.
+The FP8 GEMM delivers twice the performance of BF16 GEMM and achieves a 1.13× speedup in the DiT module.
+
+\noindent\textbf{8-Bit FlashAttention.} Although FlashAttention3~\citep{shah2025flashattention} achieves high performance, its native FP8 implementation suffers from significant quality degradation in video generation, as observed in our experiments.
+Conversely, SageAttention~\citep{zhang2024sageattention} employs a mixed precision of int8 and fp16 to reduce precision loss, but it does not provide specific adaptations for Hopper GPUs. As of this report's publication, subsequent optimizations to SageAttention have demonstrated improved Hopper compatibility.
+Future work will explore the integration of these performance enhancements.
+
+We present our optimizations applied to FA3-FP8 implementation, focusing on both numerical stability and computational efficiency. 
+
+
+\textbf{Accuracy.} To mitigate the numerical errors in attention observed in \method under FA3-FP8 quantization, we apply two primary techniques:
+
+\begin{itemize}
+    \item Mixed 8-Bit optimization. The native implementation of FA3 uses FP8 (E4M3) for all input tensors (\(Q\), \(K\), \(V\)). Based on both our analysis of the data distribution and the empirical evidence from the SageAttention, we adopt a hybrid quantization strategy: Int8 for \(S=QK^T\), FP8 for \(O=PV\).
+    \item FP32 accumulation for cross-block reduction. The native FP8 WGMMA implementation employs $~$14-bit accumulators, making it prone to overflow during long-sequence processing. To address this limitation, our approach leverages FP8 WGMMA for intra-block \(PV\) reduction while implementing cross-block accumulation through CUDA cores with Float32 registers, a strategy inspired by DeepSeek-V3’s~\citep{liu2024deepseek} FP8 GEMM methodology.
+\end{itemize}
+
+
+\textbf{Performance.} To maintain kernel performance under mixed INT8-FP8 quantization while enhancing the accumulation precision of \(O=PV\), we employ two techniques:
+\begin{itemize}
+    \item Fuse Float32 accumulation with intra-warpgroup pipelining. FlashAttention3 employs an intra-warpgroup pipeline that overlaps WGMMA with softmax and scaling. To mitigate the performance penalty introduced by Float32 \(PV\) accumulation across blocks, we fuse the Float32 accumulation with \(rescale\_o\) operation.
+    \item Block size tuning. Due to the additional register pressure introduced by Float32 \(PV\) accumulation register across blocks, we adjust the block size to reduce register spilling. After optimization, our 8-bit FlashAttention achieves 95\% MFU on NVIDIA H20 GPUs.
+\end{itemize}
+
+Consequently, with 8-bit FlashAttention, we boost the inference efficiency by more than 1.27×.

@@ -1,0 +1,37 @@
+\begin{table}[t]
+\setlength\tabcolsep{3pt}
+% \setlength{\tabcolsep}{3pt}
+\centering 
+\caption{\reb{Quantitative comparison with state-of-the-art models. Our model is evaluated against both leading closed-source models and open-source baselines. \textbf{Bold} indicates the best performance and second-best results are \underline{underlined}.}}
+\label{tab:sota_compare}
+
+\small 
+
+\begin{tabular}{l | cccc | ccc}
+% \toprule
+\Xhline{1.1pt}
+\multirow{3}{*}{} & \multicolumn{4}{c|}{\textit{Auto Metrics}} & \multicolumn{3}{c}{\textit{Human Eval}} \\
+
+\cline{2-8}
+
+\shortstack{} & 
+\shortstack{Human \\ Anatomy} &  
+\shortstack{Motion \\ Smoothness} & 
+\shortstack{Dynamic \\ Degree} & 
+\shortstack{Aesthetic \\ Quality} & 
+\shortstack{Video \\ Quality} & 
+\shortstack{Prompt \\ Following} & 
+\shortstack{Posture \\ Plausibility} \\
+% \midrule
+\hline
+Veo 3.1 & \textbf{85.5} & \textbf{99.3} & \underline{67.5} & \textbf{59.9} & \underline{90.2} & \textbf{89.9} & \textbf{92.1} \\ 
+Kling 2.5 Turbo & \underline{84.7} & 99.0 & \textbf{70.0} & \underline{59.7} & \textbf{90.4}  & \underline{89.3} & \underline{91.0} \\ 
+\hline
+Wan-5B & 82.3 & {98.7} & {62.2} & 58.3 & 72.7 & 77.5 & 69.1 \\
+EchoMotion(Wan-5B) & 83.2 & \underline{99.1} & 64.0 & 58.2 & 80.4 & 81.4 & 80.8 \\
+\Xhline{1.1pt}
+% \bottomrule
+\end{tabular}
+\vspace{-3mm}
+\end{table}
+

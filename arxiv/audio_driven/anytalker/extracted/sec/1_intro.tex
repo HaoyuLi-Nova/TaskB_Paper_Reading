@@ -1,0 +1,38 @@
+\section{Introduction}
+\label{sec:intro}
+In the era of digital media, video creation has emerged as a crucial component of media platforms. 
+Podcasts, live-streaming sales, and entertainment programs often feature rich multi-person interactions, resulting in a growing demand for multi-person video generation.
+Despite the advent of large-scale video generation models~\cite{blattmann2023stable, yangcogvideox, kong2024hunyuanvideo, wan2025wan}, which have furnished robust backbone architectures for audio-driven talking video generation methods~\cite{lin2025omnihuman, gan2025omniavatar, jiang2025omnihuman, yang2025infinitetalk, cui2025hallo3, chen2025hunyuanvideo, ji2025sonic, gao2025wan, kong2025let}, enabling the creation of realistic lip movements for single subjects, these models still struggle to accommodate the complexities of multi-person interactions.
+
+This limitation has prompted multi-person driving approaches that scale to arbitrary numbers of persons, handle multi-stream signals, and enable differentiated control over each subject.
+Despite recent advances~\cite{wang2025interacthuman, huang2025bind, kong2025let} that propose solutions for handling multi-stream audio signals, these methods typically require hundreds to thousands of hours of meticulously curated multi-person data, leading to prohibitive collection costs and limited reproducibility. 
+Specifically, the challenge of gathering training data for multi-person scenarios is heightened by their complex dynamics, including turn-taking, role-switching, and nonverbal cues like eye gaze, which complicate data annotation. 
+Most existing audio-visual datasets~\cite{zhang2021flow, xie2022vfhq, cui2025hallo3, meng2025echomimicv2, li2025openhumanvid, chung2018voxceleb2} focus on single-person monologues or isolated facial animations, thereby limiting their applicability for training the audio-driven multi-person generation model. 
+In addition, current multi-person driving approaches frequently struggle to model genuine interactivity, leading to unnatural results.
+
+% Comment
+% In this work, we introduce an innovative driving framework named AnyTalker. 
+To address the aforementioned challenges, we introduce an innovative driving framework named AnyTalker. 
+Built on the pre-trained video diffusion model~\cite{wan2025wan}, AnyTalker achieves impressive multi-person video driving with remarkably low data costs and a distinct emphasis on interactivity, as illustrated in \cref{fig:teaser}.
+The central idea is to leverage low-cost single-person data for scalable multi-person video driving and refine interactivity with just a small amount of multi-person data (as little as 12 hours). 
+Specifically, AnyTalker supports extending the number of drivable identities (IDs) to arbitrary numbers, with guaranteed interactivity among all IDs. 
+To accommodate multi-stream control signals, we design an extensible audio-to-face in-context attention mechanism supporting any number of IDs and audio inputs.
+The training process is divided into two stages based on the types of data used, with the number of speaker IDs in individual data samples evolving from one to many.
+In the first stage, we randomly concatenate single-person talking videos along the horizontal dimension to simulate multi-person talking scenarios, ensuring that the model acquires a baseline capacity for multi-person speaking patterns. 
+In the second stage, we fine-tune the model using a small amount of multi-person data to enhance its interactive capabilities.
+%\fixme{the reason why you should compress the space in introducing the core content in the beginning, is to spend more space here, for the more important content}
+
+%Comment
+%\fixme{You should talk about why do you develop such a benchmark, i.e. the necessity. The idea should be "this is a new task, and there is no standard benchmark and metrics to quantitatively evaluate method."} 
+Commonly used single-person talking head benchmarks~\cite{zhang2021flow, xie2022vfhq, zhu2022celebv} lack multi-person interactions, rendering them unsuitable for assessing multi-person generation methods.
+While InterActHuman~\cite{wang2025interacthuman} offered a related benchmark, it focuses on single speakers, limiting its utility for interaction analysis. 
+To address this limitation, we introduce a meticulously annotated benchmark featuring videos of two individuals engaging in both speech and eye contact, with fine-grained labels that mark the speaking and listening intervals, thus facilitating the assessment of interactions during listening states.
+%\fixme{You then should talk about the benefit of this benchmark, i.e. the contribution. The idea should be "As the first benchmark of the kind in the community, this benchmark will benefit future research in this direction."}
+Additionally, we firstly introduce a novel metric to evaluate interactivity by measuring the activity of eye keypoints during listening periods. 
+The proposed benchmark and metric will fill the gap in the assessment of interactivity in multi-person generation methods, benefiting future research in this area.
+
+The main contributions are summarized as follows:
+(1) We present an extensible multi-stream processing architecture for multi-person generation that can scale drivable identities arbitrarily.
+(2) A novel two-stage training pipeline is introduced for the model to learn multi-speaker speaking patterns from single-person data and achieve seamless inter-identity interactions via multi-person data refinement.
+(3) We propose a new metric that quantitatively evaluates multi-person interactivity for the first time, accompanied by a tailored benchmark dataset for thorough assessment.
+(4) Comprehensive experiments demonstrate that AnyTalker achieves state-of-the-art performance and strikes a favorable balance among identity scalability, interactivity, lip synchronization, and data cost.

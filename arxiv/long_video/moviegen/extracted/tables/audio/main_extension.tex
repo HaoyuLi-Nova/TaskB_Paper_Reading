@@ -1,0 +1,21 @@
+\begin{table}[h]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{ll ccc cc cc}
+    \toprule
+    & & \multicolumn{7}{c}{Subjective: \OursAudio extension net win rate \vs baseline} \\
+    Dataset & Baseline method & \multicolumn{3}{c}{Quality} & \multicolumn{2}{c}{Video-SFX Alignment} & \multicolumn{2}{c}{Video-Music Alignment} \\
+    \cmidrule(lr){3-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} 
+    & & Ovr. & Nat. & Pro. & Corr. & Sync. & Mood & Action \\
+    \midrule
+    \multirow{2}{*}{\OursAudioBenchSGen SFX+music}
+    & \OursAudio stitch & \meanci{34.5}{11.4} & \meanci{33.7}{11.1} & \meanci{34.5}{11.6} & \meanci{19.6}{10.0} & \meanci{5.6}{11.9} & \meanci{20.3}{10.8} & \meanci{26.5}{9.9} \\
+    & Seeing\&Hearing & \meanci{85.1}{5.6} & \meanci{79.5}{6.5} & \meanci{85.1}{5.6} & \meanci{66.2}{7.9} & \meanci{61.0}{9.8} & \meanci{54.6}{10.5} & \meanci{26.2}{8.8} \\
+    \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Audio extension \vs simple stitching.}
+    This table compares \OursAudio with extension to simple stitch-based baseline and Seeing\&Hearing on audio quality and video alignment.
+    We report net win rate, which has a range [-100\%, 100\%], and its 95\% confidence intervals.
+    Positive values indicate \OursAudio with extension outperforms the baseline on the metric.}
+    \label{tab:eval_audio_main_ext}
+\end{table}

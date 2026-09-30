@@ -1,0 +1,56 @@
+\section{Introduction}
+
+\begin{figure*}[ht]
+\centering
+\includegraphics[width=.95\linewidth]{figs/teaser_demo.pdf}
+\caption{\textbf{3DTrajMaster controls one or multiple entity motions in 3D space with input entity-specific 3D trajectories for text-to-video (T2V) generation.} It allows diverse entity categories (human, animal, car, robot, natural force, etc) and flexible edits on entity descriptions (see more in~\figref{fig:supp_diffhuman}). The text prompt is ``\textit{\{Entity 1\},..., and \{Entity N\} is/are moving in the \{Location\}}". \textcolor{red}{\textit{(We kindly urge readers to check more generalizable results ($\geq$200) in our website)}}}
+\label{fig:teaser}
+
+\vspace{-2ex}
+\end{figure*}
+
+
+
+Controllable video generation~\citep{videoworldsimulators2024,guo2023animatediff,chen2023videocrafter1} aims to synthesize high-fidelity videos that are controlled by user inputs, such as text prompts, sketches, or bounding boxes.
+A critical objective in controllable video generation is the precise manipulation of object motions within videos, which is essential for simulating the dynamic world and potentially aids video generative models in understanding the underlying physics of the world.
+In addition, it can unleash many applications of video generative models, such as virtual cinematography for the film industry, acting as interactive games, and providing world models for embodied AI systems.
+
+Recently, there has been some methods attempting to manipulate object motions in video generation by introducing 2D control signals, such as 2D sketches~\citep{wang2024videocomposer,guo2023sparsectrl}, bounding boxes~\citep{yang2024direct,wang2024boximator}, and points~\citep{wang2024motionctrl,zhang2024tora}.
+These methods offer convenient user interactions and have delivered impressive video generation results.
+However, we argue that 2D control signals cannot fully express the inherent 3D nature of motion, which limits the control capability of object motions.
+As real-world objects move in 3D space, some motion properties can only be described through 3D representations.
+For example, the rotation of an object can be succinctly described using three parameters in 3D, and occlusions between objects can be simply represented using z-buffering. 
+In contrast, it is quite difficult for 2D control signals to represent these concepts.
+
+In this paper, we focus on the problem of controlling multi-object 3D motions in video generative models, aiming to simulate the authentic dynamics of objects in 3D space.
+This setting is more aligned with the requirements of downstream applications, such as emulating realistic human motions in movies or exploring 3D virtual scenes in games.
+However, this problem is extremely challenging.
+There are three core questions we need to answer:
+1) How to precisely represent the 3D motions of objects; 
+2) How to correlate multiple object descriptions with their respective motion sequences in video generative models;
+3) How to maintain the generalization capability of video models after injecting 3D motion information.
+
+To address these, we propose a novel approach, \textbf{3DTrajMaster}, which is able to manipulate multi-entity motions in 3D space for video generation by leveraging entity-specific 6DoF pose sequences as additional inputs.
+The core of our model is a plug-and-play 3D-motion grounded object injector, which associates each entity with their corresponding pose sequences, and then injects these conditions into the foundation model, to control the entity motion. Specifically, the entities and trajectories are projected into latent embeddings via a frozen text encoder and a learnable pose encoder, respectively. 
+These two modality embeddings are then entity-wise added to form correspondences, which are further fed into a gated self-attention layer for motion fusion. This plug-and-play architecture preserves the video model’s prior and can generalize on more diverse entities and 3D trajectories.
+
+
+However, another challenge in training our model lies in data availability. Existing video datasets face two key limitations: 
+1) \textit{Low entity diversity:} Datasets with paired entities and 3D trajectories are mostly limited to humans and autonomous vehicles, with inconsistent spatial distributions and overcrowded entities. 
+2) \textit{Inaccurate/Failed pose estimation:} Current 6D pose estimation methods focus on rigid objects, while non-rigid objects, such as animals, are underrepresented, with only human poses studied using SMPL~\citep{loper2023smpl}. 
+To this end, we choose to construct a custom dataset, termed 360$^{\circ}$-Motion Dataset, with unified trajectory distribution using advanced UE rendering techniques. 
+We start by collecting 3D assets of humans and animals and rescaling them to a unified cubic space. 
+GPT~\citep{achiam2023gpt} is then employed to generate 3D trajectory templates for these assets. 
+Various entities and trajectory templates are arranged and combined to create diverse motions. These globally animated assets are captured using 12 evenly positioned cameras within the collected 3D scenes, including city (MatrixCity~\citep{li2023matrixcity}), desert, forest, and HDRIs (projected into 3D space)\footnote{Poly Haven: https://polyhaven.com/}. To prevent video domain shift in our constructed dataset, we introduce two key components: 
+1) A video domain adaptor, which is trained to fit data distribution and slightly reduced during inference. 
+2) An annealed sampling strategy, where trajectories are injected to guide general motion in the early steps and drop out in the later stages. 
+
+We evaluate our 3DTrajMaster in the curated novel pose sequences with GPT-generated entity prompts, obtaining a significant lead over current SOTAs. In summary, our contributions are:
+
+1) We are the first to customize 6 degrees of freedom (DoF) multi-entity motion in 3D space for controllable video generation, establishing a new benchmark for fine-grained motion control.
+
+2) We propose a 3D-motion grounded video diffusion model that controls multi-entity motions using pose sequences as motion representations. Our flexible object injector enforces entity-wise correspondence between objects and their motions and preserves the video diffusion prior.
+
+3) We introduce a scalable 4D motion dataset construction mechanism, and techniques like the video domain adaptor and annealed sampling to enhance video quality while maintaining motion accuracy.
+
+4) 3DTrajMaster achieves state-of-the-art accuracy in controlling 3D entity motions and allows fine-grained entity input customization such as changing human hair, clothing, gender, and figure size.

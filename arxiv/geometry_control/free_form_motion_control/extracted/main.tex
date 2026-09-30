@@ -1,0 +1,125 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage[pagenumbers]{iccv}
+
+\usepackage{colortbl}
+\usepackage{makecell}
+\usepackage{xcolor}
+\usepackage{amsmath}  
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{tikz}
+\usepackage{siunitx}
+\usepackage[misc]{ifsym} %for \Letter
+\newcommand*\circled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,fill=black,text=white,draw,inner sep=0.5pt] (char) {#1};}}
+
+\newcommand*\figcircled[1]{\tikz[baseline=(char.base)]{
+            \node[shape=circle,fill=black,text=white,draw,inner sep=0.8pt] (char) {#1};}}
+
+\newcommand{\datasetname}{\textit{SynFMC}\xspace}
+\newcommand{\datasetcompletename}{\textit{Synthetic Dataset for Free-Form Motion Control}\xspace}
+
+\newcommand{\methodname}{\textit{FMC}\xspace}
+\newcommand{\methodcompletename}{\textit{Free-Form Motion Control}\xspace}
+
+\newcommand{\camctrlname}{CMC\xspace}
+\newcommand{\camctrlcompletename}{Camera Motion Controller\xspace}
+
+\newcommand{\objctrlname}{OMC\xspace}
+\newcommand{\objctrlcompletename}{Object Motion Controller\xspace}
+
+\definecolor{myorange}{RGB}{255,100,3}
+\definecolor{mygray}{gray}{.85}
+\definecolor{mygray1}{gray}{.7}
+\definecolor{mygray2}{gray}{.93}
+\definecolor{mygray3}{gray}{.90}
+\usepackage{array}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+
+\usepackage{pifont}
+\newcommand{\cmark}{\ding{51}\xspace}%
+\newcommand{\cmarkb}{\textcolor{blue}{\ding{51}}\xspace}%
+\newcommand{\cmarkg}{\textcolor{lightgray}{\ding{51}}\xspace}%
+\newcommand{\xmark}{\ding{55}\xspace}%
+\newcommand{\xmarkg}{\textcolor{lightgray}{\ding{55}}\xspace}%
+
+
+\definecolor{iccvblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref=false,breaklinks,colorlinks,allcolors=iccvblue]{hyperref}
+\usepackage{svg}
+
+\hyphenpenalty=9000
+\tolerance=1000
+
+\begin{document}
+
+
+\title{
+\raisebox{-1.5ex}{\protect\includegraphics[height=3.\fontcharht\font`\B]{logo.jpg}}
+{Free-Form Motion Control: Controlling the 6D Poses of Camera \\[-.1em]
+and Objects in Video Generation}
+}
+
+\author{
+Xincheng Shuai$^1$
+\quad
+Henghui Ding$^1$
+\hspace{0.56em}
+Zhenyuan Qin$^1$
+\hspace{0.56em}
+Hao Luo$^{2,3}$
+\hspace{0.56em}
+Xingjun Ma$^1$
+\hspace{0.56em}
+Dacheng Tao$^4$
+\\
+$^1$Fudan University, China
+\quad
+$^2$DAMO Academy, Alibaba group
+\quad
+$^3$Hupan Lab
+\\
+$^4$Nanyang Technological University, Singapore\\
+{\tt\footnotesize henghui.ding@gmail.com\quad dacheng.tao@gmail.com}
+\\
+\href{https://henghuiding.com/SynFMC/}{https://henghuiding.com/SynFMC/}
+}
+
+
+\twocolumn[{% 
+\renewcommand\twocolumn[1][]{#1}% 
+\maketitle
+\vspace{-7.6mm}
+\begin{center} 
+\centering 
+\captionsetup{type=figure}
+\includegraphics[width=0.999\textwidth]{teaser_compressed.pdf}
+\vspace{-6.6mm}
+\captionof{figure}{The rule-based generation pipeline of videos in the proposed \textbf{\underline{Syn}}thetic Dataset for \textbf{\underline{F}}ree-Form \textbf{\underline{M}}otion \textbf{\underline{C}}ontrol (\textbf{\datasetname}). This example generates synthetic video with three objects: (1) The environment asset and it's matching object assets are selected as the scene elements. (2) The motion types of objects and camera are randomly selected for trajectory generation. (3) The center region shows the resulting 3D animation sequence used for rendering. The rendered video and annotations are demonstrated in the last row.}
+\vspace{3.16mm}
+\label{fig:teaser}
+\end{center}
+}]
+
+
+
+\maketitle
+
+
+\input{sec/0_abstract}   
+\input{sec/1_introduction}
+\input{sec/2_related_work}
+\input{sec/3_dataset}
+\input{sec/4_method}
+\input{sec/5_experiment}
+\input{sec/6_conclusion}
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+
+
+\end{document}

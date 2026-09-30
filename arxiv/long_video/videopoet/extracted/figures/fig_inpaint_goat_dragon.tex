@@ -1,0 +1,43 @@
+\begin{figure}[t]
+\addtocounter{figure}{-1}
+
+\begin{subfigure}{1.0\linewidth}
+\centering
+\videoframe{figures/video_frames/goat_original_00001.jpg}
+\videoframe{figures/video_frames/goat_original_00006.jpg}
+\videoframe{figures/video_frames/goat_original_00011.jpg}
+\videoframe{figures/video_frames/goat_original_00017.jpg}
+{\textbf{Original Video}
+\ \\
+\ \\}
+\end{subfigure}
+
+
+\begin{subfigure}{1.0\linewidth}
+\centering
+\videoframe{figures/video_frames/goat_mask_00001.jpg}
+\videoframe{figures/video_frames/goat_mask_00006.jpg}
+\videoframe{figures/video_frames/goat_mask_00011.jpg}
+\videoframe{figures/video_frames/goat_mask_00017.jpg}
+{\textbf{Masked Video}
+\ \\
+\ \\}
+\end{subfigure}
+
+
+\begin{subfigure}{1.0\linewidth}
+\centering
+\videoframe{figures/video_frames/goat_dragon_00001.jpg}
+\videoframe{figures/video_frames/goat_dragon_00006.jpg}
+\videoframe{figures/video_frames/goat_dragon_00011.jpg}
+\videoframe{figures/video_frames/goat_dragon_00017.jpg}
+{\textbf{Inpainted Video from Text Prompt} \\
+\textbf{Prompt:} A blue dragon walking along a ridge
+\ \\}
+\end{subfigure}
+
+\captionof{figure}{
+\textbf{\textbf{Example of a task  the model was not explicitly trained for} -- video editing via text conditioned inpainting.}
+}
+\label{fig:inpainting_dragon_goat}
+\end{figure}

@@ -1,0 +1,281 @@
+%
+\PassOptionsToPackage{dvipsnames}{xcolor}
+\PassOptionsToPackage{export}{adjustbox}
+\documentclass{article}
+
+%
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs} %
+\usepackage{textcomp} %
+
+%
+\usepackage{tikz}
+\usetikzlibrary{arrows, positioning, calc, decorations.pathreplacing}
+\usepackage[mode=buildnew]{standalone} %
+\usepackage{placeins} %
+\usepackage{subcaption}
+
+%
+%
+%
+%
+\usepackage{xurl}
+\usepackage[breaklinks=true]{hyperref}
+
+
+%
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+%
+%
+
+%
+%
+
+%
+\usepackage[arxiv]{icml2024}
+
+%
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{multirow}
+
+%
+\usepackage[capitalize,noabbrev]{cleveref}
+
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+\newcommand{\boldparagraph}[1]{\vspace{0.2cm}\noindent{\bf #1} }
+\newcommand{\figref}[1]{Fig.~\ref{#1}}
+
+%
+%
+%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%
+%
+%
+\usepackage[textsize=tiny]{todonotes}
+
+\usepackage{etoolbox}
+%
+\newcommand{\settablefontsize}{\footnotesize}
+
+\newcommand{\s}{\hphantom{0}}
+
+%
+\AtBeginEnvironment{tabular}{\settablefontsize}
+\AtBeginEnvironment{table}{\settablefontsize}
+
+\usepackage{caption}
+\captionsetup[table]{font=small,skip=0.85em}
+\captionsetup[figure]{font=small,skip=0.85em}
+
+\usepackage{enumitem}
+
+%
+%
+\icmltitlerunning{Scaling Rectified Flow Transformers for High-Resolution Image Synthesis}
+
+\usepackage{xspace}
+\newcommand{\modelname}{\emph{MM-DiT}\xspace}
+\usepackage{xcolor}
+\newcommand{\TODO}[1]{\textcolor{red}{#1}}
+
+\usepackage{bbm}
+
+
+%
+%
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\cf{\emph{c.f}\onedot} \def\Cf{\emph{C.f}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\etal{\emph{et al}\onedot}
+\makeatother
+
+\DeclareMathOperator\supp{supp}
+
+\begin{document}
+
+\twocolumn[
+%
+%
+%
+%
+\icmltitle{Scaling Rectified Flow Transformers for High-Resolution Image Synthesis} %
+
+%
+%
+%
+%
+
+%
+%
+%
+%
+
+%
+%
+%
+\icmlsetsymbol{equal}{*}
+
+\begin{icmlauthorlist}
+\vspace{-1em}
+\icmlauthor{Patrick Esser}{equal}\;
+%
+%
+\icmlauthor{Sumith Kulal}{}\;
+\icmlauthor{Andreas Blattmann}{}\;
+\icmlauthor{Rahim Entezari}{}\;
+%
+%
+\icmlauthor{Jonas Müller}{}\;
+\icmlauthor{Harry Saini}{}\;
+\icmlauthor{Yam Levi}{}\;
+%
+%
+\icmlauthor{Dominik Lorenz}{}\,
+\icmlauthor{Axel Sauer}{}\,
+\icmlauthor{Frederic Boesel}{}\,
+%
+%
+\icmlauthor{Dustin Podell}{}\,
+\icmlauthor{Tim Dockhorn}{}\,
+\icmlauthor{Zion English}{}\,
+
+%
+\icmlauthor{Kyle Lacey}{}\,
+\icmlauthor{Alex Goodwin}{}\,
+\icmlauthor{Yannik Marek}{}\,
+%
+\icmlauthor{Robin Rombach}{equal}\\
+Stability AI
+\end{icmlauthorlist}
+
+%
+%
+%
+%
+\icmlcorrespondingauthor{}{\textless{}first.last\textgreater{}@stability.ai}
+%
+
+%
+%
+%
+\icmlkeywords{Machine Learning, ICML}
+
+{\vspace{0.75em}%
+\includegraphics[width=0.99\textwidth]{img/teaser.jpg}%
+\vspace{-1em}
+\captionof{figure}{
+High-resolution samples from our 8B rectified flow model, showcasing its capabilities in typography, precise prompt following and spatial reasoning, attention to fine details, and high image quality across a wide variety of styles.
+\vspace{-0.75em}}%
+\label{fig:teaser}%
+}
+
+\vskip 0.3in
+]
+
+%
+
+%
+%
+%
+%
+%
+
+%
+\printAffiliationsAndNotice{\icmlEqualContribution} %
+
+
+%
+\input{math_commands}
+\input{figures}
+\input{tables}
+\input{sec/0_abstract}    
+\input{sec/1_intro}
+%
+\input{sec/3_method}
+\input{sec/4_experiments}
+\input{sec/5_conclusion}
+%
+
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+\FloatBarrier
+\section*{Broader Impact}
+This paper presents work whose goal is to advance the field of machine learning in general and image synthesis in particular. 
+There are many potential societal consequences of our work, none of which we feel must be specifically highlighted here.
+For an extensive discussion of the general ramifications of diffusion models, we point interested readers towards~\cite{po2023state}.
+
+%
+
+\bibliography{references}
+\bibliographystyle{icml2024}
+
+
+%
+%
+%
+%
+%
+\newpage
+\appendix
+\onecolumn
+
+\input{sec/X_suppl}
+
+
+\end{document}
+
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%

@@ -1,0 +1,47 @@
+\section{Introduction}
+\label{sec:intro}
+The emergence of diffusion models has revolutionized how we can create videos from text~\cite{opensora,videoworldsimulators2024,jin2024pyramidal,yang2024cogvideox,polyak2024movie,ho2022video,blattmann2023stable}.
+Many of the state-of-the-art video diffusion models rely on the Diffusion Transformer (DiT) architecture~\cite{peebles2023scalable,bao2022all}, which usually employs bidirectional attention across all video frames. 
+Despite the impressive quality, the bidirectional dependencies imply that generating a single frame requires processing the entire video.
+This introduces long latency and prevents the model from being applied to interactive and streaming applications, where the model needs to continually generate frames based on user inputs that may change over time. 
+The generation of the current frame depends on future conditional inputs that are not yet available.
+Current video diffusion models are also limited by their speed.
+The compute and memory costs increase quadratically with the number of frames, which, combined with the large number of denoising steps during inference, makes generating long videos prohibitively slow and expensive.
+
+Autoregressive models offer a promising solution to address some of these limitations, but they face challenges with error accumulation and computational efficiency.
+Instead of generating all frames simultaneously, autoregressive video models generate frames sequentially. 
+Users can start watching the video as soon as the first frame is generated, without waiting for the entire video to be completed. This reduces latency, removes limitations on video duration, and opens the door for interactive control.
+However, autoregressive models are prone to error accumulation: each generated frame builds on potentially flawed previous frames, causing prediction errors to magnify and worsen over time.
+Moreover, although the latency is reduced, existing autoregressive video models are still far from being able to generate realistic videos at interactive frame rate~\cite{jin2024pyramidal,kondratyuk2023videopoet,che2024gamegen}.
+
+In this paper, we introduce \textbf{\method}, a model designed for fast and interactive \textbf{caus}al \textbf{vid}eo generation.
+We design an autoregressive diffusion transformer architecture with causal dependencies between video frames. Similar to the popular decoder-only large language models~(LLMs)~\cite{radford2019language,brown2020language}, our model achieves sample-efficient training by leveraging supervision from all input frames at each iteration, as well as efficient autoregressive inference through key-value (KV) caching. 
+To further improve generation speed, we adapt distribution matching distillation~(DMD)~\cite{yin2024onestep,yin2024improved}, a few-step distillation approach originally designed for image diffusion models, to video data. 
+Instead of naively distilling an autoregressive diffusion model~\cite{jin2024pyramidal,chen2024diffusion} into a few-step student, we propose an \textit{asymmetric distillation} strategy where we distill the knowledge in a pretrained teacher diffusion model with \textit{bidirectional} attention into our \textit{causal} student model. 
+We show that this asymmetric distillation approach significantly reduced error accumulation during autoregressive inference.
+This allows us to support autoregressively generating videos that are much longer than the ones seen during training. 
+Comprehensive experiments demonstrate that our model achieves video quality on par with state-of-the-art bidirectional diffusion models while offering enhanced interactivity and speed. 
+To our knowledge, this is the first autoregressive video generation method that competes with bidirectional diffusion in terms of quality~(Appendix Fig.~\ref{fig:t2v_extra} and Fig.~\ref{fig:i2v_extra}). 
+Additionally, we showcase the versatility of our method in tasks such as image-to-video generation, video-to-video translation, and dynamic prompting, all achievable with extremely low latency~(Fig.~\ref{fig:main_result}).
+
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.93\linewidth]{figures/t2v_v2.pdf}
+    \vspace{-1em}
+    \caption{
+    Our model, CausVid, demonstrates that autoregressive video diffusion can be effectively scaled up for general text-to-video tasks, achieving quality on par with bidirectional diffusion models. Moreover, when combined with distillation techniques, it delivers multiple orders of magnitude speedup. Please visit our website for more visualizations.
+    }
+    \label{fig:t2v_extra}
+\end{figure*}
+
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=\linewidth]{figures/i2v_v2.pdf}
+    \vspace{-1em}
+    \caption{
+Trained exclusively on text-to-video generation, our model, CausVid, can be applied zero-shot to image-to-video tasks thanks to its autoregressive design. In the examples shown, the first column represents the input image, while the subsequent frames are generated outputs. Please visit our website for more visualizations.
+    }
+    \label{fig:i2v_extra}
+\end{figure*}

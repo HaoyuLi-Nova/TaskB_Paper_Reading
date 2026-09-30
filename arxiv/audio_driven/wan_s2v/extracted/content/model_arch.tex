@@ -1,0 +1,32 @@
+\section{Model Architecture}
+
+Given a single reference image, an input audio and a prompt to describe the video content, we could generate the video synchronized with the audio while preserving the content in the reference image (not start from the image).
+As shown in Fig~\ref{fig:pipeline1}, our work is fed with multi-frame noise latent input, and tries to denoise them to the consecutive video frames during each timestep.
+
+During the training, the RGB target frames $X\in\mathbb{R}^{F\times{H}\times{W}\times{3}}$ are encoded by 3D VAE into latent presentation $x_0\in\mathbb{R}^{f\times{h}\times{w}\times{c}}$, assigning a continuous time step $t\in[0,1]$, the noise $\epsilon$ are added to $x_0$ to get noisy latent $x_t$ according to Flow Matching introduced by \cite{lipman2023flowmatchinggenerativemodeling}:
+$$ x_t=t\epsilon+(1-t)x_0$$
+Input the noisy representation $x_t$, the target of the model is to predict the velocity $\frac{dx}{dt}=\epsilon-x_0$. During the inference, the model recoveres the noisy input $x_t$ into $x_0$ under the condition of the reference frame, motion frames, audio input and prompt.
+
+The reference image, the target frames and the motion frames following \cite{tian2024emo} are fed into 3D VAE to down-sample the video spatially and temporally, getting the latent representation of the frames. All latent frames are then patchified and flattened, they are concatenated to be a sequence of visual tokens. The motion frames are optional, they provide the condition of the previous information, making the generated clips continuous. In order to generate long-term consistent video frames, it is necessary to obtain more historical information, since directly flatten the motion latent token could introduce more computational load. The motion latent is further compressed by Frame Pack module introduced by \cite{zhang2025framepack}, which compress the earlier frames in higher compressibility.
+
+
+As illustrated in Figure~\ref{fig:audio_pipe}, the raw audio waveform is first encoded using Wav2Vec by \cite{wav2vec}. To comprehensively capture the audio features, we adopt the weighted average layer proposed by \cite{tian2024emo}, which combines features from different layers through learnable weights. This approach effectively integrates shallow-level rhythmic and emotional cues with deep-level lexical content features extracted by Wav2Vec, thereby enhancing synchronization with complex audio signals such as singing or expressive speech. The resulting frame-wise audio features are then compressed along the temporal dimension using multiple causal 1D convolutional modules. This process generates audio features of the $i$ th latent frame $a_i\in\mathbb{R}^{f\times{t}\times{c}}$ that are temporally aligned with the video latent frames, where $t$ denotes the number of audio tokens per latent frame.
+
+The latent audio features $a$ are passed into each Audio Block, where the noisy latent tokens $x_t\in\mathbb{R}^{(f'\times{h}\times{w})\times{c}}$ are divided into segments $\sum_i^{f'}x_{ti}\in\mathbb{R}^{(h\times{w})\times{c}}$ along the temporal dimension. 
+To reduce computational overhead, attention is calculated between $a_i$ and $x_{ti}$, rather than performing full 3D attention between visual tokens and audio tokens. This approach ensures that the audio features and visual tokens are naturally synchronized.
+
+\begin{figure*}[tb]
+  \centering
+  \includegraphics[width=1.0\textwidth]{content/pic/pipeline.png}
+  \caption{Overview of our pipeline.
+  }
+  \label{fig:pipeline1}
+\end{figure*}
+
+\begin{figure*}[tb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{content/pic/audio_pipeline.png}
+  \caption{The pipeline of the audio injection.
+  }
+  \label{fig:audio_pipe}
+\end{figure*}

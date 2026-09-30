@@ -1,0 +1,243 @@
+% !TEX root = ./../main.tex
+
+\section{Text-to-Video Diffusion Models}
+\label{sec:pretrained_models}
+
+We summarize the basic idea of text-conditional video generation techniques based on diffusion models.
+They consist of a few key components: an encoder $\text{Enc}(\cdot)$, a decoder $\text{Dec}(\cdot)$, and a noise prediction network $\bm{\epsilon}_\theta(\cdot)$.
+They learn the distribution of videos corresponding to text conditions, and the video is denoted by $\Vv \in \mathbb{R}^{f \times H \times W \times 3}$, where $f$ is the number of frames and $H\times W$ indicates the image resolution.
+The encoder projects each frame onto the latent image space and the decoder reconstructs the frame from the latent.
+A video latent $\z_0 =\text{Enc}(\Vv) = [\gz^1_0;\text{\myldots};\gz^f_0]\in \mathbb{R}^{f \times h \times w \times c}$ is obtained by concatenating projected frames and the latent diffusion model is trained to denoise its perturbed version, $\z_t$.
+For noise $\bm{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$, a diffusion time step $t\sim \mathcal{U}([1,\text{\myldots},T])$, and a text condition $\bm{c}$, the model is trained to minimize the following loss:
+%
+\begin{align}\label{eq:diffusion_loss}
+    \mathbb{E}_{\Vv,\bm{\epsilon}, t}
+    \left[
+        ||\bm{\epsilon}_\theta(\z_t;\bm{c},t) - \bm{\epsilon}||
+    \right],
+\end{align}
+%
+where the perturbed latent, $\z_t=s_t\z_0 + \sigma_t\bm{\epsilon}$, is obtained using predefined constants $\{s_t\}_{t=0}^T$ and $\{\sigma_t\}_{t=0}^T$, with the constraints $s_0=1$, $\sigma_0=0$ and $\sigma_T/s_T \gg 1$.
+
+Following a time step schedule, $0=\tau_0 < \tau_1< \text{\mycdots} <\tau_{S}=T$, initialized by a diffusion scheduler, the model generates a video by iteratively denoising $[\gz_{\tau_S}^1;\text{\myldots};\gz_{\tau_S}^f] \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ over $S$ steps using a sampler $\Phi(\cdot)$ such as the DDIM sampler.
+Each denoising step is expressed as
+%
+\begin{align}\label{eq:diffusion_step}
+    [\gz_{\tau_{t-1}}^1;\text{\myldots};\gz_{\tau_{t-1}}^f] = \Phi([\gz_{\tau_{t}}^1;\text{\myldots};\gz_{\tau_{t}}^f], [\tau_t;\text{\myldots};\tau_t], \bm{c}; \bm{\epsilon}_\theta),
+\end{align}
+%
+where $\gz_{\tau_t}^i$ denotes the latent of the $i^\text{th}$ frame at time step $\tau_t$.
+
+
+
+\section{FIFO-Diffusion}
+\label{sec:fifo-diffusion}
+
+This section discusses how FIFO-Diffusion generates long videos consisting of $N$ frames using a pretrained model only for $f$ frames ($f \ll N$).
+The proposed approach iteratively employs diagonal denoising~(\cref{subsec:diagonal}) over a predefined number of frames with different levels of noise.
+Our method also incorporates latent partitioning~(\cref{subsec:latent_partitioning}) and lookahead denoising~(\cref{subsec:look_ahead_denoising}) to improve the output quality of FIFO-Diffusion based on diagonal denoising.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.7\linewidth]{./fig/diagonal_denoising.png} 
+    \caption{
+    Illustration of diagonal denoising with $f=4$.
+    The frames surrounded by solid lines are model inputs while frames surrounded by dotted line are their denoised version.
+    After denoising, the fully denoised instance at the top-right corner is dequeued while random noise is enqueued.
+    }  \label{fig:diagonal_denoising}
+%    \vspace{-3mm}
+\end{figure}
+
+
+\subsection{Diagonal denoising}
+\label{subsec:diagonal}
+
+Diagonal denoising processes a series of consecutive frames with increasing noise levels as depicted in \cref{fig:diagonal_denoising}.
+To be specific, for a time step schedule $0=\tau_0 < \tau_1 < \text{\mycdots} < \tau_f=T$, each denoising step is defined as
+%
+\begin{align} \label{eq:diagonal_denoising_step}
+    [\gz_{\tau_0}^1;\text{\myldots};\gz_{\tau_{f-1}}^f] = \Phi([\gz_{\tau_1}^1;\text{\myldots};\gz_{\tau_f}^f], [\tau_1;\text{\myldots};\tau_f], \bm{c}; \bm{\epsilon}_\theta).
+\end{align}
+%
+Note that the latents along the diagonal, $[\gz_{\tau_1}^1;\text{\myldots};\gz_{\tau_{f}}^f]$, are stored in a queue, $\Q$, and diagonal denoising jointly considers the latents with different noise levels of $[\tau_1;\text{\myldots};\tau_f]$, in contrast to the standard method specified in \cref{eq:diffusion_step}.
+\cref{alg:fifo_algorithm} in \cref{app:algorithm} illustrates how diagonal denoising in FIFO-Diffusion works.
+After each denoising step with $[\gz_{\tau_1}^1;\text{\myldots};\gz_{\tau_{f}}^f]$, the foremost frame is dequeued as it arrives at the noise level $\tau_0=0$, and the new latent at noise level $\tau_f$ is enqueued.
+As a result, the model generates frames in a first-in-first-out manner.
+
+Additionally, the initial diagonal latents $[\gz_{\tau_1}^1;\text{\myldots};\gz_{\tau_{f}}^{f}]$ to initiate the diagonal denoising can be generated from $f$ random noises at time step $\tau_f$, similar to the the process described above.
+Notably, our approach does not require pregenerated videos or additional training for the initial latent construction.
+The detailed algorithm is presented in \cref{alg:fifo_init} in \cref{app:algorithm}.
+
+\begin{figure}[t]
+    \centering
+    \setlength{\tabcolsep}{1mm}
+    \scalebox{1}{
+    \begin{tabular}[t]{cccc}
+        \hspace{-4mm}\includegraphics[width=0.35\linewidth]{./fig/autoregressive.png} & & & \quad \quad
+        \includegraphics[width=0.35\linewidth]{./fig/fifo.png} \\
+        {(a) Chunked autoregressive} & & &{(b) FIFO-Diffusion}
+    \end{tabular}
+    }
+    \caption{
+        Comparison between the chunked autoregressive methods and FIFO-Diffusion proposed for long video generation.
+        The random noises~(black) are iteratively denoised to image latents~(white) by the models.
+        The red boxes indicate the denoising network in the pretrained base model while the green boxes denote the prediction network obtained by additional training.
+    }
+    \label{fig:compare}
+    \vspace{-3mm}
+\end{figure}
+
+
+FIFO-Diffusion takes $f$ frames as input, regardless of the target video length, and generates an arbitrary number of frames by producing one frame per iteration using a sliding window approach.
+Note that generating $N~(\gg f)$ frames for a video requires $\mathcal{O}(f)$ memory in each step~(see \cref{tab:memory_time}), which is independent of $N$.
+
+Diagonal denoising allows us to generate consistent videos by sequentially propagating context to later frames.
+\cref{fig:compare} illustrates the conceptual difference between chunked autoregressive methods~\citep{ho2022video,he2022latent,voleti2022mcvd,luo2023videofusion,chen2023seine,blattmann2023align} and FIFO-Diffusion.
+The former often struggles to maintain long-term context across chunks since their conditioning---only the last generated frame---lacks contextual information propagated from previous frames.
+In contrast, diagonal denoising progresses through the frame sequence with a stride of 1, allowing each frame to reference a sufficient number of preceding frames during generation. 
+This approach enables the model to naturally extend the local consistency of a few frames to longer sequences. 
+Additionally, FIFO-Diffusion requires no subnetworks or extra training, depending solely on a base model. 
+This distinguishes it from existing autoregressive methods, which often require an additional prediction model or fine-tuning for masked frame outpainting.
+
+
+\subsection{Latent partitioning}
+\label{subsec:latent_partitioning}
+
+
+Although diagonal denoising enables infinitely long video generation, it introduces a training-inference gap, as the model is trained to denoise all frames at uniform noise levels. 
+To address this, we aim to reduce noise level differences in the input latents by extending the queue length $n$ times (from $f$ to $nf$ with $n > 1$), partitioning it into $n$ blocks, and processing each block independently. 
+Note that the extended queue length increases the number of inference steps.
+
+\cref{alg:fifo_algorithm_lp} in \cref{app:algorithm} provides the procedure of FIFO-Diffusion with latent partitioning.
+Let a queue $Q$ has diagonal latents $[\gz_{\tau_1}^1;\text{\myldots};\gz_{\tau_{nf}}^{nf}]$.
+We partition $Q$ into $n$ blocks, $[\Q_0;\text{\myldots};\Q_{n-1}]$, of equal size $f$, then each block $\Q_k$ contains the latents at time steps $\bm{\tau}_k = [ \tau_{kf+1}; \text{\myldots}; \tau_{(k+1)f}]$.
+Next, we apply diagonal denoising to each block in a divide-and-conquer manner~(See \cref{fig:lp_ld}~(a)).
+At $k=0,\text{\mycdots},n-1$, each denoising step updates the queue as follows:
+\begin{align} \label{eq:lp}
+    \Q_k \leftarrow \Phi(\Q_k, \bm{\tau}_k, \bm{c}; \bm{\epsilon}_\theta).
+\end{align}
+
+
+Latent partitioning offers three key advantages for diagonal denoising.
+First, it significantly reduces the maximum noise level difference between the latents from $|\sigma_{\tau_{nf}}-\sigma_{\tau_{1}}|$ to $\max_{k}{|\sigma_{\tau_{(k+1)f}}-\sigma_{\tau_{kf+1}}}|$.
+The effectiveness of latent partitioning is supported theoretically and empirically by \cref{thm1} and \cref{tab:ablation}, respectively.
+Second, latent partitioning improves throughput of inference by processing partitioned blocks in parallel on multiple GPUs~(see \cref{tab:memory_time}).
+Last, it allows the diffusion process to leverage a large number of inference steps, $nf$ ($n \ge 2$), reducing discretization error during inference.
+
+We now show in~\cref{thm1} that the gap incurred by diagonal denoising is bounded by the maximum noise level difference, which implies that the error can be reduced by narrowing the noise level differences of model inputs.
+
+\begin{definition} \label{def0}
+    We define $\z^{\text{vdm}}_{t}\coloneqq[\gz_{t}^1;\text{\myldots};\gz_{t}^f]$,
+    where $\gz_{t}^i$ is the latent of the $i^\text{th}$ frame at time step $t$~(noise level of $\sigma_t = ct$ for a constant $c$).
+    $\z^{\text{vdm}}_{t}$ satisfies the following ODE from \citep{karras2022elucidating}:
+    \begin{align}
+    	d\z_{t}^\text{vdm} = c\cdot\bm{\epsilon}(\z^{\text{vdm}}_{t}, t\cdot\bm{1})dt \label{thm1:ode},
+    \end{align}
+    for $\bm{1}=[1;\text{\myldots};1]$ and $\bm{\epsilon}(\cdot)$ is the scaled score function $-\sigma\nabla_{\z} \log p(\cdot)$.
+\end{definition}
+
+
+\begin{lemma} \label{lemma1}
+    If $\bm{\epsilon}(\cdot)$ is bounded, then
+    \begin{align*}
+        ||\gz_{t}^i - \gz_{s}^i|| = O(|t - s|) ~~\text{for} ~~\forall i.
+    \end{align*}
+\end{lemma}
+
+\begin{proof}
+    Refer to \cref{app:proof}.
+\end{proof}
+
+\begin{theorem} \label{thm1}
+    Assume the system satisfies the following two hypotheses:
+    \begin{align*}
+        &\text{(Hypothesis 1) $\bm{\epsilon}(\cdot)$ is bounded.} \\
+        &\text{(Hypothesis 2) The diffusion model $\bm{\epsilon}_\theta(\cdot)$ is $K$-Lipschitz continuous.}
+    \end{align*}
+    Then, for diagonal latents $\z^{\text{diag}} = [\gz_{\tau_1}^1;\text{\myldots};\gz_{\tau_f}^f]$ and corresponding time steps $\bm{\tau}^{\text{diag}}=[\tau_1;\text{\myldots};\tau_f]$,
+    %
+    \begin{align} 
+        ||\bm\epsilon_\theta(\z^{\text{diag}}, \bm{\tau}^\text{diag})^i - \bm\epsilon(\z^{\text{vdm}}_{\tau_i}, \tau_i\cdot\bm{1})^i||   
+        = ||\bm\epsilon_\theta(\z^{\text{vdm}}_{\tau_i}, \tau_i\cdot\bm{1})^i - \bm\epsilon(\z^{\text{vdm}}_{\tau_i}, \tau_i\cdot\bm{1})^i|| + O(|\sigma_{\tau_f} - \sigma_{\tau_1}|),  \label{thm1:main} 
+    \end{align}
+    where the $\bm\epsilon_\theta(\cdot)^i$ and $\bm\epsilon(\cdot)^i$ are $i^\text{th}$ element of $\bm\epsilon_\theta(\cdot)$ and $\bm\epsilon(\cdot)$, and $\tau_1<\text{\myldots}<\tau_f$.
+    %
+    In other words, the error introduced by diagonal denoising is bounded by the noise level difference.
+\end{theorem}
+\begin{proof}
+    The left-hand side of \cref{thm1:main} is bounded as:
+    \begin{align*}
+        ||\bm\epsilon_\theta(\z^{\text{diag}}, \bm{\tau}^\text{diag})^i &- \bm\epsilon(\z^{\text{vdm}}_{\tau_i}, \tau_i\cdot\bm{1})^i|| \\
+        &\leq  
+        ||\bm\epsilon_\theta(\z^{\text{diag}}, \bm{\tau}^\text{diag})^i - \bm\epsilon_\theta(\z_{\tau_i}^{\text{vdm}}, \tau_i \cdot \bm{1})^i||
+        + ||\bm\epsilon_\theta(\z_{\tau_i}^{\text{vdm}}, \tau_i \cdot \bm{1})^i - \bm\epsilon(\z^{\text{vdm}}_{\tau_i}, \tau_i\cdot\bm{1})^i||,
+    \end{align*}
+    by triangle inequality. 
+    Then, the first term of the right-hand side satisfies the following inequality:
+    \begin{align*}
+        ||\bm\epsilon_\theta (\z^{\text{diag}}, \bm{\tau}^\text{diag})^i - \bm\epsilon_\theta(\z_{\tau_i}^{\text{vdm}}, \tau_i \cdot \bm{1})^i||
+        &\leq K||(\z^{\text{diag}}, \bm{\tau}^\text{diag}) - (\z^\text{vdm}_{\tau_i}, \tau_i \cdot \bm{1})|| \\
+        &\leq K \sum_{j=1}^{f} (|| \gz_{\tau_j}^j - \gz_{\tau_i}^j || + |\tau_j - \tau_i|) 
+        = O(|\sigma_{\tau_f} - \sigma_{\tau_1}|),
+    \end{align*}
+    which is from the Lipshitz continuity and \cref{lemma1}. 
+    Furthermore, we provide justification for \textit{(Hypothesis 2)} in \cref{app:justification}.
+\end{proof}
+
+\begin{figure}[t]
+    \centering
+    \scalebox{1}{
+        \setlength{\tabcolsep}{1pt}
+        \begin{tabular}{ccc}
+            \includegraphics[width=1\linewidth]{fig/lp.png} \\
+            (a) Latent partitioning \vspace{2mm}\\
+            \includegraphics[width=1\linewidth]{fig/ld.png} \\
+            (b) Lookahead denoising \\
+        \end{tabular}
+    }
+    \caption{
+        Illustration of latent partitioning and lookahead denoising where $f=4$ and $n=2$.
+        (a) Latent partitioning divides the diffusion process into $n$ parts to reduce the maximum noise level difference.
+        (b) Lookahead denoising on (a) enables all frames to be denoised with an adequate number of former frames at the expense of two times more computation than (a).
+    }
+    \label{fig:lp_ld}
+   \vspace{-3mm}
+\end{figure}
+
+\subsection{Lookahead denoising}
+\label{subsec:look_ahead_denoising}
+
+Although our diagonal denoising introduces training-inference gap, it is advantageous in another respect because noisier frames benefit from observing cleaner ones, leading to more accurate denoising.
+As empirical evidence, \cref{fig:mse_loss} shows the relative MSE losses in noise prediction of diagonal denoising  with respect to the original denoising strategy.
+The formal definition of the relative MSE is given by
+\begin{align} 
+    \cfrac{||\bm\epsilon_\theta(\z^{\text{diag}}, \bm{\tau}^\text{diag})^i - \bm\epsilon(\z^{\text{vdm}}_{\tau_i}, \tau_i\cdot\bm{1})^i||_2}
+    {||\bm\epsilon_\theta(\z^{\text{vdm}}_{\tau_i}, \tau_i\cdot\bm{1})^i - \bm\epsilon(\z^{\text{vdm}}_{\tau_i}, \tau_i\cdot\bm{1})^i||_2}.
+    \label{eq:mse_loss}
+\end{align}
+
+\begin{wrapfigure}{r}{0.5\linewidth}
+    \centering
+%    \vspace{-5mm}
+    \includegraphics[width=0.9\linewidth]{./fig/mse_graph.png} 
+    \caption{
+    	The relative MSE losses of the noise prediction of $\gz_{\tau_i}^i$~(see \cref{eq:mse_loss}) when $n=4$.
+        `VDM' indicates the original denoising strategy as a reference line. `LP' and `LD' denote latent partitioning and lookahead denoising, respectively.}
+        \vspace{-3mm}
+\label{fig:mse_loss}
+\end{wrapfigure}
+
+As depicted in \cref{fig:lp_ld}~(b), we estimate noise only for the benefited later half of the frames.
+In other words, we perform diagonal denoising with a stride of $f' = \lfloor \frac{f}{2} \rfloor$, updating only the last $f'$ frames to ensure that each frame is denoised with reference to a sufficient number---at least $f'$---of clearer frames.
+Precisely, for $k=0,\text{\mycdots},2n-1$, each denoising step updates the queue as
+%
+\begin{align} \label{eq:ld}
+    \Q_k^{f'+1:f} \leftarrow \Phi(\Q_k,\bm{\tau}_k,\bm{c};\epsilon_\theta)^{f'+1:f}.
+\end{align}
+%
+\cref{alg:fifo_algorithm_full} in \cref{app:algorithm} outlines the detailed procedure of FIFO-Diffusion with lookahead denoising.
+We illustrate the effectiveness of lookahead denoising with the red line in~\cref{fig:mse_loss}.
+Except for a few early time steps, lookahead denoising enhances the baseline models noise prediction performance, nearly eliminating the training-inference gap described in~\cref{subsec:latent_partitioning}.
+Note that, this approach requires twice the computation of the original diagonal denoising since we only update the half of the queue each step.
+However, the concerns about the additional computational overhead are easily addressed via parallelization in the same manner as latent partitioning~(see \cref{tab:memory_time}).
+

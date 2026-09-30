@@ -1,0 +1,606 @@
+\begin{thebibliography}{87}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Agostinelli et~al.(2023)Agostinelli, Denk, Borsos, Engel, Verzetti,
+  Caillon, Huang, Jansen, Roberts, Tagliasacchi,
+  et~al.]{agostinelli2023musiclm}
+Agostinelli, A., Denk, T.~I., Borsos, Z., Engel, J., Verzetti, M., Caillon, A.,
+  Huang, Q., Jansen, A., Roberts, A., Tagliasacchi, M., et~al.
+\newblock Musiclm: Generating music from text.
+\newblock \emph{arXiv preprint arXiv:2301.11325}, 2023.
+
+\bibitem[Akbari et~al.(2023)Akbari, Kondratyuk, Cui, Hornung, Wang, and
+  Adam]{akbari2023alternating}
+Akbari, H., Kondratyuk, D., Cui, Y., Hornung, R., Wang, H., and Adam, H.
+\newblock Alternating gradient descent and mixture-of-experts for integrated
+  multimodal perception.
+\newblock \emph{arXiv preprint arXiv:2305.06324}, 2023.
+
+\bibitem[Anil et~al.(2023)Anil, Dai, Firat, Johnson, Lepikhin, Passos, Shakeri,
+  Taropa, Bailey, Chen, et~al.]{anil2023palm}
+Anil, R., Dai, A.~M., Firat, O., Johnson, M., Lepikhin, D., Passos, A.,
+  Shakeri, S., Taropa, E., Bailey, P., Chen, Z., et~al.
+\newblock Palm 2 technical report.
+\newblock \emph{arXiv preprint arXiv:2305.10403}, 2023.
+
+\bibitem[Bar-Tal et~al.(2024)Bar-Tal, Chefer, Tov, Herrmann, Paiss, Zada,
+  Ephrat, Hur, Li, Michaeli, et~al.]{bar2024lumiere}
+Bar-Tal, O., Chefer, H., Tov, O., Herrmann, C., Paiss, R., Zada, S., Ephrat,
+  A., Hur, J., Li, Y., Michaeli, T., et~al.
+\newblock Lumiere: A space-time diffusion model for video generation.
+\newblock \emph{arXiv preprint arXiv:2401.12945}, 2024.
+
+\bibitem[Blattmann et~al.(2023{\natexlab{a}})Blattmann, Dockhorn, Kulal,
+  Mendelevitch, Kilian, Lorenz, Levi, English, Voleti, Letts,
+  et~al.]{blattmann2023stable}
+Blattmann, A., Dockhorn, T., Kulal, S., Mendelevitch, D., Kilian, M., Lorenz,
+  D., Levi, Y., English, Z., Voleti, V., Letts, A., et~al.
+\newblock Stable video diffusion: Scaling latent video diffusion models to
+  large datasets.
+\newblock \emph{arXiv preprint arXiv:2311.15127}, 2023{\natexlab{a}}.
+
+\bibitem[Blattmann et~al.(2023{\natexlab{b}})Blattmann, Rombach, Ling,
+  Dockhorn, Kim, Fidler, and Kreis]{blattmann2023align}
+Blattmann, A., Rombach, R., Ling, H., Dockhorn, T., Kim, S.~W., Fidler, S., and
+  Kreis, K.
+\newblock Align your latents: High-resolution video synthesis with latent
+  diffusion models.
+\newblock In \emph{CVPR}, pp.\  22563--22575, 2023{\natexlab{b}}.
+
+\bibitem[Bommasani et~al.(2021)Bommasani, Hudson, Adeli, Altman, Arora, von
+  Arx, Bernstein, Bohg, Bosselut, Brunskill,
+  et~al.]{bommasani2021opportunities}
+Bommasani, R., Hudson, D.~A., Adeli, E., Altman, R., Arora, S., von Arx, S.,
+  Bernstein, M.~S., Bohg, J., Bosselut, A., Brunskill, E., et~al.
+\newblock On the opportunities and risks of foundation models.
+\newblock \emph{arXiv preprint arXiv:2108.07258}, 2021.
+
+\bibitem[Brooks et~al.(2023)Brooks, Holynski, and
+  Efros]{brooks2023instructpix2pix}
+Brooks, T., Holynski, A., and Efros, A.~A.
+\newblock Instructpix2pix: Learning to follow image editing instructions.
+\newblock In \emph{CVPR}, pp.\  18392--18402, 2023.
+
+\bibitem[Brown et~al.(2020)Brown, Mann, Ryder, Subbiah, Kaplan, Dhariwal,
+  Neelakantan, Shyam, Sastry, Askell, et~al.]{brown2020language}
+Brown, T., Mann, B., Ryder, N., Subbiah, M., Kaplan, J.~D., Dhariwal, P.,
+  Neelakantan, A., Shyam, P., Sastry, G., Askell, A., et~al.
+\newblock Language models are few-shot learners.
+\newblock \emph{NeurIPS}, 33:\penalty0 1877--1901, 2020.
+
+\bibitem[Carreira et~al.(2018)Carreira, Noland, Banki-Horvath, Hillier, and
+  Zisserman]{carreira2018short}
+Carreira, J., Noland, E., Banki-Horvath, A., Hillier, C., and Zisserman, A.
+\newblock A short note about kinetics-600.
+\newblock \emph{arXiv preprint arXiv:1808.01340}, 2018.
+
+\bibitem[Ceylan et~al.(2023)Ceylan, Huang, and Mitra]{ceylan2023pix2video}
+Ceylan, D., Huang, C.-H.~P., and Mitra, N.~J.
+\newblock Pix2video: Video editing using image diffusion.
+\newblock In \emph{CVPR}, pp.\  23206--23217, 2023.
+
+\bibitem[Chai et~al.(2023)Chai, Guo, Wang, and Lu]{chai2023stablevideo}
+Chai, W., Guo, X., Wang, G., and Lu, Y.
+\newblock Stablevideo: Text-driven consistency-aware diffusion video editing.
+\newblock In \emph{CVPR}, pp.\  23040--23050, 2023.
+
+\bibitem[Chang et~al.(2022)Chang, Zhang, Jiang, Liu, and
+  Freeman]{chang2022maskgit}
+Chang, H., Zhang, H., Jiang, L., Liu, C., and Freeman, W.~T.
+\newblock Maskgit: Masked generative image transformer.
+\newblock In \emph{CVPR}, pp.\  11315--11325, 2022.
+
+\bibitem[Chang et~al.(2023)Chang, Zhang, Barber, Maschinot, Lezama, Jiang,
+  Yang, Murphy, Freeman, Rubinstein, et~al.]{chang2023muse}
+Chang, H., Zhang, H., Barber, J., Maschinot, A., Lezama, J., Jiang, L., Yang,
+  M.-H., Murphy, K., Freeman, W.~T., Rubinstein, M., et~al.
+\newblock Muse: Text-to-image generation via masked generative transformers.
+\newblock \emph{arXiv preprint arXiv:2301.00704}, 2023.
+
+\bibitem[Chen et~al.(2023{\natexlab{a}})Chen, Xia, He, Zhang, Cun, Yang, Xing,
+  Liu, Chen, Wang, et~al.]{chen2023videocrafter1}
+Chen, H., Xia, M., He, Y., Zhang, Y., Cun, X., Yang, S., Xing, J., Liu, Y.,
+  Chen, Q., Wang, X., et~al.
+\newblock Videocrafter1: Open diffusion models for high-quality video
+  generation.
+\newblock \emph{arXiv preprint arXiv:2310.19512}, 2023{\natexlab{a}}.
+
+\bibitem[Chen et~al.(2023{\natexlab{b}})Chen, Wu, Xie, Wu, Li, Xia, Xiao, and
+  Lin]{chen2023control}
+Chen, W., Wu, J., Xie, P., Wu, H., Li, J., Xia, X., Xiao, X., and Lin, L.
+\newblock Control-a-video: Controllable text-to-video generation with diffusion
+  models.
+\newblock \emph{arXiv preprint arXiv:2305.13840}, 2023{\natexlab{b}}.
+
+\bibitem[Chiu et~al.(2023)Chiu, Chen, and Ma]{Chiu_2023_ICCV}
+Chiu, M.-C., Chen, P.-Y., and Ma, X.
+\newblock Better may not be fairer: A study on subgroup discrepancy in image
+  classification.
+\newblock In \emph{ICCV}, pp.\  4956--4966, 2023.
+
+\bibitem[Chowdhery et~al.(2022)Chowdhery, Narang, Devlin, Bosma, Mishra,
+  Roberts, Barham, Chung, Sutton, Gehrmann, et~al.]{chowdhery2022palm}
+Chowdhery, A., Narang, S., Devlin, J., Bosma, M., Mishra, G., Roberts, A.,
+  Barham, P., Chung, H.~W., Sutton, C., Gehrmann, S., et~al.
+\newblock Pa{LM}: Scaling language modeling with pathways.
+\newblock \emph{arXiv:2204.02311}, 2022.
+
+\bibitem[Ding et~al.(2021)Ding, Yang, Hong, Zheng, Zhou, Yin, Lin, Zou, Shao,
+  Yang, et~al.]{ding2021cogview}
+Ding, M., Yang, Z., Hong, W., Zheng, W., Zhou, C., Yin, D., Lin, J., Zou, X.,
+  Shao, Z., Yang, H., et~al.
+\newblock Cogview: Mastering text-to-image generation via transformers.
+\newblock \emph{NeurIPS}, pp.\  19822--19835, 2021.
+
+\bibitem[Driess et~al.(2023)Driess, Xia, Sajjadi, Lynch, Chowdhery, Ichter,
+  Wahid, Tompson, Vuong, Yu, et~al.]{driess2023palm}
+Driess, D., Xia, F., Sajjadi, M.~S., Lynch, C., Chowdhery, A., Ichter, B.,
+  Wahid, A., Tompson, J., Vuong, Q., Yu, T., et~al.
+\newblock Palm-e: An embodied multimodal language model.
+\newblock \emph{arXiv preprint arXiv:2303.03378}, 2023.
+
+\bibitem[Du et~al.(2022)Du, Huang, Dai, Tong, Lepikhin, Xu, Krikun, Zhou, Yu,
+  Firat, et~al.]{du2022glam}
+Du, N., Huang, Y., Dai, A.~M., Tong, S., Lepikhin, D., Xu, Y., Krikun, M.,
+  Zhou, Y., Yu, A.~W., Firat, O., et~al.
+\newblock G{LaM}s: Efficient scaling of language models with
+  mixture-of-experts.
+\newblock In \emph{ICML}, 2022.
+
+\bibitem[Esser et~al.(2020)Esser, Rombach, and Ommer]{esser2020taming}
+Esser, P., Rombach, R., and Ommer, B.
+\newblock Taming transformers for high-resolution image synthesis.
+\newblock In \emph{CVPR}, pp.\  12868--12878, 2020.
+
+\bibitem[Esser et~al.(2023)Esser, Chiu, Atighehchian, Granskog, and
+  Germanidis]{esser2023structure}
+Esser, P., Chiu, J., Atighehchian, P., Granskog, J., and Germanidis, A.
+\newblock Structure and content-guided video synthesis with diffusion models.
+\newblock In \emph{CVPR}, pp.\  7346--7356, 2023.
+
+\bibitem[Feng et~al.(2023)Feng, Weng, Wang, Yuan, Bao, Luo, Chen, and
+  Guo]{feng2023ccedit}
+Feng, R., Weng, W., Wang, Y., Yuan, Y., Bao, J., Luo, C., Chen, Z., and Guo, B.
+\newblock Ccedit: Creative and controllable video editing via diffusion models.
+\newblock \emph{arXiv preprint arXiv:2309.16496}, 2023.
+
+\bibitem[Ge et~al.(2023)Ge, Nah, Liu, Poon, Tao, Catanzaro, Jacobs, Huang, Liu,
+  and Balaji]{ge2023preserve}
+Ge, S., Nah, S., Liu, G., Poon, T., Tao, A., Catanzaro, B., Jacobs, D., Huang,
+  J.-B., Liu, M.-Y., and Balaji, Y.
+\newblock Preserve your own correlation: A noise prior for video diffusion
+  models.
+\newblock In \emph{CVPR}, pp.\  22930--22941, 2023.
+
+\bibitem[Geyer et~al.(2023)Geyer, Bar-Tal, Bagon, and
+  Dekel]{geyer2023tokenflow}
+Geyer, M., Bar-Tal, O., Bagon, S., and Dekel, T.
+\newblock Tokenflow: Consistent diffusion features for consistent video
+  editing.
+\newblock \emph{arXiv preprint arXiv:2307.10373}, 2023.
+
+\bibitem[Goyal et~al.(2017)Goyal, Ebrahimi~Kahou, Michalski, Materzynska,
+  Westphal, Kim, Haenel, Fruend, Yianilos, Mueller-Freitag,
+  et~al.]{goyal2017something}
+Goyal, R., Ebrahimi~Kahou, S., Michalski, V., Materzynska, J., Westphal, S.,
+  Kim, H., Haenel, V., Fruend, I., Yianilos, P., Mueller-Freitag, M., et~al.
+\newblock The ``something something" video database for learning and evaluating
+  visual common sense.
+\newblock In \emph{ICCV}, 2017.
+
+\bibitem[Guo et~al.(2023)Guo, Yang, Rao, Wang, Qiao, Lin, and
+  Dai]{guo2023animatediff}
+Guo, Y., Yang, C., Rao, A., Wang, Y., Qiao, Y., Lin, D., and Dai, B.
+\newblock Animatediff: Animate your personalized text-to-image diffusion models
+  without specific tuning.
+\newblock \emph{arXiv preprint arXiv:2307.04725}, 2023.
+
+\bibitem[Gupta et~al.(2022)Gupta, Tian, Zhang, Wu, Mart{\'\i}n-Mart{\'\i}n, and
+  Fei-Fei]{gupta2022maskvit}
+Gupta, A., Tian, S., Zhang, Y., Wu, J., Mart{\'\i}n-Mart{\'\i}n, R., and
+  Fei-Fei, L.
+\newblock Maskvit: Masked visual pre-training for video prediction.
+\newblock \emph{arXiv preprint arXiv:2206.11894}, 2022.
+
+\bibitem[Gupta et~al.(2023)Gupta, Yu, Sohn, Gu, Hahn, Fei-Fei, Essa, Jiang, and
+  Lezama]{gupta2023photorealistic}
+Gupta, A., Yu, L., Sohn, K., Gu, X., Hahn, M., Fei-Fei, L., Essa, I., Jiang,
+  L., and Lezama, J.
+\newblock Photorealistic video generation with diffusion models.
+\newblock \emph{arXiv preprint arXiv:2312.06662}, 2023.
+
+\bibitem[He et~al.(2023)He, Yang, Zhang, Shan, and Chen]{he2023latent}
+He, Y., Yang, T., Zhang, Y., Shan, Y., and Chen, Q.
+\newblock Latent video diffusion models for high-fidelity long video
+  generation.
+\newblock \emph{arXiv preprint arXiv:2211.13221}, 2\penalty0 (3):\penalty0 4,
+  2023.
+
+\bibitem[Hershey et~al.(2017)Hershey, Chaudhuri, Ellis, Gemmeke, Jansen, Moore,
+  Plakal, Platt, Saurous, Seybold, Slaney, Weiss, and Wilson]{hershey2017cnn}
+Hershey, S., Chaudhuri, S., Ellis, D. P.~W., Gemmeke, J.~F., Jansen, A., Moore,
+  C., Plakal, M., Platt, D., Saurous, R.~A., Seybold, B., Slaney, M., Weiss,
+  R., and Wilson, K.
+\newblock Cnn architectures for large-scale audio classification.
+\newblock In \emph{ICASSP}, 2017.
+\newblock URL \url{https://arxiv.org/abs/1609.09430}.
+
+\bibitem[Ho \& Salimans(2022)Ho and Salimans]{ho2022classifier}
+Ho, J. and Salimans, T.
+\newblock Classifier-free diffusion guidance.
+\newblock \emph{arXiv preprint arXiv:2207.12598}, 2022.
+
+\bibitem[Ho et~al.(2022{\natexlab{a}})Ho, Chan, Saharia, Whang, Gao, Gritsenko,
+  Kingma, Poole, Norouzi, Fleet, et~al.]{ho2022imagen}
+Ho, J., Chan, W., Saharia, C., Whang, J., Gao, R., Gritsenko, A., Kingma,
+  D.~P., Poole, B., Norouzi, M., Fleet, D.~J., et~al.
+\newblock Imagen video: High definition video generation with diffusion models.
+\newblock \emph{arXiv preprint arXiv:2210.02303}, 2022{\natexlab{a}}.
+
+\bibitem[Ho et~al.(2022{\natexlab{b}})Ho, Salimans, Gritsenko, Chan, Norouzi,
+  and Fleet]{ho2022video}
+Ho, J., Salimans, T., Gritsenko, A., Chan, W., Norouzi, M., and Fleet, D.~J.
+\newblock Video diffusion models.
+\newblock \emph{arXiv:2204.03458}, 2022{\natexlab{b}}.
+
+\bibitem[Hoffmann et~al.(2022)Hoffmann, Borgeaud, Mensch, Buchatskaya, Cai,
+  Rutherford, Casas, Hendricks, Welbl, Clark, et~al.]{hoffmann2022training}
+Hoffmann, J., Borgeaud, S., Mensch, A., Buchatskaya, E., Cai, T., Rutherford,
+  E., Casas, D. d.~L., Hendricks, L.~A., Welbl, J., Clark, A., et~al.
+\newblock Training compute-optimal large language models.
+\newblock \emph{arXiv preprint arXiv:2203.15556}, 2022.
+
+\bibitem[Hong et~al.(2022)Hong, Ding, Zheng, Liu, and Tang]{hong2022cogvideo}
+Hong, W., Ding, M., Zheng, W., Liu, X., and Tang, J.
+\newblock Cogvideo: Large-scale pretraining for text-to-video generation via
+  transformers.
+\newblock \emph{arXiv preprint arXiv:2205.15868}, 2022.
+
+\bibitem[Hu et~al.(2023)Hu, Russell, Yeo, Murez, Fedoseev, Kendall, Shotton,
+  and Corrado]{hu2023gaia}
+Hu, A., Russell, L., Yeo, H., Murez, Z., Fedoseev, G., Kendall, A., Shotton,
+  J., and Corrado, G.
+\newblock Gaia-1: A generative world model for autonomous driving.
+\newblock \emph{arXiv preprint arXiv:2309.17080}, 2023.
+
+\bibitem[Li et~al.(2023)Li, Allal, Zi, Muennighoff, Kocetkov, Mou, Marone,
+  Akiki, Li, Chim, et~al.]{li2023starcoder}
+Li, R., Allal, L.~B., Zi, Y., Muennighoff, N., Kocetkov, D., Mou, C., Marone,
+  M., Akiki, C., Li, J., Chim, J., et~al.
+\newblock {StarCoder}: may the source be with you!
+\newblock \emph{arXiv:2305.06161}, 2023.
+
+\bibitem[Liew et~al.(2023)Liew, Yan, Zhang, Xu, and Feng]{liew2023magicedit}
+Liew, J.~H., Yan, H., Zhang, J., Xu, Z., and Feng, J.
+\newblock Magicedit: High-fidelity and temporally coherent video editing.
+\newblock \emph{arXiv preprint arXiv:2308.14749}, 2023.
+
+\bibitem[Meng et~al.(2021)Meng, He, Song, Song, Wu, Zhu, and
+  Ermon]{meng2021sdedit}
+Meng, C., He, Y., Song, Y., Song, J., Wu, J., Zhu, J.-Y., and Ermon, S.
+\newblock Sdedit: Guided image synthesis and editing with stochastic
+  differential equations.
+\newblock \emph{arXiv preprint arXiv:2108.01073}, 2021.
+
+\bibitem[Nash et~al.(2022)Nash, Carreira, Walker, Barr, Jaegle, Malinowski, and
+  Battaglia]{nash2022transframer}
+Nash, C., Carreira, J., Walker, J., Barr, I., Jaegle, A., Malinowski, M., and
+  Battaglia, P.
+\newblock Transframer: Arbitrary frame prediction with generative models.
+\newblock \emph{arXiv preprint arXiv:2203.09494}, 2022.
+
+\bibitem[OpenAI(2023)]{openai2023gpt4}
+OpenAI.
+\newblock {GPT}-4 technical report.
+\newblock \emph{arXiv:2303.08774}, 2023.
+
+\bibitem[Perazzi et~al.(2016)Perazzi, Pont-Tuset, McWilliams, {Van Gool},
+  Gross, and Sorkine-Hornung]{Perazzi2016davis}
+Perazzi, F., Pont-Tuset, J., McWilliams, B., {Van Gool}, L., Gross, M., and
+  Sorkine-Hornung, A.
+\newblock A benchmark dataset and evaluation methodology for video object
+  segmentation.
+\newblock In \emph{CVPR}, 2016.
+
+\bibitem[Pika(2023)]{pika2023}
+Pika.
+\newblock Pika 1.0, 2023.
+\newblock URL \url{https://pika.art/launch}.
+
+\bibitem[Podell et~al.(2023)Podell, English, Lacey, Blattmann, Dockhorn,
+  M{\"u}ller, Penna, and Rombach]{podell2023sdxl}
+Podell, D., English, Z., Lacey, K., Blattmann, A., Dockhorn, T., M{\"u}ller,
+  J., Penna, J., and Rombach, R.
+\newblock Sdxl: Improving latent diffusion models for high-resolution image
+  synthesis.
+\newblock \emph{arXiv preprint arXiv:2307.01952}, 2023.
+
+\bibitem[Raffel et~al.(2020)Raffel, Shazeer, Roberts, Lee, Narang, Matena,
+  Zhou, Li, and Liu]{raffel2020exploring}
+Raffel, C., Shazeer, N., Roberts, A., Lee, K., Narang, S., Matena, M., Zhou,
+  Y., Li, W., and Liu, P.~J.
+\newblock Exploring the limits of transfer learning with a unified text-to-text
+  transformer.
+\newblock \emph{Journal of Machine Learning Research}, 21\penalty0
+  (1):\penalty0 5485--5551, 2020.
+
+\bibitem[Ramesh et~al.(2021)Ramesh, Pavlov, Goh, Gray, Voss, Radford, Chen, and
+  Sutskever]{ramesh2021zero}
+Ramesh, A., Pavlov, M., Goh, G., Gray, S., Voss, C., Radford, A., Chen, M., and
+  Sutskever, I.
+\newblock Zero-shot text-to-image generation.
+\newblock \emph{arXiv preprint arXiv:2102.12092}, 2021.
+
+\bibitem[Ramesh et~al.(2022)Ramesh, Dhariwal, Nichol, Chu, and
+  Chen]{ramesh2022hierarchical}
+Ramesh, A., Dhariwal, P., Nichol, A., Chu, C., and Chen, M.
+\newblock Hierarchical text-conditional image generation with clip latents.
+\newblock \emph{arXiv preprint arXiv:2204.06125}, 1\penalty0 (2):\penalty0 3,
+  2022.
+
+\bibitem[Ranftl et~al.(2020)Ranftl, Lasinger, Hafner, Schindler, and
+  Koltun]{ranftl2020midas}
+Ranftl, R., Lasinger, K., Hafner, D., Schindler, K., and Koltun, V.
+\newblock Towards robust monocular depth estimation: Mixing datasets for
+  zero-shot cross-dataset transfer.
+\newblock \emph{IEEE TPAMI}, 44\penalty0 (3):\penalty0 1623--1637, 2020.
+
+\bibitem[Rombach et~al.(2022)Rombach, Blattmann, Lorenz, Esser, and
+  Ommer]{rombach2022high}
+Rombach, R., Blattmann, A., Lorenz, D., Esser, P., and Ommer, B.
+\newblock High-resolution image synthesis with latent diffusion models.
+\newblock In \emph{CVPR}, pp.\  10684--10695, 2022.
+
+\bibitem[Rubenstein et~al.(2023)Rubenstein, Asawaroengchai, Nguyen, Bapna,
+  Borsos, Quitry, Chen, Badawy, Han, Kharitonov,
+  et~al.]{rubenstein2023audiopalm}
+Rubenstein, P.~K., Asawaroengchai, C., Nguyen, D.~D., Bapna, A., Borsos, Z.,
+  Quitry, F. d.~C., Chen, P., Badawy, D.~E., Han, W., Kharitonov, E., et~al.
+\newblock Audiopalm: A large language model that can speak and listen.
+\newblock \emph{arXiv preprint arXiv:2306.12925}, 2023.
+
+\bibitem[Runway(2023)]{runway2023}
+Runway.
+\newblock Gen2, 2023.
+\newblock URL \url{https://runwayml.com/}.
+
+\bibitem[Saharia et~al.(2022)Saharia, Chan, Saxena, Li, Whang, Denton,
+  Ghasemipour, Gontijo~Lopes, Karagol~Ayan, Salimans,
+  et~al.]{saharia2022photorealistic}
+Saharia, C., Chan, W., Saxena, S., Li, L., Whang, J., Denton, E.~L.,
+  Ghasemipour, K., Gontijo~Lopes, R., Karagol~Ayan, B., Salimans, T., et~al.
+\newblock Photorealistic text-to-image diffusion models with deep language
+  understanding.
+\newblock \emph{NeurIPS}, 35:\penalty0 36479--36494, 2022.
+
+\bibitem[Saito et~al.(2020)Saito, Saito, Koyama, and Kobayashi]{saito2020train}
+Saito, M., Saito, S., Koyama, M., and Kobayashi, S.
+\newblock Train sparsely, generate densely: Memory-efficient unsupervised
+  training of high-resolution temporal gan.
+\newblock \emph{IJCV}, 128\penalty0 (10):\penalty0 2586--2606, 2020.
+
+\bibitem[Schuhmann et~al.(2022)Schuhmann, Beaumont, Vencu, Gordon, Wightman,
+  Cherti, Coombes, Katta, Mullis, Wortsman, et~al.]{schuhmann2022laion}
+Schuhmann, C., Beaumont, R., Vencu, R., Gordon, C., Wightman, R., Cherti, M.,
+  Coombes, T., Katta, A., Mullis, C., Wortsman, M., et~al.
+\newblock Laion-5b: An open large-scale dataset for training next generation
+  image-text models.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  35:\penalty0 25278--25294, 2022.
+
+\bibitem[Schumann et~al.(2021)Schumann, Ricco, Prabhu, Ferrari, and
+  Pantofaru]{schumann2021step}
+Schumann, C., Ricco, S., Prabhu, U., Ferrari, V., and Pantofaru, C.
+\newblock A step toward more inclusive people annotations for fairness.
+\newblock In \emph{Proceedings of the 2021 AAAI/ACM Conference on AI, Ethics,
+  and Society}, pp.\  916--925, 2021.
+
+\bibitem[Schumann et~al.(2023)Schumann, Olanubi, Wright, Monk, Heldreth, and
+  Ricco]{schumann2023consensus}
+Schumann, C., Olanubi, G.~O., Wright, A., Monk, E., Heldreth, C., and Ricco, S.
+\newblock Consensus and subjectivity of skin tone annotation for {ML} fairness.
+\newblock In \emph{Thirty-seventh Conference on Neural Information Processing
+  Systems Datasets and Benchmarks Track}, 2023.
+\newblock URL \url{https://openreview.net/forum?id=L9I9FhHfS3}.
+
+\bibitem[Singer et~al.(2022)Singer, Polyak, Hayes, Yin, An, Zhang, Hu, Yang,
+  Ashual, Gafni, et~al.]{singer2022make}
+Singer, U., Polyak, A., Hayes, T., Yin, X., An, J., Zhang, S., Hu, Q., Yang,
+  H., Ashual, O., Gafni, O., et~al.
+\newblock Make-a-video: Text-to-video generation without text-video data.
+\newblock \emph{arXiv preprint arXiv:2209.14792}, 2022.
+
+\bibitem[Soomro et~al.(2012)Soomro, Zamir, and Shah]{soomro2012ucf101}
+Soomro, K., Zamir, A.~R., and Shah, M.
+\newblock Ucf101: A dataset of 101 human actions classes from videos in the
+  wild.
+\newblock \emph{arXiv preprint arXiv:1212.0402}, 2012.
+
+\bibitem[Sun et~al.(2022)Sun, Herrmann, Reda, Rubinstein, Fleet, and
+  Freeman]{sun2022disentangling}
+Sun, D., Herrmann, C., Reda, F., Rubinstein, M., Fleet, D.~J., and Freeman,
+  W.~T.
+\newblock Disentangling architecture and training for optical flow.
+\newblock In \emph{ECCV}, 2022.
+
+\bibitem[Tang et~al.(2023)Tang, Yang, Zhu, Zeng, and Bansal]{tang2023any}
+Tang, Z., Yang, Z., Zhu, C., Zeng, M., and Bansal, M.
+\newblock Any-to-any generation via composable diffusion.
+\newblock \emph{arXiv preprint arXiv:2305.11846}, 2023.
+
+\bibitem[Tu et~al.(2022)Tu, Talebi, Zhang, Yang, Milanfar, Bovik, and
+  Li]{tu2022maxvit}
+Tu, Z., Talebi, H., Zhang, H., Yang, F., Milanfar, P., Bovik, A., and Li, Y.
+\newblock Maxvit: Multi-axis vision transformer.
+\newblock In \emph{ECCV}, pp.\  459--479, 2022.
+
+\bibitem[Unterthiner et~al.(2018)Unterthiner, Van~Steenkiste, Kurach, Marinier,
+  Michalski, and Gelly]{unterthiner2018towards}
+Unterthiner, T., Van~Steenkiste, S., Kurach, K., Marinier, R., Michalski, M.,
+  and Gelly, S.
+\newblock Towards accurate generative models of video: A new metric \&
+  challenges.
+\newblock \emph{arXiv preprint arXiv:1812.01717}, 2018.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez,
+  Kaiser, and Polosukhin]{vaswani2017attention}
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A.~N.,
+  Kaiser, {\L}., and Polosukhin, I.
+\newblock Attention is all you need.
+\newblock \emph{NeurIPS}, 30, 2017.
+
+\bibitem[Villegas et~al.(2022)Villegas, Babaeizadeh, Kindermans, Moraldo,
+  Zhang, Saffar, Castro, Kunze, and Erhan]{villegas2022phenaki}
+Villegas, R., Babaeizadeh, M., Kindermans, P.-J., Moraldo, H., Zhang, H.,
+  Saffar, M.~T., Castro, S., Kunze, J., and Erhan, D.
+\newblock Phenaki: Variable length video generation from open domain textual
+  description.
+\newblock \emph{arXiv preprint arXiv:2210.02399}, 2022.
+
+\bibitem[Voleti et~al.(2022)Voleti, Jolicoeur-Martineau, and
+  Pal]{voleti2022mcvd}
+Voleti, V., Jolicoeur-Martineau, A., and Pal, C.
+\newblock Mcvd-masked conditional video diffusion for prediction, generation,
+  and interpolation.
+\newblock \emph{NeurIPS}, 35:\penalty0 23371--23385, 2022.
+
+\bibitem[Wang et~al.(2023{\natexlab{a}})Wang, Yuan, Chen, Zhang, Wang, and
+  Zhang]{wang2023modelscope}
+Wang, J., Yuan, H., Chen, D., Zhang, Y., Wang, X., and Zhang, S.
+\newblock Modelscope text-to-video technical report.
+\newblock \emph{arXiv preprint arXiv:2308.06571}, 2023{\natexlab{a}}.
+
+\bibitem[Wang et~al.(2023{\natexlab{b}})Wang, Xie, Liu, Chen, Cao, Wang, and
+  Shen]{wang2023zero}
+Wang, W., Xie, K., Liu, Z., Chen, H., Cao, Y., Wang, X., and Shen, C.
+\newblock Zero-shot video editing using off-the-shelf image diffusion models.
+\newblock \emph{arXiv preprint arXiv:2303.17599}, 2023{\natexlab{b}}.
+
+\bibitem[Wang et~al.(2023{\natexlab{c}})Wang, Yang, Tuo, He, Zhu, Fu, and
+  Liu]{wang2023videofactory}
+Wang, W., Yang, H., Tuo, Z., He, H., Zhu, J., Fu, J., and Liu, J.
+\newblock Videofactory: Swap attention in spatiotemporal diffusions for
+  text-to-video generation.
+\newblock \emph{arXiv preprint arXiv:2305.10874}, 2023{\natexlab{c}}.
+
+\bibitem[Wang et~al.(2023{\natexlab{d}})Wang, He, Li, Li, Yu, Ma, Chen, Wang,
+  Luo, Liu, et~al.]{wang2023internvid}
+Wang, Y., He, Y., Li, Y., Li, K., Yu, J., Ma, X., Chen, X., Wang, Y., Luo, P.,
+  Liu, Z., et~al.
+\newblock Internvid: A large-scale video-text dataset for multimodal
+  understanding and generation.
+\newblock \emph{arXiv preprint arXiv:2307.06942}, 2023{\natexlab{d}}.
+
+\bibitem[Wu et~al.(2021)Wu, Huang, Zhang, Li, Ji, Yang, Sapiro, and
+  Duan]{wu2021godiva}
+Wu, C., Huang, L., Zhang, Q., Li, B., Ji, L., Yang, F., Sapiro, G., and Duan,
+  N.
+\newblock Godiva: Generating open-domain videos from natural descriptions.
+\newblock \emph{arXiv preprint arXiv:2104.14806}, 2021.
+
+\bibitem[Xu et~al.(2016)Xu, Mei, Yao, and Rui]{xu2016msr}
+Xu, J., Mei, T., Yao, T., and Rui, Y.
+\newblock Msr-vtt: A large video description dataset for bridging video and
+  language.
+\newblock In \emph{CVPR}, pp.\  5288--5296, 2016.
+
+\bibitem[Yan et~al.(2021)Yan, Zhang, Abbeel, and Srinivas]{yan2021videogpt}
+Yan, W., Zhang, Y., Abbeel, P., and Srinivas, A.
+\newblock Videogpt: Video generation using vq-vae and transformers.
+\newblock \emph{arXiv preprint arXiv:2104.10157}, 2021.
+
+\bibitem[Yu et~al.(2022)Yu, Xu, Koh, Luong, Baid, Wang, Vasudevan, Ku, Yang,
+  Ayan, et~al.]{yu2022scaling}
+Yu, J., Xu, Y., Koh, J.~Y., Luong, T., Baid, G., Wang, Z., Vasudevan, V., Ku,
+  A., Yang, Y., Ayan, B.~K., et~al.
+\newblock Scaling autoregressive models for content-rich text-to-image
+  generation.
+\newblock \emph{arXiv preprint arXiv:2206.10789}, 2022.
+
+\bibitem[Yu et~al.(2023{\natexlab{a}})Yu, Cheng, Sohn, Lezama, Zhang, Chang,
+  Hauptmann, Yang, Hao, Essa, et~al.]{yu2023magvit}
+Yu, L., Cheng, Y., Sohn, K., Lezama, J., Zhang, H., Chang, H., Hauptmann,
+  A.~G., Yang, M.-H., Hao, Y., Essa, I., et~al.
+\newblock {MAGVIT}: Masked generative video transformer.
+\newblock In \emph{CVPR}, 2023{\natexlab{a}}.
+
+\bibitem[Yu et~al.(2023{\natexlab{b}})Yu, Cheng, Wang, Kumar, Macherey, Huang,
+  Ross, Essa, Bisk, Yang, et~al.]{yu2023spae}
+Yu, L., Cheng, Y., Wang, Z., Kumar, V., Macherey, W., Huang, Y., Ross, D.~A.,
+  Essa, I., Bisk, Y., Yang, M.-H., et~al.
+\newblock {SPAE}: Semantic pyramid autoencoder for multimodal generation with
+  frozen llms.
+\newblock In \emph{NeurIPS}, 2023{\natexlab{b}}.
+
+\bibitem[Yu et~al.(2024)Yu, Lezama, Gundavarapu, Versari, Sohn, Minnen, Cheng,
+  Gupta, Gu, Hauptmann, et~al.]{yu2023language}
+Yu, L., Lezama, J., Gundavarapu, N.~B., Versari, L., Sohn, K., Minnen, D.,
+  Cheng, Y., Gupta, A., Gu, X., Hauptmann, A.~G., et~al.
+\newblock Language model beats diffusion--tokenizer is key to visual
+  generation.
+\newblock In \emph{ICLR}, 2024.
+
+\bibitem[Yu et~al.(2023{\natexlab{c}})Yu, Sohn, Kim, and Shin]{yu2023video}
+Yu, S., Sohn, K., Kim, S., and Shin, J.
+\newblock Video probabilistic diffusion models in projected latent space.
+\newblock In \emph{CVPR}, pp.\  18456--18466, 2023{\natexlab{c}}.
+
+\bibitem[Zeghidour et~al.(2021)Zeghidour, Luebs, Omran, Skoglund, and
+  Tagliasacchi]{zeghidour2021soundstream}
+Zeghidour, N., Luebs, A., Omran, A., Skoglund, J., and Tagliasacchi, M.
+\newblock Soundstream: An end-to-end neural audio codec.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language
+  Processing}, 30:\penalty0 495--507, 2021.
+
+\bibitem[Zeng et~al.(2023)Zeng, Wei, Zheng, Zou, Wei, Zhang, and
+  Li]{zeng2023make}
+Zeng, Y., Wei, G., Zheng, J., Zou, J., Wei, Y., Zhang, Y., and Li, H.
+\newblock Make pixels dance: High-dynamic video generation.
+\newblock \emph{arXiv preprint arXiv:2311.10982}, 2023.
+
+\bibitem[Zhang et~al.(2023{\natexlab{a}})Zhang, Wu, Liu, Zhao, Ran, Gu, Gao,
+  and Shou]{zhang2023show}
+Zhang, D.~J., Wu, J.~Z., Liu, J.-W., Zhao, R., Ran, L., Gu, Y., Gao, D., and
+  Shou, M.~Z.
+\newblock Show-1: Marrying pixel and latent diffusion models for text-to-video
+  generation.
+\newblock \emph{arXiv preprint arXiv:2309.15818}, 2023{\natexlab{a}}.
+
+\bibitem[Zhang et~al.(2023{\natexlab{b}})Zhang, Rao, and
+  Agrawala]{zhang2023adding}
+Zhang, L., Rao, A., and Agrawala, M.
+\newblock Adding conditional control to text-to-image diffusion models.
+\newblock In \emph{CVPR}, pp.\  3836--3847, 2023{\natexlab{b}}.
+
+\bibitem[Zhang et~al.(2023{\natexlab{c}})Zhang, Jiang, Turk, and
+  Yang]{zhang2023auditing}
+Zhang, Y., Jiang, L., Turk, G., and Yang, D.
+\newblock Auditing gender presentation differences in text-to-image models.
+\newblock \emph{arXiv preprint arXiv:2302.03675}, 2023{\natexlab{c}}.
+
+\bibitem[Zhou et~al.(2023)Zhou, Liu, Xu, Iyer, Sun, Mao, Ma, Efrat, Yu, Yu,
+  et~al.]{zhou2023lima}
+Zhou, C., Liu, P., Xu, P., Iyer, S., Sun, J., Mao, Y., Ma, X., Efrat, A., Yu,
+  P., Yu, L., et~al.
+\newblock Lima: Less is more for alignment.
+\newblock \emph{arXiv preprint arXiv:2305.11206}, 2023.
+
+\bibitem[Zhou et~al.(2022)Zhou, Wang, Yan, Lv, Zhu, and
+  Feng]{zhou2022magicvideo}
+Zhou, D., Wang, W., Yan, H., Lv, W., Zhu, Y., and Feng, J.
+\newblock Magicvideo: Efficient video generation with latent diffusion models.
+\newblock \emph{arXiv preprint arXiv:2211.11018}, 2022.
+
+\bibitem[Zitkovich et~al.(2023)Zitkovich, Yu, Xu, Xu, Xiao, Xia, Wu, Wohlhart,
+  Welker, Wahid, et~al.]{brohan2023rt}
+Zitkovich, B., Yu, T., Xu, S., Xu, P., Xiao, T., Xia, F., Wu, J., Wohlhart, P.,
+  Welker, S., Wahid, A., et~al.
+\newblock {RT}-2: Vision-language-action models transfer web knowledge to
+  robotic control.
+\newblock In \emph{CoRL}, 2023.
+
+\end{thebibliography}

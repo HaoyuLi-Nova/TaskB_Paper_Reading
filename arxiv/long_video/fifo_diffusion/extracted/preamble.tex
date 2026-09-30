@@ -1,0 +1,46 @@
+%
+% --- inline annotations
+%
+
+\usepackage{multirow}
+\usepackage{xspace}
+\usepackage{caption}
+\usepackage{thm-restate}
+\usepackage{footmisc}
+
+\newcommand{\etal}{et al.\xspace}
+\newcommand{\ie}{\textit{i}.\textit{e}.\xspace}
+\newcommand{\eg}{\textit{e}.\textit{g}.\xspace}
+\newcommand{\etc}{\textit{etc\@\xspace}}
+\newcommand{\B}{\bfseries}
+
+\newcommand{\x}{\bm{x}}
+\newcommand{\y}{\bm{y}}
+\newcommand{\z}{\mathbf{z}}
+\newcommand{\gz}{\bm{z}}
+\newcommand{\w}{\bm{w}}
+\newcommand{\I}{\bm{I}}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\Vu}{\bm{u}}
+\newcommand{\Vv}{\bm{v}}
+\newcommand{\Vf}{\bm{f}}
+\DeclareRobustCommand{\Q}{\text{\usefont{T1}{ptm}{m}{n} \textit{Q}}}
+% % for proof-reading
+\newcommand{\bhr}[1]{\textcolor{red}{#1}}
+\newcommand{\bhb}[1]{\textcolor{blue}{#1}}
+\newcommand{\jin}[1]{\textcolor{magenta}{#1}}
+\newcommand{\junoh}[1]{\textcolor{orange}{#1}}
+\newcommand{\jihwan}[1]{\textcolor{brown}{#1}}
+
+% math
+% \DeclareMathOperator*{\argmax}{arg\,max}
+% \DeclareMathOperator*{\argmin}{arg\,min}
+% \DeclareMathOperator{\sign}{sign}
+% \DeclareMathOperator{\Tr}{Tr}
+
+\newcommand\myldots{\ifmmode\ldots\else\makebox[0.5em][c]{.\hfil.\hfil.}\thinspace\fi}
+\newcommand\mycdots{\ifmmode\cdots\else\makebox[0.5em][c]{.\hfil.\hfil.}\thinspace\fi}
+% \renewcommand{\algorithmiccomment}[2][.4\linewidth]{\hfill\makebox[#1][l]{\#~#2}}
+% \renewcommand{\algorithmiccomment}[1]{\bgroup\hfill//~#1\egroup}
+\renewcommand{\algorithmiccomment}[1]{\unskip\hfill\makebox[0.3\linewidth][l]{\#~#1}\par}
+% \usepackage{subfiles}

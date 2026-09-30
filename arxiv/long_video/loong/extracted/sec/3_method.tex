@@ -1,0 +1,135 @@
+\section{Method}
+\label{method}
+%\dq{In this section, we first show our analysis of the problems encountered when extending LLM architectures for long video generation. Then, we show how the proposed methods are motivated and then used to solve those problems point by point. Are we to add in some visualization and analysis? } 
+
+We present \ours, an autoregressive LLM-based model for generating long videos in the scale of minutes.
+% , as shown in Fig.~\ref{fig:stage1}
+We introduce the overall framework, composed of the video tokenizer and the LLM-based video generator, in Sec.~\ref{sec:3.1}. We analyze the problem with long video training and propose the progressive short-to-long training with loss re-weighting scheme, enabling training on 10-second videos, in Sec.~\ref{sec:3.2}. We further investigate inference strategies to extend the generated video length to the minute level and post-processing techniques to enhance the spatial resolution of generated videos in Sec.~\ref{sec:3.3}.
+
+
+\subsection{Overall Framework}
+\label{sec:3.1}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{figs/pipeline2.pdf}
+    \vskip -0.1in
+    \caption{\textbf{Overall Framework and the Training process of \Ours.} Given the input text tokens, the model predict video tokens autoregressively. All the text and video information is formulated into a unidirectional discrete token sequence, where the model predicts the next token based on the previous tokens. Video Tokenizer is utlized to convert video frames into discrete tokens. We use different color to represent first frame, short clip and long clip separately. We follow a progressive training pipeline to train on long videos. We omit the special tokens for simplicity.}
+    \vskip -0.1in
+    \label{fig:stage1}
+\end{figure}
+
+
+
+%\xihui{We need to emphasize our design choice and motivation. for long video generation, it is critical to reduce redundancy and enable efficient modeling of long videos by LLMs -> spatial-temporal compression in tokenizer, low resolution and low fps for tokenizer}
+
+Inspired by previous work in LLM-based image generation and video generation models~\cite{ramesh2021dalle,chang2022maskgit,yu2023magvit,yu2023language,kondratyuk2023videopoet}, \Ours is designed with two components: a video tokenizer that efficiently compresses the videos into discrete tokens, and a decoder-only transformer that autoregressively predicts next video tokens based on text tokens.
+
+%The second challenge comes from the length and redundancy of long video data. Modeling long videos directly with LLMs can be computationally expensive, especially considering the limited context window of the language models. To efficiently generate long videos, it is important to use a highly compressed tokenizer that can factorize a long video segment into a manageable number of tokens while preserving the essential content and motion information. To better model the long-range dependencies and dynamics in long videos, we choose to work with lower resolution and lower frame rate videos. By reducing the spatial and temporal resolution, we can effectively compress the video data, enabling the LLM to capture long-range interactions within its limited context window.
+
+\textbf{Video Tokenizer.}
+In order to enable spatial-temporal joint compression and joint modeling of images and videos, we leverage causal 3D CNN architecture for the tokenizer, inspired by MAGViT2~\cite{yu2023language}. 
+The encoded spatial-temporal features are quantized into discrete tokens with Clustering Vector Quantization (CVQ)~\cite{Zheng_2023_CVQ}, an improved version of VQGAN~\cite{esser2020taming} designed to enhance codebook utilization. To extend the temporal coverage of videos within a limited number of tokens, we work with low-resolution videos and leave super-resolution for the post-processing in Sec.~\ref{sec:3.3}. The tokenizer can compress a 10-second video (65 frames, $128 \times 128$ resolution for each frame) into a sequence of $17 \times 16 \times 16$ discrete tokens with a vocabulary size of 8192.
+% In our implementation, we independently model the first frame and apply a 4-fold temporal compression and an 8-fold spatial compression in each spatial dimension. This allows us to reduce a 10-second video at a resolution of $65 \times 128\times 128$ to a sequence of $17\times 16 \times 16$ discrete tokens. (move to implementation details)
+
+\textbf{Autoregressive LLM-based Video Generation.}
+With the video frames converted into discrete tokens, we can now model the text and video tokens as a unified sequence and formulate text-to-video generation as autoregressively predicting video tokens conditioned on the text tokens with decoder-only Transformers. The process is illustrated in Fig.~\ref{fig:stage1}. For simplicity, we omit the special separate tokens in the following formulation.
+Let $\mathbf{t} = \{t_1, t_2, \ldots, t_N\}$ represent the sequence of text tokens, where $N$ is the number of text tokens. Similarly, let $\mathbf{v} = \{v_1, v_2, \ldots, v_L\}$ represent the sequence of video tokens, where $L$ is the number of video tokens.
+The autoregressive LLM models the unified token sequence $\mathbf{s} = [\mathbf{t}; \mathbf{v}]$ and is trained with the next-token prediction loss for the video tokens.
+\begin{equation}
+\mathcal{L} = -\sum_{i=1}^{L} \log p(v_i \mid v_{<i}, \mathbf{t})
+\end{equation}
+where $v_i$ denotes the $i$-th token in the video sequence $\mathbf{v}$, and $v_{<i}$ denotes all the video tokens preceding $v_i$. 
+
+
+\textbf{Discussion.}
+Different from 
+% VideoPoet~\cite{kondratyuk2023videopoet} that encodes text with a pretrained T5 text encoder~\cite{2020t5} and utilizes bidirectional attention for the tokens of the input conditions and causal attention for the video tokens, we do not use pretrained text encoder and formulate the text tokens and video tokens as a unified token sequence with causal attention for all tokens. 
+VideoPoet~\cite{kondratyuk2023videopoet}, which encodes text with a pretrained T5 text encoder~\cite{2020t5} and applies bidirectional attention for the input condition tokens and causal attention for the video tokens, our approach does not rely on a pretrained text encoder. Instead, we formulate the text tokens and video tokens as a unified token sequence and apply causal attention to all tokens.
+Our unified autoregressive modeling of text tokens and video tokens provides a simpler formulation that is consistent with modern GPT-style LLMs~\cite{gpt3}. This design may lead to potential benefits in extending our model to multimodal LLMs that unify different modalities and different tasks for understanding and generation.
+
+
+\subsection{Progressive Short-to-Long Training with Loss Re-weighting}
+\label{sec:3.2}
+
+
+Most video generation models are trained on short video clips, typically no more than 4 seconds, which limits their ability to capture long-term dependencies and complex dynamics in longer videos. To address this limitation, it is essential to train these models on videos with longer durations, enabling them to learn and generate more coherent and contextually rich video content.
+
+% However, directly training on long videos leads to suboptimal performance even after training for sufficient iterations.
+However, training directly on long videos leads to suboptimal performance, even when the model is trained for a large number of iterations. We illustrate the loss curve of different frame ranges when training on 65-frame videos (with 4,356 tokens, covering 10 seconds) in Fig.~\ref{fig:clip_loss_curve}. We empirically observe that tokens from early frames (frames 1-17) have larger losses than those from later frames (tokens from frames 50-65 have the smallest average loss).
+% We illustrate the loss curve of different frame ranges when training on 65-frame videos (with 4,356 tokens and covering 10 seconds) in Fig.~\ref{fig:clip_loss_curve}. We empirically observe that tokens from early frames (frames 1-17) have larger losses than late frames (tokens from frames 50-65 have the smallest average loss).
+%As a result, the model suffers from severe quality degradation even after training for sufficient iterations.
+% This phenomenon can be attributed to the strong redundancy and inter-frame dependency between video tokens. During training, the model is trained by next-token prediction, where it is much easier to predict tokens from late frames given previous ground-truth video and text tokens. 
+During training, the model learns through next-token prediction, where it is much easier to predict tokens of later frames given the previous ground-truth video and text tokens.
+% In comparison, predicting early-frame tokens with little visual cues from previous frames is more difficult. 
+In comparison, predicting early-frame tokens with little visual cues from previous frames is more challenging. 
+% The imbalanced loss is a severe problem for long-sequence training, because the accumulated loss of many easy tokens from late frames (18-65 frames) surpasses the loss of a few difficult tokens from early frames (1-17 frames) and dominates the gradient direction, leading to suboptimal visual quality of generated videos.
+The imbalanced loss is a severe problem for long-sequence training because the accumulated loss of the many easy-to-predict tokens from later frames (18-65) surpasses the loss of the few difficult-to-predict tokens from early frames (1-17) and dominates the gradient direction, leading to suboptimal visual quality in the generated videos.
+
+\begin{wrapfigure}{r}{0.45\textwidth}
+    \vspace{-20pt} 
+    \centering
+    \includegraphics[width=\linewidth]{figs/clip_loss_curves.png}
+    \vskip -0.15in
+    \caption{\textbf{Imbalanced Training Losses When Training Directly on Long Videos.} The training loss for late frames (18-65) is smaller than that of early frames (1-17), and the loss for the first frame remains relatively high, leading to suboptimal visual quality in the early frames( despite the model being pretrained on text-to-image).
+    % \xihui{add one sentence to explain what happened to first frame loss in the caption.}
+    }
+    \label{fig:clip_loss_curve}
+    \vskip -0.15in
+    \vspace{-6pt} 
+\end{wrapfigure}
+
+To mitigate the aforementioned challenge of imbalanced video token difficulties, we propose a progressive short-to-long training strategy with loss re-weighting, demonstrated in the following.
+
+\textbf{Progressive short-to-long training.}
+In order to allow the model to first learn the text-conditioned appearance and motion of short videos, and then smoothly adjust to longer-range dependencies and more complex motion patterns in longer videos, we factorize training into three stages which gradually increases the training video length, as illustrated in the Fig.~\ref{fig:stage1}:
+(1) In \textit{stage-1}, we pretrain the model with text-to-image generation on a large dataset of static images, which helps the model to establish a strong foundation for modeling per-frame appearance and structure. (2) In \textit{stage-2}, we continue to train the model jointly on images and short video clips of 17 frames, where the model learns to capture short-term temporal dependencies and motion patterns while preserving the per-frame visual quality. %\ZJ{We may add image joint-training for quality preservation? (Also mentioned in exp details)} 
+(3) In \textit{stage-3}, we increase the number of video frames to 65, covering a temporal range of 10 seconds, and continue joint training. 
+
+\textbf{Loss re-weighting for early frames.}
+To further strengthen the supervision of early frames and to prevent the model from forgetting the stage-1 and stage-2 priors, we propose a loss re-weighting scheme for stage-3. To be specific, we apply larger loss weights for the tokens of early frames, and the overall weighted loss is formulated as
+\begin{equation}
+\label{eq:eq2}
+\mathcal{L}_{\text{weighted}} = -(1+\lambda) \sum_{i=1}^{K} \log p(v_i \mid v_{<i}, \mathbf{t}) -\sum_{i=K+1}^{L} \log p(v_i \mid v_{<i}, \mathbf{t}),
+\end{equation}
+where the first term denotes the loss for the $K$ tokens corresponding to the early frames (the first 17 frames), and the second term denotes the loss for the $L-K$ tokens corresponding to the later frames (frames 18-65). $\lambda$ is a positive value to strengthen the loss weight of early frames.
+
+With the loss weighting and progressive training strategy, our model effectively mitigates the issues of long video training. As the model is trained on a temporal range of 10 seconds, it can generate videos of up to 10 seconds with improved temporal coherence and consistency while maintaining the strong appearance and motion priors learned from the image and short video clips.
+
+\subsection{Inference Strategies for Extending Video Length and Resolution}
+%\subsection{Generating Videos Beyond Training Length via Token Re-alignment}
+%\dq{E.g.: Zero-shot video extension...}
+\label{sec:3.3}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.65\textwidth]{figs/stage2.pdf}
+    \vskip -0.1in
+    \caption{\textbf{Inference process of \Ours.} Given the input text, the model first predicts video tokens (illustrated by \texttt{v1}-\texttt{v9}) for the first 10s. The tokens from the last n frames of this clip are then decoded into video frames and re-encoded by the video tokenizer. These re-encoded tokens (\texttt{v7}-\texttt{v9}), along with the text tokens, serve as conditions to predict the video tokens (\texttt{v10}-\texttt{v13}) for the next clip. This iterative process of token prediction, partial decoding, and re-encoding enables extending videos beyond the training duration while mitigating quality degradation. This process is repeated until the generated video reaches the desired length.}
+    \vskip -0.2in
+    \label{fig:stage2}
+\end{figure}
+
+
+%\xihui{This subsection needs proofreading and revising.}
+Large language models are proven to be length-generalizable, so we expect the LLM-based video generator trained on 10-second videos to be extended to generate longer videos autoregressively.
+However, generalizing beyond the training video duration is non-trivial and may lead to error accumulation and quality degradation. 
+For instance, a one-minute video corresponds to approximately $26,112$ video tokens under our current settings, which is significantly longer than most text sequences typically encountered in language modeling tasks. 
+The considerable length and the large inter-frame dependency among video tokens pose challenges for extending the LLM-based generator for long video generation.
+In this subsection, we investigate inference strategies to generate minute-level videos and post-processing methods like video super-resolution and refinement to generate higher-quality videos.
+%\JS{Shall we first explain the LLM model is proved to be length-generalizable. Thus we expect the model trained on 10-second video can generate longer videos autoregreesively. }
+
+\textbf{Video token re-encoding.}
+A natural way of extending videos beyond the training duration is to iteratively generate the tokens of the next video clip, conditioned on the text prompts and the previously generated tokens of the current video clip, exploiting the benefit of autoregressive language models.
+However, this strategy leads to severe video quality degradation for video frames beyond the training range.
+With further analysis, we find that this issue stems from the token misalignment caused by the causal video tokenizer. To be specific, the tokens from the last $n$ frames in a video clip are derived based on the context of all previous frames, while the tokens from the first $n$ frames in a new video clip are derived without the context of the previous video clip. Therefore, generating tokens for the new clip directly conditioned on previous tokens leads to distribution shift in the input features for LLMs. To address this issue, we decode the LLM-generated video tokens to the pixel-space videos and then re-encode the last $n$ frames with the video tokenizer. The re-encoded video tokens and the text tokens serve as the conditions to generate the tokens of the next video clip. The inference process is illustrated in Fig.~\ref{fig:stage2}.
+
+\textbf{Sampling strategy.}
+Decoding video tokens with autoregressive language models is prone to \textit{error accumulation} because of the autoregressive nature of the model and the strong inter-frame dependencies of video tokens.
+Errors in predicting one token can propagate and influence the generation of subsequent tokens, leading to a degradation in video quality as the length increases.
+To mitigate this issue, we draw inspiration from the Top-$k$ sampling strategy commonly used in NLP tasks. During the token sampling process, we only sample from the Top-$k$ most probable tokens, ensuring that the generated tokens are of high quality. %\ZJ{Do we need to make explanation: why don't we use greedy search/argmax to reduce error accumulation? For diversity? (The experiments do mention this part.) }
+By focusing on the most likely tokens, we reduce the influence of potential errors on subsequent token generation, effectively alleviating the error accumulation problem. On the other hand, we also observe that too small values of $k$ ($k=1$ degrades to greedy decoding) lead to almost static videos with little motion. To balance dynamic motion and error accumulation, we choose $k=50$ for our model.
+
+\textbf{Super-resolution and refinement.}
+%\label{sec:3.4}
+As introduced in Sec.~\ref{sec:3.1}, our video tokenizer and LLM-based video generator operates on the low-resolution $128\times 128$ videos. This design trades off spatial resolution for longer video sequences during training and inference. We apply off-the-shelf super-resolution and refinement models~\cite{stable_diff,guo2023animatediff,controlnet,mokady2023null} on the LLM-genereated low-resolution videos. This module serves as a post-processing to enhance the spatial resolution and fine-grained visual details of videos, without affecting the main content and motion of the generated videos. 

@@ -1,0 +1,50 @@
+% \begin{table}[!t]
+% \centering
+% \caption{Ablation on Instruction-based duration alignment}
+% \vspace{-0.2cm}
+% \resizebox{1.0\linewidth}{!}{
+% \begin{tabular}{c|cccc}
+%     \hline
+%     Method   &  DD  & WER(\%)  & UT-MOS $\uparrow$&CMOS $\uparrow$\\
+%     \toprule
+%     Visual Feature & 58.71 & 105.64 & 1.91 & -0.21\\
+%     \midrule
+%     Instruction CA & 61.01 & 21.51 & 2.72 & -0.18\\
+%     LoRA Prediction & 61.01 & 21.51 & 2.72 & -0.18 \\
+%     \midrule
+%     Prototype Num = 1  & 52.53 & 20.84 & 2.96 & -0.17\\
+%     Prototype Num = 5  & 73.44 & 16.05 & 3.08 & -0.12\\
+%     Prototype Num = 10  & 73.44 & 16.05 & 3.08 & -0.12\\
+%     Prototype Num = 20  & 73.44 & 16.05 & 3.08 & -0.12\\
+%     \bottomrule
+% \end{tabular}}
+% \label{abl_duration}
+% \vspace{-0.6cm}
+% \end{table}
+
+
+
+
+\begin{table}[!t]
+\centering
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{c|cccc}
+    \hline
+    Method & DD   & WER(\%)  & UTMOS $\uparrow$\\
+    \toprule
+    % Visual Feature & 0.5029 & 10.54 & 3.38\\
+    % \midrule
+    Raw Instruction CA & 0.5072 & 11.55 & 3.40\\
+    LoRA Prediction & 0.5331 & 13.58 & 3.32 \\
+    \midrule
+    IDD (Prototype Num = 1)  & 0.5005 & 11.63 & 3.38 \\
+    IDD (Prototype Num = 5)  & \underline{0.4975} & \textbf{9.23} & 3.43\\
+    IDD (Prototype Num = 10)  & \textbf{0.4933} & \underline{9.79} & \underline{3.44} \\
+    IDD (Prototype Num = 20)  & 0.4991  & 10.16 & \textbf{3.45}\\
+    \bottomrule
+\end{tabular}}
+% \vspace{-0.2cm}
+\caption{Results of ablation study on different instruction-based duration alignment methods.}
+\label{abl_duration}
+% \vspace{-0.2cm}
+\end{table}

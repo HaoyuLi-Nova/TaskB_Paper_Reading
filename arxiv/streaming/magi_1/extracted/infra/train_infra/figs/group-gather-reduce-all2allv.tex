@@ -1,0 +1,6 @@
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{infra/train_infra/figs/group-gather-reduce-all2allv.for_arxiv.pdf}
+    \caption{Illustration of \texttt{group-cast}/\texttt{group-reduce} primitives for zero redundancy, using the varlen block-causal mask with the last global block as an example for irregular patterns (see~\ref{sec:magiattn_comm}). (a) In both forward and backward passes, the \texttt{group-cast} primitive internally analyzes and generates a transfer table for $\mathrm{KV}$ send/receive buffers, and launches the underlying \texttt{all-to-all-v} to complete communication with our custom \textit{Range Gather} kernel for pre-/post-processing. (b) In the backward pass, \texttt{group-reduce} similarly handles the partial $\mathrm{dKV}$ communication for reduction, using \texttt{all-to-all-v} with the \textit{Range Gather} kernel for pre-processing and the \textit{Range Scatter-Reduce} kernel for post-processing.}
+    \label{fig:group-gather-reduce-all2allv}
+\end{figure}

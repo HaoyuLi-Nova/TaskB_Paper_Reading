@@ -1,0 +1,151 @@
+\subsection{Results}
+\label{sec:pt2v_results}
+
+
+\begin{table}[!t]
+    \centering
+        \begin{tabular}{c ccc}
+        \toprule
+			Method & $\text{Identity}_{best}$ ($\uparrow$) & $\text{Identity}_{worst}$ ($\uparrow$) & Face Consistency ($\uparrow$) \\
+			\midrule
+			ID-Animator & 3.69\% & 3.08\% & 79.69\% \\
+			PT2V Pre-train & 71.91\% & 66.36\% & 97.53\% \\
+			PT2V Finetune & 65.52\% & 60.19\% & 95.61\% \\
+		\bottomrule
+		\end{tabular}
+    \caption{\textbf{Personalized \OursVideo (PT2V) evaluation.} We compare our model after the \pretraining and supervised high-quality finetuning stages against ID-Animator~\citep{he2024id} on Identity score on the best similar frame, the worst similar frame, and face consistency across frames.
+    }
+    \label{tab:pt2v_main_identity}
+\end{table}
+
+
+\begin{table}[!t]
+    \centering
+        \begin{tabular}{c ccc}
+        \toprule
+			Method & $\text{Identity}_{best}$ ($\uparrow$) & $\text{Identity}_{worst}$ ($\uparrow$) & Face Consistency ($\uparrow$) \\
+			\midrule
+			Frozen Vision Encoder & 73.93\% & 66.67\% & 83.50\% \\
+			Trainable Vision Encoder & 90.10\% & 87.22\% & 99.69\% \\
+			Cross-Paired Training & 71.79\% & 66.36\% & 97.53\% \\
+		\bottomrule
+		\end{tabular}
+    \caption{\textbf{Ablation study for Personalized \OursVideo in terms of identity preservation metrics.} We observed that the trainable vision encoder better preserves identity than the frozen vision encoder. Note that although cross-paired training decrease the identity similarity, it leads to more diverse head poses and more natural expressions.}
+    \label{tab:pt2v_ablation_face}
+\end{table}
+
+
+
+In~\cref{tab:pt2v_main_identity} and~\cref{tab:pt2v_vs_baseline}, we compare our \OursPTV after supervised finetuning with ID-Animator~\citep{he2024id}. For the Identity score, we aggregate the ``really similar'' and ``somewhat similar'' scores in the best frame, and for the consistency score, we aggregate the ``really consistent'' and ``somewhat consistent'' scores. As evident, our method significantly outperforms the baseline by a large margin in all axes of identity preservation, video quality, and text alignment.
+We also compare it with \OursVideo without the visual conditioning in terms of video quality and text alignment in~\cref{tab:pt2v_vs_t2v}.
+
+\begin{table}[!t]
+    \centering
+    \adjustbox{max width=\linewidth}{%
+    \subfloat[
+    \label{tab:pt2v_vs_baseline}
+    ]{
+       \centering
+       \begin{tabular}{c c}
+        \toprule
+         & \multicolumn{1}{c}{PT2V-Finetune net win rate} \\
+         &  \vs ID-Animator \\
+         \midrule
+          Overall Quality & 64.74 \\
+          Consistency & 22.18 \\
+          Motion Naturalness & 37.38\\\
+          Motion Completeness & 5.17 \\
+          \midrule
+         Text Alignment & 53.20 \\
+         \bottomrule
+    \end{tabular}
+    }
+    \hfill
+    \subfloat[
+    \label{tab:pt2v_vs_t2v}
+    ]{
+        \centering
+        \begin{tabular}{c c}
+        \toprule
+         & \multicolumn{1}{c}{PT2V-Pretrain net win rate} \\
+         &  \vs T2V-Pretrain \\
+         \midrule
+          & 3.95 \\
+          & 10.33 \\
+          & -1.82 \\
+          & -5.16 \\
+         \midrule
+          & -11.25 \\
+         \bottomrule
+    \end{tabular}
+
+    }
+    }
+    \caption{\textbf{Personalized \OursVideo (PT2V) evaluation on video quality and text alignment.} (a) Net win rate (win\% - loss\%) of our PT2V after supervised finetuning \vs SOTA (ID-Animator~\citep{he2024id}). PT2V significantly outperforms ID-Animator in all metrics. (b) PT2V \vs \OursVideo (T2V) without the visual conditioning. We observed that PT2V wins consistency and performs on par in overal quality accounting for statistical significance, but loses in motion completeness and prompt alignment due to the narrow concept distribution (activities, objects, \etc) of PT2V.
+    }
+    \label{tab:pt2v_main}
+\end{table}
+
+
+
+We present generated videos from \OursPTV in ~\cref{fig:pt2v_qual_ours_figure}.
+The first four videos are generated  with the same prompt but different identities, 
+and the latter four are generated with the same identity but different prompts. 
+The generated videos follow the identity with diverse motion and camera views. 
+Qualitative comparisons between \OursPTV and ID-Animator~\citep{he2024id} are shown in ~\cref{fig:pt2v_qual_ida_vs_ours_figure}. 
+\OursPTV consistently outperforms ID-Animator in terms of identity consistency and video quality. 
+
+
+
+\subsubsection{Ablations}
+\label{sec:pt2v_ablation}
+We ablate the impact of key design choices in our 30B Personalized \TextToV training pipeline.
+
+
+
+
+\par \noindent \textbf{Effect of training visual conditioning embedding.}
+Our models use an embedding from a visual encoder of the face as the visual embedding to condition the generation.
+We study whether training this embedding jointly during the video generation task improves performance.
+We re-train the third stage of our model with either a fixed or trainable vision encoder model and report the evaluation results in~\Cref{tab:pt2v_ablation_face,tab:pt2v_ablation_vid}.
+We observe that using a fixed vision encoder compromises identity preservation significantly, $-16\%$ as seen in~\cref{tab:pt2v_ablation_face}.
+
+
+
+
+
+\par \noindent \textbf{Effect of cross-paired data.}
+Our training pipeline uses cross-paired data, \ie, where the image of the face used to condition the generation comes from a different video clip than the video clip to be generated.
+We observe in~\cref{tab:pt2v_ablation_face} that cross-paired training leads to a decrease in identity metrics, however, it is crucial in improving facial expressions and natural movement in the generated videos. Human annotation in~\cref{tab:pt2v_ablation_vid} reveals that cross-pair trained model improves text alignment by 27.36\% and overall quality by 13.68\%, especially 26.14\% in motion naturalness.
+
+
+\par \noindent \textbf{Effect of high quality finetuning.}
+We show the impact of a final high-quality finetuning stage on all axes of video quality and text alignment in Table~\ref{tab:pt2v_ablation_vid} and on identity preservation in Table~\ref{tab:pt2v_main_identity}. Similarly, since our high-quality finetuning set includes cross-paired data, identity drops slightly while video quality and naturalness is improved significantly.
+
+
+
+
+\begin{table}[!t]
+    \centering
+    \adjustbox{max width=\linewidth}{%
+        \begin{tabular}{c ccc}
+        \toprule
+         & Trainable \vs Frozen Vision Encoder & Cross-Paired \vs Paired & Finetune \vs Pretrain \\
+         \midrule
+         Overall Quality & 0.91 & 13.68 & 26.53\\
+         Consistency & 6.38 & -5.16 & 9.15\\
+         Motion Naturalness & -2.43 & 26.14 & 9.45\\
+         Motion Completeness & -2.72 & 7.6 & 5.49\\
+         \midrule
+         Text Alignment & -4.56 & 27.36 & -1.82 \\
+         \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Ablation study for Personalized \OursVideo in terms of \TextToV evaluation metrics.} Each column shows the net win rate on adopting a design decision \vs a model that does not have it. Using a trainable vision encoder is comparable to the frozen one in terms of quality and alignment metrics while boosting the identity preservation significantly as in Table~\ref{tab:pt2v_ablation_face}. The results also confirm the importance of cross-paired training data and supervised finetuning for video naturalness, higher quality and text alignment.}
+    \label{tab:pt2v_ablation_vid}
+\end{table}
+
+
+
+\input{figures/pt2v_qualitative_comparison/pt2v_qual_comp}
+
+\input{figures/pt2v_qualitative/pt2v_qual}

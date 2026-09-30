@@ -1,0 +1,60 @@
+\subsection{Model Scaling and Training Efficiency}
+\label{sec:train}
+
+
+\subsubsection{Workload Analysis}
+
+In \method, the computational costs associated with the text encoder and VAE encoder are lower than those of the DiT model, which accounts for more than 85\% of the overall computation during training. For the DiT model, the main computational cost is given by the expression $L(\alpha bsh^2+\beta bs^2h)$, where $L$ denotes the number of DiT layers, $b$ is the micro batch size, $s$ indicates the sequence length, and $h$ denotes the hidden dimension size. Here, $\alpha$ corresponds to the cost of the linear layers and $\beta$ to that of the attention layer, for the non-causal attention used in \method, $\beta$ is 4 for the forward pass and 8 for the backward pass. Unlike general LLM models, the sequence length $s$ processed by \method often reaches hundreds of thousands or more. Since the computational cost of attention increases quadratically with the number of tokens, while the cost associated with the linear layers increases only linearly, the attention mechanism gradually becomes the training bottleneck. In scenarios where the sequence length reaches 1 million, the computation time for attention can account for up to 95\% of the end-to-end training time.
+
+
+During the training process, only the DiT model is optimized while the text encoder and the VAE encoder remain frozen. Therefore, GPU memory usage is concentrated on training the DiT. The GPU memory usage for the DiT can be expressed as $\gamma Lbsh$, where $\gamma$ depends on the implementation of the DiT layers, L denotes the number of DiT layers. Because video tokens, input prompts, and timesteps are taken as model input, the value of $\gamma$ is generally larger than in ordinary LLM models. For example, while standard LLMs might have a $\gamma$ of 34~\citep{korthikanti2022megatronsp}, the DiT model's $\gamma$ can exceed 60.
+Consequently, when the sequence length reaches 1 million tokens and the micro-batch size is 1, the total GPU memory usage for activations in a 14B DiT model can exceed 8 TB.
+
+In summary, the primary computational cost in \method arises from the attention mechanism.
+While the computational cost increases quadratically with the sequence length $s$, the GPU memory usage scales only linearly with $s$. This provides a valuable reference for guiding subsequent optimization efforts.
+
+
+\subsubsection{Parallelism Strategy}
+\label{4d_parallel}
+The \method model mainly consists of three modules: VAE, text encoder, and DiT. Following the cache mechanism optimization outlined in Sec.~\ref{sec:cache_infer}, the VAE module exhibits minimal GPU memory usage and can seamlessly adopt Data Parallelism (DP). In contrast, the text encoder requires over 20 GB of GPU memory, necessitating the use of model weight sharding to conserve memory for the subsequent DiT module.
+To address this, we employ a Data Parallel (DP) approach combined with Fully Sharded Data Parallel (FSDP) ~\citep{zhao2023pytorchfsdp} strategy.
+The model parameters, gradients, and optimizer states of the DiT will exceed the capacity of a single GPU, with activation storage reaching approximately 8 TB in a scenario involving 1M tokens with a batch size of 1. Moreover, the DiT portion accounts for a significant proportion of the overall computational workload. Thus, we focus on developing efficient distributed strategies specifically for the DiT module.
+
+\noindent\textbf{DiT parallel strategy.}
+In light of the DiT model’s modest size, and considering the optimization of overlapping computation and communication as well as maximizing the size of data parallelism (DP), we have selected FSDP as our parameter sharding strategy.
+
+Regarding activations, the input shape of a DiT block is $[b, s, h]$, where the $b$ dimension corresponds to data parallelism, $s$ represents the sequence length, and $h$ denotes the hidden dimension. Therefore, we need to examine sharding strategies for the $s$ and $h$ dimensions. Sharding along the s dimension is achieved through Context Parallelism (CP), with common methods including Ulysses~\citep{jacobs2023deepspeedulysses} and Ring Attention~\citep{liu2023ringattention}. Sharding along the $h$ dimension primarily involves Megatron’s tensor parallelism (TP)~\citep{megatron} combined with sequence parallelism (SP)~\citep{korthikanti2022megatronsp}, which shards the hidden dimension of the activations by splitting the weights.
+Since the communication overhead of CP is smaller than that of (TP $+$ SP), we propose using CP to accelerate the batch-level computations while reducing the activation memory footprint on each GPU.
+We have designed a two-dimensional (2D) CP that combines the characteristics of Ulysses and Ring Attention, similar to USP~\citep{fang2024usp}. In this design, the outer layer employs Ring Attention, and the inner layer leverages Ulysses. This combination mitigates the slow cross-machine communication inherent in Ulysses and addresses the need for large block sizes after sharding in Ring Attention, thereby maximizing the overlap between outer-layer communication and inner-layer computation. In scenarios with a sequence length of 256K and 16 GPUs across 2 machines, the communication overhead of 2D Context Parallelism is reduced from over $10\%$ with Ulysses to below $1\%$.
+
+
+\begin{figure}[t]
+    \scriptsize
+    \centering    \includegraphics[width=1\linewidth]{figures/infra/4d_cp.pdf}
+        \vspace{-8mm}
+    \caption{Illustration of DiT parallelism. Assuming a total of 128 GPUs, the innermost layer consists of a combination of Ulysses=8 and Ring=2. The outer layer employs FSDP=32, while the outermost layer utilizes DP=4. The global batch size is 8 times that of the micro-batch size.}
+    \label{fig:dit_parallel}
+    \vspace{-4mm}
+
+\end{figure}
+
+
+The FSDP group and CP group intersect within the FSDP group, the DP size equals the FSDP size divided by the CP size.
+After satisfying memory and single-batch latency requirements, we use DP for the scaling. 
+Fig.~\ref{fig:dit_parallel} illustrates the distributed scheme for the DiT module. For example, in a configuration with 128 GPUs, the CP size is 16, with Ulysses set to 8 and Ring Attention to 2; FSDP is set to 32, corresponding to a batch size of 2b; DP is set to 4, resulting in a global batch size of 8b.
+
+\noindent\textbf{Distributed strategy switching for different modules.}
+During training, different modules utilize the same resources. Specifically, we apply DP to the VAE and Text Encoder, while the DiT module employs a combination of DP and CP. Therefore, when the outputs of the VAE and Text Encoder are fed into the DiT module during training, it is necessary to switch distributed strategies to avoid resource wastage.
+Specifically, CP requires that devices within the CP group read the same batch of data. Yet, if devices in the VAE and Text Encoder sections also read the same data, this leads to redundant computations. To eliminate this redundancy, devices within the CP group initially read different data. Then, before CP, we perform a loop traversal of size equal to the CP size, sequentially broadcasting the data read by different devices within the CP group to ensure that the inputs within CP are identical. In this way, the time proportion of VAE and Text Encoder within a single model iteration is reduced to $1 / CP$, thereby enhancing overall performance.
+
+
+\subsubsection{Memory Optimization}
+
+As introduced, the computational cost in \method~grows quadratically with sequence length $s$, whereas GPU memory usage scales linearly with $s$. This means that in long sequence scenarios, computation time can eventually exceed the PCIe transfer time required for offloading activations. Specifically, the PCIe transfer time for offloading the activation of one DiT layer can be overlapped with the computation of just 1 to 3 DiT layers. Compared to gradient checkpointing (GC) strategies~\citep{chen2016training}, activation offloading~\citep{rhu2016vdnn} that allows computation overlap provides an effective way to reduce GPU memory usage without sacrificing end-to-end performance. Therefore, we prioritize activation offloading to reduce GPU memory.
+Since CPU memory is also prone to exhaustion in long sequence scenarios, we combine offloading with GC strategies, prioritizing gradient checkpointing for layers with high GPU memory-to-computation ratios.
+
+\subsubsection{Cluster Reliability}
+
+By leveraging Alibaba Cloud's advanced intelligent scheduling, slow machine detection, and robust self-healing capabilities within the training cluster, high stability is ensured. Hardware issues are identified during the job startup phase, ensuring that only healthy nodes are allocated to training tasks.
+Throughout training, any faulty nodes are promptly isolated and repaired, with tasks automatically restarted and training seamlessly resumed.
+This efficient orchestration effectively combines reliability with high performance, ensuring overall system stability.

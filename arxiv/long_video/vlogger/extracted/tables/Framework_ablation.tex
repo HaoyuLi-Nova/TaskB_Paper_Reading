@@ -1,0 +1,22 @@
+\begin{table}[t]
+    % \scriptsize
+    \centering
+    \setlength\tabcolsep{4.5pt}
+    \resizebox{1\linewidth}{!}{%
+    \begin{tabular}{l c c c}
+        \toprule
+        \textbf{Method} & \textbf{CLIP-I ($\uparrow$)} & \textbf{CLIP-T ($\uparrow$)} & \textbf{Vlog Duration ($\uparrow$)}  \\
+        \midrule
+        w/o \small{autoregressive}~\cite{Zhu2023MovieFactoryAM} & 0.5683 & 0.2752 & 1min03s \\
+        only \small{autoregressive}~\cite{villegas2023phenaki} & 0.5642 & 0.2535 & 3min58s \\
+        \textbf{Ours} & \textbf{0.6294} & \textbf{0.2756} & \textbf{3min58s} \\
+        \bottomrule
+        \vspace{-1.75em}
+    \end{tabular}
+    }
+    \caption{\textbf{Ablation for generation process}.
+    \cite{Zhu2023MovieFactoryAM} cannot generate a long video in a single scene and both \cite{Zhu2023MovieFactoryAM, villegas2023phenaki} can't refer to images.
+    }
+    \vspace{-1em}
+    \label{tab:framework_ablation}
+\end{table}

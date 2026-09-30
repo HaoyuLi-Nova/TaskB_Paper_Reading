@@ -1,0 +1,89 @@
+\section{Long Video Generation Architectural Modules Recommendations}
+\label{sec:architecture}
+
+In this section, we illustrate the important components of the video generation architecture and we recommend the usage of these components. For example, we discuss the usage of text-encoder in literature and recommend using MLLM, while recent research used variations of T5 alongside CLIP. We also recommend using MeanFlow as a training objective for the diffusion model. While for the architectural main backbone, we recommend using MM-DiT and Flux-MM-DiT. Even though we recommend specific components, the architecture can be different based on the taxonomy discussed in Figure ~\ref{fig:main-taxonomy}. A summary of this survey is shown in Table ~\ref{tab:backbone1} comparing the key architectural components used by each literature.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Text-Visual Encoder}
+Text-visual encoder is used to extract the text embeddings and extract the similarity score between text and image embeddings. It is common between the literature to use CLIP’s text-visual encoder ~\cite{clip2021} in conjunction with T5, T5-XXL or umT5 ~\cite{t5-2019, umt5-2023, t5-xxl-2024} as they provided robust text–to-video alignment by extracting semantically rich embeddings. Recently, HunyuanVideo ~\cite{kong2024hunyuanvideo} replaced T5 with a Multimodal Large Language Model (MLLM) reaching better alignment between visual features and text embeddings. The equation of the clip encoder is as follows:
+\begin{align}
+h_I &= \mathrm{ViT}_I\!\bigl(\mathrm{PatchEmbed}(I)\bigr), \\
+h_T &= \mathrm{Tr}_T\!\bigl(\mathrm{TokEmbed}(T)\bigr), \\
+\mathcal{L}_{\text{clip}} &=
+-\log\frac{\exp\bigl(\tau^{-1}h_I^{\!\top}h_T\bigr)}
+     {\sum_{j}\exp\bigl(\tau^{-1}h_I^{\!\top}h_{T}^{(j)}\bigr)} .
+\end{align}
+Where $I$ RGB image, $T$ caption text, $h_I,h_T$ CLS embeddings, $\tau$ temperature scalar, $\mathcal{L}_{\text{clip}}$ contrastive loss. 
+While for T5 equations:
+\begin{align}
+H_E &= \mathrm{T5\text{-}Enc}\!\bigl(E_{\text{tok}}(T_{\text{src}})\bigr), \\
+h_{D,i} &= \mathrm{T5\text{-}Dec}\!\bigl(E_{\text{tok}}(Y_{<i}),H_E\bigr), \\
+\mathcal{L}_{\text{T5}} &=
+-\sum_{i}\log\!\left[\operatorname{softmax}(W_O h_{D,i})_{\,y_i}\right].
+\end{align}
+Where $T_{\text{src}}$ input tokens, $Y$ target tokens with prefix $Y_{<i}$, $E_{\text{tok}}$ token–embedding table, $H_E$ encoder context, $h_{D,i}$ decoder hidden state at step $i$, $W_O$ output projection, $\mathcal{L}_{\text{T5}}$ autoregressive cross-entropy loss.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% add flow matching
+\subsection{Diffusion Training Objective} % or  %%%%%%%% FLOW MATCHING
+Diffusion models have demonstrated remarkable success in high-quality image synthesis, laying the groundwork for video generation by leveraging denoising diffusion models such as DDPM ~\cite{ddpm2020} and DDIM ~\cite{ddim2020}. The introduction of a latent representation via autoencoders VAE further reduced computational cost and enabled more efficient sampling as in ~\cite{ldm2022}. Flow matching methods have emerged as a more robust and efficient alternative to denoising diffusion samplers like DDPM and DDIM by directly regressing continuous-time vector fields that transport noise to data, thus reducing reliance on multi-step noise schedules ~\cite{flowmatching2023, flowmatching2024}. More recently, MeanFlow~\cite{geng2025meanflows} replaces instantaneous ordinary differential equation (ODE) velocities with a learned average velocity field. On Kinetics-400, it achieves an FVD of 128, compared to 142 for flow-matching. On UCF-101, it attains an SSIM of 0.85~\cite{wang2004image}, exceeding flow-matching’s 0.82~\cite{davtyan2023river}. It also achieves an LPIPS of 0.12~\cite{zhang2018unreasonable}, improving on flow-matching’s 0.15~\cite{flowmatching2023, flowmatching2024}. MeanFlow reduces inference time by 4× compared to flow-matching. It also narrows the quality gap with multi-step diffusion models~\cite{wang2025diffuse}. Based on these results, we recommend using MeanFlow for efficient, high-quality video generation.
+
+
+Flow-matching formulas are as follows:
+\begin{align}
+\mathbf{u}_{t\!\rightarrow\!t+1} &= 
+\mathcal{F}\!\bigl(h_I^{(t)},h_I^{(t+1)};\theta_{\mathcal{F}}\bigr), \\
+\mathcal{L}_{\text{flow}} &=
+\bigl\lVert\mathbf{u}_{t\!\rightarrow\!t+1}(p)-\hat{\mathbf{u}}_{t\!\rightarrow\!t+1}(p)\bigr\rVert_{2}^{2}.
+\end{align}
+Where $h_I^{(t)}$ image feature at frame $t$, $\mathbf{u}_{t\to t+1}$ predicted optical flow, $\hat{\mathbf{u}}_{t\to t+1}$ ground-truth flow, $\mathcal{F}$ flow network with parameters $\theta_{\mathcal{F}}$, $\mathcal{L}_{\text{flow}}$ L1 loss. While for MeanFlow formula:
+\begin{align}
+\bar{\mathbf{u}} &=
+\frac{1}{(T-1)\,H\,W}\sum_{t=1}^{T-1}\sum_{p=1}^{HW}
+\mathbf{u}_{t\!\rightarrow\!t+1}(p).
+\end{align}
+Where $T$ video length in frames, $H,W$ frame height and width, $p$ linear pixel index, $\mathbf{u}_{t\to t+1}(p)$ optical-flow vector at pixel $p$ between frames $t$ and $t\!+\!1$, $\bar{\mathbf{u}}$ spatial–temporal average flow. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Variational Auto Encoder (VAE)}
+VAE is crucial in learning the compressed latent format of original visual data. In video generation, the 3D VAE captures complex spatio-temporal dependencies. Some designs choose to replace standard VAE with VQ-VAE ~\cite{VQVAE2017, VQVAE2019} to enhance the compression and construction. Other designs ~\cite{hacohen2025ltxvideo} modified the VAE decoder to fit-in a last denoising step while converting the latents to pixels. 3D VAE is the most common among top-performing literature.
+\begin{align}
+z &\sim q_\phi(z\!\mid\!X)= \mathcal{N}\!\bigl(\mu_\phi(X),\operatorname{diag}\sigma_\phi^{2}(X)\bigr), \\
+\mathcal{L}_{\text{3DVAE}} &=
+\mathbb{E}_{q_\phi}\!\bigl[\lVert D_\psi(z)-X\rVert_2^{2}\bigr]+
+\beta\,D_{\mathrm{KL}}\!\bigl(q_\phi\|p(z)\bigr).
+\end{align}
+Where $X$ ground-truth video tensor, $q_\phi$ probabilistic encoder, $\mu_\phi,\sigma_\phi$ per-frame Gaussian parameters, $z$ latent code, $D_\psi$ 3D decoder, $p(z)$ standard normal prior, $\beta$ KL-weight, $\mathcal{L}_{\text{3DVAE}}$ reconstruction + regularization loss.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Dual Variational Auto Encoder}
+Recent architectures decouple appearance and motion by using two distinct encoders. One for static image features and another for temporal dynamics like in ~\cite{chen2025hunyuanvideoavatar, hu2025hunyuancustom, peng2025opensora2, liu2025phantom, chen2025videoalchemist, polyak2024moviegen}. This enables specialized feature learning and reducing interference between modalities. Models like Open-Sora 2.0 ~\cite{peng2025opensora2} adopt this dual-stream design to lower training costs by 5–10× while maintaining state-of-the-art video quality. Similarly, VideoAlchemist ~\cite{chen2025videoalchemist} demonstrates built-in multi-subject personalization and improved identity consistency without test-time fine-tuning by leveraging separate foreground and background encoding streams.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Attention Mechanism}
+Video Diffusion Models (VDM) extended the 2D UNet architecture ~\cite{unet2015} into 3D UNet to model spatio-temporal (2D spatial + 1D temporal layer) dependencies directly~\cite{ho2022vdm}. Subsequent methods such as AnimatedDiff~\cite{gu2023animatediff}, MagicVideo~\cite{magicvideo2022}, ModelScope Text-to-Video~\cite{modelscope2023}, Stable Video Diffusion (SVD)~\cite{ho2023svd}, and CogVideoX~\cite{yang2024cogvideox} adopted a hybrid strategy by integrating 1D temporal attention blocks into a 2D spatial backbone of the attention, yielding full 3D attention for improved frame coherence. Despite these advances, early diffusion-based video systems typically generated  2–5 second clips with artifacts and limited long-term consistency, indicating that simple 2D + 1D temporal modules remain insufficient for robust motion modeling. 
+
+Recent models with robust performance as in Seedance 1.0 ~\cite{gao2025seedance}, they decoupled the attention spatial and temporal layers, where spatial layers perform global self-attention within each frame and temporal layers apply window-partitioned 3D self-attention across time to link frames causally. Seedance incorporates specialized windowed attention modules in temporal layers, partitioning frames into local blocks that attend within sliding windows, yielding 10× faster inference on 1080p benchmarks. Another top performing method by MAGI-1 ~\cite{teng2025magi1}, employs block-causal self-attention, which performs unrestricted full attention within each fixed-length video chunk while applying causal masks across chunk boundaries. MAGI-1 integrates a Flexible-Flash-Attention kernel on top of FlashAttention-3 ~\cite{shah2024flashattention3}, optimizing memory access patterns and reducing GPU communication overhead during attention computation. MAGI-1 further accelerates computation by computing shared query projections once and feeding them into spatial-temporal self-attention and cross-attention blocks in parallel.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Positional Encoding}
+WAN2.1~\cite{wan2025} retains standard sinusoidal encodings to reduce computational overhead while LTX-Video~\cite{hacohen2025ltxvideo} applies one-dimensional rotary positional embeddings (RoPE) over flattened tokens for real-time inference. Recently, Three-dimensional rotary positional embeddings (3D RoPE) that rotate feature pairs across time and space have been used by HunyuanVideo~\cite{kong2024hunyuanvideo}, MAGI-1~\cite{teng2025magi1}, StepVideo~\cite{huang2025stepvideo}, HunyuanCustom~\cite{hu2025hunyuancustom}, Phantom~\cite{liu2025phantom} and Open-Sora~2.0~\cite{peng2025opensora2} to enhance motion coherence and length extrapolation. Seedance~\cite{gao2025seedance} introduces a multi-modal RoPE (MM-RoPE) by appending it to oridnary 3D RoPE for caption tokens, which tightens text–video alignment in multi-shot generation which proves to be a promising technique.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Diffusion-based Transformers}
+The transformer-based backbones such as Diffusion Transformers (DiT) ~\cite{dit2023}, Latte ~\cite{latte2025}, PixArt-$\alpha$ ~\cite{pixart2023} are able to generate much better images and videos than UNet backbones. DiT operating on latent image patches, leveraging global cross-attention for conditioning and yielding to high-fidelity videos as in MAGI-1~\cite{teng2025magi1}, StepVideo~\cite{huang2025stepvideo}, Wan2.1~\cite{wan2025}, LTX-Video ~\cite{hacohen2025ltxvideo} and VideoAlchemist~\cite{chen2025videoalchemist}. That is proceeded with MultimModal Diffusion Transformer (MM-DiT) ~\cite{flowmatching2024}, a dual-stream DiT architecture, as the text embeddings are concatenated with the visual embeddings to have a linked text-visual attention which yields stronger text–video alignment and lower FID at the cost of increased parameter count and inference overhead as in Seedance 1.0 ~\cite{gao2025seedance}, Phantom ~\cite{liu2025phantom} and PyramidFlow ~\cite{jin2024pyramidflow}. Another recent method is Flux-MM-DiT ~\cite{fluxdit2024}, which augments MM-DiT with rectified flow residual modules to enable one-step sampling and faster convergence, achieving comparable sample quality in far fewer denoising steps while introducing additional architectural complexity as in HunyuanVideo~\cite{kong2024hunyuanvideo} and Open-Sora 2.0~\cite{peng2025opensora2}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Prompt Enhancement}
+User‐supplied prompts are often short, whereas training captions are multi‐sentence and richly detailed, causing a distribution mismatch that degrades video quality. To bridge this gap, an LLM‐powered prompt rewriting stage is added into the text–visual tower. For example, Seedance leverages Qwen2.5-Plus to expand concise user inputs with spatial, lighting, and action modifiers~\cite{gao2025seedance}; HunyuanVideo-Avatar uses LLaVA to paraphrase free-form queries into training‐style captions, reducing semantic drift~\cite{chen2025hunyuanvideoavatar}; and StepVideo incorporates a bespoke Step-LLM module to structure prompts into chunk‐level directives, ensuring smoother motion and coherent long‐form generation~\cite{huang2025stepvideo}. Models without dedicated rewrite modules such as VACE~\cite{vace2025} and VideoAlchemist~\cite{chen2025videoalchemist}, rely solely on fixed text encoders. By aligning rewritten prompts with the training caption distribution, these enhancements sharpen visual detail, suppress flicker, and unify style across video frames.  
+
+
+\subsection{Story Agent}
+Operating at the narrative level, the story agent uses LLM to segment the input plot into scenes and shots, aligns characters, locations, and camera cues across those shots, and generates scene-specific prompts that preserve temporal coherence and multi-subject consistency. Following the approach of StoryDiffusion~\cite{zhou2024storydiffusion}, MovieAgent~\cite{movieagent2025}, and AutoStory~\cite{liu2023autostory}, these prompts drive an image-to-video stage for each keyframe; the resulting clips are concatenated into a seamless long-form video, yielding a decoupled architecture in which prompt-level refinements boost frame quality while the agent governs plot flow.

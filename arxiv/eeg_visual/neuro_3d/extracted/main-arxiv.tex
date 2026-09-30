@@ -1,0 +1,85 @@
+% CVPR 2025 Paper Template; see https://github.com/cvpr-org/author-kit
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+% \usepackage{cvpr}              % To produce the CAMERA-READY version
+% \usepackage[review]{cvpr}      % To produce the REVIEW version
+\usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{pifont}
+\usepackage{arydshln}
+\usepackage{makecell}
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{8343} % *** Enter the Paper ID here
+\def\confName{CVPR}
+\def\confYear{2025}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{Neuro-3D: Towards 3D Visual Decoding from EEG Signals}
+%with \\ Diffusion-Based Reconstruction
+
+% %%%%%%%%% AUTHORS - PLEASE UPDATE
+% \author{Zhanqiang Guo\\
+% Department of Automation, Tsinghua University\\
+% Institution1 address\\
+% {\tt\small guozq21@mails.tsinghua.edu.cn}
+% % For a paper whose authors are all at the same institution,
+% % omit the following lines up until the closing ``}''.
+% % Additional authors and addresses can be added with ``\and'',
+% % just like the second author.
+% % To save space, use either the email address or home page, not both
+% \and
+% Jiamin Wu\\
+% Shanghai AI Laboratory\\
+% First line of institution2 address\\
+% {\tt\small wujiamin@i2.org}
+% }
+%\vspace{-0.3cm}
+\author{%
+	Zhanqiang Guo$^{1, 2*}$, Jiamin Wu$^{1, 3*}$, Yonghao  Song$^{2}$, Jiahui Bu$^{5}$, Weijian Mai$^{1, 6}$, \\ Qihao Zheng$^{1}$,  Wanli Ouyang$^{1, 3\dag}$, Chunfeng Song$^{1, 4\dag}$ \\[0.5em]
+	$^{1}$Shanghai Artificial Intelligence Laboratory, $^{2}$Tsinghua University, \\$^{3}$The Chinese University of Hong Kong, $^{4}$Shanghai Innovation Institute,  \\$^{5}$Shanghai Jiao Tong University, $^{6}$South China University of Technology \\[0.3em] %, $^{3}$Peng Cheng Laboratory
+	%   {\small \texttt{\{chenh, bohe, hywang66,  yxren, abhinav\}@umd.edu, sernamlim@fb.com} }
+}
+
+\begin{document}
+	\maketitle
+	\renewcommand{\thefootnote}{}
+	\footnotetext{$^*$ Equal contribution. $^\dag $ Corresponding authors: \texttt{\{songchunfeng, ouyangwanli\}@pjlab.org.cn}}
+	\renewcommand{\thefootnote}{\arabic{footnote}}
+	
+	\input{sec-arxiv/0_arxiv_abs}    
+	\input{sec-arxiv/1_arxiv_intro}
+	\input{sec-arxiv/2_arxiv_rew}
+	\input{sec-arxiv/3_arxiv_data}
+	\input{sec-arxiv/4_arxiv_method}
+	\input{sec-arxiv/5_arxiv_exp}
+	\input{sec-arxiv/6_arxiv_con}
+	\section*{Acknowledgments}
+	This work is supported by Shanghai Artificial Intelligence Laboratory. 
+	\newpage
+	{
+		\small
+		\bibliographystyle{ieeenat_fullname}
+		\bibliography{EEGTo3D}
+	}
+	\input{sec-arxiv/X_arxiv_supp}
+	% WARNING: do not forget to delete the supplementary pages from your submission 
+	%\input{MySec/X_Mysuppl}
+	
+\end{document}

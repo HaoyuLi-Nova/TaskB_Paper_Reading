@@ -1,0 +1,23 @@
+\begin{table}[!t]
+\centering
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{c|cccc}
+    \hline
+    Method   &  \small{EMO-SIM} (\%) $\uparrow$  & WER(\%)  & UTMOS $\uparrow$\\
+    \toprule
+    % Visual Feature & 69.87 & 10.54 & 3.38\\
+    % \midrule
+    Raw Instruction CA & \underline{69.55} & 10.41 & 3.38 \\
+    Instrcution Distilling & 70.51 & \underline{9.92} & \underline{3.42}\\
+    w/o Calibrating & 70.33 & 10.52 & 3.39\\
+    \midrule
+    Ours (IEC) & \textbf{70.94} & \textbf{9.79} & \textbf{3.44}\\
+    \bottomrule
+\end{tabular}
+}
+% \vspace{-0.2cm}
+\caption{Results of ablation study on different instruction-based emotion alignment methods.}
+
+\label{abl_emotion}
+% \vspace{-0.4cm}
+\end{table}

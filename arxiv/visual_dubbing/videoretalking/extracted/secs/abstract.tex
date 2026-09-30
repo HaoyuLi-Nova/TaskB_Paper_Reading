@@ -1,0 +1,49 @@
+% 1. lipsync/video editing current challenge [single person method, low-resolution & lack of accurate lipsync.]
+% 2. we propose a framework which can
+%   - high-resolution generation
+%   - accurate lip sync 
+%   - editable expression
+
+
+% Yong 
+% 1. Goal of video dubbing
+% 2. summary of current challenges or drawbacks 
+%   - most are personalized 
+%   - few focus on generic 
+%   - low quality: low resolution, blur, teeth, inconsistency 
+% 3. work summary
+%   - a novel framework for generic video dubbing 
+%   - High resolution and high-fidelity and details 
+%   - enable emotion control 
+% 4. How to do 
+%   - "removing-then-editing"
+%   - a module for emotion removing
+%       - stability of audio driving, simplify the input
+%   - a module for editing 
+%       - audio injection 
+%       - emotion control 
+%   - a module for quality 
+%       - id preserving 
+%       - facial details:  teeth, eyes 
+%  5. experiments for validation
+
+We present VideoReTalking, a new system to edit the faces of a real-world talking head video according to input audio, producing a high-quality and lip-syncing output video even with a different emotion.
+%~(even with different emotions) under the new audio. 
+% Generally, our system fellows the idea of removing the talking-related motion from the original video, and then, generating the audio-driven lips from the new face. 
+Our system disentangles this objective into three sequential tasks: (1) face video generation with a canonical expression; (2) audio-driven lip-sync; and (3) face enhancement for improving photo-realism. 
+%To achieve this goal, we propose three networks for expression reenactment, lip-sync, and face enhancement.
+%Given a talking-head video, we first edit all the expression of the original video frame-wisely by the same expression template using an expression editing network, causing a video with the frozen expression for lip synthesis.
+Given a talking-head video, we first modify the expression of each frame according to the same expression template using the expression editing network, resulting in a video with the canonical expression. This video, together with the given audio, is then fed into the lip-sync network to generate a lip-syncing video.
+% including a module to stabilize the expression in the original videos by a video self-decomposed network, which results will be edited by a fixed expression parameters to produce the basic emotion of the audio. 
+% And then, the edited face will be served as a stable reference for lip sync network, and it will synthesis the motion of the lower half face.
+Finally, we improve the photo-realism of the synthesized faces through an identity-aware face enhancement network and post-processing.
+We use learning-based approaches for all three steps and all our modules can be tackled in a sequential pipeline without any user intervention.
+% Furthermore, our system is a generic approach that \red{does not need to be} retrained to a specific video or person. 
+Furthermore, our system is a generic approach that does not need to be retrained to a specific person. 
+Evaluations on two widely-used datasets and in-the-wild examples demonstrate the superiority of our framework over other state-of-the-art methods in terms of lip-sync accuracy and visual quality.
+% The proposed framework have two major differences between the proposed method and the previous arts. On the one hand, we propose a more general solution which can works on any identify and the real-world videos. On the other hand, our method can edit the emotion~(\emph{e.g.} smile and neutral) and the lip-sync concurrently.
+% Unlike previous works which only generate low-quality videos or for personalized video portrait, our method synthesize high-quality results for any real-world talking videos. 
+% In detail, to control the expression and generate the stable results of the lip sync network, we first learn a self-decomposed face reenactment network in a self-supervised manner to decouple the motion and expression of a talking video. Then, we use a lip synthesis network to modify the lip related motions, where our lip synthesis network utilize the edited videos for a stable expression reference. Finally, to enhance the visual quality of the produced results, we leverage a GAN prior network to enhance the synthesized video. Thanks to the provided stable reference, our methods can generate accurate lip synthesis results with the reference emotion unchanged. Experiments show the advantage of the proposed methods.
+
+% Audio-based visual dubbing aims to edit the lips related motions of the talking video by the given audio. Previous methods are either struggling to synthesize the photo-realistic images or focusing on the personalized video portrait personalized video portrait. 
+\input{figs_tex/fig_overview}

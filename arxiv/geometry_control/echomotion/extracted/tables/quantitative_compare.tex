@@ -1,0 +1,60 @@
+% \begin{table}[t]\label{main_table}
+% \centering 
+% \caption{Comparison with baseline models methods on video generation. We report both human evaluation and automatic metrics. \textbf{Bold} indicates the best performance, and \underline{underline} indicates the second best.}
+% \label{tab:comparison_results} \ref{tab:comparison_results}
+% \begin{tabular}{l ccc cc}
+% \toprule
+% & \multicolumn{3}{c}{\textbf{Auto Metrics}} & \multicolumn{2}{c}{\textbf{Human Eval}} \\
+% \cmidrule(r){2-4} \cmidrule(l){5-6}
+% \textbf{Method} & Human Anatomy. & Motion Smoothness. & Human Action & Appearnce & Motion \\
+% \midrule
+% Wan2.1-1.3B & 00.0 & 00.0 & 00.0 & 00.0 & 00.0 \\
+% Wan2.1-1.3B-EchoMotion & 00.0 & 00.0 & 00.0 & 00.0 & 00.0 \\
+% Wan2.2-5B & 00.0 & 00.0 & 00.0 & 00.0 & 00.0 \\
+% Wan2.2-5B-EchoMotion & 00.0 & 00.0 & 00.0 & 00.0 & 00.0 \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+\begin{table}[t]
+\setlength\tabcolsep{3pt}
+% \setlength{\tabcolsep}{3pt}
+\centering 
+\caption{Comparison with baseline models on video generation. We report both human evaluation and automatic metrics. \textbf{Bold} indicates the best performance, and \underline{underline} indicates the second best.}
+\label{tab:comparison_results}
+
+\small 
+
+\begin{tabular}{l | cccc | ccc}
+% \toprule
+\Xhline{1.1pt}
+\multirow{3}{*}{} & \multicolumn{4}{c|}{\textit{Auto Metrics}} & \multicolumn{3}{c}{\textit{Human Eval}} \\
+
+\cline{2-8}
+
+\shortstack{} & 
+\shortstack{Human \\ Anatomy} &  
+\shortstack{Motion \\ Smoothness} & 
+\shortstack{Dynamic \\ Degree} & 
+\shortstack{Aesthetic \\ Quality} & 
+\shortstack{Video \\ Quality} & 
+\shortstack{Prompt \\ Following} & 
+\shortstack{Posture \\ Plausibility} \\
+% \midrule
+\hline
+\reb{CogVideoX-2B} & \reb{61.7} & \reb{97.0} & \reb{49.4} & \reb{51.6} & \reb{55.3} & \reb{52.1} & \reb{53.6} \\
+Wan-1.3B & 78.1 & 98.2 & 60.6 & \textbf{60.1} & 68.2 & 70.3 & 64.0 \\
+\reb{Video Tuning(Wan-1.3B)} & \reb{77.4} & \reb{98.3} & \reb{61.6} & \reb{59.7} & \reb{69.3} & \reb{73.2} & \reb{65.5} \\
+EchoMotion(Wan-1.3B) & 79.6 & 98.9 &  61.9 & \underline{60.0} & 71.3 & 73.2 & 66.1 \\
+% \midrule
+\hline
+\reb{CogVideoX1.5-5B} & \reb{65.3} & \reb{98.5} & \reb{54.4} & \reb{53.2} & \reb{62.5} & \reb{60.4} & \reb{59.4} \\
+Wan-5B & 83.0 & \underline{98.9} & {62.2} & 58.3 & \underline{72.8} & 78.9 & {68.9} \\
+Video Tuning(Wan-5B) & \underline{83.1} & 98.7 & \underline{63.1} & 57.9 & 72.3 & \underline{79.6} & \underline{70.2}\\
+EchoMotion(Wan-5B) & \textbf{85.1} & \textbf{99.3} & \textbf{64.0} & 58.3 & \textbf{81.0} & \textbf{81.5} & \textbf{81.6} \\
+\Xhline{1.1pt}
+% \bottomrule
+\end{tabular}
+% \vspace{-3mm}
+\end{table}
+

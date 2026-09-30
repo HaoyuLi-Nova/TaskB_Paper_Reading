@@ -1,0 +1,125 @@
+Generating personalized high quality videos that accurately capture an individual's identity is an important research area with significant practical applications.
+We integrate personalization into video generation, yielding state-of-the-art outcomes as detailed in this section.
+We describe our novel model architecture in~\cref{sec:pt2v_model_arch} followed by the training recipe in~\cref{sec:pt2v_pretrain} and~\cref{sec:pt2v_finetune}.
+We explain the evaluation criteria for personalization in~\cref{sec:pt2v_eval} and show quantitative results in~\cref{sec:pt2v_results}.
+\subsection{Model}
+\label{sec:pt2v_model_arch}
+
+We extend our 30B \OursVideo model for Personalized Text-to-Video generation, PT2V, by conditioning the model on the identity information extracted from an input reference image in addition to the text prompt. Figure~\ref{img:pt2v} illustrates the architecture of our PT2V model initialized from the T2V \OursVideo weights.
+We use vision token concatenation in the condition, enabling integration into a unified framework, which allows to scale up the model size.
+Similar to~\citep{meta24memu}, we extract identity features from a masked face image using a trainable Long-prompt MetaCLIP vision encoder~\citep{xu2023demystifying}, followed by a projection layer to align them with the text feature dimension.
+Our training strategy includes a PT2V \pretraining phase followed by PT2V high quality finetuning.
+
+
+\begin{figure}[ht!]
+\includegraphics[width=0.97\linewidth]{figures/pt2v/model.pdf}
+\vspace{-4mm}
+\caption{\textbf{Architecture and inference pipeline of the Personalized \OursVideo (PT2V) model}.
+We initialize the model from \OursVideo's weights and add additional learnable parameters to enable conditioning on a reference image.
+We encode the reference image using a trainable vision encoder initialized from Long-prompt MetaCLIP ~\citep{xu2023demystifying}, and concatenate the embedding with the text prompt embedding. Frozen layers are illustrated in yellow while trainable ones in green.
+}
+\label{img:pt2v}
+\end{figure}
+
+
+\subsection{\Pretraining}
+
+
+\subsubsection{\Pretraining Data}
+\label{sec:pt2v_pretrain}
+
+
+
+For the PT2V training sets, our focus is exclusively on videos where the same person appears across all frames.
+We curate this training set from the \OursVideo \pretraining datasets described in~\cref{sec:pt-data}.
+To achieve this, we first filter the raw \textToVShort videos based on captions by selecting those with human-related concepts.
+We extract frames at one-second intervals and apply a face detector to keep videos that contain a single face and where the ArcFace cosine similarity score~\citep{deng2019arcface} between consecutive frames exceeds 0.5.
+This processing provides us with \bigO(1)M text-video pairs where a single person appears, with durations from 4s to 16s.
+Based on the source reference face, our PT2V training dataset can be categorized into ``paired'' and ``cross-paired'' data.
+We define ``paired'' data as cases where the reference image is taken from the same video clip,
+while ``cross-paired'' data refers to cases where the reference image originates from a different video but features the same subject.
+
+
+\textbf{Paired Data.}
+For each selected text-video pair, we uniformly sample 5 frames from the video clip, yielding \bigO(10)M paired training samples.
+For each frame, we crop the face area and segment the face region to prevent the model attending to non-critical areas such as the background.
+
+
+\textbf{Cross-Paired Data.}
+We observed that training solely on the above paired data makes the model easily learn a copy-paste shortcut solution,
+\ie, the generated video always follows the expression or the head pose from the reference face.
+To address this issue, we collect training pairs where the reference image comes from a different video of the same person.
+
+We collected both real and synthetic cross-paired data samples. \bigO(10)K real cross-pairs from a subset of our \pretraining data that contains different camera views of the same scene.
+For the synthetic cross-paired data, we use a \pretrained personalization image generation model~\citep{meta24memu} to create synthetic reference images.
+Specifically, we apply the model to the first frame of each video from the paired data, generating images with diverse prompts to vary expressions, head poses, and lighting conditions, \etc.
+To maintain identity consistency, we discard any generated images with an ArcFace similarity score below 0.7 compared to the reference image.
+In total, this process yields \bigO(1)M synthetic cross-paired data samples.
+
+
+\subsubsection{\Pretraining recipe}
+\label{subsec:pt2v_recipe}
+ There are three goals in PT2V \pretraining: 1) train the model to condition on a reference image and preserve the identity, 2) generate long personalized videos, and 3) improve generated human expressions and motion naturalness. We found that directly training the model on long videos is inefficient and often leads to slow identity injection to the personalized model since  (1) training speed is nearly proportional to the square of the number of latent frames (tokens), and (2) the weak reference image-to-video correspondence in long videos makes the task more challenging.
+ More details on the \pretraining recipe is shared in~\cref{fig:pt2v_pt_recipe}.
+
+
+\noindent \textbf{Stage-I: Identity injection.}
+In the first stage of PT2V \pretraining, we simplify the problem by conditioning the model on the reference image and training on short videos.
+Specifically, we truncate the TAE embedding to 8 latent frames (corresponding to 64 RGB video frames) to accelerate identity injection using the paired training samples. We freeze the vision encoder and only train the transformer backbone.
+We observe that the model can quickly learn to follow the reference image during this stage, as measured by the average ArcFace similarity score in~\cref{fig:pt2v_pt_recipe}.
+
+
+\noindent \textbf{Stage-II: Long video generation.}
+To recover the model's capability to generate long videos, we continue training the PT2V model from Stage-I with a larger number of latent frames, similar to the pre-trained T2V model in~\cref{tab:t2v_pt_bucket}. This stage substantially enhances the consistency of long video generation, particularly in terms of background and motion coherence.
+
+
+\noindent \textbf{Stage-III: Improve naturalness.} Since the model in stage-I and stage-II has been trained on the paired image-video samples, it often demonstrates a strong copy-paste effect. For instance, in the generated video frames, the person tends to gaze directly at the camera, resulting in an unnatural-looking facial expression. We improve video naturalness and facial expression in stage-III by training on the cross-paired samples where the reference image is not from the corresponding target video. We leverage both real cross-paired data and synthetic cross-paired data in this stage as discussed in~\cref{sec:pt2v_pretrain}.
+We also finetune the vision encoder to extract more detailed identity features from the reference image.
+
+
+\begin{figure}
+\begin{minipage}[hb]{.73\textwidth}
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{lccccccccr}
+        \toprule
+        Training stage & TP & CP & bs/Node & \#GPUs & global bs & learning rate & frame length & \#iters & \#seen videos \\
+        \midrule
+        Stage-I & 4 & 2 & 1 & 4096 & 512 & 2e-5
+        & 64 & 18k & 9.21M \\
+
+        Stage-II & 4 & 2 & 1 & 4096 & 512 & 2e-5
+        & 128/192/256 & 8k & 4.1M \\
+
+        \multirow{2}{*}{Stage-III} & \multirow{2}{*}{4} & \multirow{2}{*}{2} & \multirow{2}{*}{1} & \multirow{2}{*}{4096} & \multirow{2}{*}{512} & 2e-5 Transformer
+        & \multirow{2}{*}{128/192/256} & \multirow{2}{*}{4k} & \multirow{2}{*}{2.05M} \\
+         & & & &  &  & 1e-7 Vision Encoder
+        & & & \\
+        \midrule
+        {\bf Total} & & & & & & & & {\bf 30k} & {\bf 15.36M} \\
+        \bottomrule
+    \end{tabular}}
+\end{minipage} \hfill
+\begin{minipage}[hb]{.26\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{figures/pt2v/pretrain_identity.pdf}
+\end{minipage}
+
+\caption{\textbf{Personalized \OursVideo (PT2V) \pretraining.}
+    Left: PT2V \pretraining recipe. Our training recipe consists of three stages as described in~\cref{subsec:pt2v_recipe}.
+    Right: ArcFace similarity score of the PT2V Stage I-III \pretraining. The model gradually follows the identity as the training going on in Stage-I. Stage-II maintains the identity similarity of Stage-I. In Stage-III, identity similarity tends to fluctuate due to training with cross-paired data.
+    }
+\label{fig:pt2v_pt_recipe}
+\end{figure}
+
+
+\subsection{Supervised Finetuning}
+\label{sec:pt2v_finetune}
+Similar to \textToVShort, we further improve the video aesthetics in a high-quality finetuning stage by leveraging high quality aesthetic data.
+
+\subsubsection{Finetuning Dataset}
+The large scale \pretraining data enables the model to generate videos following the identity from the reference face image.
+Similar to the post-training of \OursVideo (see~\cref{sec:t2v_post_training}), we collect a small set of high-quality finetuning data, with the goal of generating highly aesthetic videos with good quality motion.
+To match the visual quality and aesthetics of \OursVideo, we started from the T2V finetuning set and collected videos with a single person.
+Subsequently, we manually selected videos with diverse human actions, ensuring that the dataset captured a variety of movements and behaviors.
+In total, our final finetuning set contains \bigO(1000) high-quality videos with both paired and real cross-paired reference images used with a 1:1 ratio.

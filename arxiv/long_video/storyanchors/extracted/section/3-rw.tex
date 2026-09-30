@@ -1,0 +1,29 @@
+\section{Related Work}
+
+\paragraph{Multimodal Large Language Models.}
+While Multimodal Language Models (MLLMs) \cite{touvron2023llama, liu2023visual, chen2024internvl} are initially developed for multimodal understanding, recent researches increasingly demonstrate the potential of MLLMs in video comprehension \cite{zhang2023video, lin2023video}. More recently, MLLMs have begin to expand toward generative tasks, including image synthesis \cite{pan2023kosmos, sun2023emu}, and even frame-by-frame keyframe generation \cite{zhou2024storydiffusion} for constructing videos.
+Notably, models like GPT-4o \cite{gpt4o} and PikaFrames \cite{pikaframes} have gain attention for their ability to generate videos one frame at a time, treating each frame as a high-quality, text-aligned keyframe. These models demonstrate impressive aesthetic fidelity and short-term consistency, making them effective for localized content generation. However, due to their autoregressive nature, they typically rely only on past visual context, limiting their ability to perform global planning across entire video sequences. As a result, such approaches often struggle with scene diversity, temporal coherence, and narrative structure, frequently producing short, close-up shots rather than long-form, multi-shot stories.
+
+\paragraph{Scene-level Video Generation.}
+
+Recent advances in diffusion-based models\cite{zhang2025generativepretrainedautoregressivediffusion}, such as SoRA\cite{openaisora}, have significantly boosted video generation through 3D modeling and full-attention mechanisms, inspiring both commercial (e.g., Kling\cite{kling}, Gen-3\cite{runwaygen3}) and open-source systems (e.g., HunyuanVideo\cite{kong2024hunyuanvideo}, Wan2.1\cite{wan2025wanopenadvancedlargescale}, StepVideo\cite{ma2025stepvideot2vtechnicalreportpractice,huang2025step}). Current scene-level generation approaches fall mainly into two categories: keyframe-based and autoregressive methods.
+
+Keyframe-based models such as MovieDreamer\cite{zhao2024moviedreamer} and VGoT\cite{zheng2024videogen} predict sparse anchors and interpolate dense frames, but often suffer from limited global control and inconsistent transitions across shots. To better leverage image-to-video (I2V) models for animating these keyframes, methods like FLUX\cite{flux}, Storyboard IC-LoRA\cite{huang2024context}, and StoryDiffusion\cite{zhou2024storydiffusion} have been proposed, achieving impressive frame-level quality. However, these approaches typically produce only a small number of simple keyframes, often tied one-to-one with distinct events, lacking temporal richness or narrative depth—each event is rarely supported by multiple semantically rich keyframes.
+
+On the other hand, autoregressive approaches such as FreeNoise\cite{qiu2023freenoise}, StreamingT2V\cite{henschel2024streamingt2v}, and CasusVid\cite{causvid} extend video length by generating frames sequentially, leveraging rescheduled noise or temporal attention. More recent efforts like MinT\cite{wu2024mint} and DFoT\cite{song2025dfot} enhance consistency with time-conditioned prompts or history-guided rollout. Nonetheless, these methods still lack explicit global planning of key visual anchors and struggle to maintain coherent narratives across scenes.
+
+To address these challenges, we propose a story frame centric framework that emphasizes globally consistent and semantically rich frames as the structural backbone for generating coherent, multi-scene, minute-scale videos.
+These story frames serve as high-level anchors that guide both visual content and narrative flow, enabling precise control over scene transitions, and temporal progression, and thematic continuity throughout the video.
+
+
+
+
+
+
+
+
+
+
+
+
+

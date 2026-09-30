@@ -1,0 +1,29 @@
+\section{Related Works}
+
+\subsection{Speech Synthesis} 
+With the rapid development of deep learning~\cite{DeT, zhao2025heterogeneous, yin2025progressive, chen2024sdpl,zhang2024inductive,tu2024smart, li2022long, zhang2025generating}, the FastSpeech series~\cite{fs2} first introduces a phoneme-level duration-based upsampling strategy and a controllable speech synthesis paradigm based on pitch and energy prediction.
+% With recent advancements, speech synthesis evolve into two main paradigms: autoregressive and non-autoregressive models.
+% Since VALL-E~\cite{zeroshotspeech} and SoundStream~\cite{soundstream} first introduced speech discretization and autoregressive generation paradigms into speech synthesis, research on autoregressive speech generation models and discrete speech codecs has continued to advance rapidly, such as SparkTTS~\cite{sparktts}, Llasa~\cite{llasa}, and CosyVoice series~\cite{cosyvoice1, cosyvoice2, cosyvoice3}.
+Subsequently, many recent models, such as the StyleTTS~\cite{StyleTTS2} and NaturalSpeech series~\cite{naturalspeech3} achieve more natural speech synthesisby incorporating techniques such as diffusion models and adversarial training.
+Meanwhile, speech synthesis models based on discrete speech codecs and autoregressive architectures have also emerged progressively, such as SparkTTS~\cite{sparktts}, Llasa~\cite{llasa}, and CosyVoice series~\cite{cosyvoice3}.
+% Then, more recent methods such as StyleTTS~\cite{styletts, StyleTTS2} and NaturalSpeech~\cite{naturalspeech, naturalspeech2,naturalspeech3} families, there has been continuous progress in improving the naturalness and realism of generated speech, as well as the effectiveness of voice cloning.
+Despite the progress, they cannot be directly applied to movie dubbing tasks because they lack the design of modeling duration and prosody from performance in the given movie clips.
+
+\subsection{Visual Voice Cloning} 
+Some previous V2C methods attempt to improve dubbing quality by pretraining the phoneme encoder~\cite{spk2dub} or decoupling acoustic modeling and prosody adaptation~\cite{ProDubber}, in response to the scarcity and noisiness of movie dubbing datasets caused by issues such as copyright constraints.
+Another group of work explores techniques such as flow matching~\cite{emodubber} and contrastive learning~\cite{styledubber}, primarily aiming to enhance the performance of audiovisual alignment~\cite{HPMDubbing, zhao2025towards, cong2025flowdubber, li2025dubbing}.
+However, their visual-based alignment methods struggle to generalize to unseen video scenarios, hindering the broader application.
+
+% The V2C task requires generating high-quality dubbing speech how a text might be said, but in step with the lip movements portrayed by video character, and in vocal style exemplified by reference audio~\cite{V2C}.
+% Some works focus primarily on improving the pronunciation clarity~\cite{HPMDubbing, styledubber, spk2dub}. 
+% For example, SOTA dubbing method ProDubber~\cite{ProDubber} and Speaker2Dubber~\cite{spk2dub} propose a pre-training framework to learn clear pronunciation representation from a large-scale text-to-speech corpus~\cite{libritts}.  
+% However, they over-rely on the TTS architecture and use an inaccurate duration predictor~\cite{ProDubber} to estimate the lip speaking time, without considering the intrinsic connection between visual movement and speech content. 
+% Besides, StyleDubber~\cite{styledubber} attempts to use time stretching to balance articulation and lip-sync.
+% Although the overall length can remain consistent, this does not fundamentally achieve the audio-visual alignment in fine-grained lip-sync. 
+% In this work, we propose \dubber, a novel dubbing architecture that combines LLM-based semantic-aware learning with dual contrastive aligning to enhance the audio-visual sync and pronunciation, while improving acoustic quality by voice enhanced flow matching. 
+
+\subsection{Dubbing with MLLMs} 
+Multimodal large language models (MLLMs) have powerful and generalizable capabilities for multimodal content understanding.
+The earliest works leveraging MLLMs for dubbing primarily utilized them to align the overall duration between the dubbing and the video for multilingual dubbing~\cite{dubwise}.
+Recently, VoiceCraft-Dub~\cite{voicecraftdub} attempted to autoregressively generate dubbing by feeding video frames and script text into an LLM-decoder. DeepDubber~\cite{deepdubber} attempts to leverage a chain-of-thought prompting strategy to guide the MLLMs generating coarse-grained information—such as scene type, character age, and gender—from the video to assist alignment.
+However, they overlook the capability of fine-grained MLLM-generated dubbing instructions in alignment and their potential in zero-shot dubbing.

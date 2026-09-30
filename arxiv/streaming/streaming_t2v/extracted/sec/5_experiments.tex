@@ -1,0 +1,171 @@
+\section{Experiments}
+
+We present qualitative and quantitative  evaluations. Implementation details and ablation studies showing the importance of  our contributios are provided in the appendix, (Sec. \textcolor{linkblue}{A.3} and Sec. \textcolor{linkblue}{A.4})
+
+
+% \begin{figure*}[t]
+%     \centering
+%     \begin{subfigure}{.45\textwidth}
+%     \includegraphics[width=1\linewidth]{figures/video_comparisons/ablation-enhancer/naive.pdf}
+%     \caption{Naive Concatenation}
+%     \end{subfigure}
+%     \begin{subfigure}{.45\textwidth}
+%     \includegraphics[width=1\linewidth]{figures/video_comparisons/ablation-enhancer/shared-noise.pdf}
+%     \caption{Shared Noise}
+%     \end{subfigure} \\
+%     \begin{subfigure}{0.45\textwidth}
+%     \includegraphics[width=1\linewidth]{figures/video_comparisons/ablation-enhancer/random-blending.pdf}
+%     \caption{Randomized Blending}    
+%     \end{subfigure}
+%     \caption{Ablation study on our video enhancer improvements. The X-T slice visualization shows that randomized blending leads to smooth chunk transitions, while both baselines have  clearly visible, severe inconsistencies between chunks.}
+%     \label{fig:video_enhancer}
+% \end{figure*}
+\begin{figure*}[t]
+    \centering
+    
+    \begin{subfigure}{\textwidth}\hspace*{\fill}
+        \includegraphics[width=0.3275\textwidth]{figures/video_comparisons/ablation-enhancer/naive.pdf} 
+        \hfill
+        \includegraphics[width=0.3275\textwidth]{figures/video_comparisons/ablation-enhancer/shared-noise.pdf} 
+        \hfill
+        \includegraphics[width=0.3275\textwidth]{figures/video_comparisons/ablation-enhancer/random-blending.pdf} 
+        
+        \vspace{0.25cm}
+    \end{subfigure}
+    \begin{tabular}{p{0.15cm} p{4.7cm} p{3.7cm} p{5cm}}
+        & (a) Naive Concatenation & (b) Shared Noise & (c) Randomized Blending \\
+    \end{tabular}
+
+    \caption{Ablation study on our video enhancer improvements. The X-T slice visualization shows that randomized blending leads to smooth chunk transitions, while both baselines have  clearly visible, severe inconsistencies between chunks.}
+    \label{fig:video_enhancer_main}
+\end{figure*}
+
+
+\begin{table}[tb]
+    \centering
+    
+    \begin{tabular}{@{}l|ll|l@{}}
+        \toprule
+        Method & \textbf{MAWE} & \textbf{SCuts} & $\uparrow$CLIP \\
+        % & {\tiny More motion / less stagnation} & {\tiny Better consistency / less scene change}  & {\tiny Better text alignment}  \\
+        
+        \midrule
+        SparseCtrl \cite{guo2023sparsectrl} &  6069.7  &  5.48   &  29.32  \\
+        I2VGenXL \cite{2023i2vgenxl} &  2846.4  &  0.4 &  27.28  \\
+        DynamiCrafterXL \cite{xing2023dynamicrafter} &  176.7  &  1.3   &  27.79 \\
+        SEINE \cite{chen2023seine} &  718.9  &  0.28  &  30.13 \\
+        SVD \cite{SVD} &  857.2  &  1.1   &  23.95\\
+        FreeNoise \cite{qiu2023freenoise} &  1298.4  &  \textcolor{red}{0}  &  \textcolor{blue}{31.55} \\
+        %\textcolor{gray}{OpenAI Sora (\textit{{\small demo-only}})} &  \textcolor{gray}{9.26}  &  \textcolor{gray}{0.81} &  \textcolor{gray}{33.01}&\textcolor{gray}{5.42} \\
+        OpenSora \cite{opensora} & 1165.7 & 0.16 & 31.54 \\
+        OpenSoraPlan \cite{opensoraplan} & \textcolor{blue}{72.9} & 0.24 & 29.34  \\
+        \midrule
+        StreamingT2V (\textit{{\small Ours}}) &  \textcolor{red}{52.3}  &  \textcolor{blue}{0.04} &  \textcolor{red}{31.73}\\
+        
+        \bottomrule
+    \end{tabular}
+    \caption{
+    %Quantitative comparison with state-of-the-art open-source text-to-long-video generators. The best performing metrics are highlighted in \textcolor{red}{red}, while the second best are in textcolor{blue}{blue}.
+        %Quantitative comparison with state-of-the-art open-source text-to-long-video generators. The best performing metrics are highlighted in \textcolor{red}{red}, while the second best are in textcolor{blue}{blue}. Additionally, we evaluated OpenAI's Sora using their 48 sample videos available on their website. The results are presented here to provide readers with an understanding of Sora's performance on these metrics. Please note that this test differs from the evaluation of other open-source models in terms of the test set and prompts in this table, hence it is displayed in gray and not ranked.
+        Quantitative comparison to state-of-the-art open-source text-to-long-video generators. 
+        Best performing metrics are highlighted in \textcolor{red}{red}, second best in \textcolor{blue}{blue}. Our method performs best
+        in MAWE and CLIP score. Only in SCuts, StreamingT2V scores second best, as FreeNoise generates near-constant videos. 
+        %We also tested OpenAI's Sora with their 48 sample videos released on their website. We list the numbers here to give the readers a sense of how Sora is performing on these metrics but please be advised that this test is different from the other open-source models both in terms of the test set and prompts in this table, and hence it is in gray and not ranked.
+        %Additionally, we evaluated OpenAI's Sora using their 48 sample videos available on their website. The results are presented here to provide readers with an understanding of Sora's performance on these metrics. Please note that this test differs from the evaluation of other open-source models in terms of the test set and prompts in this table, hence it is displayed in gray and not ranked.
+    }
+    \label{table:automatic}
+\end{table}
+
+
+\subsection{Metrics}
+\label{sec:experiments.metrics}
+For quantitative evaluation, we measure temporal consistency, text-alignment, and per-frame quality.
+
+For temporal consistency, we introduce SCuts, which counts the number of detected scene cuts in a video using the AdaptiveDetector \cite{PySceneDetect}  with default parameters. 
+In addition, we propose a new metric called \textbf{motion aware warp error (MAWE)}, which coherently assesses motion amount and warp error, and yields a low value when a video exhibits both consistency \textit{and} a substantial amount of motion (exact definition in the appendix, Sec. \textcolor{linkblue}{A.6}).
+%To this end, we measure the motion amount using OFS (optical flow score), which computes for a video the mean of the squared magnitudes of all optical flow vectors between any two consecutive frames. 
+%Furthermore, for a video $\mathcal{V}$, we consider the mean warp error \cite{lai2018warp_error_metric}  $W(\mathcal{V}) $, which measures 
+%the average squared L2 pixel distance from a frame to its warped subsequent frame, excluding occluded regions.  
+%Finally, MAWE is defined as:
+%\begin{equation}
+%    \mathrm{MAWE}(\mathcal{V}) := \frac{W(\mathcal{V})}{  \mathrm{OFS}(\mathcal{V})},
+%\end{equation}
+%which we found to be well-aligned with human perception.
+%where $c$ aligns the different scales of the two metrics. We perform a regression analysis on a subset of our video validation dataset and obtain $c=9.5$ (see \ref{} for further details).
+%MAWE requires high motion amount \textit{and} low warp error for a low metric values.  
+For the metrics involving optical flow, computations are conducted by resizing all videos to $720\times720$ resolution.
+
+For video-textual-alignment, we employ the CLIP \cite{CLIP_paper} text image similarity score (CLIP). CLIP computes for a video sequence the cosine similarity from the CLIP text encoding to the CLIP image encodings for all video frames. 
+
+% For per-frame quality we incorporate the Aesthetic Score \cite{schuhmann2022laion}, which is computed on top of CLIP image embeddings of all frames of a video.
+
+All metrics are computed per video first and then averaged over all videos, all videos are generated with 240 frames for quantitative analysis.
+
+
+\subsection{Comparison with Baselines}
+\label{sec:exp_comparison_with_baselines}
+
+\input{figures/video_comparisons/figure-comparison-competitors}
+
+\noindent\textbf{Benchmark.}
+To assess the effectiveness of StreamingT2V, we created a test set composed of $50$ prompts with different actions, objects and scenes 
+%% EXTERNAL REFERENCE ATTENTION
+% (prompts are listed in \secrefcustom{sec:appendix.test_prompts}).
+(listed in Sec. \textcolor{linkblue}{A.5}).
+We compare against recent methods with code available: image-to-video methods I2VGen-XL  \cite{2023i2vgenxl}, SVD \cite{SVD}, DynamiCrafter-XL \cite{xing2023dynamicrafter}, OpenSoraPlan v1.2  \cite{opensoraplan} and SEINE \cite{chen2023seine} used autoregressively, video-to-video methods SparseControl  \cite{guo2023sparsectrl}, OpenSora v1.2 \cite{opensora}, and FreeNoise  \cite{qiu2023freenoise}.
+
+For all methods, we use their released model weights and hyperparameters. 
+To have a fair comparison and insightful analysis on the performance of the methods for the autoregressive generation, and make the analysis independent on the employed initial frame generator, we use the same Video-LDM model to generate the first chunk consisting of 16 frames, given a text prompt and enhance it to 720x720 resolution using the same Refiner Video-LDM.  
+Then, we generate the videos, while we start all autoregressive methods by conditioning on the last frame(s) of that chunk. 
+For methods working on different spatial resolution, we apply zero padding to the initial frame(s). All evaluations are conducted on 240-frames video generations. 
+
+
+\noindent\textbf{Automatic Evaluation.} 
+Our quantitative evaluation on the test set shows that StreamingT2V clearly performs best regarding seamless chunk transitions and motion consistency (see \tabrefcustom{table:automatic}). Our MAWE score significantly excels all competing methods  (\eg nearly 30\% lower than the second best score by OpenSoraPlan). 
+Likewise, our method achieves the second lowest SCuts score among all competitors. Only  FreeNoise achieves a slightly lower, perfect score. However, FreeNoise produces near-static videos (see also \figrefcustom{fig:comparison-to-sota}), leading automatically  to low SCuts scores. OpenSoraPlan frequently produces scene cuts, leading to a 6 times higher SCuts score than our method. SparseControl follows a ControlNet approach, but leads to $100$ times more scene cuts compared to StreamingT2V. This shows the advantage of our attentional CAM block over SparseControl,  
+where the conditional frames need to be pad with zeros, so that inconsistency in the input lead to severe scene cuts. 
+
+Interestingly, all competing methods that incorporate CLIP image encodings are prone to misalignment (measured in low CLIP scores), \ie SVD and DynamiCrafterXL and I2VGen-XL.
+%
+We hypothesize that this is due to a domain shift; the  CLIP image encoder is trained on natural images, but in an autoregressive setup, it is applied on generated images.  With our long-term memory, APM  reminds the network about the domain of real images, as we use a fixed anchor frame, so that it does not degrade, and remains well-aligned to the textual prompt. So, StreamingT2V gets the highest CLIP score among all evaluated methods.
+
+%Moreover, we evaluated the per-frame quality of our generated videos, and, as can be noticed from \tabrefcustom{table:automatic}, 
+%StreamingT2V significantly outperforms almost all the competitors and slighlty underperform SparseCtrl. This shows that our method is able to produce high-quality long videos with much temporal consistency and motion dynamics than the competitors.
+
+To assess the stability of the metrics over time, we computed them from $120$ to $220$ frames in $20$ frame steps. The results are as follows: MAWE score: 
+($43.25$, $46.92$, $46.79$, $45.79$, $45.84$, $45.84$), and CLIP score: ($32.45$, $32.30$, $32.16$, $32.02$, $31.89$, $31.79$). These results indicate that the metrics remain relatively stable over time.
+
+
+\noindent\textbf{Qualitative Evaluation.} 
+Finally, we present corresponding visual results on the test set in \figrefcustom{fig:comparison-to-sota} (and in 
+%% EXTERNAL REFERENCE ATTENTION
+% \secrefcustom{sec:appendix.additional_results}). 
+Sec. \textcolor{linkblue}{A.2}). 
+The high similarity of the frames depicted for competitors shows that all competing methods suffer from video stagnation, where the background and the camera is frozen, and nearly no object motion is generated. Our method is generating smooth and consistent videos without leading to standstill. 
+%
+I2VG, SVD, SparseCtrl, SEINE, OpenSoraPlan and DynamiCrafter-XL are prone to severe quality degradation, \eg wrong colors and distorted frames, and inconsistencies, showing that their conditioning via CLIP image encoder and concatenation is too weak and heavily amplifies errors. 
+In contrast, thanks to the more powerful  CAM mechanism, StreamingT2V leads to smooth chunk transitions. APM conditions on a fixed anchor frame, so that StreamingT2V does not suffer from error accumulation. 
+
+%\begin{figure*}%[t]
+%    \centering
+    
+%    \begin{subfigure}{.45\textwidth}
+%        \includegraphics[width=1\linewidth]{figures/video_comparisons/comparison-competitors-temporal-consistancy/our.pdf}
+%        \caption{StreamingT2V}
+%    \end{subfigure}
+%    \hspace{10mm}
+%    \begin{subfigure}{.45\textwidth}
+%        \includegraphics[width=1\linewidth]{figures/video_comparisons/comparison-competitors-temporal-consistancy/dynamicrafter.pdf}
+%        \caption{DynamiCrafter-XL}
+%    \end{subfigure}
+    
+%    \caption{
+%        Visual comparision of DynamiCrafter-XL and StreamingT2V. Both text-to-video results are generated using the same prompt. The X-T slice visualization shows that DynamiCrafter-XL suffers from severe chunk inconsistencies and repetitive motions.
+%        In contrast, our method shows seamless transitions and evolving content.
+%    }
+%    \label{fig:dynamicrafter-inconsistencies}
+%\end{figure*}
+
+
+%\subsection{Randomized blending for Video Enhancement.}
+%We conduct an ablation study on our autoregressive video enhancement. As can be seen in \figrefcustom{fig:video_enhancer_main},  na\"ive concatenation and shared noise, both, lead to inconsistencies between chunks. Only with randomized blending, we obtain smooth transitions. More evaluations and details about randomized blending can be found in the appendix (see \secrefcustom{sec:appendix.ablation_studies}). 

@@ -1,0 +1,170 @@
+% CVPR 2022 Paper Template
+% based on the CVPR template provided by Ming-Ming Cheng (https://github.com/MCG-NKU/CVPR_Template)
+% modified and extended by Stefan Roth (stefan.roth@NOSPAMtu-darmstadt.de)
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+\usepackage[review]{cvpr}      % To produce the REVIEW version
+%\usepackage{cvpr}              % To produce the CAMERA-READY version
+%\usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{makecell}
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, e.g. with the
+% file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete
+% ReviewTempalte.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you
+%  should be clear).
+\usepackage[pagebackref,breaklinks,colorlinks]{hyperref}
+
+
+% Support for easy cross-referencing
+\usepackage[capitalize]{cleveref}
+\crefname{section}{Sec.}{Secs.}
+\Crefname{section}{Section}{Sections}
+\Crefname{table}{Table}{Tables}
+\crefname{table}{Tab.}{Tabs.}
+
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\cvprPaperID{11405} % *** Enter the CVPR Paper ID here
+\def\confName{CVPR}
+\def\confYear{2025}
+\begin{document}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{OpenHumanVid: A Large-Scale High-Quality Dataset for Enhancing Human-Centric Video Generation}
+
+\author{First Author\\
+Institution1\\
+Institution1 address\\
+{\tt\small firstauthor@i1.org}
+% For a paper whose authors are all at the same institution,
+% omit the following lines up until the closing ``}''.
+% Additional authors and addresses can be added with ``\and'',
+% just like the second author.
+% To save space, use either the email address or home page, not both
+\and
+Second Author\\
+Institution2\\
+First line of institution2 address\\
+{\tt\small secondauthor@i2.org}
+}
+\maketitle
+
+
+% Please see Figure~\ref{fig:quality_filter} for the comparison of video quality before and after this filtering process.
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/supp/quality_filter.png}
+    \caption{Videos we keep and deleted based on different quality filters}
+    \label{fig:quality_filter}
+\end{figure*}
+
+%%%%%%%%% BODY TEXT
+\section{Dataset}
+\subsection{Video Quality Filter Details}
+This study incorporates a comprehensive video quality filtering process grounded in several critical metrics: luminance, blurriness, aesthetic appeal, global and local motion, and overall technical quality. Each metric is evaluated against specific thresholds to retain only high-quality video content for further analysis.
+
+\noindent\textbf{(1) Luminance.}  
+Luminance is calculated using the formula: \(0.2126 \times R + 0.7152 \times G + 0.0722 \times B\), where \(R\), \(G\), and \(B\) denote the pixel values of the red, green, and blue channels, respectively. Videos are retained if their luminance values fall within the range of [10, 210].
+
+\noindent\textbf{(2) Blur.}  
+The level of blur in the video is assessed via the Cumulative Probability of Blur Detection algorithm \cite{narvekar2011no}, which analyzes edge feature distributions. Frames are extracted from the video, converted to grayscale, and the average, maximum, and minimum blur values are computed. Videos are filtered based on blur values within the range of [0.05, 1.0).
+
+\noindent\textbf{(3) Aesthetic Quality.}  
+Aesthetic appeal is measured using the CLIP-based Aesthetics Predictor \cite{aesthetic_predictor}. This method excludes videos with aesthetic scores below 4.8, thereby ensuring a satisfactory visual experience.
+
+\noindent\textbf{(4) Global and Local Motion.}  
+Motion quality is evaluated using optical flow analysis, specifically through the UniMatch algorithm \cite{unimatch}, which provides scores for both local and global motion. The filtering criteria for these scores are set within the range of [0.5, 20].
+
+\noindent\textbf{(5) Technical Quality.}  
+Lastly, the overall technical quality of the video is assessed using the DOVER model \cite{wu2023exploring}, filtering out videos with scores below 0.09.
+
+\subsection{Human Motion Generation Details}
+
+\noindent\textbf{Textual Condition.}  
+Figure~\ref{fig:supp_caption} illustrates examples of various caption formats. We provide final captions in short, long, and structured formats to capture different contextual details.
+
+\noindent\textbf{Skeleton Sequence.}  
+Figure~\ref{fig:supp_skeleton} presents examples of skeleton annotations extracted from videos using DWpose \cite{yang2023effective}. These annotations offer a structured representation of joint positions that inform the movement of the generated figures.
+
+\noindent\textbf{Speech Audio.}  
+Figure~\ref{fig:supp_speech} shows examples of speech audio from the videos. We utilize SyncNet \cite{raina2022syncnet} to evaluate the synchronization between the subject's speech audio and their corresponding lip movements.
+
+
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/supp/supp_caption.pdf} 
+    \caption{The illustration of textual captions and corresponding types (long, short, and structured captions). }
+    \label{fig:supp_caption} 
+\end{figure*}
+
+
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/supp/supp_skeleton.pdf} 
+    \caption{The illustration of human skeleton sequences with respect to given videos.}
+    \label{fig:supp_skeleton} 
+\end{figure*}
+
+\begin{figure*}[!htbp]
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/supp/supp_speech.pdf} 
+    \caption{The illustration of speech audio with respect to given videos. Left: video screenshot; right: speech script.}
+    \label{fig:supp_speech} 
+\end{figure*}
+
+
+\section{Experiments}
+
+\subsection{Training on OpenHumanVid}
+We utilize a large-scale, high-quality human video dataset, implementing the training data strategies outlined in the paper. 
+These strategies include a higher video sampling rate, human appearance text-video filter, human motion text-video filter, and face motion text-video filter. 
+As a result, the extended model demonstrates a significant improvement over the baseline following further pretraining.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1\linewidth]{figs/consistency2.pdf}
+    \caption{Face and body consistency comparison between baseline and ours. }
+    \label{fig:consistency}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1\linewidth]{figs/semantics2.pdf}
+    \caption{Face and body semantics comparison between baseline and ours.}
+    \label{fig:semantics}
+\end{figure*}
+
+
+\subsection{Limitations and Future Works}
+Despite the advancements presented by OpenHumanVid, several limitations warrant consideration. 
+Firstly, the reliance on existing multimodal models for caption generation may restrict the diversity and richness of the descriptions, potentially impacting the comprehensiveness of video-text alignment. 
+Additionally, while the dataset incorporates various human motion conditions, the inherent variability of human actions and expressions across different cultures and contexts may not be fully captured. 
+Future work could focus on enhancing the caption generation process through the development of more sophisticated models with improved instruction-following capabilities. 
+Furthermore, expanding the dataset to include a wider array of human identities and motion scenarios, along with more granular textual prompts, could facilitate the generation of videos that better reflect the complexities of human behavior and interaction in diverse contexts.
+
+\section{Safety Considerations}
+The development of OpenHumanVid introduces several social risks, particularly concerning privacy, representation, and the potential for misuse. The dataset's inclusion of diverse human identities and movements necessitates rigorous ethical considerations to prevent the reinforcement of stereotypes or biases in generated videos. Additionally, there is a risk of inappropriate usage in contexts such as deepfakes or unauthorized portrayals of individuals. To mitigate these issues, we implement strict data governance protocols, ensuring that all content adheres to ethical standards and is used responsibly. Furthermore, we advocate for transparency in the dataset's application, emphasizing the necessity of guidelines for researchers and practitioners to promote responsible use while safeguarding individual rights and societal norms.
+
+%%%%%%%%% REFERENCES
+{\small
+\bibliographystyle{ieee_fullname}
+\bibliography{egbib}
+}
+% \input{sections/appendix}
+
+\end{document}

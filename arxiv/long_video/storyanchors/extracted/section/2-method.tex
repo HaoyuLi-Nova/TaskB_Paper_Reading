@@ -1,0 +1,95 @@
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{fig/framework.pdf} 
+    \caption{The framework of \ours{}, with event prompts, condition frames and embeddings.}
+    \label{fig:framework}
+\end{figure}
+
+\section{Approach}
+\label{sec:method}
+
+
+In following sections, we introduce the core components of our \ours{} framework, including Bidirectional Story Frame Prediction, Multi-Event Story Frame Labeling, and Progressive Story Frame Training. 
+These components enable the generation of coherent, story-driven videos characterized by high narrative richness, multi-scene continuity, and consistent thematic progression, with flexible scene transitions and strong temporal coherence across diverse story elements.
+
+
+\subsection{Bidirectional Story Frame Prediction}
+
+Our framework is built upon the pre-trained Step-Video-T2V-4B model, with modifications made in both the input stage and the AdaLN module (as illustrated in Figure \ref{fig:framework}). The original input latent shape for T2V is $[f, c, h, w]$, where $f$, $c$, $h$, and $w$ represent the number of frames, channels, height, and width. In our Story Frame Prediction Network, we modify this by including condition frames or zero padding as conditional hidden states. Similar to TI2V models \cite{huang2025step, wan2025wanopenadvancedlargescale}, we expand the input channels to accommodate additional channels for the condition frames. Moreover, a mask channel with a shape of $[f, 1, h, w]$ is introduced, marking the frames to be generated versus the condition frames. A zero value in the mask indicates that the frame should be generated, while other values correspond to condition frames. This results in a concatenated input latent of shape $[f, 2c+1, h, w]$, and we modify the patch embedding module of the DiT architecture to handle expanded input structure.
+
+
+\ours adopt a flexible framework that allows users to influence the story frame generation by incorporating diverse condition embeddings. Shown in Figure \ref{fig:framework}, these embeddings include:
+\begin{itemize}[left=0cm]
+    \item
+\textbf{Frames Per Second (FPS)} to control the number of frames generated per second,
+    \item \textbf{Frames Interval} to specify the number of frames between two consecutive story frames in the original video, controlling the temporal gap between story frames.
+    \item \textbf{Frames Motion } to adjust the dynamic degree of the video.
+    \item \textbf{Frames Resolution} to define the input video's width and height, aiding the model in understanding the original resolution and supporting mixed-resolution training.
+    \item \textbf{Frames Number} for determining the number of story frames to generate in a sequence.
+
+\end{itemize}
+
+These embeddings are added to the Timestep Embedding before being injected into the AdaLN modules to influence the story frame generation process.
+
+After generating the story frames, \ours{} employs a text driven image-to-video interpolation model, such as Step-Video-TI2V, to synthesize intermediate frames between any two consecutive story frames. This enables smooth transitions between scenes and the generation of multi-shot videos with strong temporal consistency and rich narrative progression. 
+
+
+\subsection{Multi-Event Story Frame Labeling}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\textwidth]{fig/data_anno.pdf} 
+    \caption{Pipeline of Multi-Event Story Frame Labeling. }
+    \label{fig:data_anno}
+\end{figure}
+
+We construct our multi-event story frame annotations based on a large corpus of video data, primarily sourced from YouTube and the Condensed Movies~\cite{bain2020condensed}. From these sources, we uniformly sample representative story frames and temporally splice them to obtain approximately 2 million story-frame clips.
+Given the sparse temporal nature of story frames and the inherent complexity of video narratives, accurately recovering the full event flow and underlying temporal logic from limited visual cues presents a considerable challenge. To address this, we introduce a two-stage annotation framework for fine-grained multi-event labeling, as illustrated in Figure~\ref{fig:data_anno}.
+
+In the first stage, sequential story frames are divided into disjoint subsets, each containing no more than 12 frames to preserve temporal consistency and reduce annotation ambiguity. Each subset is independently annotated using an in-house video understanding large language model~(LLM), which generates structured multi-event annotations by associating each event description with its corresponding frame range. 
+This design allows for robust representation of complex scenarios involving temporally overlapping or tightly coupled events, thereby improving the expressiveness and utility of the annotated dataset.
+
+Moreover, to reinforce entity consistency across the entire footage during caption generation, we refrain from naively concatenating event-wise captions as prompts. 
+Instead, in the second stage, we aggregate all event-level annotations to construct a unified reference pool. 
+For each event, one representative story frame from its corresponding range is selected to serve as the visual reference.
+The selected story frames, along with the previously generated event descriptions, are then used as multi-modal inputs to the video understanding LLM to synthesize coherent multi-event captions.
+The coherent caption is composed of three key components: \textit{\texttt{Consistency Event Description}}, \textit{\texttt{Subjects}}, and \textit{\texttt{Video Style}}.
+
+The \textit{\texttt{Consistency Event Description}} serves as the target prompt for story frame clip generation, providing a unified narrative that summarizes adjacent events. Each event description is preceded by a number indicating its corresponding story frame range. The \textit{\texttt{Subjects}} field aggregates the main entities appearing in the video, ranked by importance, to ensure consistency in subject references across events. The \textit{\texttt{Video Style}} field specifies the overall visual style of the video, enabling the generation of outputs with diverse stylistic characteristics.
+
+This two-stage process effectively mitigates the ambiguity and cognitive load introduced by long sequences of story frames, preserves the temporal dynamics of multi-event progressions, and ensures consistent entity representation throughout the video.
+
+
+
+\subsection{Progressive Story Frame Training}
+
+To effectively address the challenges posed by multi-event captioning and ensure coherent narrative generation across complex video content, we propose a progressive three-stage training paradigm. This approach incrementally refines the model’s ability to generate consistent and coherent story frames, improving its temporal completeness and generative consistency.
+
+\textbf{Stage 1: Pretraining with Global Caption}
+Due to the inherent difficulty and cost of fine-grained multi-event annotation, we initiate training using an automatically annotated dataset containing 2 million frame-caption pairs. These captions are generated by a Step-LLM model with global prompts, which capture high-level event transitions across entire videos without explicit segmentation into discrete prompts. 
+This initial step allows the model to adapt from a frame-based representation to a story frame generation process. 
+Although the captions lack fine temporal granularity, they maintain the overall event chronology, which is essential for developing the model’s understanding of narrative.
+
+\textbf{Stage 2: Fine-tuning with Multi-Event Caption}
+In the second stage, we fine-tune the model using high-quality annotations obtained via the two-stage labeling framework. Unlike global prompts, these multi-prompt annotations provide structured, event-level descriptions aligned with specific story frame segments. 
+This step corrects the global model’s limitations in event coherence and entity consistency, enabling the model to reason over temporally local events while preserving their logical sequence. 
+We encourage fine-grained compositionality and consistent entity grounding across events by explicitly exposing the model to segmented multi-event data.
+
+\textbf{Stage 3: Story Anchors Prediction for Story Expansion}
+To enhance the model’s ability to generate temporally extended captions and support story continuation, we introduce a keyframe prediction module inspired by the TI2V paradigm. Specifically, we train the model to predict future story frames conditioned on the first several frames and their associated prompts, allowing the system to generate plausible event progressions from minimal visual input. 
+This stage strengthens the model’s ability to generate more detailed, supporting the generation of complex anchor sequences over longer horizons.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,130 @@
+\section{Introduction}
+\label{sec:intro}
+
+Vlogs represent a unique form of blogging, distinguished by their utilization of video as the primary medium rather than text.
+\blfootnote{$\spadesuit$ Interns at Shanghai AI Laboratory. $\heartsuit$ Corresponding authors.}
+% Vlog is a form of blog where the medium is video instead of words.
+Due to more lively expression in the dynamic scenes,
+vlog has become one of the most popular online-sharing ways in the digital world. 
+In the past two years,
+the remarkable success of diffusion models \cite{song2021scorebased, ho2020denoising, ho2021classifierfree} has shown a great impact on video creation \cite{singer2023makeavideo, Ho2022ImagenVH, blattmann2023align, Ge2023PreserveYO, Wang2023ModelScopeTT, Yin2023NUWAXLDO, Zhang2023Show1MP, Wang2023LAVIEHV}.
+Hence,
+there is a natural question, 
+\textit{can we build a generic AI system to generate wonderful vlogs automatically?}
+
+
+Regrettably, the majority of current video diffusion approaches mainly generate short videos with a few seconds, by temporal adaptation of image diffusion models \cite{singer2023makeavideo, blattmann2023align, Wang2023ModelScopeTT, Zhang2023Show1MP, Wang2023LAVIEHV, Ge2023PreserveYO}.
+In contrast,
+a vlog typically constitutes a \textit{minute}-level long video in the open world. %with diversified content
+Recently,
+there have been some attempts in long video generation \cite{villegas2023phenaki, Yin2023NUWAXLDO}.
+However,
+these early works either require extensive training on large well-captioned long video datasets \cite{Yin2023NUWAXLDO}
+or suffer from noticeable incoherence of shot changes \cite{villegas2023phenaki}. 
+Hence,
+it is still challenging to generate a minute-level vlog with complex narratives and multiple scenes.
+
+
+Alternatively,
+we notice that
+a successful vlog production is a systematical work in our realistic world,
+where
+the key staffs are involved in
+script creation,
+actor design, 
+video shooting, and 
+editing \cite{gao2010vlogging}. 
+Drawing inspiration from this,
+we believe that,
+generating a long-form video blog requires elaborate systematical planning and shooting processes,
+rather than simply designing a generative model.
+
+Hence,
+we propose a generic AI system for vlog generation in this paper,
+namely \textbf{Vlogger},
+which can smartly address this difficult task by mimicking vlog professionals with various foundation models in the core steps.
+As shown in Fig. \ref{fig:teaser},
+we first hire a Large Language Model (LLM) as \textit{Director} (e.g., GPT-4 \cite{OpenAI2023GPT4TR}),
+due to its great power of linguistic knowledge understanding.
+Given a user story,
+this director schedules a four-step plan for vlog generation.
+(1) \textit{Script}.
+First,
+we introduce a progressive script creation paradigm for the LLM Director.
+By the coarse-to-fine instructions in this paradigm,
+the LLM Director can effectively convert a user story into a script,
+which sufficiently describes the story by a number of shooting scenes and their corresponding shooting duration.
+(2) \textit{Actor}.
+After creating the script,
+the LLM Director reads it again to summarize the actors,
+and then invokes a character designer (e.g., SD-XL \cite{Podell2023SDXLIL}) to generate the reference images of these actors in the vlog.
+(3) \textit{ShowMaker}.
+With the guidance of script texts and actor images,
+we develop a novel ShowMaker as a videographer,
+which can effectively generate a controllable-duration snippet for each shooting scene, with spatial-temporal coherence. 
+(4) \textit{Voicer}.
+Finally,
+the LLM Director invokes a voicer (e.g., Bark \cite{sunoai2023bark}) to dub the vlog with script subtitles.
+
+
+It should be noted that
+our Vlogger overcomes the challenges previously encountered in long video generation tasks.
+On one hand, 
+it elegantly decomposes the user story into a number of shooting scenes
+and designs actor images that can participate in different scenes in the vlog.
+In this case,
+it can reduce spatial-temporal incoherence of abrupt shot changes,
+with explicit guidance of scene texts and actor images.
+On the other hand, 
+Vlogger crafts individual video snippets for every scene and seamlessly integrates them into a single cohesive vlog. 
+Consequently, 
+this bypasses the tedious training process with large-scale long video datasets. 
+Via such collaboration between top-down planning and bottom-up shooting, 
+Vlogger can effectively transform an open-world story into a minute-long vlog.
+
+
+Furthermore, 
+we would like to emphasize that,
+\textbf{ShowMaker} is a distinctive video diffusion model designed for generating video snippets of each shooting scene.
+From the structural perspective,
+we introduce a novel Spatial-Temporal Enhanced Block (STEB) in this model.
+This block can adaptively leverage scene descriptions and actor images as textual and visual prompts,
+which attentively guide ShowMaker to enhance spatial-temporal coherence of script and actors.
+From the training perspective,
+we develop a probabilistic mode selection mechanism,
+which can boost the capacity of ShowMaker by mixed training of Text-to-Video (T2V) generation and prediction.
+More notably,
+by sequential combination of generation and prediction mode in the inference stage,
+ShowMaker can produce a video snippet with a controllable duration.
+This allows our Vlogger to generate a vlog with a preferable duration,
+according to the planning of each scene in the script by LLM director.
+
+Finally,
+our method achieves the state-of-the-art performance on both zero-shot T2V generation and prediction,
+by expensive experiments within the popular video benchmarks.
+More importantly,
+our Vlogger outperforms the well-known long video generation method,
+\textit{i.e.}, 
+Phenaki \cite{villegas2023phenaki},
+despite utilizing only 66.7\% of the training videos.
+Remarkably,
+our Vlogger is capable of generating over 5-minute vlogs, 
+without loss of script and actor coherence in the video.
+
+
+
+
+\begin{figure*}[t]
+    \centering
+    % \vspace{-0.3cm}
+    \includegraphics[width=1\linewidth]{figs/director.pdf}
+    \vspace{-0.7cm}
+    \caption{
+    \textbf{Top-Down Planning.} 
+    Through four rounds of dialogue with the LLM, we gradually convert the user story into the final script. 
+    Based on this script, we further extract actor reference images,
+    and then determine which actor would star in each script scene.
+    }
+    \label{fig:director}
+    \vspace{-0.3cm}
+\end{figure*}

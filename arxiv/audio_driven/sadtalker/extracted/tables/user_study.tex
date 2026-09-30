@@ -1,0 +1,22 @@
+
+\begin{table}[h]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{l|cccc}
+\toprule
+Method & Lip & Motion & Video     & Overall  \\ 
+& Sync. & Diversity   & Sharpness & Naturalness\\ \hline % 0.271 &
+% Real Video &   \\
+Wav2Lip~\cite{wav2lip} &15.6\% &3.1\%  &2.0\% &2.8\% \\
+PC-AVS~\cite{pcavs} &18.1\% & 9.6\%  & 3.4\% & 9.1\%  \\
+MakeItTalk~\cite{zhou2020makelttalk} & 5.6\% & 5.3\%  &5.7\% &6.9\%   \\
+Wang~\etal~\cite{wang2021one} &12.5\% &12.1\%  &16.3\% &11.6\%  \\
+Audio2Head~\cite{wang2021audio2head} &9.5\% &12.1\%  &9.7\% &14.7\%   \\
+Ours & \textbf{38.7\%} & \textbf{57.9\%}  & \textbf{62.8\%} & \textbf{54.8\%} \\
+\bottomrule
+\end{tabular}}
+\vspace{-1em}
+\caption{User study.}
+\vspace{-0.05in}
+\label{tab:user}
+\end{table}

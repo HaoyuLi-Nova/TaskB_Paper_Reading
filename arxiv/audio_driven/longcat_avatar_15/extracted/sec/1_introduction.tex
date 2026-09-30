@@ -1,0 +1,35 @@
+\section{Introduction}
+
+
+Audio-driven human animation aims to synthesize photorealistic avatar videos in which lip motion, facial expression, head pose, and body dynamics evolve coherently with a speech signal. As a core capability for digital humans, virtual communication, and embodied interactive systems, it has attracted increasing attention from both academia and industry. Recent progress in large-scale generative modeling, especially diffusion-based video generation \cite{wang2025fantasytalking,kong2025let,jiang2025omnihuman,team2025longcat}, has significantly improved visual fidelity, motion realism, and short-range temporal coherence, making audio-driven avatar generation a rapidly advancing frontier. This progress has catalyzed a surge of novel audio-driven generation methods \cite{gao2025wan,yang2025infinitetalk,chen2025hunyuanvideo,kong2025let,gan2025omniavatar, flowvqtalker}, including several recent efforts focused on real-time synthesis \cite{li2025joyavatar,li2025personalive,huang2025live,shen2025soulxflashtalktechnicalreport,zeng2026lpm}.
+
+A substantial gap remains between research-quality demos and production-ready systems. In practice, commercial deployment requires far more than visually plausible short clips. A usable system must maintain stable identity over long durations, preserve full-body temporal consistency, synchronize lip movement precisely under diverse speaking styles, and remain robust in challenging real-world scenarios such as multi-person interactions, hand-object contact, stylized characters, and non-ideal source images. At the same time, the model must be efficient enough for cost-sensitive serving. These requirements expose a central tension in current audio-driven video generation: models that perform well on curated benchmarks may exhibit degraded robustness under long-horizon or open-domain conditions, while systems with strong real-world performance are typically proprietary and inaccessible to the broader community.
+
+In this report, we present \textbf{LongCat-Video-Avatar 1.5} (LC-Video-Avatar 1.5), an upgraded open source framework designed to bridge this gap. To address the practical demands of commercial-grade digital human applications, this work focuses on generation stability and robustness in real-world scenarios. We demonstrate that a highly reliable, production-ready system can be effectively achieved through rigorous data curation, scaled model training, and comprehensive end-to-end optimization.
+
+
+Specifically, to enhance the human-likeness of speech-driven animations, we upgrade our primary audio encoder to Whisper-large \cite{radford2022whisper}. This decision is driven by our empirical comparisons, which reveal that Whisper-large yields significantly smoother and more natural lip dynamics than the commonly used Wav2Vec2. When combined with our rigorous data and training pipelines, this architectural shift improves the model's ability to capture fine-grained speech dynamics, leading to markedly stronger lip synchronization and temporal smoothness over long videos. Moreover, these improvements generalize across diverse visual domains and complex scenarios beyond the training distribution. The model generalizes robustly across diverse visual domains (e.g., stylized anime characters and animals) and complex real-world situations (e.g., multiple people in frame and object interactions), all without requiring scenario-specific architectural branches.
+
+% # GRPO
+Beyond foundational generation capabilities, we also emphasize the practical requirements of industrial deployment. To improve perceptual quality and align outputs with human preferences, we employ Group Relative Policy Optimization (GRPO) to significantly elevate the overall generation quality. However, diffusion-based video synthesis is typically constrained by high inference costs, which limit scalability in real serving environments. To address this bottleneck, we subsequently adopt advanced Distribution Matching Distillation (DMD) \cite{yin2024improved}, compressing the inference process to a highly efficient \textbf{8 NFEs}. This two-stage optimization pipeline—first enhancing quality via GRPO, then accelerating inference via DMD—achieves a favorable balance between visual excellence and serving cost, establishing LongCat-Video-Avatar 1.5 as a practically deployable open-source solution.
+
+We validate the proposed framework through extensive quantitative evaluation and a rigorous human study on a benchmark  \cite{zhou2025evaltalker} of more than 500 diverse test cases. Across realism, naturalness, stability, and overall preference, LongCat-Video-Avatar 1.5 consistently outperforms strong baselines, including leading closed-source systems such as OmniHuman 1.5 \cite {jiang2025omnihuman} and HeyGen \cite{HeyGen}. These results suggest that, with sufficiently careful system-level optimization, open-source audio-driven avatar generation can move beyond research prototypes and begin to meet the demands of versatile commercial applications.
+
+
+
+
+The main contributions of this report are summarized as follows:
+\begin{itemize}
+\item We introduce LongCat-Video-Avatar 1.5, a commercial grade, open-source framework for audio-driven video generation. Driven by rigorous data curation and scaled training recipes, our system achieves strong performance across multiple dimensions: precise lip synchronization, full-body temporal stability, strict identity consistency in long videos, and robust open-domain generalization to stylized characters and complex scenarios.
+\item We achieve an optimal trade-off between generation quality and serving efficiency by implementing a step-distilled inference pipeline that requires only 8 NFEs. Additionally, we integrate GRPO to further elevate the generation quality.
+\item Extensive evaluations—comprising both comprehensive automatic metrics and rigorous human studies on a large-scale benchmark—demonstrate that our efficient model consistently outperforms state-of-the-art closed-source alternatives in terms of naturalness and realism.
+\end{itemize}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.8\textwidth]{imgs/scene3.pdf} 
+\vspace{-0.3cm}
+\caption{Demonstration of generated video frames across various application scenarios, including broadcasting, acting, singing, e-commerce marketing, multi-person conversation, animation, and animal. The leftmost column shows the input, followed by the generated intermediate frames.}
+\label{fig:scene_app}
+\vspace{-1cm}
+\end{figure*}

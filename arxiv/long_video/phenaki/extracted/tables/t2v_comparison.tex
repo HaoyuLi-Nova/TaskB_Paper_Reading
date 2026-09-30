@@ -1,0 +1,18 @@
+\begin{table}
+\small
+\caption{Text-to-video comparisons on Kinetics-400~\cite{Kinetics400}.}
+\vspace{-.3cm}
+\label{table:t2v_comp}
+\begin{center}
+\begin{tabular}{lrr}
+Method  & FID-img  & FID-vid  \\
+\hline
+T2V \cite{vidgenfromtext}     & 82.13 & 14.65 \\
+SC \cite{tfgan}                 & 33.51 & 7.34 \\
+TFGAN \cite{tfgan}                   & 31.76 & 7.19 \\
+NUWA                      & \textbf{28.46} & 7.05 \\
+\hline
+Phenaki [Zero Shot] (Ours)            & 37.74 & \textbf{3.84} \\
+\end{tabular}
+\end{center}
+\end{table}

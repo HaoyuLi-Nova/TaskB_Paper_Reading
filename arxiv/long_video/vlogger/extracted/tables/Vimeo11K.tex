@@ -1,0 +1,21 @@
+\begin{table}[t]
+    \centering
+    \setlength\tabcolsep{6pt}
+    \resizebox{0.86\linewidth}{!}{%
+    \begin{tabular}{c c c c c c}
+        \toprule
+        \textbf{TTCA} & \textbf{MTP} & \textbf{0/16 ()} & \textbf{1/15 ()} & \textbf{3/13 ()} & \textbf{5/11 ()}  \\
+        \midrule
+        \xmark & \xmark & 348.36 & 217.39 & 297.37 & 246.56 \\
+        \cmark & \xmark & 333.63 & 178.27 & 230.56 & 193.52 \\
+        \cmark & \cmark & \textbf{257.70} & \textbf{123.51} & \textbf{118.02} & \textbf{109.31} \\
+        \bottomrule
+        \vspace{-1.75em}
+    \end{tabular}
+    }
+    \caption{\textbf{Ablation for temporal text cross attention and mixed training paradigm}. ``TTCA'' and ``MTP'' refer to temporal text cross attention and mixed training paradigm respectively. ``3/13'' denotes predicting the following 13 frames after being given 3 frames of a ground truth video, and we evaluate the FVD between the newly generated 13 frames and the corresponding frames in the ground truth. 
+    ``0/16'', ``1/15'', ``5/11'' follow this pattern.
+    }
+    \vspace{-0.5cm}
+    \label{tab:vimeo}
+\end{table}

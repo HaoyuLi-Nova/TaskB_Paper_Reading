@@ -1,0 +1,90 @@
+\appendix
+
+
+
+\section{Additional Implementation Details}
+
+\input{tab_alg/RF_inference}
+
+\paragraph{KV Cache.}
+We configure the KV cache and denoising window sizes as $L_\text{tem}=3$, $L_\text{glo}=3$, and $L_\text{win}=15$ latent frames. When updating the KV cache with $G_\theta^\text{KV}$, the attention window attends only to recent frames, excluding the global context. This design reflects that, apart from the initial frames serving as the global context anchor, other cached frames are retained solely for preserving short-term temporal consistency. During inference, we persist the KV states of the global context frames while discarding obsolete temporal frames, thereby maintaining constant memory usage. At the start of the video, when the denoising window still includes the first frame, no temporal or global context is used. 
+
+\paragraph{Training.}
+During training, the number of generated frames $N$ is randomly sampled between 21 (the sequence length of the bidirectional teacher model) and 27 latent frames. The DMD loss is computed on the last 21 frames. Since in Wan2.1~\citep{wan2025wan} the first VAE-encoded frame is not temporally compressed and thus exhibits different statistics, we decode frames $0{:}N{-}21$ to RGB and re-encode the $(N{-}21)$-th frame into the latent space. This re-encoded frame is then concatenated with latent frames $N{-}21{:}N{-}1$ for loss computation. In this way, the first frame is only spatially compressed, ensuring consistency with the statistical distribution of the bidirectional teacher model.
+
+
+\paragraph{Noise schedule and model parameterization.}
+Following the Wan2.1 and Self Forcing, we adopt the flow matching framework~\citep{lipman2022flow, liu2022flow}, with time step shifting $t^\prime(k, t) = (kt / 1000) / (1 + (k-1)(t / 1000)) \cdot 1000$ and a shift factor $k=5$. The forward process is specified as $x_t = \frac{t^\prime}{1000} x + \frac{1 - t^\prime}{1000} \epsilon, \epsilon \sim \mathcal{N}(0, I)$ with $t \in [0, 1000]$.
+The data prediction model is given by:
+\begin{equation}
+    G_\theta(x, t, c) = c_{\text{skip}} \cdot \epsilon - c_{\text{out}} \cdot v_\theta(c_{\text{in}} \cdot x_t, c_{\text{noise}}(t^\prime), c).
+\end{equation}
+We keep the preconditioning coefficients the same as the base models' configuration, i.e., $c_{\text{skip}} = c_{\text{in}} = c_{\text{out}} = 1$ and $c_{\text{noise}}(t) = t$.
+Our few-step diffusion process employs a uniform 5-step schedule $[t_5, t_4, t_3, t_2, t_1]=[1000, 800, 600, 400, 200]$. We adopt a 5-step schedule rather than 4, as our method achieves comparable and even slightly faster generation speed than 4-step Self Forcing.
+
+
+
+
+
+
+
+
+
+\section{VBench Scores Across All Dimensions}
+
+\input{tab_alg/quality}
+
+\input{tab_alg/semantic}
+
+We conduct a comprehensive evaluation on the full VBench benchmark~\citep{huang2024vbench}, using all 946 prompts and covering all 16 metrics reported in \cref{tab:quality,tab:semantic}. For detailed metric definitions, we refer readers to the VBench paper. All values are computed with the official standardized evaluation scripts. Our method achieves substantial improvements in overall quality, particularly in frame-wise fidelity, and also outperforms distilled baselines on semantic scores.
+
+\paragraph{Indices of the 200 sampled MovieGen prompts.} 
+{\scriptsize
+0, 5, 10, 15, 24, 30, 34, 38, 44, 48, 53, 60, 67, 71, 75, 79, 84, 88, 92, 98, 103, 108, 112, 116, 122, 126, 131, 137, 142, 146, 150, 157, 165, 171, 176, 182, 188, 196, 200, 207, 211, 215, 219, 225, 229, 233, 237, 242, 246, 250, 256, 261, 267, 272, 277, 284, 288, 294, 299, 303, 308, 312, 317, 321, 327, 331, 336, 340, 344, 348, 353, 357, 362, 367, 372, 376, 380, 388, 392, 396, 400, 408, 415, 423, 428, 433, 437, 441, 446, 452, 456, 460, 464, 469, 473, 477, 482, 487, 491, 495, 502, 507, 511, 515, 521, 525, 529, 533, 540, 544, 548, 553, 558, 569, 574, 578, 585, 590, 598, 602, 609, 614, 619, 626, 632, 636, 641, 647, 651, 657, 661, 666, 671, 677, 681, 686, 690, 695, 699, 704, 708, 712, 717, 722, 726, 730, 734, 739, 743, 747, 752, 756, 761, 766, 772, 776, 781, 786, 791, 795, 799, 803, 808, 812, 816, 820, 825, 829, 834, 838, 845, 849, 855, 860, 865, 870, 875, 880, 884, 888, 892, 897, 904, 908, 915, 924, 928, 933, 937, 942, 946, 954, 959, 964, 970, 976, 980, 986, 991, 996.}
+
+
+\section{Interactive Video Streaming}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figure/transition.pdf}
+\caption{Interactive Video Streaming. Rolling Forcing allows the users to change prompts while streaming to steer the video content.}
+\label{fig:transition}
+\end{figure}
+
+In \cref{fig:transition}, we demonstrate that Rolling Forcing enables interactive video streaming, allowing users to modify prompts during generation to steer the video content. Implementing this functionality is straightforward: we discard the cross-attention cache of previous text prompts and apply the new prompts in cross-attention.
+
+
+
+\section{Dynamic RoPE}
+
+The placement of RoPE indices for the global context frames is critical. Suppose the indices of the denoising window are $i{:}i+T{-}1$, and the temporal context frames are $i-L_\text{tem}{:}i{-}1$. We investigate several options for assigning indices to the global context frames:
+\begin{enumerate}
+\item immediately preceding the temporal context, $i-L_\text{tem}-L_\text{glo}{:}i-L_\text{tem}{-}1$ (our adopted design);
+
+\item fixed at $0{:}L_\text{glo}{-}1$ without dynamic RoPE adjustment;
+
+\item overlapping with the temporal context, $i-L_\text{glo}{:}i{-}1$;
+
+\item within the denoising window, within $i{:}i+T{-}1$;
+
+\item after the denoising window, beyond $i+T$.
+\end{enumerate}
+Empirically, option 2 produces strong “jumping” artifacts due to relative positions exceeding the trained offset range, as shown in \cref{fig:jumping}. Option 3 introduces flickering, as the model confuses global and temporal contexts. Option 4 collapses into static outputs, since the generated frames are forced to replicate the global context. Option 5 induces unnatural motion, as the model attempts to converge toward the misplaced global anchor. Among these, only option 1 yields consistent videos with minimal artifacts.
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{figure/jumping.pdf}
+\vspace{-1em}
+\caption{Fixed RoPE indices produce strong “jumping” artifacts, where the video abruptly resets to the initial frame during streaming.}
+\label{fig:jumping}
+\end{figure}
+
+
+\section{Limitations}
+While Rolling Forcing substantially suppresses error accumulation in real-time streaming video generation, several limitations remain. First, although the global context helps stabilize long-horizon consistency, frames generated in the middle are discarded once they leave the temporal context. As a result, the model retains no memory of mid-sequence content, suggesting that incorporating more advanced memory mechanisms is a promising direction for future exploration. Second, training Rolling Forcing is computationally demanding: the enlarged attention window and the DMD loss significantly increase GPU memory usage, which may limit scalability to higher-capacity models. Developing more efficient training or distillation strategies to mitigate these costs is therefore an important avenue for future work. Third, as mentioned in \citet{huang2025self}, the rolling diffusion window may increase latency in interactive applications, as future frames are partially pre-generated before the current frame is finalized. As Rolling Forcing natively supports both inference strategies, future work may consider a mixed inference strategy that interactively switches between frame-by-frame denoising during interaction and rolling denoising otherwise.
+
+
+
+\section{Broader Societal Impact}
+This work introduces real-time, long-horizon text-to-video generation, which can broaden access to interactive media, live storytelling, and educational tools by enabling continuous and responsive video synthesis. However, the ability to produce realistic long-duration content in real time also heightens risks of misuse, such as generating misleading live streams or amplifying harmful biases over extended outputs. We encourage future research to explore safeguards, including content filtering, bias mitigation, and responsible deployment practices, to ensure these capabilities are used for positive impact.

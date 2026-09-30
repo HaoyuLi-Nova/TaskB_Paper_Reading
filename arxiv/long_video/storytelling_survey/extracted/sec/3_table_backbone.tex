@@ -1,0 +1,529 @@
+\setlength{\tabcolsep}{0pt}
+
+% Define colors for shading
+\definecolor{whiteshade}{gray}{1}
+\definecolor{rowshade}{gray}{0.90}
+\definecolor{headershade}{gray}{0.95}
+
+% Define commands to apply shading to cells
+\newcommand{\applyshade}[1]{\cellcolor{rowshade}#1}
+\newcommand{\applywhite}[1]{\cellcolor{white}#1}
+
+% Define commands for the narrow spacer column (simplified version)
+\newcommand{\spacercolshade}{\multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}}}
+\newcommand{\spacercolwhite}{\multicolumn{1}{p{0.15cm}}{\cellcolor{white}}}
+
+% Define a custom column type 'Y' for ragged-right content
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}p{0.1275\textwidth}}
+
+\begin{strip}
+  \centering
+  \scriptsize
+  \captionof{table}{
+    A comprehensive backbone table of recent video generation frameworks, organized by their core training objectives, that reveals emerging design patterns and architectural innovations across state-of-the-art systems.
+  }
+  \label{tab:backbone1}
+  \renewcommand{\arraystretch}{1.3} % Increase row height for readability
+
+    \begin{tabular}{ 
+        p{0.1\textwidth} 
+        Y                
+        % p{0.15cm}        
+        Y                
+        Y                
+        Y                
+        Y                
+        Y                
+        Y                
+      }
+    % --- HEADER ROW ---
+    \rowcolor{headershade}
+    \cellcolor{white}{\small\bfseries Training Objective} % First cell is white
+    & \multicolumn{1}{Y}{\small\bfseries Paper}
+    % & \multicolumn{1}{p{0.15cm}}{} % Empty spacer in header
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{Backbone}}
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{Text-Visual \\Tower}}
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{Visual-Video \\Tower}}
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{\hspace{0.5cm}Positional\\\hspace{0.5cm}Encodings}}
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{\hspace{0.5cm}Params}}
+    & \multicolumn{1}{Y}{\small\bfseries Resolution} \\
+    \toprule
+
+    % --- DATA ROWS (with alternating shading) ---
+
+    % Row 1: Seedance - Shaded
+    \rowcolor{rowshade}
+    \cellcolor{white}{} % Override row color for the first column
+    & \applyshade{Seedance~\cite{gao2025seedance}}
+    % & \spacercolshade
+    & \applyshade{MM-DiT}
+    & \applyshade{\makecell[l]{Qwen2.5-14B}}
+    & \applyshade{\makecell[l]{VAE}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}3DRoPE\\ \hspace{0.5cm}MM-RoPE}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{720p, 1080p} \\
+
+    % Row 2: HunyuanVideo-Avatar - Unshaded
+    {} % Empty first column
+    & \applywhite{HunyuanVideo-Avatar~\cite{chen2025hunyuanvideoavatar}}
+    % & \spacercolwhite
+    & \applywhite{MM-DiT}
+    & \applywhite{\makecell[l]{LLaVA}}
+    & \applywhite{\makecell[l]{Two Hunyuan \\3D VAE}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}3DRoPE}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}13B}}
+    & \applywhite{704p, 1216p} \\
+
+    % Row 3: MAGI-1 - Shaded
+    \rowcolor{rowshade}
+    \cellcolor{white}{}
+    & \applyshade{MAGI-1~\cite{teng2025magi1}}
+    % & \spacercolshade{} 
+    & \applyshade{DiT}
+    & \applyshade{\makecell[l]{T5}} 
+    & \applyshade{\makecell[l]{Transformer-based\\VAE}} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}3DRoPE}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}4.5B--24B}}
+    & \applyshade{720p} \\
+
+
+    % Row 4: HunyuanCustom - Unshaded
+    {}
+    & \applywhite{HunyuanCustom~\cite{hu2025hunyuancustom}}
+    % & \spacercolwhite{}
+    & \applywhite{Hunyuan-MM-DiT}
+    & \applywhite{\makecell[l]{LLaVA}} 
+    & \applywhite{\makecell[l]{Two Hunyuan\\3D VAE}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}3DRoPE}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}13B}}
+    & \applywhite{512p, 720p} \\
+    
+
+    % Row 5: Veo3 - Shaded
+    \rowcolor{rowshade}
+    \cellcolor{white}{}
+    & \applyshade{Veo3~\cite{deepmind2025veo3}}
+    % & \spacercolshade{} 
+    & \applyshade{DiT}
+    & \applyshade{--}
+    & \applyshade{--} 
+    & \applyshade{\hspace{0.5cm}--} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{1080p} \\
+    
+
+    % Row 6: SkyReels-v2 - Unshaded
+    {}
+    & \applywhite{SkyReels-v2~\cite{chen2025skyreelsv2}}
+    % & \spacercolwhite{} 
+    & \applywhite{Wan-DiT}
+    & \applywhite{\makecell[l]{umT5}} 
+    & \applywhite{\makecell[l]{Wan VAE}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}Learnable\\\hspace{0.5cm}Frequency\\ \hspace{0.5cm}Embeddings}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}1.3B, 5B, 14B}}
+    & \applywhite{\makecell[l]{256p, 360p,\\540p, 720p}} \\
+    
+
+    % Row 7: Open-Sora 2.0 - Shaded
+    \rowcolor{rowshade}
+    \cellcolor{white}{}
+    & \applyshade{Open-Sora 2.0~\cite{peng2025opensora2}}
+    % & \spacercolshade{} 
+    & \applyshade{Flux (MM-DiT)}
+    & \applyshade{\makecell[l]{T5-XXL,\\CLIP-Large}} 
+    & \applyshade{\makecell[l]{HunyuanVideo\\3DVAE,\\Video Deep\\Compression\\Autoencoder}} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}3DRoPE}} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}11B}}
+    & \applyshade{256p, 768p} \\
+    
+
+    % Row 8: WAN - Unshaded
+    {}
+    & \applywhite{WAN2.1\cite{wan2025}}
+    % & \spacercolwhite{}
+    & \applywhite{DiT + Cross-attn}
+    & \applywhite{\makecell[l]{umT5,\\Qwen2-VL}} 
+    & \applywhite{\makecell[l]{Wan-VAE}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}Standard\\\hspace{0.5cm}Sinusoidal\\ \hspace{0.5cm}Spatial positional\\ \hspace{0.5cm}Encodings}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}1.3B, 14B}}
+    & \applywhite{480p, 720p} \\
+    
+
+    %=========== Flow-matching section (with multirow spanning VACE and Phantom) ===========
+    % & \multirowcell{2}[0pt][l]{\cellcolor{white}{\textbf{Flow-}\\\textbf{Matching}}} 
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\textbf{Flow-}\\\textbf{Matching}} 
+    & \applyshade{VACE~\cite{vace2025}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}
+     & \applyshade{Wan-T2V-14B, LTX-Video-2B}
+    & \applyshade{Inherited}
+    & \applyshade{Inherited}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}Inherited}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}2B, 14B}}
+    & \applyshade{480p, 720p}      \\
+
+    & \applywhite{Phantom~\cite{liu2025phantom}}
+    % & \spacercolwhite{}          
+    & \applywhite{MMDiT}
+    & \applywhite{\makecell[l]{T5\\Dinov2 (Ref.~Img)}}
+    & \applywhite{\makecell[l]{(CLIP, VAE)\\(Qwen2.5, 3DVAE)}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}3DRoPE}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}1.3B, 14B}}
+    & \applywhite{480p, 720p}      \\
+    
+
+
+    % %=========== Remaining Rows (Alternating Shading continues) ===========
+    % % Row 11: StepVideo - Shaded
+    \rowcolor{rowshade}
+    \cellcolor{white}{}
+    & \applyshade{StepVideo~\cite{huang2025stepvideo}}
+    % & \spacercolshade{} 
+    & \applyshade{DiT}
+    & \applyshade{\makecell[l]{Hunyuan-CLIP,\\Step-LLM}}
+    & \applyshade{\makecell[l]{Video-VAE}} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}3DRoPE}} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}30B}}
+    & \applyshade{544p} \\
+    
+
+    % % Row 12: ConceptMaster - Unshaded
+    {}
+    & \applywhite{ConceptMaster~\cite{huang2025conceptmaster}}
+    % & \spacercolwhite{} 
+    & \applywhite{\makecell[l]{Transformer-based\\latent diffusion}}
+    & \applywhite{\makecell[l]{T5\\CLIP}}
+    & \applywhite{\makecell[l]{3DVAE}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}3D self-attention}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}--}}
+    & \applywhite{--} \\
+    
+
+    % % Row 13: VideoAlchemist - Shaded
+    \rowcolor{rowshade}
+    \cellcolor{white}{}
+    & \applyshade{VideoAlchemist~\cite{chen2025videoalchemist}}
+    % & \spacercolshade{} 
+    & \applyshade{DiT}
+    & \applyshade{\makecell[l]{DiT Text Encoder,\\CLIP,\\Arcface}}
+    & \applyshade{\makecell[l]{(CogVideoX-5B VAE,\\DiT Tokenizer),\\(CLIP ViT-L/14,\\DINOv2 ViT-L/14)}} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}RoPE}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}5B}}
+    & \applyshade{256p} \\
+    
+
+    % % Row 14: HunyuanVideo - Unshaded
+    {}
+    & \applywhite{HunyuanVideo~\cite{kong2024hunyuanvideo}}
+    % & \spacercolwhite{} 
+    & \applywhite{Flux (MM-DiT)}
+    & \applywhite{\makecell[l]{Hunyuan MLLM\\Decoder,\\CLIP}} 
+    & \applywhite{\makecell[l]{3D VAE}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}3DRoPE}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}13B}}
+    & \applywhite{720p} \\
+    
+
+    % % Row 15: LTX-video - Shaded
+    \rowcolor{rowshade}
+    \cellcolor{white}{}
+    & \applyshade{LTX-video~\cite{hacohen2025ltxvideo}}
+    % & \spacercolshade{} 
+    & \applyshade{DiT + Cross-attn}
+    & \applyshade{\makecell[l]{DiT Text Encoder}} 
+    & \applyshade{\makecell[l]{Video-VAE}} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}RoPE}} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}2B}}
+    & \applyshade{512p} \\
+    
+
+    % % Row 16: MovieGen - Unshaded
+    {}
+    & \applywhite{MovieGen~\cite{polyak2024moviegen}}
+    % & \spacercolwhite{} 
+    & \applywhite{LLaMa3 Design}
+    & \applywhite{\makecell[l]{UL2,\\ByT5,\\Long-prompt\\MetaCLIP}}
+    & \applywhite{\makecell[l]{TAE,\\VAE (Spatial\\Upsampler)}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}Factorized}} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}30B}}
+    & \applywhite{256p, 1080p} \\
+    
+
+    % % Row 17: Pyramid Flow - Shaded
+    \rowcolor{rowshade}
+    \cellcolor{white}{}
+    & \applyshade{Pyramid Flow~\cite{jin2024pyramidflow}}
+    % & \spacercolshade{} 
+    & \applyshade{MM-DiT}
+    & \applyshade{--} 
+    & \applyshade{\makecell[l]{Pyramid Stages\\Autoregressive\\Temporal Pyramid}} 
+    & \applyshade{\hspace{0.5cm}--} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{768p} \\
+    
+
+    % % Row 18: Sora - Unshaded
+    {}
+    & \applywhite{Sora~\cite{openai2024sora}}
+    % & \spacercolwhite{} 
+    & \applywhite{DiT}
+    & \applywhite{--} 
+    & \applywhite{--} 
+    & \applywhite{\hspace{0.5cm}--} 
+    & \applywhite{\makecell[l]{\hspace{0.5cm}--}}
+    & \applywhite{480p, 1080p} \\
+    \hline
+
+    
+    %=========== Score-matching section ===========
+    %\rowcolor{white}
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\\\textbf{Score-}\\\textbf{Matching}} 
+    & \applyshade{SVD~\cite{ho2023svd}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}     
+    & \applyshade{3DUNet}
+    & \applyshade{CLIP}
+    & \applyshade{SD 2D VAE}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}1.5B}}
+    & \applyshade{512p} \\
+
+%     \cline{2-9}
+    
+    & \applywhite{I2VGen-XL~\cite{zhang2023i2vgenxl}}
+    % & \spacercolwhite{}
+    & \applywhite{3DUNet}
+    & \applywhite{CLIP}
+    & \applywhite{VQGAN}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}Standard VLDM\\\hspace{0.5cm}positional\\\hspace{0.5cm}embeddings}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}--}}
+    & \applywhite{64p, 720p} \\
+    \hline
+
+    %=========== DDIM section ===========
+
+    & \applyshade{StoryDiffusion~\cite{zhou2024storydiffusion}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}    
+    & \applyshade{UNet}
+    & \applyshade{CLIP}
+    & \applyshade{SD 2D VAE}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}1B, 4B}}
+    & \applyshade{512p} \\
+    
+%     \cline{2-9}
+
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\textbf{}\\\\\textbf{DDIM}} 
+    & \applywhite{DreamVideo~\cite{gao2023dreamvideo}}
+    % & \spacercolwhite{}
+    & \applywhite{3DUNet}
+    & \applywhite{CLIP}
+    & \applywhite{LDM VAE}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}Standard\\\hspace{0.5cm}Transformer\\\hspace{0.5cm}positional embed}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}85M}}
+    & \applywhite{--} \\
+    
+%     \cline{2-9}
+
+    & \applyshade{Ca2-VDM~\cite{gao2024ca2vdm}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}    
+    & \applyshade{UNet}
+    & \applyshade{T5}
+    & \applyshade{SD 2D VAE}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}SinusoidalSpatial\\\hspace{0.5cm}Positional Embed,\\ \hspace{0.5cm}Temporal\\\hspace{0.5cm}Positional Embed\\\hspace{0.5cm}with cyclic-shift \\\hspace{0.5cm}mechanism}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{256p} \\
+    \hline
+
+  \end{tabular}
+  \renewcommand{\arraystretch}{1} % Increase row height for readability
+\end{strip}
+    % \specialrule{1pt}{1pt}{1pt}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\addtocounter{table}{-1}
+\begin{strip}
+  \centering
+  \scriptsize
+  \captionof{table}{
+    Continued
+  }
+  \label{tab:backbone1}
+  \renewcommand{\arraystretch}{1.3} % Increase row height for readability
+
+    \begin{tabular}{ 
+        p{0.1\textwidth} 
+        Y                
+        % p{0.15cm}        
+        Y                
+        Y                
+        Y                
+        Y                
+        Y                
+        Y                
+      }
+    % --- HEADER ROW ---
+    \rowcolor{headershade}
+    \cellcolor{white}{\small\bfseries Training Objective} % First cell is white
+    & \multicolumn{1}{Y}{\small\bfseries Paper}
+    % & \multicolumn{1}{p{0.15cm}}{} % Empty spacer in header
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{Backbone}}
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{Text-Visual \\Tower}}
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{Visual-Video \\Tower}}
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{\hspace{0.5cm}Positional\\\hspace{0.5cm}Encodings}}
+    & \multicolumn{1}{Y}{\small\bfseries\makecell[l]{\hspace{0.5cm}Params}}
+    & \multicolumn{1}{Y}{\small\bfseries Resolution} \\
+    \toprule
+
+    %=========== DDPM section ===========
+    & \applyshade{Lumiere~\cite{bartal2024lumiere}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}      
+    & \applyshade{Space-Time U-Net}
+    & \applyshade{Imagen T5-XXL}
+    & \applyshade{Pixel space}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{--} \\
+    
+    % \cline{2-9}
+
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\\\\\textbf{DDPM}}
+    & \applywhite{SEINE~\cite{chen2023seine}}
+    % & \spacercolwhite{}
+    & \applywhite{LaVie-UNet}
+    & \applywhite{SD}
+    & \applywhite{SD VQGAN/VQVAE}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}--}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}--}}
+    & \applywhite{320p} \\
+
+    % \cline{2-9}
+
+    & \applyshade{AnimateDiff~\cite{gu2023animatediff}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}   
+    & \applyshade{3DUNet}
+    & \applyshade{CLIP,Conditioned Cross-Attention}
+    & \applyshade{SD VAE}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}Standard\\\hspace{0.5cm}Transformer\\ \hspace{0.5cm}Temporal\\\hspace{0.5cm}Positional Embed}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}--}}
+    & \applyshade{512p} \\
+
+    % \cline{2-9}
+
+    & \applywhite{VDM~\cite{ho2022vdm}}
+    % & \spacercolwhite{}
+    & \applywhite{3DUNet}
+    & \applywhite{--}
+    & \applywhite{Pixel space}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}Relative Position\\\hspace{0.5cm}Embed}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}--}}
+    & \applywhite{64p, 128p} \\
+    \hline
+
+    %=========== V-Prediction & Zero-SNR section ===========
+    \rowcolor{white}
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\textbf{V-Prediction}\\\textbf{\& Zero-SNR}}
+    % \multirowcell{2}[0pt][l]{\cellcolor{white}{\textbf{}\\\textbf{\& }}} 
+    & \applyshade{CogVideoX~\cite{yang2024cogvideox}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}     
+    & \applyshade{DiT + Cross-attn}
+    & \applyshade{T5}
+    & \applyshade{3DVAE}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}3DRoPE}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}2B, 5B}}
+    & \applyshade{768p} \\
+    
+    % \cline{2-9}
+    
+    & \applyshade{}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}     
+    & \applyshade{}
+    & \applyshade{}
+    & \applyshade{}
+    & \applyshade{}
+    & \applyshade{}
+    & \applyshade{} \\
+    \hline
+
+    %=========== Reconstruction Loss section ===========
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\textbf{Reconstruction}\\\textbf{Loss}}
+    & \applywhite{Open-Sora Plan~\cite{lin2024opensoraplan}}
+    % & \spacercolwhite{}
+    & \applywhite{UNet Skiparse Denoiser}
+    & \applywhite{mT5-XXL}
+    & \applywhite{Wavelet-Flow VAE}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}3DRoPE}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}--}}
+    & \applywhite{256p} \\
+    \hline
+
+    %=========== Next-Token Prediction section ===========
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\textbf{Next-Token}\\\textbf{Prediction}}
+    & \applyshade{Loong~\cite{wang2024loong}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}   
+    & \applyshade{LLaM decoder design}
+    & \applyshade{--} 
+    & \applyshade{\makecell[l]{3DCNN + Clustering\\Vector Quantization}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}Causal Unidirect.\\\hspace{0.5cm}Attention Across\\ \hspace{0.5cm}Token Sequence}}
+    & \applyshade{\makecell[l]{\hspace{0.5cm}700M, 3B, 7B}}
+    & \applyshade{--} \\ 
+    \hline
+
+
+
+    %=========== Autoregressive Multimodal Tokenization section ===========
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\textbf{Autoregressive}\\\textbf{Multimodal}\\\textbf{Tokenization}}
+    & \applywhite{VideoPoet~\cite{singer2023videopoet}}
+    % & \spacercolwhite{}
+    & \applywhite{Decoder-only Transformer LLM}
+    & \applywhite{T5}
+    & \applywhite{MAGVIT-V2}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}Standard\\\hspace{0.5cm}Transformer\\\hspace{0.5cm}Positonal Embed}}
+    & \applywhite{\makecell[l]{\hspace{0.5cm}300M, 8B}}
+    & \applywhite{128p} \\
+
+    % \cline{2-9}
+    
+    & \applywhite{}
+    % & \spacercolwhite{}
+    & \applywhite{}
+    & \applywhite{}
+    & \applywhite{}
+    & \applywhite{}
+    & \applywhite{}
+    & \applywhite{} \\
+    \hline
+
+
+    %=========== Masked Token section ===========
+    \cellcolor{white}\multirowcell{2}[0pt][l]{\textbf{Masked}\\\textbf{Token}}
+    & \applyshade{MAGVIT-v2~\cite{yu2023magvitv2}}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}      
+    & \applyshade{MLLM}
+    & \applyshade{--} 
+    & \applyshade{3DCNN-VQVAE}
+    & \applyshade{--} 
+    & \applyshade{\makecell[l]{\hspace{0.5cm}300M}}
+    & \applyshade{256p, 512p} \\
+
+    % \cline{2-9}
+
+    & \applyshade{}
+    % & \multicolumn{1}{p{0.15cm}}{\cellcolor{rowshade}{}}     
+    & \applyshade{}
+    & \applyshade{}
+    & \applyshade{}
+    & \applyshade{}
+    & \applyshade{}
+    & \applyshade{} \\
+
+    \hline 
+    
+  \end{tabular}
+  \renewcommand{\arraystretch}{1}
+\end{strip}

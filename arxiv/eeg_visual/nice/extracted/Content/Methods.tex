@@ -1,0 +1,142 @@
+% \label{gen_inst}
+\label{sec:method}
+\begin{figure}
+  \centering
+  % \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+  \includegraphics[width=1\linewidth]{Fig/Fig1.png}
+  \caption{(A) Overall framework for EEG-based object recognition. 
+  During training, image-EEG pairs are processed by an image encoder (pre-trained) and an EEG encoder. 
+  The objective is to increase the similarity between matched pairs while decreasing it for unmatched pairs. 
+  During testing, a few unseen images of target concepts (classes) are processed in advance into templates. 
+  Then, the model obtains results by matching test data to templates.
+  (B) Architecture of the EEG encoder. Temporal-spatial convolution is used with spatial modules, made with self and graph attention, to reveal spatial features of brain activity. The linear layer is used to project the feature dimension.}
+  \label{fig:1}
+\end{figure}
+\subsection{Overview}
+We propose a self-supervised framework, Natural Image Contrast EEG (NICE), to decode images from EEG signals.
+The overall framework is depicted in Fig.~\ref{fig:1}(A). 
+
+During training, stimulus-response pairs comprising images and EEG signals are fed into the framework. 
+The image and EEG encoder extract features from their respective modalities. 
+Contrastive learning is employed to align these features, optimizing the similarity between matched pairs and reducing it for unmatched pairs.
+This self-supervised approach enables the model to learn shared information between the two modalities instead of traditional supervised learning with predefined labels. 
+Before the test process, we use a few images that belong to the image concepts (classes) to be classified, and have not appeared in the EEG collection experiments.
+These images are processed and averaged to obtain one template for each concept.
+Next, the EEG encoder processes the test signals, and their similarity with all templates is calculated for matching results.
+
+For the EEG encoder, we adapt temporal-spatial convolution (TSConv), which is widely used in EEG analysis, as shown in 
+Fig.~\ref{fig:1}(B). 
+In addition, we integrate two plug-and-play spatial modules with self-attention and graph attention.
+These modules are instrumental in preserving the spatial characteristics of EEG channels, reflecting intrinsic patterns of brain activity.
+Note that the image encoder has been pre-trained on other image datasets. 
+The leading studies in computer vision help us with larger sample space, when we cannot easily collect numbers of brain responses.
+
+
+% \subsection{Preprocessing}
+\subsection{Network Architecture}
+\subsubsection{EEG Encoder}
+\begin{table}[t]
+\begin{center}
+\renewcommand\arraystretch{1.3}
+\caption{Architecture of EEG encoder with SA or GA followed by TSConv}  
+\label{tab:1} 
+\resizebox{0.7\linewidth}{!}{
+\begin{tabular}{lccccc}    
+\toprule    
+Layer & In & Out & Kernel & Stride & Dimension \\    
+\midrule 
+% \cmidrule(r){1-2} \cmidrule(r){3-5} 
+% \multirow{4}*{2a}
+SA \& GA & \multicolumn{5}{c}{\([(b, 1, C, T) \rightarrow (b, 1, C, T)]\), \(b\) is batch} \\
+\cline{1-1}
+Temporal Conv & 1 & \(k\) & \((1, m_1)\) & (1, 1) & \((b, k, C, T-m_1+1)\)  \\  
+Avg Pooling & \(k\) & \(k\) & \((1, m_2)\) & \((1, s)\) & \((b, k, C, (T-m_1-m_2+1)/s+1)\)\\
+Spatial Conv & \(k\) & \(k\) & \((C, 1)\) & \((1, 1)\) & \((b, k, 1, (T-m_1-m_2+1)/s+1)\) \\ 
+\cline{1-1}
+Flatten\&Linear & \multicolumn{5}{c}{\([k*((T-m_1-m_2+1)/s+1)\)\(\rightarrow\) shape of image feature\(]\)}   \\ 
+\bottomrule   
+\end{tabular}}
+\end{center}
+\end{table}
+
+Researchers usually arrange the raw EEG trials into two dimensions \begin{math}C\times T\end{math}, in which \begin{math}C\end{math} denotes electrode channels, and \begin{math}T\end{math} denotes time samples.
+Convolution along the two dimensions is widely used in deep learning-based EEG analysis models.
+In the same way, we present a very concise network architecture as shown in Table~\ref{tab:1}.
+One-dimension convolution is first applied to capture the temporal features with \(k\) kernels of size \((1, m_1)\) and stride of \((1, 1)\).
+An average pooling layer with a kernel size of \((1, m_2)\) and stride of \((1, s)\) is introduced to alleviate overfitting and smooth the temporal features.
+Another one-dimension convolution is then used for spatial features keeping \(k\) kernels of size \((ch, 1)\) and stride of \((1, 1)\), where \(ch\) usually equals the number of electrodes.
+After each convolutional layer, batch normalization and exponential linear units (ELU) activation functions are used for better training and nonlinearity \citep{clevert2016fast}.
+Finally, a linear layer is added as a projector to transform the features to the same size as the output of the image encoder.
+
+\subsubsection{Image Encoder}
+The image features are extracted with the pairing EEG features for contrastive learning.
+There have been some excellent computer vision models that can obtain image features with semantic discrimination.
+We prefer directly using models pre-trained on other image datasets to get a large sample space. 
+The feature extraction parts of Contrastive Language-Image Pre-training (CLIP) \citep{radford2021learning}, Vision Transfomer (ViT) \citep{dosovitskiy2021image}, and Residual Neural Networks (ResNet) \citep{he2016deepa} are tried separately in our framework for demonstration.
+All the images for stimuli can be processed in advance, thus speeding up our model training.
+
+\subsubsection{Contrastive Learning}
+The framework is constructed with contrastive learning, shown in Algorithm~\ref{alg:1}.
+The outputs of the image and EEG encoder are normalized separately. 
+Then, the dot product is used to evaluate the similarity of all image-EEG feature pairs.
+A scaled temperature parameter is used to adjust distribution probability.
+InfoNCE loss \citep{radford2021learning, oord2019representation} is employed as the objective function to increase the similarities between matched pairs and decrease those between unmatched pairs.
+After adequate training, the EEG encoder can extract representations similar to corresponding images.
+The self-supervised strategy allows us to learn inherent patterns from EEG signals without labels, rather than directly separate different classes with supervised learning. 
+
+\begin{algorithm}[h]
+\caption{Natural Image Contrast EEG framework} 
+\label{alg:1}
+\small
+{\fontfamily{cmr}\selectfont
+\begin{algorithmic}[1]
+    \State \textbf{Input}: (Image, EEG) - stimulus \& response \
+    \State \textbf{Model}: Enc\_img - CLIP \&  Enc\_eeg - TSConv 
+    \Statex 
+    \State \# E - \((batch, channel, electrode, sample)\) \Comment{batch of input EEG}
+    \State \# I - \((batch, channel, height, width)\) \Comment{batch of input images}
+    \State \# \(\tau\) - learned temperature parameter
+    \Statex
+    \State \# extract normalized representations from the raw image and EEG
+    \State E\_f = Norm(Linear(Enc\_eeg(E))) 
+    \State I\_f = Norm(Enc\_img(I))  \Comment{can be obtained before training}
+    \Statex
+    \State \# scaled pairwise cosine similarity 
+    \State logits = dot(E\_f, I\_f.t) * exp(\(\tau\)) 
+    \Statex
+    \State \# symmetric loss function
+    \State labels = arange(batch)
+    \State loss\_e = cross\_entropy\_loss(logits, labels, axis=0)
+    \State loss\_i = cross\_entropy\_loss(logits, labels, axis=1)
+    \State loss = (loss\_e + loss\_i) / 2
+\end{algorithmic}}
+\end{algorithm}
+
+\subsection{Plug-and-Play Module}
+\subsubsection{Self-Attention}
+% The electrode channel connectivity plays a vital role in reflecting spatial information.
+% However, the commonly used arrangement of EEG data corrupts the original correlations.
+% % Some methods recover the spatial dimension to two-dimension, yet bring a high computational complexity.
+We utilize two approaches, self-attention (SA) \cite{vaswani2017attentiona}, and graph attention (GA) \cite{velickovic2018graph}, to supplement the EEG encoder as "spatial filters" to encapsulate electrode correlations and reflect the spatial dynamics of brain activity.
+We use SA on the electrode channels to evaluate the spatial correlations of EEG data.
+The input \(x_{in} \in \mathbb{R}^{C\times T}\) is linearly transformed into equal-sized with weight metrics \(W_q\), \(W_k\), \(W_v\):
+\begin{equation}
+    x'_{in} = \text{Softmax}(\frac{W_q x_{in} \cdot (W_k x_{in})^T}{\sqrt{d}}) \cdot W_v x_{in}
+\end{equation}
+where \(x'_{in} \in \mathbb{R}^{C\times T}\) denotes the output after the SA module, \(d\), the time length of EEG data, is a scaled factor to accommodate the Softmax function. 
+
+\subsubsection{Graph Attention}
+We employ the GA module to update each electrode with all the others, using the implementation from \cite{brody2022how}.
+We treat each electrode as a node \(n_i \in \mathbb{R}^{1\times T}\), \(i=1,...,ch\), which has edges to all the other electrodes \(\mathcal{N}_i\).
+The process to update one electrode is as follows:
+\begin{equation}
+    n'_i = \alpha_{i, i} Wn_i + \sum_{j \in \mathcal{N}_i} \alpha_{i, j} Wn_j
+\end{equation}
+where \(n'_i\) denotes each node after processing, \(\alpha_{i, j}\) is attention coefficients indicating importance of node \(j\) features to node \(i\), and \(W\) is the weight of linear transformation.
+Calculate \(\alpha_{i, j}\) as:
+\begin{equation}
+    \alpha_{i,j} = \frac{\exp(a^{T}\text{LeakyReLU}(W[n_i \, \Vert \, n_j]))}{\sum_{k \in \mathcal{N}_i \cup \{ i \}}\exp(a^{T}\text{LeakyReLU}(W[n_i \, \Vert \, n_k]))}
+\end{equation}
+where \(a \in \mathbb{R}^{2T}\) denotes the weight of a feedforward layer for attention calculation, \(()^{T}\) is the transposition operator, and \(\Vert\) is the concatenation operator.
+LeakyReLU with a slope of 0.2 is used for nonlinearity in calculation.
+Residual connection is employed by integrating the input and output of the SA and GA modules separately, contributing to stable training \citep{he2016deepa}.

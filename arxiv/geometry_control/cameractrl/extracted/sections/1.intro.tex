@@ -1,0 +1,68 @@
+\section{Introduction}\label{sec:intro}
+Recently, diffusion models have significantly advanced the ability to generate video from text or other input~\citep{alignyourlatents, makeyourvideo, tuneavideo, imagenvideo, animatediff}, with a transformative impact on digital content design workflows. 
+%
+In the applications of practical video generation applications, controllability plays a crucial role, allowing for better customization according to user needs. 
+%
+This improves the quality, realism, and usability of the generated videos. 
+%
+Although text and image inputs are commonly used to achieve controllability, they may lack precise control over visual content and object motion. 
+%
+To address this, some approaches have been proposed, leveraging control signals such as optical flow~\citep{dragnuwa, mcdiff, motioni2v}, pose skeleton~\citep{followyourpose, dreambooth}, and other multi-modal signals~\citep{videocomposer, ruan2023mm}, enabling more accurate control for guiding video generation.
+
+\begin{figure}[th]
+	\centering
+	\includegraphics[width=\linewidth]{images/teaser.pdf}
+	\caption{
+        \textbf{Illustration of \method.}
+        % 
+        It can control the camera trajectory for both general T2V~\citep{animatediff} and personalized T2V generation~\citep{realisticvision}, shown in the first two rows.
+        % 
+        Besides,  illustrated in the third row, it can be used with I2V diffusion models, like Stable Video Diffusion~\citep{svd}.
+        %
+        The condition image is the first image of row 3.
+        %
+        \method can also collaborate with other visual controllers, such as the RGB encoder from SparseCtrl~\citep{sparsectrl} to generate videos condition on image and text conditions and manage camera movements.}
+	\label{fig: teaser}
+ \vspace{-5mm}
+\end{figure}
+
+However, existing models lack precise control over adjusting or simulating camera viewpoints in video generation. 
+%
+The ability to control the camera viewpoints during the video generation process is crucial in many applications, such as visual reality, augmented reality, and game development. 
+%
+Moreover, skillful management of camera movements enables creators to emphasize emotions, highlight character relationships, and guide the audience's focus, which holds significant value in the film and advertising industries.
+%
+Recent efforts have been made to introduce camera control in video generation. For example, AnimateDiff~\citep{animatediff} incorporates a MotionLoRA module on top of its motion module, enabling some specific types of camera movement. 
+%
+Nevertheless, it struggles to generalize to the camera trajectories customized by users.
+%
+MotionCtrl~\citep{motionctrl} offers more flexible camera control by conditioning video diffusion models on a sequence of camera pose parameters, but it relies solely on the numerical values of camera parameters without geometric cues of camera poses, which is insufficient in ensuring precise camera control. 
+%
+Additionally, MotionCtrl lacks the ability to generalize camera control across other personalized video generation models.
+
+We thus introduce \method, learning a precise plug-and-play camera pose control module that could control camera viewpoints in video generation. 
+%
+Considering that seamlessly integrating a camera control module into existing video diffusion models is challenging, we investigate how to represent and inject the camera pose effectively. 
+%
+Concretely, we adopt Plücker embeddings~\citep{lfn} as the primary form of camera pose conditioning.
+%
+This choice is attributed to their encoding of geometric interpretations for each pixel in a video frame, offering a comprehensive description of camera pose information.
+%
+To ensure the applicability and generalizability of our \method after training, we introduce a camera control module that only takes the Plücker embedding as input and is thus agnostic to the appearance of the training dataset.
+%
+To evaluate effective training strategies of the camera control model, a comprehensive study is conducted to investigate the effects of various types of training data, ranging from photorealistic to synthetic data.
+%
+Experimental results suggest that data (\emph{e.g.,} RealEstate10K~\citep{realestate10k}) with similar appearance to the original base model and diverse camera pose distribution achieve the best trade-off between generalizability and controllability.
+
+We first implement \method on top of AnimateDiff, enabling precise camera control in text-to-video~(T2V) generation across various personalized T2V models (see \cref{fig: teaser}, rows 1--2).
+%
+We also integrate \method with Stable Video Diffusion~\citep{svd} to achieve camera control in the image-to-video~(I2V) setting, illustrated in the third row of \cref{fig: teaser}.
+%
+In addition, as shown in the last row of \cref{fig: teaser}, \method is also compatible with other plug-and-play modules, \emph{e.g.,} SparseCtrl~\citep{sparsectrl} to control video viewpoints under the conditions of both text and structure information, \emph{e.g.,} image. 
+
+In summary, our main contributions have three parts:
+\begin{itemize}
+    \item We introduce \method, which empowers video diffusion models with flexible and precise controllability over camera viewpoints.
+    \item The plug-and-play camera control module can be adapted to various video generation models, producing visually appealing camera control.
+    \item We provide a comprehensive analysis of datasets to train the camera control module. We hope this will be helpful for future research in this direction.
+\end{itemize}

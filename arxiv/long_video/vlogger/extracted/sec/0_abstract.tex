@@ -1,0 +1,42 @@
+\begin{abstract}
+
+In this work,
+we present \textbf{Vlogger},
+a generic AI system for generating a \textbf{minute}-level video blog (\textit{i.e.}, vlog) of user descriptions.
+Different from short videos with a few seconds,
+vlog often contains a complex storyline with diversified scenes,
+which is challenging for most existing video generation approaches.
+To break through this bottleneck,
+our Vlogger smartly leverages Large Language Model (LLM) as Director
+and decomposes a long video generation task of vlog into four key stages,
+where we invoke various foundation models to play the critical roles of vlog professionals,
+including 
+(1) Script,
+(2) Actor,
+(3) ShowMaker,
+and 
+(4) Voicer.
+With such a design of mimicking human beings,
+our Vlogger can generate vlogs through explainable cooperation of top-down planning and bottom-up shooting. 
+Moreover,
+we introduce a novel video diffusion model,
+\textbf{ShowMaker},
+which serves as a videographer in our Vlogger for generating the video snippet of each shooting scene.
+By incorporating Script and Actor attentively as textual and visual prompts,
+it can effectively enhance spatial-temporal coherence in the snippet. 
+Besides,
+we design a concise mixed training paradigm for ShowMaker,
+boosting its capacity for both T2V generation and prediction.
+Finally,
+the extensive experiments show that
+our method achieves state-of-the-art performance on zero-shot T2V generation and prediction tasks.
+More importantly,
+Vlogger can generate over
+%% 
+5-minute
+%%
+vlogs from open-world descriptions,
+without loss of video coherence on script and actor.
+The code and model is all available at \href{https://github.com/zhuangshaobin/Vlogger}{https://Vlogger.github.io}.
+
+\end{abstract}

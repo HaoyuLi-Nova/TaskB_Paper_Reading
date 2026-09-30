@@ -1,0 +1,73 @@
+\begin{figure}[t!]
+\begin{minipage}[t]{0.48\textwidth}
+  \begin{algorithm}[H]
+    \caption{Self Forcing Training}
+    \small
+    \begin{algorithmic}[1]
+      \Require Denoise timesteps $\{t_1, \dots, t_T\}$
+      \Require Number of video frames $N$
+      \Require AR diffusion model $G_\theta$ (returns KV embeddings via $G_\theta^{\mathrm{KV}}$)
+      \Loop
+        \State Initialize model output $\ModelOuput \gets []$
+        \State Initialize KV cache $\KVSet \gets []$
+        \State Sample $s \sim \text{Uniform}(1, 2, \ldots, T)$
+        \For{$i = 1, \dots, N$}
+          \State Initialize $x^i_{t_T} \sim \mathcal{N}(0, I)$
+          \For{$j = T, \dots, s$}
+            \If{$j = s$}
+              \State Enable gradient computation
+              \State Set $\hat{x}^i_{0} \gets G_\theta(x^i_{t_{j}}; t_j, \KVSet)$
+              \State $\ModelOuput{\texttt{.append}}(\hat x^i_{0})$
+              \State Disable gradient computation
+              \State Cache $\KVOutput^i \gets G_\theta^\text{KV}(\hat{x}^i_{0}; 0, \KVSet)$
+              \State $\KVSet{\texttt{.append}}(\KVOutput^i)$
+            \Else
+              \State Disable gradient computation
+              \State Set $\hat{x}^i_{0} \gets G_\theta(x^i_{t_j}; t_j, \KVSet)$
+              \State Sample $\epsilon \sim \mathcal{N}(0, I)$
+              \State Set $x^i_{t_{j-1}} \gets \Psi(\hat{x}^i_0, \epsilon, t_{j-1})$
+            \EndIf
+          \EndFor
+        \EndFor
+        \State Update $\theta$ via distribution matching loss
+      \EndLoop
+    \end{algorithmic}
+    \label{alg:self_forcing}
+  \end{algorithm}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \begin{algorithm}[H]
+    \caption{Autoregressive Diffusion Inference with Rolling KV Cache}
+    \small
+    \begin{algorithmic}[1]
+      \Require KV cache of size $L$ frames
+      \Require Denoise timesteps $\{t_1, \dots, t_T\}$
+      \Require Number of generated frames $M$
+      \Require AR diffusion model $G_\theta$ (returns KV embeddings via $G_\theta^\text{KV}$)
+      \State Initialize model output $\ModelOuput \gets []$
+      \State Initialize KV cache $\KVSet \gets []$
+      \For{$i = 1, \dots, M$}
+        \State Initialize $x^i_{t_T} \sim \mathcal{N}(0, I)$
+        \For{$j = T, \dots, 1$}
+          \State Set $\hat{x}^i_{0} \gets G_\theta(x^i_{t_j}; t_j, \KVSet)$
+          \If{$j = 1$}
+            \State $\ModelOuput{\texttt{.append}}(\hat x^i_{0})$
+            \State Cache $\KVOutput^i \gets G_\theta^\text{KV}(\hat{x}^i_{0}; 0, \KVSet)$
+            \If{$|\KVSet| = L$}
+              \State $\KVSet.\mathrm{pop}(0)$ \Comment{Cache eviction}
+            \EndIf
+            \State $\KVSet{\texttt{.append}}(\KVOutput^i)$
+          \Else
+            \State Sample $\epsilon \sim \mathcal{N}(0, I)$
+            \State Set $x^i_{t_{j-1}} \gets \Psi(\hat{x}^i_0, \epsilon, t_{j-1})$
+          \EndIf
+        \EndFor
+      \EndFor
+      \State \Return $\ModelOuput$
+    \end{algorithmic}
+    \label{alg:inference}
+  \end{algorithm}
+\end{minipage}
+\vspace{-1em}
+\end{figure}

@@ -1,0 +1,96 @@
+
+\begin{table*}[t]
+\centering
+\caption{
+\textbf{Ablation study on Geometry VAE components.}
+Metrics are reported for \textbf{ScanNet}, \textbf{Sintel}, and \textbf{Monkaa} datasets:
+point accuracy ($\text{Rel}^{p}\!\downarrow$, $\delta^{p}\!\uparrow$) and depth accuracy ($\text{Rel}^{d}\!\downarrow$, $\delta^{d}\!\uparrow$).
+}
+\label{tab:more_ablation_vae}
+\begin{adjustbox}{width=\textwidth}
+\begin{tabular}{cccc|cccc|cccc|cccc}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & 
+\multirow{2}{*}{\textbf{Training}} & 
+\multirow{2}{*}{\textbf{Rescale}} & 
+\multirow{2}{*}{\textbf{Depth Loss}} &
+\multicolumn{4}{c|}{\textbf{ScanNet}} &
+\multicolumn{4}{c|}{\textbf{Sintel}} &
+\multicolumn{4}{c}{\textbf{Monkaa}} \\
+% \cmidrule(lr){5-8} \cmidrule(lr){9-12} \cmidrule(lr){13-16}
+& & & &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{d}\!\downarrow$ & $\delta^{d}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{d}\!\downarrow$ & $\delta^{d}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{d}\!\downarrow$ & $\delta^{d}\!\uparrow$ \\
+\midrule
+1 & Original  & Max & $\times$ &
+14.96 & 86.95 & 1.98 & 99.90 &
+39.96 & 62.63 & 12.62 & 92.65 &
+23.78 & 67.33 & 4.30 & 98.91 \\
+
+2 & From scratch & Mean & $\times$ &
+7.01 & 99.29 & 1.88 & 99.92 &
+10.40 & 93.89 & 42.44 & 92.38 &
+8.02 & 96.91 & 4.10 & 98.47 \\
+
+3 & From scratch & Max & $\times$ &
+11.88 & 91.08 & 1.82 & 99.59 &
+18.80 & 79.68 & 10.21 & 92.26 &
+11.48 & 90.55 & 5.93 & 93.80 \\
+
+4 & Finetune decoder & Max & $\times$ &
+10.45 & 92.30 & 2.73 & 98.83 &
+20.76 & 77.77 & 12.67 & 89.08 &
+14.44 & 85.91 & 7.10 & 91.66 \\
+
+5 & Finetune decoder & Max & $\checkmark$ &
+4.46 & 98.20 & \textbf{0.54} & 99.97 &
+12.04 & 88.28 & \textbf{4.30} & \textbf{98.64} &
+8.50 & 93.36 & \textbf{1.37} & 99.64 \\
+
+6 & Finetune all & Mean & $\times$ &
+4.46 & 99.69 & 1.11 & 99.97 &
+5.68 & 98.77 & 9.73 & 94.60 &
+5.03 & 99.13 & 3.54 & 99.27 \\
+
+7 & Finetune all & Mean & $\checkmark$ &
+\textbf{3.03} & \textbf{99.88} & 0.76 & \textbf{99.99} &
+\textbf{4.39} & \textbf{99.14} & 8.04 & 95.31 &
+\textbf{3.74} & \textbf{99.47} & 1.83 & \textbf{99.77} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\caption{\textbf{Ablation study on Unet components for Geometry Reconstruction.} 
+We compare models trained with different strategies, rescaling methods, and decoder losses.}
+\label{tab:more_ablation_unet}
+\begin{adjustbox}{width=\textwidth}
+\begin{tabular}{c|ccc|cc|cc|cc|cc}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & \multirow{2}{*}{\textbf{Training Strategy}} & \multirow{2}{*}{\textbf{Normalization}} & \multirow{2}{*}{\textbf{Decoder Loss}} & 
+\multicolumn{2}{c|}{\textbf{GMU Kitchen}} & 
+\multicolumn{2}{c|}{\textbf{Monkaa}} & 
+\multicolumn{2}{c|}{\textbf{Sintel}} & 
+\multicolumn{2}{c}{\textbf{DDAD}} \\
+% \cmidrule(lr){5-12}
+ & & & & 
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$  \\
+\midrule
+I & Finetuning VAE Decoder & Max & \(\times\) & 17.49 & 80.65 & 33.66 & 56.42 & 40.47 & 49.42 & 41.66 & 39.45 \\
+II & Finetuning the whole VAE & Mean & \(\times\) & 17.72 & 82.90 & 27.36 & 66.21 & 35.17 & \textbf{58.08} & 33.78 & 50.34 \\
+III & Finetuning the whole VAE & Mean & \(\checkmark\) & \textbf{14.47} & \textbf{90.54} & \textbf{25.33} & \textbf{71.77} & \textbf{33.39} & 56.94  & \textbf{22.39} & \textbf{70.42} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table*}
+

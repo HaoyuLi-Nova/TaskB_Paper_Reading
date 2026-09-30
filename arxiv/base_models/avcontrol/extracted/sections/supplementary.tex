@@ -1,0 +1,140 @@
+% ===========================================================================
+% Supplementary Material
+% ===========================================================================
+
+This supplementary material provides comprehensive per-modality training details (Section~\ref{sec:supp_implementation}), the small-to-large control grid design (Section~\ref{sec:supp_control_grid}), extended ablations (Section~\ref{sec:supp_ablations}), and an extended qualitative gallery (Section~\ref{sec:supp_gallery}).
+We strongly encourage viewing the \textbf{supplementary video}, which demonstrates all control modalities in motion, including audio-visual results that cannot be conveyed in static figures.
+
+
+% ---------------------------------------------------------------------------
+\section{Comprehensive Training Details}
+\label{sec:supp_implementation}
+% ---------------------------------------------------------------------------
+
+Each per-modality LoRA is trained independently on a single NVIDIA H100 GPU with the AdamW optimizer and a linearly decaying learning rate schedule from $1 \times 10^{-4}$ to $1 \times 10^{-5}$. We select checkpoints by generating outputs on a held-out validation set and manually ranking checkpoints by overall preference across those samples. Table~\ref{tab:training_details} reports the exact configuration used for each modality.
+
+\begin{table}[!ht]
+\centering
+\caption{Per-modality training details. \emph{Steps}: optimization steps at the selected checkpoint. \emph{Size}: number of training samples. \emph{Rank}: LoRA rank (alpha $=$ rank in all cases). \emph{Modules}: which transformer blocks receive LoRA adapters (SA = self-attention, CA = cross-attention, FF = feed-forward; prefixed by V = video, A = audio). Video-only LoRAs skip the audio loss; audio-only LoRAs skip the video loss.}
+\label{tab:training_details}
+\setlength{\tabcolsep}{2.5pt}
+\footnotesize
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+Cat. & Modality & Steps & Size & Rank & Modules \\
+\midrule
+\multirow{3}{*}{Spatial}
+& Depth          & 3K  & 2K   & 128 & V: SA \\
+& Pose           & 3K  & 2K   & 128 & V: SA \\
+& Canny / edges  & 3K  & 2K   &  32 & V: SA \\
+\midrule
+\multirow{3}{*}{Editing}
+& Inpaint / outpaint     & 1K  & 1K  & 128 & V: SA \\
+& Local edit             & 1K  & 1K  & 128 & V: SA, FF \\
+& Video detailing        & 200 & 200 & 128 & V: SA, CA, FF \\
+\midrule
+\multirow{3}{*}{Camera}
+& Camera (image)  & 3K  & 3K  &  32 & V: SA, CA, FF \\
+& Camera (video)  & 10K & 10K & 128 & V: SA \\
+& Cut-on-action   & 15K & 15K & 128 & V: SA, FF \\
+\midrule
+Motion & Sparse tracks & 5K & 5K & 32 & V: SA, CA, FF \\
+\midrule
+\multirow{2}{*}{Audio}
+& Audio intensity    & 2K   & 7.8K & 128 & A: SA, FF, V\!$\to$\!A CA \\
+& Speech-to-ambient  & 5K   & 2.6K & 128 & A: SA, FF, V\!$\to$\!A CA \\
+\midrule
+AV & Who-is-talking & 3.5K & 500 & 128 & All \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\input{figures/training_efficiency}
+
+\paragraph{Per-modality data construction.}
+We describe how each modality's training dataset is constructed.
+
+\begin{itemize}
+    \item \textbf{Depth.} We estimate per-frame depth maps from real videos using Video Depth Anything~\cite{chen2025videodepthanything}. The depth video is placed on the reference canvas at half resolution ($2\times$ downscale factor); the target is the original video.
+
+    \item \textbf{Pose.} Pose skeletons are extracted from real videos using DWPose~\cite{yang2023dwpose}. The skeleton video is placed on the reference canvas at half resolution ($2\times$ downscale factor).
+
+    \item \textbf{Canny / edges.} Edge maps are extracted using OpenCV's Canny detector with default thresholds (100/200). The edge video is placed on the reference canvas at half resolution ($2\times$ downscale factor).
+
+    \item \textbf{Inpainting / outpainting.} Training pairs are constructed from real videos by applying random rectangular and free-form masks of varying size (10--60\% of the frame area). Masked regions in the reference canvas are filled with a fixed green color (\texttt{\#66FF00}). The same LoRA handles both inpainting (interior masks) and outpainting (border masks), unified by mask representation.
+
+    \item \textbf{Local edit.} We train on the ROSE dataset~\cite{miao2025rose}, which provides synthetically rendered paired videos of scenes with and without target objects, including their side effects (shadows, reflections). The reference canvas contains the original (unedited) video; the target is the edited version. At inference, we typically provide an initially edited first frame produced by an image editing model, and the LoRA propagates the edit consistently across the full video without requiring an explicit mask.
+
+    \item \textbf{Camera trajectory (from image).} We use real videos and estimate camera extrinsics and per-frame field of view (FOV) using SpatialTrackerV2~\cite{xiao2025spatialtracker}. The reference canvas encodes the target camera trajectory as a canonical grid: a point cloud constructed by unprojecting the input image using a monocular depth estimate, then rendering it along the desired camera trajectory. Disoccluded regions (holes) are filled with the same green color (\texttt{\#66FF00}) used for inpainting masks, so the model learns to inpaint them naturally. The canonical grid is placed at $4\times$ reduced resolution alongside the input image in an image-to-video (im2vid) setup.
+
+    \item \textbf{Camera trajectory (from video).} Training uses the SynCamVideo dataset~\cite{bai2024syncammaster}, which provides synchronized multi-camera videos of 3{,}400 dynamic scenes rendered in Unreal Engine~5, each captured by 10~cameras. For each training pair, the video from one camera is rendered from the trajectory of another camera as a dynamic point cloud; this re-rendered video serves as the LoRA reference. Disoccluded regions are filled with the same green inpainting color (\texttt{\#66FF00}). The target is the ground-truth video from the second camera, and the generated output is aligned to it.
+
+    \item \textbf{Cut-on-action.} Training data is sourced from the MultiCamVideo dataset~\cite{bai2025recammaster}, a synthetic multi-camera dataset rendered in Unreal Engine~5. We use a small subset of this dataset to bootstrap initial training. Because the original dataset contains relatively small inter-camera angles, we employ a multi-angle bootstrapping strategy: after initial training, we use the LoRA itself to generate videos with progressively larger viewpoint differences, and then continue training on these generated pairs to extend coverage to substantially different viewpoints (yaw difference up to 135$^\circ$). This iterative process yields 15{,}000 training samples in total.
+
+    \item \textbf{Video detailing (upscaling).} Training pairs are constructed by downscaling real videos to create degraded inputs. The low-resolution video is upscaled with bilinear interpolation and placed on the reference canvas at full resolution; the target is the original high-resolution video. Convergence is rapid (200~steps compared to 1{,}000--3{,}000 for other modalities), consistent with the simplicity of the super-resolution mapping.
+
+    \item \textbf{Audio intensity.} Training uses 7{,}800 samples from VGGSound~\cite{chen2020vggsound}. The reference audio is a \emph{sonification of the energy envelope}: the amplitude-over-time curve of the original audio is converted into an audio signal. The LoRA generates audio whose temporal dynamics follow the visual content, conditioned on this energy envelope reference. Only the audio branch is trained; the video serves as clean conditioning context.
+
+    \item \textbf{Speech-to-ambient.} We isolate speech from real videos using Demucs (htdemucs\_ft model, 5-pass)~\cite{rouard2023demucs} and Ultimate Vocal Remover (UVR)\footnote{\url{https://github.com/Anjok07/ultimatevocalremovergui}}, followed by spectral gating noise reduction. The reference canvas carries the speech-only audio track; the target is the full audio including ambient sounds. Training uses 2{,}600~samples in 5{,}000~steps.
+
+    \item \textbf{Sparse tracks.} Point tracks are extracted from real videos using AllTracker~\cite{harley2025alltracker} and rendered as colored dots on a black canvas. The reference canvas uses a $2\times$ downscale factor relative to the target resolution.
+
+    \item \textbf{Who-is-talking.} Training data is generated by detecting faces with RetinaFace~\cite{deng2020retinaface}, running voice activity detection (VAD) per speaker using Silero VAD~\cite{silero2024vad}, and constructing an abstract reference layout: colored bounding boxes on a black background (colored when the speaker is active, gray when silent), paired with the mixed audio of all speakers. This is the only LoRA that trains all modules (video, audio, and cross-modal attention), as the task is inherently cross-modal.
+\end{itemize}
+
+
+% ---------------------------------------------------------------------------
+\section{Small-to-Large Control Grid}
+\label{sec:supp_control_grid}
+% ---------------------------------------------------------------------------
+
+\input{figures/control_grid}
+
+Not all control modalities carry the same information density (Figure~\ref{fig:control_grid}). Sparser controls such as camera trajectory parameters can be expressed with far fewer tokens than dense, spatially-aligned signals, while modalities that must transfer pixel content require full detail.
+
+By default, every video modality uses a full-resolution ($1\times$) reference canvas. We selectively reduce the canvas resolution for modalities whose information density permits it, controlled by a \emph{reference downscale factor}. Camera-from-image uses a $4\times$ reduction, as the canonical grid encoding is inherently sparse. Dense spatially-aligned controls (depth, pose, canny) and sparse tracks use a $2\times$ reduction; notably, this halved grid is sufficient for faithful spatial control despite the pixel-level correspondence these modalities require. All remaining video modalities (inpainting, video detailing, local edit, camera-from-video, and cut-on-action) use the full-resolution canvas, either because they must reproduce pixel-level content or because reduced-resolution variants have not yet been validated.
+
+The reduction in reference tokens translates directly to reduced self-attention computation, since attention cost scales quadratically with the total token count (target + reference). In our measurements on an H100 GPU, a $2\times$ canvas reduction yields a 25--35\% inference speedup and a $4\times$ reduction yields 35--50\%, with the exact gain depending on the output resolution; see ablation in Section~\ref{sec:supp_ablations}.
+
+
+% ---------------------------------------------------------------------------
+\section{Extended Ablations}
+\label{sec:supp_ablations}
+% ---------------------------------------------------------------------------
+
+\paragraph{Training steps vs.\ quality.}
+Expanding on the main paper's ablation, we evaluate depth checkpoints at finer granularity: 500, 1{,}000, 2{,}000, and 3{,}000 steps (Figure~\ref{fig:steps_ablation}). VBench average scores are 79.8, 81.1, 81.4, and 81.6 respectively, confirming that performance plateaus early. We use 3{,}000 steps as the default for spatially-aligned modalities, as later checkpoints yield diminishing returns (less than 0.2~points beyond 3{,}000 steps).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.65\linewidth]{figures/images/steps_ablation.pdf}
+\caption{VBench average score vs.\ training steps for the depth LoRA. Performance rises steeply from 500 to 1{,}000 steps and plateaus beyond 2{,}000 steps.}
+\label{fig:steps_ablation}
+\end{figure}
+
+\paragraph{Inference-time strength modulation.}
+We sweep the global strength parameter from 0 (no reference influence) to 1 (full reference) for depth-guided generation. At intermediate strengths, the model respects the coarse structure of the depth map while exercising more creative freedom on fine details, enabling a continuous trade-off between structural fidelity and generative diversity. The same mechanism naturally extends to temporal modulation (fading the reference influence over time) and spatial modulation (varying strength across regions), though we do not evaluate these variants here. All modulations are purely inference-time operations with no retraining required (Fig.~\ref{fig:strength_modulation}).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/strength_modulation.jpg}
+\caption{Inference-time strength modulation for depth-guided generation. Each row shows four evenly-spaced frames. \textbf{Top row:} depth condition. \textbf{Subsequent rows:} outputs at global strength 0.0, 0.25, 0.5, and 1.0. At lower strengths the model respects the coarse scene layout while exercising creative freedom; at strength 1.0 the output closely follows the depth map.\protect\footnotemark}
+\label{fig:strength_modulation}
+\end{figure}
+\footnotetext{Prompt: ``A person is painting on a canvas outdoors, using a palette with various colors of paint. The person is wearing a dark blue jacket and a matching beret, and is seated on a wooden chair. The canvas depicts a landscape with a body of water and mountains in the background.'' (VACE Benchmark)}
+
+\paragraph{Control grid resolution.}
+We compare reference canvases at $1\times$ (full resolution), $2\times$ downscale, and $4\times$ downscale for the camera-from-image modality. Qualitative results are comparable at all resolutions, with a $4\times$ downscale reducing inference latency by 35--50\% relative to the full-resolution canvas depending on output resolution. For dense spatially-aligned modalities (depth, pose), reducing the canvas resolution beyond $2\times$ downscale causes some loss of structural fidelity, as expected given the pixel-level correspondence these modalities require.
+
+\paragraph{Generalization from synthetic data.}
+Several LoRAs are trained entirely on synthetic or generated data yet generalize to real-world videos without fine-tuning. Cut-on-action and camera trajectory from video train on multi-camera scenes rendered in Unreal Engine~5 (MultiCamVideo~\cite{bai2025recammaster} and SynCamVideo~\cite{bai2024syncammaster}, respectively). Local edit trains on the ROSE dataset~\cite{miao2025rose}, which consists of synthetically rendered scene pairs. In all cases the LoRAs transfer to diverse real-world content. Who-is-talking is a related but distinct case: its training data is generated by the base model itself rather than by an external renderer, yet the learned control still generalizes to held-out speakers and scenes. These results suggest that the parallel canvas formulation is robust to domain shift between training and inference, likely because the LoRA adapts a small number of weights while the frozen backbone retains its broad visual prior.
+
+
+% ---------------------------------------------------------------------------
+\section{Extended Qualitative Gallery}
+\label{sec:supp_gallery}
+% ---------------------------------------------------------------------------
+
+We present additional qualitative results for all control modalities. Each figure shows the control input and generated output across sampled frames. All results use the default generation parameters described in Section~\ref{sec:setup} of the main paper. We group results by category: spatially-aligned controls, video editing, camera trajectory control, and audio-visual modalities.
+
+\input{figures/supp_gallery}

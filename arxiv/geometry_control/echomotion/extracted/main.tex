@@ -1,0 +1,95 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2026_conference,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+
+% added packages
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{wrapfig}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{makecell}
+\usepackage{colortbl} 
+\usepackage{listings}
+
+
+\title{EchoMotion: Unified Human Video and \\
+Motion Generation via Dual-Modality \\
+Diffusion Transformer}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+\iclrfinalcopy
+
+
+\author{Yuxiao Yang$^{1,2}$ ~~Hualian Sheng$^2$ ~~Sijia Cai$^{2,}$\thanks{Project leader.} ~~Jing Lin$^3$ \\ 
+\textbf{Jiahao Wang$^4$ ~~Bing Deng$^2$ ~~Junzhe Lu$^1$ ~~Haoqian Wang$^{1,\dagger}$ ~~Jieping Ye$^{2,}$\thanks{Corresponding author.}} 
+\\
+\small $^1$Tsinghua University ~$^2$Alibaba Group ~$^3$Nanyang Technology University  ~$^4$Xi'an Jiaotong University
+\\
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\newcommand{\reb}[1]{#1}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.98,0.98,0.97}
+
+\lstdefinestyle{promptstyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=none,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2,
+    frame=single,
+    frameround=tttt, % 圆角
+    rulecolor=\color{black!30}
+}
+
+\begin{document}
+
+
+\maketitle
+
+% input sections
+\input{sections/1abstract}
+\input{sections/2introduction}
+\input{sections/3related}
+\input{sections/4method}
+\input{sections/5expriments}
+\input{sections/6conclusion}
+
+\input{sections/8Ethics_and_Reproducibility_statement}
+
+\bibliography{main}
+\bibliographystyle{iclr2026_conference}
+
+% appendix
+\input{sections/7appendix}
+\vfill
+\end{document}

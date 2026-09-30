@@ -1,0 +1,30 @@
+\begin{table}[ht]
+\setlength{\abovecaptionskip}{0.2cm}
+\setlength{\belowcaptionskip}{-0.4cm}
+\centering
+\caption{Experimental settings of EchoMotion 5B model.}
+\setlength{\tabcolsep}{10mm}
+\begin{tabular}{cc}
+\hline
+\textbf{Parameter}    & \textbf{Value} \\ \hline
+Transformer dim       & 3072           \\
+Numbers of heads      & 24             \\
+Numbers of layers     & 30             \\
+Number of video-only blocks & 15        \\
+Number of video-motion blocks & 15     \\
+Video height          & 708            \\
+Video width           & 1280            \\
+Video frame           & 121            \\
+FPS                   & 24             \\
+Batchsize             & 1              \\
+Train timesteps       & 1000           \\
+Train shift           & 8.0            \\
+Optimizer             & AdamW          \\
+Learning rate         & 8e-6           \\
+Weight decay          & 0.001          \\
+Sample timesteps      & 50             \\
+Sample shift          & 8.0            \\
+Sample guidance scale & 6.0            \\ \hline
+\end{tabular}
+\label{tab:settings_5b}
+\end{table}

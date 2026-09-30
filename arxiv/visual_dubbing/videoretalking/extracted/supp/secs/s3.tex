@@ -1,0 +1,141 @@
+\section{Implementation Details}
+
+\subsection{Implementation Details of D-Net}
+% \textbf{Model Architecture.} 
+\subsubsection{Model Architecture} 
+% MappingNet. 
+% WarppingNet. 
+% EditingNet.
+The architecture design of $D$-Net is similar to PIRenderer~\cite{pirender}, which consists of three sub-networks for coefficient mapping, feature warping and refinement. The driven 3DMM coefficients will be translated to the latent codes $z$ through the mapping network and then injected into the feature warping and refinement networks. In detail, the mapping network contains four 1D convolution layers and applies the Leaky-ReLU as activation function to calculate the global feature. The architecture of the warping network and editing network is an encoder-decode-based network with skip connections. 
+The warping network does downsampling five times and upsampling three times, and then generates flow fields that are a quarter of the original size. The editing network contains three stages to learn multi-scale features. 
+We use the CONV-SpertralNorm-LeakyReLU block as the up-sampling and down-sampling layers. The AdaIN~\cite{huang2017adain} blocks are applied after each convolution layer to inject the motion information.
+
+\subsubsection{Loss Functions} 
+% Warpping Network: perceptual loss
+% Editing Network: perceptual loss, gram loss
+For the warping network, we calculate the perceptual loss~\cite{johnson2016perceptual_loss} between the warped image $I_{D_w}$ and ground truth:
+\begin{equation}
+\mathcal{L}_{D_w} = \mathcal{L}_{perceptual} = \sum_l \vert\vert\ f_{vgg}^l(I_{gt}) - f_{vgg}^l(I_{D_w})\vert\vert_2,
+\end{equation}
+where $f_{vgg}$ is the pre-trained $VGG$-19 network~\cite{simonyan2014vgg} and $l$ is the layer of the feature map.
+
+For the editing network, we calculate the perceptual loss and gram matrix style loss~\cite{gatys2016image} between the generated image $I_D$ of the whole $D$-Net and ground truth:
+\begin{equation}
+\mathcal{L}_{c} = \sum_l \vert\vert\ f_{vgg}^l(I_{gt}) - f_{vgg}^l(I_D)\vert\vert_2,
+\end{equation}
+
+\begin{equation}
+\mathcal{L}_{s} = \sum_l \vert\vert\ G(f_{vgg}^l(I_{gt})) - G(f_{vgg}^l(I_{D}))\vert\vert_2,
+\end{equation}
+where G is the gram matrix constructed from activation map.
+The full optimization objective of editing network is:
+\begin{equation}
+\mathcal{L}_{D_e} = \lambda_{c} \mathcal{L}_{c} + \lambda_{s} \mathcal{L}_{s},
+\end{equation}
+\noindent where $\lambda_{c}=1$ and $\lambda_{s}=250$.
+
+\subsubsection{Training and Inference Details}
+% Pre-train the Warpping Network and then train the Editing network.
+% Training: self-reconstruction; Testing: 
+We train $D$-Net on the VoxCeleb~\cite{voxceleb} dataset. We first pre-train the mapping network and the warping network for 200k iterations, and then train the whole network for another 200k iterations. We use Adam~\cite{adam} optimizer and the learning rate is $1e^{-4}$. 
+% During the training phase, the network is doing a self-reconstruction task as described in our main paper.
+% Move from main paper!
+During the training phase, the network is doing a self-reconstruction task. We randomly choose two frames from the original video as the source and target image pairs, and we reconstruct the target frame using the source image and coefficients of the target frame. 
+During the testing phase, we use the pose coefficients of the source image and expression coefficients of pre-defined template to normalize the lip shape while maintaining the original pose of the video.
+
+\subsection{Implementation Details of L-Net}
+
+\input{supp/figs_tex/fig_LNet}
+\input{supp/figs_tex/fig_blocks_LNet}
+\input{supp/figs_tex/fig_ENet}
+
+\subsubsection{Model Architecture}
+% Encoder and Decoder; Cross-attn.; Lama; AdaIN
+The $L$-Net consists of an audio encoder network $L_a$-Net and a visual encoder-decoder-based network $L_v$-Net, as shown in Figure~\ref{fig:supp_LNet}.
+The audio encoder $L_a$-Net, which consists of several ResBlock-based down-sampling layers, are used to extract the high-level audio features. The encoder of $L_v$-Net is made up of three down-sampling layers which consist of 2D convolution, batch normalization and Leaky-ReLU activation function. Applying two separate encoder networks, the half-masked original frame $I_{LR}^{orig}$ and randomly selected reference frame $I_{LR}^{ref}$ from the same video are encoded to features $F_{orig}$ and $F_{ref}$, respectively, and then, these features are fused to $F_v$ using two cross-attention blocks~\cite{transformer} for long-range dependencies and avoid the local information leak. For the cross-attention block, we use $F_{orig}$ to generate query $Q$ and key $K$, and then use $F_{ref}$ to generate value $V$. We calculate the attention score between $Q$ and $K$ and the weighted sum of $V$ to obtain the $F_v$. 
+The decoder of $L_v$-Net is made up of three up-sampling layers, each of which consist of a convolution-up block, nine Modulated Res-FFC~(MR-FFC) blocks and skip connection from visual encoder. More details about the Fast Fourier Convolution~(FFC) can be found in \cite{ffc}. All the blocks used in $L$-Net are shown in Figure~\ref{fig:supp_blocks_LNet}.
+
+
+% \noindent \textbf{Loss Functions.}
+\subsubsection{Loss Functions} 
+% l1 + perc + sync
+For the visual quality, we calculate the pixel-wise $L_1$ loss in RGB space and perceptual loss in feature space between the generated results $O_{LR}$ of $L$-Net and low-resolution ground truth $I_{gt}$:
+\begin{equation}
+\mathcal{L}_1 = \vert\vert I_{gt}-O_{LR}\vert\vert_1,
+\end{equation}
+
+\begin{equation}
+\mathcal{L}_{perceptual} = \sum_l \vert\vert\ f_{vgg}^l(I_{gt}) - f_{vgg}^l(O_{LR})\vert\vert_2.
+\end{equation}
+
+For the audio-visual synchronization, we use pre-trained SyncNet~\cite{wav2lip, syncnet} as lip-sync discriminator to calculate sync loss between continuous five frames:
+\begin{equation}
+\mathcal{L}_{sync} = \frac{1}{N} \sum_{i=1}^N -\log(P_{sync}),
+\end{equation}
+\begin{equation}
+P_{sync}=\frac{v\cdot a}{\max{\vert\vert v \vert\vert_2 \cdot \vert\vert a \vert\vert_2}},
+\end{equation}
+\noindent where $P_{sync}$ indicates the probability that the input audio-video pair is in sync. $v$ and $a$ are video and audio embeddings extracted from pre-trained SyncNet.
+The full optimization objective of $L$-Net is:
+\begin{equation}
+\mathcal{L}_{L} = \lambda_{1} \mathcal{L}_{1} + \lambda_{p} \mathcal{L}_{perceptual} + \lambda_{sync} \mathcal{L}_{sync},
+\end{equation}
+\noindent where $\lambda_{1}=1$, $\lambda_{p}=1$ and $\lambda_{sync}=0.3$.
+
+\subsubsection{Training and Inference details}
+% Training: Random selected frames;
+% Inference: Current frames;
+We train and inference the $L$-Net following the pipeline of Wav2Lip~\cite{wav2lip}. During the training phase, the input frames $I_{LR} \in \mathbb{R}^{5\times6\times96\times96}$ are made up by five continuous frames with five randomly selected reference from the same video. We also send the corresponding audio window to the network for driving information. 
+% Move from main paper!
+The audio features are mel-specrograms conducted from 16kHz audio with FFT window size 800 and hop size 200. We train $L$-Net in 400k iterations on the LRS2 dataset using Adam optimizer. The learning rate of $L$-Net is $1e^{-4}$. 
+During the testing phase, we use the whole input frames as the reference frame to preserve the pose and background information.
+
+
+\subsection{Implementation Details of E-Net}
+As discussed in the main paper, E-Net is used to upsample the generated videos by the enhanced LRS2 dataset. Below, we give the details of the implementation and training details.
+
+\subsubsection{Model Architecture}
+Figure~\ref{fig:supp_ENet} shows the architecture of $E$-Net, which contains an identity encoder $E_i$-Net and a super-resolution module $E_u$-Net. In $E_u$-Net, similar to $L$-Net, we feed the continuous five frames of the video frames $I_{HR}$~(concatenation of masked the lower-half face and itself) and the randomly picked references $I_{HR}^{ref}$ from the same video to the $E_i$-Net. Then, these images will be down-sampled with some augmentations~(including the differential JPEG compression and bi-linear down-sampling) and send to the pre-trained $L$-Net for lip synchronization. 
+After that, we get edited frames by the audio to further up-sampling. Inspired by StyleGAN~\cite{stylegan2}, the super-resolution module $E_u$-Net uses the similar blocks to upsample the low-resolution results. Each style-based layer is built by a StyleConv block and a tRGB block to learn the high-resolution results. More details about the StyleConv and tRGB blocks can be found in \cite{stylegan2}.  
+% of the $E$-Net is the concatenation of the masked original frame $I_{HR}^{orig}$ and randomly selected reference frame $I_{HR}^{ref}$ from the same video.
+%The high-resolution input frame is firstly downsampled to a vector through $E_i$-Net to encode global identity feature and then injected to $E_u$-Net to perform identity-aware enhancement.
+In each StyleConv, we also use the features from the identity encoder $E_i$-Net as the modulation for identity preservation. $E_i$-Net is a res-block~\cite{resnet} based encoder which consists of six down-sampling layers and a linear layer. We first resize the high-resolution randomly selected reference frames $I_{HR}^{ref}$ from $384\times384$ to $256\times256$. Then, the down-sampling layers will be used to extract the high-level feature of the $I_{HR}^{ref}$ to a $512$-dimension vector. The detailed architecture of the ResBlock-based down-sampling layer is shown in Figure~\ref{fig:supp_ResBlockDown_ENet}. 
+
+\input{supp/figs_tex/fig_ResBlockDown}
+
+\subsubsection{Loss functions}
+We calculate the pixel-wise $L_1$ loss in RGB space and perceptual loss in feature space between the generated results $O_{HR}$ of $E$-Net and high-resolution ground truth $I_{GT}$:
+\begin{equation}
+\mathcal{L}_1 = \vert\vert I_{GT}-O_{HR}\vert\vert_1,
+\end{equation}
+
+\begin{equation}
+\mathcal{L}_{perceptual} = \sum_l \vert\vert\ f_{vgg}^l(I_{GT}) - f_{vgg}^l(O_{HR})\vert\vert_2.
+\end{equation}
+
+For better identity preservation, we apply the identity loss. Specially, we adopt the pre-trained face recognition network ArcFace~\cite{deng2019arcface} and calculate this loss in feature space similar to perceptual loss:
+\begin{equation}
+\mathcal{L}_{id} = \vert\vert\ f_{arcface}(I_{GT}) - f_{arcface}(O_{HR})\vert\vert_2.
+\end{equation}
+
+To increase the realistic of the generated sample, we also use the adversarial loss:
+\begin{equation}
+\mathcal{L}_{adv}(G_E,D) = \mathbb{E}_{I_{GT}}[\log D(O_{HR})] + \mathbb{E}_{O_{HR}}[\log (1-D(G_E(O_{HR})))].
+\end{equation}
+
+Finally, the full optimization objective of $E$-Net is:
+\begin{equation}
+\begin{aligned}
+(G^*_E, D^*) = \arg\,\min_{G_E}\,\max_D\ & \lambda_{1} L_{1} + \lambda_{p} \mathcal{L}_{perceptual} \\
+&+ \lambda_{adv} \mathcal{L}_{adv} + \lambda_{id} \mathcal{L}_{id},
+\end{aligned}
+\end{equation}
+\noindent where $\lambda_{1}=0.2$, $\lambda_{p}=1$, $\lambda_{adv}$=100 and $\lambda_{id}=0.4$.
+
+% \noindent \textbf{Training details.}
+\subsubsection{Training details}
+To train the $E$-Net, we first perform the face restoration network GPEN~\cite{gpen} to the LRS2 dataset to obtain the high-resolution training dataset. 
+% At the training stage of $E$-Net, we do not use $D$-Net and the $L$-Net is pre-trained. 
+Then, we use a hybrid data argumentation method of differentiable JPEG and bi-linear down-sampling to get the low-resolution~($96\times96$) input $I_{LR}$ of $L$-Net. Notice that, we do not use the original image as the low-resolution sample since there is still a domain gap to avoid the temporal jitting. Driving by the driven audio, we can get the low-resolution lip-synced result for $E$-Net. Ideally, $L$-Net should produce the same lip motions as the original high-resolution input and we use it as the supervision for upsampling. This network is trained in 300k iterations. We use Adam optimizer and the learning rate is $1e^{-5}$.
+
+

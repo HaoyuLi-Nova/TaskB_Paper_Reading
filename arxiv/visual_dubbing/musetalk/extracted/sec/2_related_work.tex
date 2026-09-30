@@ -1,0 +1,39 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\subsection{Talking Head Generation}
+\label{sec: rw_1}
+In recent years, audio-driven talking head generation methods have attracted significant attention and provide valuable insight for video dubbing techniques. Talking head generation can be categorized into NeRF-based~\cite{peng2024synctalk, tang2022real, liu2022semantic, guo2021ad}, GAN-based~\cite{chen2019hierarchical, zhou2019talking, zhou2021pose, meshry2021learned, das2020speech}, and diffusion-based~\cite{tian2024emo, chen2024echomimic, xu2025vasa, jiang2024loopy, xu2024hallo, chencafe} approaches.
+
+NeRF-based methods require identity-specific videos for training and additional rendering~\cite{mildenhall2021nerf} time, with early methods like AD-NeRF~\cite{guo2021ad} taking several seconds per frame. Despite the real-time rendering achieved by integrating Instant-NGP~\cite{muller2022instant, tang2022real}, retraining is needed for new identities. Diffusion-based methods, such as EMO Portrait~\cite{tian2024emo}, employ a two-stage training process by integrating ReferenceNet~\cite{hu2024animate}, temporal layers~\cite{guo2023animatediff}, and audio attention layers into Stable Diffusion models~\cite{rombach2022high}. Similar strategies are used in LOOPY~\cite{jiang2024loopy}, Hallo~\cite{xu2024hallo}, and EchoMimic~\cite{chen2024echomimic}. 
+These methods allow for one-shot vivid talking head generation from images, but are computationally expensive. 
+
+In contrast, GAN-based methods generate images in one step.
+Early methods~\cite{chen2018lip, chen2019hierarchical, zhou2019talking} fail to maintain identity consistency and accurate lip movement. 
+To address this, methods like MakeItTalk~\cite{zhou2020makelttalk} and SadTalker~\cite{zhang2023sadtalker} adopt multistage inference, separating audio-to-motion and motion-to-video modeling. 
+Although this improves the results, it increases the computational overhead and complexity.
+
+\begin{figure*}[tbp]
+  \centering
+   \includegraphics[width=\linewidth]{image/fig_stage1.pdf}
+   \caption{
+   Illustration of MuseTalk's framework. 
+   We first encode a reference facial image and an occluded lower half target image into perceptually equivalent latent space. 
+   Subsequently, we employ a multimodal U-Net to effectively fuse audio and visual features at various scales. 
+   Consequently, the decoded results from the latent space yield more realistic and lip-synced talking face visual content.}
+   \label{fig:fig_pipeline}
+\end{figure*}
+
+\subsection{Video Dubbing}
+\label{sec: rw_2}
+Video dubbing focuses on replacing the mouth region of a source face based on driving audio. The most common approach~\cite{prajwal2020lip} involves using a mask in the lower half of the face or the lip region to guide the model to create new visual effects only in these areas, as shown in~\cref{fig:fig_pipeline}. 
+Early methods~\cite{prajwal2020lip, zhang2023dinet, cheng2022videoretalking, wang2023seeing, guan2023stylesync, sun2022masked, zhong2023identity} predominantly relied on GANs. 
+Although these methods achieved lip movements that were relatively consistent with the audio content, they often struggled with maintaining identity consistency and reconstructing clear teeth details. 
+DI-Net~\cite{zhang2023dinet} attempted to train models on high-resolution data, which compromised lip accuracy. 
+StyleSync~\cite{guan2023stylesync} highlighted this dilemma, noting that forcing the model to restore too many lip-relevant details might interfere with learning.
+
+Recently, methods such as LatentSync~\cite{li2024latentsync} and DiffTalk~\cite{shen2023difftalk} have leveraged the strong detail generation capabilities of the Latent Diffusion paradigm~\cite{rombach2022high} for video dubbing tasks. 
+LatentSync integrates the SyncNet loss~\cite{prajwal2020lip} to enhance lip motion-audio alignment during the one-step denoising process. 
+Despite improvements in audio-visual synchornize and clarity, these methods suffer from the heavy inference burden.
+
+

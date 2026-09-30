@@ -1,0 +1,42 @@
+\usepackage[normalem]{ulem}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{stackengine}
+\usepackage{xr}
+\usepackage{amssymb}
+\usepackage{pifont}
+\usepackage{algorithm}
+\usepackage{algpseudocode}%
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\todo}[1]{{\color{red}#1}}
+\newcommand{\TODO}[1]{\textbf{\color{red}[TODO: #1]}}
+\newcommand{\fredo}[1]{\textbf{\color{red}[Fredo: #1]}}
+\newcommand{\xun}[1]{{\color{blue}\textbf{Xun:} #1}}
+\newcommand{\eli}[1]{{\color{cyan}\textbf{Eli:} #1}}
+\newcommand{\tianwei}[1]{{\color{purple}\textbf{Tianwei:} #1}}
+\newcommand{\qiang}[1]{{\color{green}\textbf{Qiang:} #1}}
+\newcommand{\tablespace}{\vspace{-0.2cm}}
+\usepackage{multirow}
+\def\method{CausVid\xspace}
+\usepackage{rotating}
+\usepackage{setspace} %
+\usepackage{adjustbox} %
+
+\newboolean{arxiv}
+\setboolean{arxiv}{false}
+
+\makeatletter
+\newcommand*{\addFileDependency}[1]{%
+	\typeout{(#1)}
+	\@addtofilelist{#1}
+	\IfFileExists{#1}{}{\typeout{No file #1.}}
+}
+\makeatother
+\newcommand*{\myexternaldocument}[1]{%
+	\externaldocument{#1}%
+	\addFileDependency{#1.tex}%
+    \addFileDependency{#1.aux}%
+}
+
+\setlength{\textfloatsep}{0.5cm}

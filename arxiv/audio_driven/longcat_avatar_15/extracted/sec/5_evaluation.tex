@@ -1,0 +1,312 @@
+\section{Evaluation}
+
+
+
+
+\subsection{Settings}
+
+We establish our human evaluation benchmark based on EvalTalker~\cite{zhou2025evaltalker}, which provides over 400 samples of varying difficulty. To further assess generalization, we supplement this with over 50 stylized images (e.g., cartoons and animals), yielding a total of 508 image-audio pairs. The benchmark encompasses diverse application scenarios (e.g., News Broadcasting, Education, Entertainment, Commercial), languages (Chinese/English), and visual styles (Realistic/Animated). It systematically categorizes difficulty across both audio dimensions (e.g., speaking speed, fluency, emotion, paralinguistics) and visual dimensions (e.g., person count, pose, background complexity, occlusion).
+
+Following the quality assessment framework proposed by Zhou et al.~\cite{zhou2025evaltalker}, we adopt four perceptual quality dimensions for structured expert evaluation:
+
+\begin{itemize}
+    \item \textbf{Rationality}: Conformity with physical laws. This dimension assesses whether the generated subjects exhibit plausible body structures and natural movements, and whether background elements remain physically consistent without artifacts such as distorted limbs, unnatural object interactions, or garbled text.
+    
+    \item \textbf{Harmony}: Synergy among audio-visual elements. This dimension evaluates lip-audio synchronization, the harmony between facial expressions/body motions and speech content, and overall audio-visual coherence across subjects. Additionally, it assesses the visual naturalness of facial expressions and body movements from a purely visual perspective.
+    
+    \item \textbf{Stability}: Temporal consistency of image quality. This dimension captures degradations such as frame stuttering (jumpcuts), resolution or color tone fluctuations, blurring, and visual artifacts that disrupt smooth playback.
+    
+    \item \textbf{Consistency}: Identity preservation across the generated video. This dimension verifies that each subject maintains stable facial features, appearance attributes, and speaker identity throughout the sequence without mismatches or drifts.
+\end{itemize}
+
+Using this comprehensive benchmark, we evaluate our proposed model against seven state-of-the-art methods: LC-Video-Avatar 1.0~\cite{meituanlongcatteam2025longcatvideoavatartechnicalreport}, InfiniteTalk~\cite{yang2025infinitetalk}, OmniHuman-1.5~\cite{jiang2025omnihuman}, HeyGen~\cite{HeyGen}, Hedra~\cite{Hedra}, Kling Avatar 2.0~\cite{ding2025kling-avatar}, and OmniAvatar~\cite{gan2025omniavatar}. The standard task requires synthesizing a temporally coherent video from a single portrait and a driving audio clip. Note that in all the following evaluations LC-Video-Avatar 1.5 represents the accelerated model with 8 NFE (number of feedforward evaluation) for inference. 
+
+We employ a dual-track evaluation methodology combining large-scale crowdsourced perception ratings with expert-level structured quality analysis:
+
+\begin{itemize}
+    \item \textbf{Subjective Track:} 770 crowdsourced evaluators rated each generated video on a 1--5 anthropomorphism scale, ultimately yielding 13,240 judgments.
+    \item \textbf{Objective Track:} 10 domain experts conducted a structured quality analysis across four dimensions: Physical Rationality, Audio-Visual Harmony, Temporal Stability, and Identity Consistency, utilizing hierarchical problem taxonomies. To ensure enhanced precision, lip-synchronization was evaluated at $0.5\times$ playback speed.
+    \item \textbf{Pairwise A/B Test:} We conducted a direct preference comparison between LC-Video-Avatar 1.5 and three leading commercial competitors to assess overall anthropomorphism.
+\end{itemize}
+
+
+
+\begin{figure}[t]
+  \centering
+  
+  % 左侧图片
+  \begin{minipage}[b]{0.95\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/img_single_and_multi.png}
+    \caption{Human-likeness comparison across different methods in single person talking and multiple person conversation.}
+    \label{fig:single_and_multi}
+  \end{minipage}
+\end{figure}
+
+
+
+\begin{figure}[htbp]
+  \centering
+  
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/background_distortion.png}
+    \caption{Background distortion in rationality.}
+    \label{fig:background_distortion}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/subject_distortion.png}
+    \caption{Subject distortion in rationality.}
+    \label{fig:subject_distortion}
+  \end{minipage}
+  
+  \vspace{0.5cm} 
+  
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/tone_error_accumulation.png}
+    \caption{Tone error accumulation in stability.}
+    \label{fig:tone_error_accumulation}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/jumpcut.png}
+    \caption{Frame jumpcut in stability.}
+    \label{fig:jumpcut}
+  \end{minipage}
+
+  \vspace{0.5cm}
+  
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/lib_synchronization.png}
+    \caption{Lip synchronization in harmony.}
+    \label{fig:lip_synchronization}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/face_body_synchronization.png}
+    \caption{Face/body synchronization in harmony.}
+    \label{fig:face_body_synchronization}
+  \end{minipage}
+
+\vspace{0.5cm} 
+
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/harmony_body_naturalness.png}
+    \caption{Body naturalness in harmony.}
+    \label{fig:body_naturalness}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/harmony_emotion_naturalness.png}
+    \caption{Facial expression naturalness in harmony.}
+    \label{fig:emtoin_naturalness}
+  \end{minipage}
+
+\end{figure}
+
+
+
+\begin{figure*}[t]
+  \centering
+  \begin{minipage}[t]{0.95\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/vis_rationality.pdf}
+    \caption{Visual comparison in rationality.}
+    \label{fig:vis_rationality}
+  \end{minipage}
+  \vspace{0.5cm}
+  \begin{minipage}[t]{0.95\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/vis_stable.pdf}
+    \caption{Visual comparison in stability.}
+    \label{fig:stable}
+  \end{minipage}
+\end{figure*}
+
+
+
+\begin{figure*}[t]
+  \centering
+  \begin{minipage}[t]{0.95\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/koubo.pdf}
+    \caption{Visual comparison in talking head scenarios.}
+    \label{fig:koubo}
+  \end{minipage}
+  \vspace{0.5cm} 
+  \begin{minipage}[t]{0.95\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/music.pdf}
+    \caption{Visual comparison in music scenarios.}
+    \label{fig:music}
+  \end{minipage}
+\end{figure*}
+
+
+
+
+
+
+
+\begin{figure*}[t]
+  \centering
+  \begin{minipage}[t]{0.95\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/dongman.pdf}
+    \caption{Visual comparison in anime scenarios.}
+    \label{fig:dongman}
+  \end{minipage}
+  \vspace{0.5cm} 
+  \begin{minipage}[t]{0.95\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/biaoyan.pdf}
+    \caption{Visual comparison in performance scenarios.}
+    \label{fig:biaoyan}
+  \end{minipage}
+\end{figure*}
+
+
+
+
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{imgs/qinggan.pdf}
+  \caption{Visual comparison in emotional expression scenarios.}
+  \label{fig:qinggan}
+\end{figure*}
+
+
+
+
+\subsection{Overall Human-likeness Evaluation}
+
+
+
+
+
+To thoroughly investigate the capabilities of current virtual human generation methods, we designed a comprehensive evaluation covering both single-person and multi-person scenarios. Our evaluation protocol is tailored to the supported features of each method: models capable of multi-person generation were assessed in both configurations, whereas those lacking multi-person support were evaluated exclusively on the single-person subset.
+
+As illustrated in Fig.~\ref{fig:single_and_multi}, the comparative analysis reveals distinct tiers in human-likeness. In the single-person setting, the top three methods—LC-video-avatar 1.5, LC-video-avatar 1.0, and InfiniteTalk—demonstrate comparable leading performance, which is closely followed by Heygen and OmniHuman-1.5. However, the multi-person task introduces greater complexity and shifts the performance dynamics. Among the methods supporting multi-person synthesis, the two LC-video-avatar variants maintain similar levels of human-likeness, both significantly outperforming the third model, InfiniteTalk.
+
+Despite the progress made by these state-of-the-art methods, overall trends indicate a broader challenge: current virtual human models still face a considerable gap before achieving highly realistic human-likeness. Further analysis indicates that this perceptual gap is primarily attributable to two factors: the first is a deficiency in physical rationality, where models often generate physically implausible movements, anatomical distortions, or unnatural interactions (see details in Sec.~\ref{sec:exp-eval}). The second major factor is suboptimal audio-visual synchronization, which breaks the illusion of natural speech and heavily degrades the overall perceptual quality.
+
+
+
+
+\subsection{Expert-level Objective Quality Evaluation} \label{sec:exp-eval}
+
+Furthermore, we conduct an expert-level objective quality analysis across four complementary perceptual dimensions: temporal stability, physical rationality, identity consistency, and harmony (\textit{i.e.,} audio-visual harmony). This decomposed evaluation enables the precise identification of strengths and remaining challenges. As illustrated in the radar chart in Fig.~\ref{fig:comp1}, where performance is quantified as ($100 - \text{Issue Rate}$) (higher is better), LC-Video-Avatar 1.5 achieves industry-leading stability and rationality, alongside state-of-the-art identity consistency. However, audio-visual harmony remains an open challenge across the entire field. To provide a more granular breakdown of these results, we calculate the specific issue rates across the evaluated models. 
+
+
+
+
+
+
+
+
+\paragraph{Rationality.}
+Rationality evaluates whether the synthesized avatar's movements, expressions, and environmental interactions comply with real-world physical laws and biomechanics, encompassing aspects like subject and background distortion. Figs.~\ref{fig:background_distortion} and \ref{fig:subject_distortion} detail the issue rates of these artifacts across various methods, revealing that physical rationality remains a prevalent bottleneck for current generative models, especially subject distortion. LC-Video-Avatar 1.5 achieves a leading performance in this area. This enhanced structural rationality is primarily attributed to the integration of GRPO during training. By employing reward signals that explicitly penalize unnatural or physically incorrect generations, GRPO effectively guides the network to produce highly rational and physically grounded virtual humans. 
+Besides, we observe that DMD distillation also contributes to rationality improvements, particularly in reducing hand distortion and suppressing exaggerated facial expressions.
+Fig. \ref{fig:vis_rationality} provides a comprehensive qualitative visual comparison with other methods. As observed, both Kling-Avatar 2.0 and Heygen struggle with fine-grained hand generation, exhibiting severe structural deformations in the hand regions. Meanwhile, Omnihuman-1.5 suffers from severe depth ordering and occlusion failures; specifically, an arm initially occluded behind the guitar abruptly and unnaturally shifts to the foreground, overlapping the instrument.
+
+
+
+
+\paragraph{Stability.}
+In terms of temporal stability, the evaluation primarily encompasses frame jump cuts, color tone error accumulation, and resolution shifts. Fig.~\ref{fig:tone_error_accumulation} and \ref{fig:jumpcut} illustrate the issue rates specifically for tone error accumulation and frame jump cuts, respectively. We analyze the performance across Tone Error Accumulation and Frame Jumpcut metrics. Regarding Tone Error Accumulation, OmniHuman 1.5 exhibits substantial error build-up. This limitation is potentially tied to its Pseudo Frame mechanism, which appears insufficient to completely prevent the progressive accumulation of visual artifacts over time. In contrast, our approach inherits the reference skip attention mechanism from our 1.0 architecture, proving its continued efficacy in suppressing error propagation. It is worth noting that while our 1.5 model demonstrates a marginally higher error rate than our 1.0 baseline, this is a deliberate and calculated trade-off. The integration of DMD2 distillation in version 1.5 substantially accelerates inference speed, which inevitably introduces a minor compromise in the raw generation quality. Furthermore, in terms of Frame Jumpcut, our proposed method achieves the lowest occurrence rate among all compared models. This strong temporal consistency can be attributed to our data processing pipeline, which incorporates a specialized operator explicitly designed for jumpcut detection and filtering. This result indicates that careful data curation and preprocessing contribute meaningfully to the temporal stability and seamlessness of synthesized avatar videos.
+Beyond structural identity, temporal visual stability is another crucial aspect of consistency. As shown in Fig.\ref{fig:stable}, competing methods frequently suffer from noticeable color shifts across frames. In contrast, our proposed method maintains a highly stable color profile and consistent illumination throughout the entire video sequence. This absence of color flickering and degradation indicates the temporal stability and robustness of our method.
+
+
+
+
+
+\paragraph{Harmony.}
+Regarding audio-visual harmony, our evaluation covers key dimensions such as lip-sync, expression-motion alignment, and face-body synchronization. Figs.~\ref{fig:lip_synchronization}, ~\ref{fig:face_body_synchronization} and \ref{fig:body_naturalness} detail the issue rates for face-body and lip synchronization, respectively. 
+In Fig.~\ref{fig:emtoin_naturalness}, we present an evaluation focused strictly on the visual naturalness of the generated avatars. Although the evaluated videos contain audio, human evaluators were instructed to base their assessments solely on visual cues, specifically measuring the issue ratios (where a lower score indicates better performance) of unnatural body movements and facial expressions. In this context, "unnaturalness" is characterized by implausible motion trajectories. This includes evaluating whether the avatar's body and face maintain natural, subtle dynamics even during silent pauses (when the speaker is not talking), as well as identifying visual artifacts such as localized freezing, micro-jittering, or excessive and erratic shaking of the face. Based purely on these visual criteria, the models exhibit distinct comparative strengths. For body naturalness, LC-video-avatar 1.0 achieves the best performance, demonstrating highly stable and reasonable body kinematics. It is closely followed by InfiniteTalk and LC-video-avatar 1.5, which also show strong capabilities in maintaining bodily harmony. Conversely, regarding the naturalness of facial expressions, OmniHuman-1.5 stands out as the top performer. It excels in minimizing facial artifacts, ensuring the most stable and fluid facial muscle dynamics among all evaluated methods.
+Compared to the v1.0 baseline, v1.5 demonstrates a consistent reduction in issue rates across both metrics, reflecting a notable enhancement in motion naturalness and audio-visual harmony. We attribute this improvement to the architectural upgrade of our audio feature extraction module: replacing the Wav2vec encoder with the contextually robust Whisper-large model. This transition allows v1.5 to capture richer phonetic and prosodic representations, thereby facilitating tighter temporal alignment between driving audio signals and facial/bodily dynamics. Additionally, qualitative results (Figs.~\ref{fig:koubo}, \ref{fig:music}, \ref{fig:dongman}, \ref{fig:biaoyan}, and \ref{fig:qinggan}) demonstrate that our approach consistently achieves superior lip synchronization across diverse scenarios, including talking head, music, anime, and performance. Our model also demonstrates improved expressiveness in emotion-driven scenarios, as illustrated in~\ref{fig:qinggan}.
+ 
+\paragraph{Consistency.}
+The consistency measures whether the identity changes in the generated video. As shown in Fig.\ref{fig:comp1}, LC-Video-Avatar 1.5 performs the best in identity preservation, followed by LC-Video-Avatar 1.0, InfiniteTalk, Hedra, Heygen, and Kling Avatar 2.0. In contrast, OmniHuman 1.5 and OmniAvatar show weaker identity preservation.
+
+
+
+
+
+
+We also conduct pairwise A/B preference tests to measure holistic perceptual quality against leading commercial systems. In each trial, evaluators view two anonymized videos generated from identical inputs and select their preferred result based on overall human-likeness (Fig. \ref{fig:comp2}). This protocol directly captures end-user preference without decomposition bias.
+LC-Video-Avatar 1.5 achieves majority preference against all three competitors, with the most decisive advantage over Kling Avatar 2.0 , followed by OmniHuman-1.5 and Heygen. These results indicate that LC-Video-Avatar 1.5 achieves competitive or superior preference against all evaluated commercial alternatives.
+
+
+\begin{table}[t]
+\centering
+\caption{Comparison between Base and Fast variants. Higher human-likeness scores are better, while lower issue rates are better for the remaining metrics.}
+\label{tab:base-fast-comparison}
+\resizebox{.8\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} 
+& \textbf{Human-likeness} $\uparrow$
+& \textbf{Human-likeness} $\uparrow$
+& \textbf{Rationality}
+& \textbf{Harmony}
+& \textbf{Stability}
+& \textbf{Consistency} \\
+& \textbf{score (single)}
+& \textbf{score (multi)}
+& \textbf{issue rate} 
+& \textbf{issue rate} 
+& \textbf{issue rate} 
+& \textbf{issue rate}  \\
+\midrule
+Base 
+& \textbf{3.389}
+& 2.676
+& 51.5
+& \textbf{44.2}
+& 12.3
+& 6.2 \\
+Fast 
+& 3.336
+& \textbf{2.730}
+& \textbf{32.4}
+& 45.0
+& \textbf{4.3}
+& \textbf{5.9} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.99\linewidth]{imgs/temporal_profiles.pdf}
+  \caption{Stability comparison with LC-Video-Avatar 1.0.}
+  \label{fig:temporal_profiles}
+\end{figure*}
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.99\linewidth]{imgs/lip-selfcomp.pdf}
+  \caption{Lip synchronization comparison between v1.0 and v1.5.}
+  \label{fig:lip-selfcomp}
+\end{figure*}
+
+
+\paragraph{Comparison with LC-Video-Avatar 1.0} We compare LC-Video-Avatar 1.5 with v1.0 in stability and lip synchronization.
+To intuitively illustrate the temporal dynamics, we follow \cite{zhou2024upscale} and employ spatiotemporal slice visualization in Fig. \ref{fig:temporal_profiles}(b) and \ref{fig:temporal_profiles}(c). Specifically, these temporal profiles are generated by sampling a fixed spatial cross-section (either along the X-axis or Y-axis) across all video frames and concatenating them along the time (T) axis. This technique captures the temporal evolution of the selected slice, where smooth and continuous textures indicate high temporal consistency, whereas discontinuities reveal frame drops or jitter. As shown in the left panel, LC-Video-Avatar 1.5 achieves greater camera stability. Furthermore, the right panel highlights its enhanced temporal consistency, making it significantly less prone to frame skipping compared to version 1.0. Beyond temporal stability, we also evaluate lip synchronization capabilities. As illustrated in Fig. \ref{fig:lip-selfcomp}, version 1.5 demonstrates highly precise mouth dynamics and tighter audio-lip alignment than its predecessor.
+
+\subsection{Comparison between the Basic and the Accelerated Version}
+The model denoted as LC-Video-Avatar 1.5 in our evaluations refers to the accelerated version, which requires only 8 forward evaluations (i.e., 8 NFEs). Here, we compare its performance with the Base model, which performs a 50-step inference process requiring 3 forward passes per step, culminating in a total of 150 NFEs. As shown in Table. \ref{tab:base-fast-comparison}, the comparison reveals a distinct trade-off between expressive richness and generation stability. The Base model maintains a noticeable advantage in overall human-likeness and lip synchronization. Furthermore, it produces greater motion diversity, more nuanced facial expressions, and richer camera dynamics. Conversely, the accelerated LC-Video-Avatar 1.5 excels in maintaining visual stability, demonstrating significantly lower distortion rates across critical regions such as the hands, body, and face.
+
+

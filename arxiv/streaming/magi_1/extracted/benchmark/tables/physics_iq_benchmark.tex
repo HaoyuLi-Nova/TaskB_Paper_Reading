@@ -1,0 +1,34 @@
+\def\physicstitlez{\multirow{2}{*}{\makecell[l]{Model}}}
+\def\physicstitlea{\multirow{2}{*}{\makecell[c]{Phys.\\IQ Score↑}}}
+\def\physicstitleb{\multirow{2}{*}{\makecell[c]{Spatial\\IoU ↑}}}
+\def\physicstitlec{\multirow{2}{*}{\makecell[c]{Spatio\\Temporal↑}}}
+\def\physicstitled{\multirow{2}{*}{\makecell[c]{Weighted\\Spatial IoU ↑}}}
+\def\physicstitlee{\multirow{2}{*}{\makecell[c]{MSE↓}}}
+\def\physicstitlef{\multirow{2}{*}{\makecell[c]{FPS}}}
+\def\physicstitleg{\multirow{2}{*}{\makecell[c]{Size}}}
+\begin{table*}[h]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}  
+\begin{tabular*}{\textwidth}{l|c|c|c|c|c}
+\toprule 
+ \physicstitlez                                      & \physicstitlea   & \physicstitleb& \physicstitlec & \physicstitled &\physicstitlee \\
+                                                     &                  &               &                &                &               \\\midrule
+\abf{\magi (V2V)}                                     & \bbf{56.02}      & \bbf{0.367}   & \bbf{0.270}    & \bbf{0.304}    & \bbf{0.005}   \\ 
+\abf{VideoPoet (V2V)~\citep{kondratyuk2023videopoet}}& \abf{29.50}      & \abf{0.204}   & \abf{0.164}    & \abf{0.137}    & \abf{0.010}   \\
+\abf{Lumiere (V2V)~\citep{bar2024lumiere}}           & \abf{23.00}      & \abf{0.170}   & \abf{0.155}    & \abf{0.093}    & \abf{0.013}   \\ \midrule
+\abf{\magi (I2V)}                                     & \bbf{30.23}      & \bbf{0.203}   & \abf{0.151}    & \bbf{0.154}    & \bbf{0.012}   \\ 
+\abf{Kling1.6 (I2V)~\citep{kuaishou2024kling}}       & \abf{23.64}      & \abf{0.197}   & \abf{0.086}    & \abf{0.144}    & \abf{0.025}   \\ 
+\abf{VideoPoet (I2V)~\citep{kondratyuk2023videopoet}}& \abf{20.30}      & \abf{0.141}   & \abf{0.126}    & \abf{0.087}    & \abf{0.012}   \\ 
+\abf{Gen 3 (I2V)~\citep{runway2024gen3}}             & \abf{22.80}      & \abf{0.201}   & \abf{0.115}    & \abf{0.116}    & \abf{0.015}   \\ 
+\abf{Wan2.1 (I2V)~\citep{wang2025wan}}               & \abf{20.89}      & \abf{0.153}   & \abf{0.100}    & \abf{0.112}    & \abf{0.023}   \\
+\abf{Lumiere (I2V)~\citep{bar2024lumiere}}           & \abf{19.00}      & \abf{0.113}   & \bbf{0.173}    & \abf{0.061}    & \abf{0.016}   \\ 
+\abf{SVD (I2V)~\citep{blattmann2023svd}}             & \abf{14.80}      & \abf{0.132}   & \abf{0.076}    & \abf{0.073}    & \abf{0.021}   \\ 
+\abf{Pika 1.0 (I2V)~\citep{pika2024pika}}            & \abf{13.00}      & \abf{0.140}   & \abf{0.041}    & \abf{0.078}    & \abf{0.014}   \\ 
+\abf{Sora (I2V)~\citep{openaisora2024}}              & \abf{10.00}      & \abf{0.138}   & \abf{0.047}    & \abf{0.063}    & \abf{0.030}   \\ \midrule
+\abf{GroundTruth}                                    & \abf{100.0}      & \abf{0.678}   & \abf{0.535}    & \abf{0.577}    & \abf{0.002}   \\ 
+\bottomrule
+\end{tabular*}
+\vspace{0.5em}
+\caption{Quantitative comparison of video generation models evaluated on the Physics-IQ-Benchmark. Models are categorized by input modality: image-to-video (I2V) and video-to-video (V2V). Results were obtained through direct evaluation of model APIs, local deployment of open-source implementations, and as reported in \cite{physicsiqbenchmark}. In the V2V task, models observe the first 3 seconds of an 8-second ground truth video and predict the remaining 5 seconds, while in the I2V task, models take only a single frame at the 3-second mark and predict the subsequent 5 seconds. Magi(V2V) utilizes the full 24 FPS video input (96 frames). }\label{tab:physics_iq_benchmark_results}
+\end{table*}

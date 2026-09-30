@@ -1,0 +1,143 @@
+% updated April 2002 by Antje Endemann
+% Based on CVPR 07 and LNCS, with modifications by DAF, AZ and elle, 2008 and AA, 2010, and CC, 2011; TT, 2014; AAS, 2016; AAS, 2020; TH, 2022
+
+\documentclass[runningheads]{llncs}
+\usepackage{graphicx}
+% DO NOT USE \usepackage{times}, it will be removed by typesetters
+%\usepackage{times}
+
+\usepackage{tikz}
+\usepackage{comment}
+\usepackage{amsmath,amssymb} % define this before the line numbering.
+\usepackage{color}
+
+% The "axessiblity" package can be found at: https://ctan.org/pkg/axessibility?lang=en
+\usepackage[accsupp]{axessibility}  % Improves PDF readability for those with disabilities.
+
+
+% INITIAL SUBMISSION - The following two lines are NOT commented
+% CAMERA READY - Comment OUT the following two lines
+% \usepackage{ruler}
+% \usepackage[width=122mm,left=12mm,paperwidth=146mm,height=193mm,top=12mm,paperheight=217mm]{geometry}
+
+\usepackage{booktabs}
+
+\usepackage{url}
+\usepackage{subcaption}
+\usepackage{titletoc}
+\def\authcount #1 {}
+
+% \usepackage{hyperref}
+\usepackage[pagebackref=true,breaklinks=true,letterpaper=true,pagebackref=true,colorlinks,linkcolor=blue,bookmarks=false]{hyperref}
+
+\usepackage{wrapfig}
+
+
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}}
+\newcommand{\cameraready}[1]{\textcolor{black}{#1}}
+\newcommand{\sg}[1]{\textcolor{orange}{SG: #1}}
+\newcommand{\devi}[1]{\textcolor{blue}{DP: #1}}
+\newcommand{\xiyin}[1]{\textcolor{magenta}{Xi: #1}}
+\newcommand{\jiabin}[1]{\textcolor{purple}{JB: #1}}
+\newcommand{\guan}[1]{\textcolor{cyan}{GP: #1}}
+\newcommand{\TFH}[1]{\textcolor{teal}{Tom: #1}}
+
+\newcommand{\topic}[1]{\vspace{1mm}\noindent\textbf{#1}}
+
+\begin{document}
+% \renewcommand\thelinenumber{\color[rgb]{0.2,0.5,0.8}\normalfont\sffamily\scriptsize\arabic{linenumber}\color[rgb]{0,0,0}}
+% \renewcommand\makeLineNumber {\hss\thelinenumber\ \hspace{6mm} \rlap{\hskip\textwidth\ \hspace{6.5mm}\thelinenumber}}
+% \linenumbers
+\pagestyle{headings}
+\mainmatter
+\def\ECCVSubNumber{5950}  % Insert your submission number here
+
+\title{Long Video Generation with Time-Agnostic VQGAN and Time-Sensitive Transformer}
+
+% INITIAL SUBMISSION 
+\begin{comment}
+\titlerunning{ECCV-22 submission ID \ECCVSubNumber} 
+\authorrunning{ECCV-22 submission ID \ECCVSubNumber} 
+\author{Anonymous ECCV submission}
+\institute{Paper ID \ECCVSubNumber}
+\end{comment}
+%******************
+
+% CAMERA READY SUBMISSION
+% \begin{comment}
+\titlerunning{Long Video Generation with TATS}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+\author{Songwei Ge\inst{1}\thanks{Work done primarily during an internship at Meta AI.} \and
+Thomas Hayes\inst{2} \and
+Harry Yang\inst{2} \and
+Xi Yin\inst{2} \and
+Guan Pang\inst{2} \\
+David Jacobs\inst{1} \and
+Jia-Bin Huang\inst{1,2} \and
+Devi Parikh\inst{2,3}}
+%
+\authorrunning{S. Ge, T. Hayes, H. Yang, X. Yin, G. Pang, D. Jacobs, J. Huang, D. Parikh}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+\institute{\textsuperscript{1}University of Maryland \hspace{0.2cm} \textsuperscript{2}Meta AI \hspace{0.2cm} \textsuperscript{3}Georgia Tech}
+% \email{\{songweig,djacobs\}@umd.com, \{thayes427,harryyang,yinxi,gpang,jbhuang,dparikh\}@fb.com}}
+% \end{comment}
+%******************
+\maketitle
+% \vspace{-0.7cm}
+\begin{abstract}
+Videos are created to express emotion, exchange information, and share experiences. Video synthesis has intrigued researchers for a long time. Despite the rapid progress driven by advances in visual synthesis, most existing studies focus on improving the frames' quality and the transitions between them, while little progress has been made in generating longer videos. In this paper, we present a method that builds on 3D-VQGAN and transformers to generate videos with thousands of frames. Our evaluation shows that our model trained on 16-frame video clips from standard benchmarks such as UCF-101, Sky Time-lapse, and Taichi-HD datasets can generate diverse, coherent, and high-quality long videos. We also showcase conditional extensions of our approach for generating meaningful long videos by incorporating temporal information with text and audio. Videos and code can be found at \url{https://songweige.github.io/projects/tats}.
+
+
+% \keywords{video,  generation}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[trim=0 0 0 0,clip,width=0.85\linewidth]{figures/introduction/teaser_v4.pdf}
+    % \caption{\textbf{Generated long videos with $1024$ frames.}
+    % We present TATS, a framework trained on short video clips that synthesizes videos with thousands of frames with natural motion, long-term coherence, and following real story flow.}
+    \caption{\textbf{Long videos generated by our model TATS with $1024$ frames.}}
+    % We present TATS, a framework trained on short video clips that synthesizes videos with thousands of frames with natural motion, long-term coherence, and following real story flow.}
+    \label{fig:teaser}
+\end{figure*}
+
+
+% By providing temporal and narrative information using texts and audio, our model can generate meaningful long videos.
+% Videos are created to exchange information, record life, express emotion, tell stories, and so on. 
+% Automatically synthesizing videos has intrigued researchers for a long time.
+% none of these features can be fulfilled yet as there is one axis that is barely satisfactory - the video duration. 
+% Most existing studies only aim to improve the frames' fidelity and the transitions between them, while little progress has been made in generating long videos. In this paper, we show that videos with thousands of frames and a natural flow and a coherent theme can be generated using our proposed model built on 3D-VQGAN and transformers. The core idea behind our model is to remove the undesired dependence on time from the VQGAN part and instead have the transformer part capture long-range temporal dependence. Upon careful evaluation, we show that our model trained on 16-frame videos from standard benchmarks such as UCF-101, Sky Time-lapse, and Taichi-HD datasets can generate more diverse, coherent, and higher-quality long videos. By providing temporal and narrative information using texts and audio, our model can generate meaningful long videos.
+\end{abstract}
+
+% \include{sections/0_abstract}
+\input{sections/1_introduction}
+\input{sections/3_method}
+\input{sections/4_experiment}
+\input{sections/2_related-work}
+\input{sections/5_conclusion}
+
+\clearpage
+\appendix
+\input{sections/6_appendix}
+
+
+
+\clearpage
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+%
+\bibliographystyle{splncs04}
+\bibliography{egbib}
+\end{document}

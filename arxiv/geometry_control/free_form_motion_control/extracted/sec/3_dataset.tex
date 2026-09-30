@@ -1,0 +1,142 @@
+\section{SynFMC Dataset}
+\label{sec:dataset}
+
+\subsection{Comparison with Existing Datasets}
+\label{sec:dataset3.1}
+
+There is currently a lack of datasets that contain 6D poses of both objects and the camera~\cite{RealEstate-10K,MVImageNet,HumanVid}. As shown in \cref{tab:datasets}, only a few real datasets~\cite{RealEstate-10K,MVImageNet} provide estimated camera poses and are primarily limited to scenes without dynamic objects due to the suboptimal performance of estimation methods~\cite{COLMAP,DROID-SLAM,ParticleSfM}. Some methods~\cite{DragNUWA,MotionCtrl} use in-the-wild videos with image-space object trajectory inferred by optical flow models~\cite{ParticleSfM}, but this entangles object and camera motions while lacking 3D information like orientation.~Synthetic datasets conveniently obtain pose information~\cite{BEDLAM,WHAC,HumanVid,SynBody}, but most focus on human and are limited to small movements and simple camera motion patterns, limiting the ability to learn complex dynamic.
+
+
+
+To facilitate model learning to control the motions in 3D-aware manner, it is essential to construct a new dataset with comprehensive object and camera poses. However, this is highly challenging in real world. First, capturing videos with complex, irregular object and camera motions is extremely difficult, typically requiring specialized equipment and expertise. Then, obtaining accurate pose estimation is difficult.~Devices capable of capturing 6D poses for camera or objects are expensive and difficult to operate. Some studies~\cite{RealEstate-10K,MotionCtrl} attempt to obtain camera pose via estimation models. However, existing algorithms~\cite{ParticleSfM,DROID-SLAM} are time-intensive and often struggle with monocular videos containing dynamic objects. Besides, inferring 6D poses for general objects remains challenging. To address these limitations, we introduce \datasetname, a synthetic dataset generated using \emph{Unreal Engine}~\cite{unrealengine}, containing animations with diverse motion patterns and complete annotations.
+
+
+
+\noindent$\bullet$
+\textbf{Difference from \ang{360}-Motion Dataset~\cite{3DTrajMaster}.}~\textbf{1)} We handle both static\&dynamic cameras, enabling more complex shots than \cite{3DTrajMaster}'s static setup.~\textbf{2)} Our rule-based algorithm supports diverse (non-)horizontal object motions, unlike \cite{3DTrajMaster}'s GPT-derived horizontal-only ones.~\textbf{3)}~Our~environment \& object assets extend beyond \cite{3DTrajMaster}'s terrestrial scenes.
+
+\noindent$\bullet$
+\textbf{Difference from HumanVid-Syn Dataset~\cite{HumanVid}.}{~\textbf{1)} The object trajectories of~\cite{HumanVid} rely on predefined 3D motion assets (SMPL-X/skeleton), whereas our rule-based algorithm enables diverse patterns, \eg, in-place/(non-)horizontal motions in \cref{fig:trajectory_shape}.~\textbf{2)}~\cite{HumanVid} randomly samples camera positions within a semi-cylinder in front of human, while we achieve fine-grained control by decoupling camera motion (\cref{fig:camera_type}), supporting controllable and diverse movements. \textbf{3)}~\cite{HumanVid} focuses on synthesizing single-human animation, whereas we support multi-object scenarios, generating richer dynamics.}
+
+\subsection{Overview of \textbf{\datasetname} Dataset}
+
+\datasetname contains 62K videos divided into four groups: 15K \emph{static single-object}, 15K \emph{static multi-object}, 16K \emph{dynamic single-object}, and 16K \emph{dynamic multi-object}. 
+\emph{Static} means fixed object locations in world space while the camera remains movable. For diversity, the dataset includes common objects across various categories, such as humans, animals, plants and vehicles, as well as a wide range of environments like streets, grasslands, skies, oceans, \etc. Additionally, \datasetname has diverse and complex multi-object and camera movements, covering not only basic motions but also shots that are challenging to achieve in real-world settings. Object assets are annotated with attributes such as speed and size by human annotators with the aid of MLLM~\cite{InternVL} to ensure realistic motion simulation. 
+
+\noindent$\bullet$
+\textbf{Video Annotations.}~The proposed \datasetname dataset offers thorough annotations, including pose information for both objects and the camera, instance segmentation masks, depth maps, and detailed descriptions of content and motion, broadening its applicability across various fields~\cite{MOSE,MeViS,CharaConsist}.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.999\linewidth]{3.1_compressed.pdf}
+    \vspace{-6.36mm}
+    \caption{{Object motion types. The trajectory of \textit{stationary point} is not presented in the figure, which is a fixed point in the space.}}
+    \label{fig:trajectory_shape}
+    \vspace{-3.16mm}
+\end{figure}
+
+
+\subsection{Data Generation Pipeline}\label{sec:data_pipeline}
+
+\noindent$\bullet$
+\textbf{Asset Collection and Annotation.}
+We collect diverse 3D assets, including environmens and objects. Environment assets span five types:~\emph{ground},~\emph{near ground},~\emph{sky},~\emph{water surface}, and~\emph{underwater}. 
+We collect high quality panoramic HDRI images from internet. 
+For object assets, we select animated object assets from Objaverse-LVIS~\cite{objaverse}, Objaverse-XL~\cite{objaverse-xl}, Mixamo~\cite{Mixamo}, 
+\etc, covering diverse categories. Human annotators filter low-quality assets and verify/correct object properties (\eg, class, habitat, speed, size) queried by InternVL~\cite{InternVL}. They also label motion type and provide description for each animation.
+
+
+
+
+
+
+
+\noindent$\bullet$
+\textbf{Object Motion.} To create realistic motions, we design trajectories based on B\'ezier curves in each motion segment, with rotations derived from tangent and normal vectors along the curve. \cref{fig:trajectory_shape} exemplifies motion types. Control points are constrained based on the object's speed.
+
+
+\noindent$\bullet$
+\textbf{Camera Motion.}~We decompose camera motion into 3 types:~\emph{viewpoint},~\emph{distance},~and~\emph{height}, see~\cref{fig:camera_type}. (a) \emph{View-point} controls camera’s orientation when capturing objects: {front/back}, {left/right}, and {top}. 
+Start and end viewpoints of a motion segment are randomly assigned, with intermediate frames interpolated for smooth transitions, enabling camera’s motion range to encompass all orientations around the object.~(b) \emph{Distance} controls the horizontal distance between the camera and objects: {zoom in/out} and {static}. (c) \emph{Height} controls the vertical distance:~{up/down} and {static}. 
+To maintain object visibility without centering it, the camera targets a randomly offset point near the object's centroid.
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.999\linewidth]{cam_type_compressed.pdf}
+
+    \begin{picture}(0,0)
+        \scriptsize {
+            \put(-112,30){\scalebox{0.8}{\protect \circled{1}}}
+            
+            \put(-56,30){\scalebox{0.8}{\protect \circled{3}}}
+
+            \put(-54,50){\scalebox{0.8}{\protect \circled{2}}}
+
+            \put(-110,47){\scalebox{0.8}{\protect \circled{4}}}
+
+            \put(-79,78){\scalebox{0.8}{\protect \circled{5}}}
+            % distance
+            \put(-31,48){\scalebox{0.8}{\protect \circled{7}}}
+
+            \put(-5,32){\scalebox{0.8}{\protect \circled{6}}}
+
+            \put(39,59){\scalebox{0.8}{\protect \circled{8}}}
+            \put(118.5,35){\scalebox{0.8}{\protect \circled{9}}}
+        }
+    \end{picture}
+    \vspace{-6mm}
+    \caption{Camera motion types. We decompose camera motion into 3 aspects. (a) \textit{Viewpoint} controls camera orientation when capturing object. \scalebox{0.85}{\protect \circled{1}}-\scalebox{0.85}{\protect \circled{5}} present front/back, left/right and top perspectives. (b) \textit{Distance} and (c) \textit{Height} determine horizontal and vertical distance between camera and object, respectively. \scalebox{0.85}{\protect \circled{6}}-\scalebox{0.85}{\protect \circled{9}} are zoom in/out and up/down, respectively. The ``static'' types are omitted in (b) and (c), which stand for fixed distances.}
+    \label{fig:camera_type}
+    \vspace{-3.6mm}
+\end{figure}
+
+
+
+
+\begin{table*}[t]
+    \centering
+    \caption{Comparison of \textbf{\methodname} with other methods. {\methodname excels in controlling 6D poses of objects and camera with diverse motion patterns.}}
+    \vspace{-3.6mm}
+    \footnotesize
+    \setlength{\tabcolsep}{2.6mm}
+    \resizebox{1\textwidth}{!}{
+    \begin{tabular}{l|cccc}
+    \specialrule{.1em}{.05em}{.05em}
+        \rowcolor{mygray!50}Methods & Motion Condition & Object Control & Camera Control  & Dataset \\ \hline
+        AnimateDiff~\cite{AnimateDiff}&  \xmarkg & \xmarkg & Limited Patterns & Dataset for Specific Motion Pattern \\ 
+        
+        CameraCtrl~\cite{CameraCtrl}& \textbf{Camera Pose} & \xmarkg & \textbf{Diverse Patterns}   & RealEstate10K~\cite{RealEstate-10K} \\ 
+        \rowcolor{mygray2!70}VideoComposer~\cite{VideoComposer} & Image Space Trajectory & Entanglement & Entanglement   & LAION-400M~\cite{LAION} + WebVid~\cite{WebVid-10M} \\
+        \rowcolor{mygray2!70}DragNUWA~\cite{DragNUWA} & Image Space Trajectory & Entanglement & Entanglement  & WebVid+ VideoHD~\cite{DragNUWA} \\
+        \rowcolor{mygray2!70}3DTrajMaster~\cite{3DTrajMaster} & \textbf{Object Pose}& Limited Patterns & \xmarkg  & \ang{360}-Motion~\cite{3DTrajMaster}  \\
+        Direct-a-Video~\cite{Direct-A-Video} &  Image Space Trajectory + Camera Type  & Entanglement & Limited Patterns  & MovieShot~\cite{MovieShot} \\
+        MotionCtrl~\cite{MotionCtrl} & Image Space Trajectory + \textbf{Camera Pose}& Entanglement & \textbf{Diverse Patterns}  & RealEstate10K + WebVid  \\ 
+        \hline
+        \rowcolor{green!8}\textbf{\methodname} (\textbf{ours}) & \textbf{Object Pose + Camera Pose}& \textbf{Diverse Patterns} & \textbf{Diverse Patterns}  & \textbf{\datasetname (ours)}  \\ 
+        \specialrule{.1em}{.05em}{.05em}       
+     \end{tabular}
+     }
+     \label{tab:methods}
+     \vspace{-3.96mm}
+ \end{table*}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.86\linewidth]{curves.pdf}
+    \vspace{-2.16mm}
+    \caption{{Motion trajectories. The examples of horizontal and non-horizontal motions indicate the variety and complexity of the trajectories generated by our rule-based algorithm.}}
+    \label{fig:curves}
+    \vspace{-3.16mm}
+\end{figure}
+
+\noindent$\bullet$
+\textbf{Generation of Multi-Object Scenes.}~Objects from the same environment with comparable sizes and speeds are selected.~The first object’s trajectory is created using the way described earlier, while subsequent trajectories are derived based on the preceding object’s path with a reasonable offset. For camera motion, we randomly track an object in each motion segment, with the trajectory generated using the same method as previously outlined.
+
+
+
+
+
+\noindent$\bullet$
+\textbf{Rendering.} This stage creates synthetic videos based on selected assets and motion types of objects and the camera. We divide a complete motion trajectory into many small segments.~For each segment, we randomly select animations for objects and generate trajectories according to their annotated motion types. Similarly, random combinations of camera motion types are applied across different segments, allowing the generated videos to encompass diverse motion patterns as in real-world scenarios.~These segments are seamlessly combined to form a complex and diverse global trajectory, as shown in \cref{fig:curves}. Finally, the selected assets and poses of the camera and objects are imported into \emph{Unreal Engine}~\cite{unrealengine} to get 3D animation sequence for rendering. \cref{fig:teaser} shows an example trajectory segment.

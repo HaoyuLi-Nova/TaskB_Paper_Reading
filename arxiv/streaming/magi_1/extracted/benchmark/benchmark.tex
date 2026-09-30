@@ -1,0 +1,132 @@
+\section{Evaluation}
+\newcommand{\bbf}[1]{\textbf{ #1}}
+\newcommand{\abf}[1]{#1}
+\newcommand{\und}[1]{\underline{#1}}
+\newcommand{\addword}[1]{\textcolor{blue}{#1}}
+Evaluation methods for video generation models in the research community are typically categorized into two complementary types: the first focuses on the perceptual quality of the generated videos, while the second evaluates the model’s ability to faithfully capture underlying physics, which is often regarded as essential for modeling a realistic world. In \magi, we adopt both evaluation types to obtain a comprehensive understanding of the model’s strengths and limitations.
+
+For perceptual quality evaluation, the inherently subjective nature of human preference, combined with the high-dimensional and diverse characteristics of video content (\emph{e.g.}, motion continuity, aesthetic, and identity consistency), makes it challenging to rely solely on objective metrics. As a result, the community typically employs a hybrid evaluation protocol that integrates human subjective assessments with standardized automated metrics, ensuring a more robust and comprehensive evaluation. 
+
+There is currently no universally accepted human evaluation protocol or human evaluation platform within the community for perceptual quality evaluation. To address this, we design our own in-house evaluation benchmark based on a comprehensive review of existing human evaluation methodologies, combined with our understanding of both evaluation criteria and model capabilities. Human experts serve as evaluator in this system, comparing our model against other competitors under strict double-blind conditions, and providing assessments across multiple perceptual dimensions.
+For objective evaluation, we adopt VBench~\citep{huang2024vbenchcomprehensiveversatilebenchmark}, which is currently the most widely used benchmark in the community. VBench consists of two evaluation tracks: text-to-video (T2V) and image-to-video (I2V). We primarily focus on the I2V track, as it more closely reflects real-world usage patterns: users typically generate videos from images rather than from text. For the same reason, we also allocate a larger proportion of I2V tasks during the training of \magi, aiming to better align the model's capabilities with practical deployment scenarios.
+
+Physics-IQ~\citep{physicsiqbenchmark} is one of the most representative benchmarks for evaluating a model’s ability to capture physical dynamics in video. It presents a short video clip depicting real-world physical motion and asks the model to predict future frames. The predictions are then compared against ground-truth sequences to assess the model’s understanding of physical rules.
+
+The evaluation framework and the corresponding benchmark metrics are summarized in Tab.~\ref{tab:evaluation_framework}. The following sections present our evaluations in detail, and if not specified, we evaluate our 24B model by default.
+
+
+\input{benchmark/tables/evaluation_framework}
+
+\subsection{Perceptual Evaluation}
+\subsubsection{In-house Human Evaluation Benchmark}
+\label{sec:i2v_human_evaluation} 
+Our in-house evaluation benchmark is primarily designed for I2V task, and integrates three complementary components to ensure comprehensive and unbiased assessment.
+First, we design a hierarchical metric system that prioritizes completeness over simplicity, while enforcing orthogonality among metrics to enable fine-grained evaluation across multiple quality dimensions without redundancy.
+Second, we construct a benchmark dataset of 100 diverse image-prompt pairs through systematic selection. These pairs span a broad spectrum of scenarios, from simple object motions to complex human activities, and each curated to probe specific aspects of video generation capability.
+Third, we implement a double-blind comparison protocol with standardized output normalization, ensuring that each model operates under fair conditions for a meaningful comparison.
+
+
+
+\paragraph{Evaluation Metrics.}
+
+To ensure a comprehensive and reliable evaluation while avoiding unnecessary complexity, we adhere to three guiding principles in our metric design: comprehensiveness first, simplicity second, and orthogonality third.
+Unlike T2V, where both visual content and motion are generated from scratch, I2V starts with a fixed visual input provided by the user’s uploaded image, while the subsequent dynamics are guided by the input text condition. This distinction shifts the evaluation focus toward assessing the motion and temporal quality of generated video while ensuring faithful preservation of the original visual elements.
+
+Through preliminary analysis, we identified several common failure modes in I2V generation, including distortion, clipping, and temporal jittering. These typical issues guided the design of our evaluation framework, which emphasizes motion quality, temporal coherence, and the trade-off between source image fidelity and natural animation.
+Therefore, our evaluation framework organizes metrics into four primarily dimensions:
+\emph{Overall}, \emph{Motion Quality}, \emph{Instruction Following}, and \emph{Visual Quality}.
+Each dimension is further broken down into specific sub-metrics designed to
+capture particular aspects of video generation quality as shown in Tab.~\ref{tab:evaluation_metrics}.
+
+
+\input{benchmark/tables/evaluation_metrics}
+\paragraph{Dataset Construction.}
+
+We construct a benchmark dataset consisting of 100 high-quality image-prompt pairs, each carefully selected to challenge different aspects of I2V generation. To ensure diversity and representativeness, we source data from four sources: 1) user-submitted inputs from existing video generation platforms, 2) synthetic images generated by FLUX~\citep{flux2024}, 3) authentic photographs from public repositories, and 4) professional cinematographic materials. Each sample is annotated with specific evaluation targets defined by our metric framework, enabling broad coverage of assessment dimensions while avoiding redundancy.
+
+The dataset construction process follows a systematic multi-stage pipeline. We first establish a set of selection criteria focused on key challenges in I2V generation, including complex object deformation, multi-object interaction, dynamic camera motion, and lighting transitions. Based on these criteria, experts nominate candidate samples, which are then finalized through a collaborative voting procedure. This curated process ensures the resulting benchmark presents a diverse yet focused set of evaluation cases for rigorously testing I2V models.
+
+
+
+
+
+
+
+
+
+\paragraph{Results and Analysis.}
+\label{para:i2v_results_and_analysis}
+Our evaluation methodology employs a paired comparison approach designed to directly measure relative model performance. Specifically, for each test case, we generate two videos (one from our model and one from a comparative model) using identical prompts and input images. Expert evaluators with strong aesthetic training then indicate their preference between each pair (Win/Tie/Lose) across multiple evaluation dimensions without knowledge of which model produced which video.
+
+\magi's autoregressive design enables generation of arbitrary-length videos. For fair comparison, we adapt our generation length to match each comparison model: for example, 5 seconds for Kling and 6 seconds for Hailuo. To avoid potential manipulation of visual quality, we maintain each model's native output without post-processing like resolution normalization. In addition, all models are evaluated using raw user inputs without any manual refinement from our side, relying solely on their built-in prompt enhancement (PE) mechanisms.
+
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=.8\textwidth]{
+benchmark/figures/opensource_compare.mixing.no_add_fail_case.grouped_data_list.exclude_6_compare_id.pdf
+    }    \vspace{0.5em}
+    \caption{Comparative evaluation of our model against leading open-source and proprietary video generation models across multiple metrics. Each bar is divided into three sections: red, gray, and blue, representing Win-Tie-Loss percentages for each comparison. Blue sections indicate where users preferred the competitor model, gray sections represent ties, and red sections show where users preferred our model. The evaluation includes both API-based assessments like Kling1.6 (HD)~\citep{kuaishou2024kling} and Hailuo (i2v-01)~\citep{minimax2024hailuo} and locally deployed models like Wan-2.1~\citep{wang2025wan} and HunyuanVideo~\citep{kong2024hunyuanvideo}), providing a comprehensive comparison across various implementation environments.}
+    \label{fig:metric_distribution_benchmark_sample_set}
+\end{figure}
+
+The evaluation results shown in Fig.~\ref{fig:metric_distribution_benchmark_sample_set} demonstrate \magi's strong competitive position in the field. In terms of overall performance, our model shows advantages over the open-source model Wan-2.1~\citep{wang2025wan}, performs slightly behind the commercial model Kling1.6 (HD)~\citep{kuaishou2024kling}, but achieves clearly better results compared to both Hailuo(i2v-01)~\citep{minimax2024hailuo} and HunyuanVideo~\citep{kong2024hunyuanvideo}. Looking at specific capabilities, \magi excels particularly in instruction following and motion quality metrics, consistently receiving high scores across comparisons. However, in terms of visual quality, there remains room for improvement compared to top models.
+
+\subsubsection{VBench}
+\label{subsubsec:i2v_public_evaluation} 
+
+
+
+
+VBench~\citep{huang2024vbenchcomprehensiveversatilebenchmark} is currently the most widely adopted benchmark in the community for automated and objective evaluation of video generation models. While its evaluation framework is still evolving and not without limitations, VBench remains a critical tool for model comparison due to its fully automated and reproducible assessment process, especially when contrasted with in-house human evaluations, which are often subjective and lack transparency.
+
+VBench provides two primary evaluation tracks: text-to-video (T2V) and image-to-video (I2V). Given that I2V more closely reflects real-world usage patterns, where users typically input a static image to generate videos in existing product, and in line with our goal of aligning evaluation with practical application scenarios, we focus our evaluation on the I2V track in VBench.
+
+We evaluate the generation quality of \magi under two different configurations: \magi (1$\times$decoder) and \magi (2$\times$decoder). The only difference between them lies in the VAE decoder: \magi (2$\times$decoder) employs an enhanced decoder capable of 2× upsampling, while the core autoregressive denoising model remains identical across both versions. For evaluation, both models generate 4-second videos at 24 FPS with a 16:9 aspect ratio.
+
+
+\input{benchmark/tables/vbench_results.tex}
+The results are presented in Tab.~\ref{tab:vbench_results}. As shown, both of our models achieve outstanding performance, with \magi (2$\times$ decoder) reaching a top overall score of 89.28, ranking first among all models.
+Notably, the \magi models demonstrate a significant advantage in the \emph{dynamic Degree} compared to other approaches, while simultaneously maintaining high visual quality, including strong performance in \emph{aesthetic quality} and \emph{motion smoothness}. This effectively addresses a common trade-off in other methods, where increasing motion amplitude often downgrade image quality. We attribute this strength to the autoregressive denoising architecture, which provides a stronger modeling capability for complex motion dynamics.
+
+
+
+
+\subsection{Physical Evaluation}
+Video generation models are increasingly recognized as a foundation toward building the world model, and the ability to accurately capture real-world physical dynamics has become a central focus within the research community. In contrast to perceptual evaluation, which inevitably involves subjective human preferences, physics-based evaluation aims to assess a model’s ability to understand and simulate objective physical principles.
+
+
+Currently, there are only a few established benchmarks~\citep{bansal2024videophy,meng2024towards,dash2011cophy,yi2019clevrer,kang2024far} in this area, and Physics-IQ~\citep{physicsiqbenchmark} stands out as the most comprehensive and state-of-the-art benchmark. Therefore, we adopt Physics-IQ to evaluate the physical understanding and reasoning capabilities of \magi.
+
+The Physics-IQ evaluation protocol uses 8-second real-world videos that depict objective physical phenomena. The first 3 seconds of each video are provided as conditional input to the model, which is then required to predict the remaining 5 seconds. The accuracy of the model’s physical modeling capability is measured by comparing the predicted videos with the ground truth.
+
+Since most existing video generation models do not natively support video-conditioned continuation, they typically approximate this task using image-to-video (I2V) generation, conditioning only on the last frame of the input video. To provide a comprehensive comparison, we report results for both two settings.
+
+\input{benchmark/tables/physics_iq_benchmark}
+The results are presented in Tab.~\ref{tab:physics_iq_benchmark_results}. When conditioned on video inputs, \magi outperforms all competing models by a substantial margin, reaches the score of 56.02. The previous state-of-the-art model VideoPoet~\citep{kondratyuk2023videopoet}, which also supports video-to-video (V2V) prediction, is outperformed by approximately 27 points.
+Even when using only image condition, \magi still achieves the highest score among all models, reaching 30.23, despite a noticeable drop compared to its video-conditioned version.
+
+These results clearly demonstrate the strong capability of \magi in understanding and modeling real-world physical principles. We attribute this advantage to its autoregressive nature: modeling physical processes demands a focus on causality rather than mere correlation, and autoregressive models inherently promote causal reasoning. In contrast, bidirectional denoising models lack the algorithmic foundations necessary to effectively capture causality, which leads to inferior performance in such tasks.
+While VideoPoet is also an autoregressive model, its primary design objective is integration with language models, which limits its efficiency in modeling the video modality; In contrast, \magi is purpose-built for video generation, combining the strengths of autoregressive and denoising-based modeling. This targeted design enables it to achieve significantly superior performance.
+
+
+Nevertheless, our model is not without limitations. Fig.~\ref{fig:case_comparison} presents several representative results, revealing both its strengths and weaknesses. While \magi effectively captures primary dynamics—such as projectile motion, rotational behavior, and material deformation, it struggles with complex secondary effects, including precise collision responses, material-specific reactions, and post-deformation behavior. Notably, even when the predicted outcome deviates from the ground truth, the model often generates physically plausible alternatives. For example, in the second case (Fig.~\ref{fig:case_comparison}(b)), although the model fails to simulate the ignition of a match and the popping of a balloon, it instead produces a coherent sequence in which the rod rotates, contacts the object, and realistically bends upon impact. These results suggest that \magi has acquired a non-trivial physical intuition, capable of generating alternative yet physically consistent scenarios.
+
+
+\input{benchmark/figures/case_physics_iq.tex}
+
+
+\paragraph{The influence of historical context length}
+The benefit of utilizing historical context for more accurate predictions has already been demonstrated in the comparison between image-conditioned and video-conditioned \magi models. To more systematically evaluate the impact of historical information in physical modeling, we varied the length of accessible history by adjusting the KV range of \magi during inference. Fig.~\ref{fig:V2V_windows_size_ablation} presents the results. Overall, we observe that increasing the amount of historical context generally leads to better performance. However, the most significant gain occurs at $\text{KV range}=2$, meaning that short-term history is often sufficient to support accurate predictions.
+
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.678\textwidth]{
+        benchmark/figures/V2V_windows_size_ablation.pdf
+    }
+    \vspace{0.5em}
+    \caption{Physical IQ scores as a function of historical context. This visualization shows how performance changes with varying amounts of historical information, represented by the KV Range Value.}
+    \label{fig:V2V_windows_size_ablation}
+\end{figure}

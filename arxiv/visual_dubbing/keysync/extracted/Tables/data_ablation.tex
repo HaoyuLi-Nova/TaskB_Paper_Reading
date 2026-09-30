@@ -1,0 +1,18 @@
+\begin{table}[ht]
+\resizebox{\columnwidth}{!}{%
+\centering
+\begin{tabular}{ccccc}
+\toprule
+          \multicolumn{2}{c}{Training set}  & \multirow{2}{*}{FID } & \multirow{2}{*}{FVD } & \multirow{2}{*}{LipScore $\uparrow$}    \\
+         \cmidrule(lr){1-2}
+            Keyframe        & Interpolation       &&& \\ \midrule
+                                  All   &     All      &  26.92   &  253.24   &  0.24   \\
+                                  All   &     HQ only      &  24.45  &   236.75  & \underline{0.31}    \\
+                      HQ only         &        All   &  \underline{16.97}   &  \underline{166.81}    &  0.24   \\ 
+          \rowcolor{Gray!40} HQ only           &      HQ only    &   \textbf{16.76}  &  \textbf{137.25}   & \textbf{0.36}   \\
+\bottomrule
+\end{tabular}
+}
+\caption{\textbf{Data Ablation} on HDTF~\cite{hdtf}. “HQ only” refers to our high quality training set (HDTF and collected data), while “All” refers to all training data, including CelebV-Text and CelebV-HQ.}
+\label{tab:data_abl}
+\end{table}

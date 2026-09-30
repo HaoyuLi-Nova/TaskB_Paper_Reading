@@ -1,0 +1,35 @@
+\begin{table}[!ht]
+
+\caption{Ablation Study on Annealed Timestep $T_c$.}
+\label{tab:ablation_annealed_tc}
+
+\centering
+\begin{threeparttable}
+
+\resizebox{0.85\textwidth}{!} 
+{
+\begin{tabular}{ccccccccccc}
+\toprule
+&  \multicolumn{3}{c}{ Video Quality } & \multicolumn{2}{c}{ 3D Trajectory Accuracy } \\
+\cmidrule(lr){2-4} 
+\cmidrule(lr){5-6} 
+Annealed Timestep $T_c$ & FVD  & FID  & CLIPSIM $\uparrow$ & TransErr (m)  & RotErr (deg)  \\
+
+\midrule
+$T_{c}=5$ & \textbf{1492.79} & \textbf{76.95} & \textbf{0.3469} & 0.844 & 1.099 \\
+$T_{c}=10$ & \underline{1976.01} & \underline{106.45} & \underline{0.3429} & 0.546 & 0.493  \\
+$T_{c}=15$ & 2179.15 & 122.55 & 0.3405 & 0.437 & 0.422 \\
+$T_{c}=20$ & 2236.05 & 128.89 & 0.3374 & 0.391 & 0.284 \\
+$T_{c}=25$ & 2240.40 & 132.90 & 0.3337 & \textbf{0.344} & 0.274 \\
+$T_{c}=30$ & 2295.13 & 137.52 & 0.3314 & 0.360 & \textbf{0.261} \\
+$T_{c}=35$ & 2323.20 & 142.71 & 0.3276 & 0.352 & \underline{0.264} \\
+$T_{c}=40$ & 2338.47 & 148.27 & 0.3240 & 0.351 & 0.266 \\
+$T_{c}=45$ & 2363.49 & 156.39 & 0.3207 & 0.350 & 0.268 \\
+$T_{c}=50$ & 2347.64 & 166.71 & 0.3185 & \underline{0.348} & 0.281 \\
+
+\bottomrule
+
+\end{tabular}
+} 
+\end{threeparttable}
+\end{table}

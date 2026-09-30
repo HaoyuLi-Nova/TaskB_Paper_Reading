@@ -1,0 +1,49 @@
+\subsection{MagiAttention Experiments}\label{appendix:magiattn_exps}
+
+\subsubsection{Benchmarking MagiAttention kernel-level performance and flexibility}\label{appendix:magiattn_exps_ffa}
+
+To demonstrate FFA kernels' state-of-the-art performance and flexibility in handling ultra-long, heterogeneous mask training, we measure the throughput (in $\mathrm{TFLOPs/s}$) on Hopper GPUs for both forward and backward passes of prevalent attention kernels across standard mask patterns (see Fig.\ref{fig:ffa_perf_report_full}, Fig.\ref{fig:ffa_perf_report_causal}) with their varlen variants (see Fig.\ref{fig:ffa_perf_report_varlen_full} and Fig.\ref{fig:ffa_perf_report_varlen_causal}), 
+and some irregular mask patterns (see Fig.\ref{fig:ffa_perf_report_sw_causal}).
+
+
+Benchmark settings: for each mask pattern, we vary the sequence length $seqlen$ from $4k,8k,16k,...,$ up to $128k$ ($seqlen_q = seqlen_k = seqlen$) while measuring throughput (in $\mathrm{TFLOPs/s}$) for forward and backward passes of different attention kernels. Other configurations are fixed using common training settings (see Tab.\ref{tab:ffa_exps_settings}) to focus on the impact of sequence length and mask pattern. For the varlen packed data, we simply follow the variable sequence length distribution in the open-sourced dataset~\citep{xu2024chatqa} (see Fig.\ref{fig:varlen_seqlen_distribution}), from which we sample to pack and pad to the required $seqlen$.
+
+To calculate the $\mathrm{TFLOPs/s}$ for various mask patterns during both forward and backward passes, we use the subsequent equations, following Flash-Attention~\citep{dao2023flashattention}:
+
+\begin{align}
+    \mathrm{FLOPs}^{(fwd)} &= \underbrace{2}_{\text{2 matmul}} \times \underbrace{2}_{\text{2 flops per matmul}} \times\;\; \mathrm{MaskArea}(seqlen, mask\_type) \label{eq:flops_fwd}\\
+    &\times batch\_size \times num\_heads_q \times head\_dim \nonumber\\
+    \mathrm{FLOPs}^{(bwd)} &= \underbrace{2.5}_{\text{5 matmul due to recomputation}} \times\;\; \mathrm{FLOPs}^{(fwd)} \label{eq:flops_bwd}\\
+    where \;\;& \mathrm{MaskArea}(seqlen, full) = seqlen^2, \nonumber\\
+     \;\;& \mathrm{MaskArea}(seqlen, causal) = \frac{seqlen(seqlen+1)}{2}, \;\; ...\nonumber \\
+     \mathrm{TFLOPs/s}^{(wd)} &= \cfrac{\mathrm{FLOPs}^{(wd)}}{\mathrm{Runtime}^{(wd)}}, \quad wd \in \{fwd, bwd\}
+\end{align}
+
+\input{infra/train_infra/figs/exps/varlen_seqlen_distribution}
+
+\input{infra/train_infra/tabs/ffa_exps_settings}
+
+\input{infra/train_infra/figs/exps/ffa_perf_report}
+
+
+\clearpage
+
+\subsubsection{Benchmarking MagiAttention module-level scalability}\label{appendix:magiattn_exps_dffa}
+
+To validate the scalability of MagiAttention, we assess the per-GPU throughput (in $\mathrm{TFLOPs/s/GPU}$) of the attention module during both forward and backward propagation, as the sequence length and parallel size increase. This assessment is compared against common CP strategies including Ring-Attention and Ulysses~\citep{liu2023ringattentionblockwisetransformers, jacobs2023deepspeed}. Due to the complexity of supporting irregular masks for baselines, our experiments are limited to the full mask and varlen full mask scenarios. And the distribution of variable sequence lengths still follow the one in kernel-level experiments~\ref{appendix:magiattn_exps_ffa}. The results are presented in Fig.\ref{fig:dffa_perf_report_full} and Fig.\ref{fig:dffa_perf_report_varlen_full}.
+
+Our experiments are conducted on a large-scale productive GPU cluster~\footnote{Due to business and confidentiality reasons, specific details about the productive cluster, such as the number and type of GPUs, are withheld.}. We jointly scale the total sequence length \textit{seqlen}, the context-parallel size \textit{cp\_size}, and the node size \textit{nnodes} from (seqlen:64k, cp\_size:1, nnodes:1) up to (seqlen:3072k (3M), cp\_size:48, nnodes:48). The tensor-parallel size \textit{tp\_size} is kept constant at 8, with sequence-parallel enabled. Other data and model configurations for different mask types are consistent with those detailed in Tab.\ref{tab:ffa_exps_settings}.
+
+Therefore, in every training setting, each rank is assigned constantly with $seqlen=64k$, $num\_heads_q = 8$ and $num\_heads_k = 1$ for attention propagation, while the remaining activations stays $seqlen=8k$, $num\_heads_q = 64$ and $num\_heads_k = 8$ with SP enabled. This setup simulates a common training configuration.
+
+To calculate the $\mathrm{TFLOPs/s/GPU}$ for various mask patterns during both forward and backward passes, similarly, we first calculate the \texttt{FLOPs} as Eq.\ref{eq:flops_fwd} and Eq.\ref{eq:flops_bwd} and apply the following equation:
+
+\begin{align}
+     \mathrm{TFLOPs/s/GPU}^{(wd)} &= \cfrac{\mathrm{FLOPs}^{(wd)}}{\mathrm{Runtime}^{(wd) }\times cp\_size}, \quad wd \in \{fwd, bwd\}
+\end{align}
+
+
+As demonstrated, MagiAttention exhibits linear scalability as the context length and CP size increase, in both full mask and varlen full mask configurations, for both forward and backward passes. In contrast, baseline methods either face strict limitations in scaling up or experience performance degradation with ultra-long contexts, which worsens with varlen mask patterns.
+
+\input{infra/train_infra/figs/exps/dffa_perf_report}
+

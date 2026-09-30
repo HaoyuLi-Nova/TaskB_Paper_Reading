@@ -1,0 +1,33 @@
+
+
+\begin{figure}[h]
+\centering
+\vspace{-1em}
+\includegraphics[width=\textwidth]{figure/teaser.pdf}
+\vspace{-1em}
+\caption{Rolling Forcing performs real-time streaming text-to-video generation at 16 fps on a single GPU and is capable of producing multi-minute-long videos with minimal error accumulation. 
+% 
+More results, code, and demo can be found at the
+\href{https://kunhao-liu.github.io/Rolling_Forcing_Webpage/}{project page}.
+}
+\label{fig:teaser}
+\end{figure}
+
+\begin{abstract}
+Streaming video generation, as one fundamental component in interactive world models and neural game engines, aims to generate high-quality, low-latency, and temporally coherent long video streams. However, most existing work suffers from severe error accumulation that often significantly degrades the generated stream videos over long horizons.
+%
+We design Rolling Forcing, a novel video generation technique that enables streaming long videos with minimal error accumulation. 
+%
+Rolling Forcing comes with three novel designs.
+%
+First, instead of iteratively sampling individual frames, which accelerates error propagation, we design a joint denoising scheme that simultaneously denoises multiple frames with progressively increasing noise levels. This design relaxes the strict causality across adjacent frames, effectively suppressing error growth.
+%
+Second, we introduce the attention sink mechanism into the long-horizon stream video generation task, which allows the model to keep key–value states of initial frames as a global context anchor and thereby enhances long-term global consistency.
+%
+Third, we design an efficient training algorithm that enables few-step distillation over largely extended denoising windows. This algorithm operates on non-overlapping windows and mitigates exposure bias conditioned on self-generated histories.
+%
+Extensive experiments show that Rolling Forcing enables real-time streaming generation of multi-minute videos on a single GPU, with substantially reduced error accumulation.
+
+
+
+\end{abstract}

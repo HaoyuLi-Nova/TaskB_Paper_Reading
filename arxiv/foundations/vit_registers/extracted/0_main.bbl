@@ -1,0 +1,242 @@
+\begin{thebibliography}{34}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Bao et~al.(2021)Bao, Dong, and Wei]{bao2021beit}
+Hangbo Bao, Li~Dong, and Furu Wei.
+\newblock Beit: Bert pre-training of image transformers.
+\newblock In \emph{ICLR}, 2021.
+
+\bibitem[Bulatov et~al.(2022)Bulatov, Kuratov, and
+  Burtsev]{bulatov2022recurrent}
+Aydar Bulatov, Yury Kuratov, and Mikhail Burtsev.
+\newblock Recurrent memory transformer.
+\newblock In \emph{NeurIPS}, 2022.
+
+\bibitem[Burtsev et~al.(2020)Burtsev, Kuratov, Peganov, and
+  Sapunov]{burtsev2020memory}
+Mikhail~S Burtsev, Yuri Kuratov, Anton Peganov, and Grigory~V Sapunov.
+\newblock Memory transformer.
+\newblock \emph{arXiv preprint arXiv:2006.11527}, 2020.
+
+\bibitem[Carion et~al.(2020)Carion, Massa, Synnaeve, Usunier, Kirillov, and
+  Zagoruyko]{carion2020end}
+Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander
+  Kirillov, and Sergey Zagoruyko.
+\newblock End-to-end object detection with transformers.
+\newblock In \emph{ECCV}, 2020.
+
+\bibitem[Caron et~al.(2021)Caron, Touvron, Misra, J{\'e}gou, Mairal,
+  Bojanowski, and Joulin]{caron2021emerging}
+Mathilde Caron, Hugo Touvron, Ishan Misra, Herv{\'e} J{\'e}gou, Julien Mairal,
+  Piotr Bojanowski, and Armand Joulin.
+\newblock Emerging properties in self-supervised vision transformers.
+\newblock In \emph{ICCV}, 2021.
+
+\bibitem[Chen et~al.(2022)Chen, Hsieh, and Gong]{chen2021vision}
+Xiangning Chen, Cho-Jui Hsieh, and Boqing Gong.
+\newblock When vision transformers outperform resnets without pre-training or
+  strong data augmentations.
+\newblock In \emph{ICLR}, 2022.
+
+\bibitem[Devlin et~al.(2019)Devlin, Chang, Lee, and Toutanova]{devlin2018bert}
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova.
+\newblock Bert: Pre-training of deep bidirectional transformers for language
+  understanding.
+\newblock \emph{NAACL}, 2019.
+
+\bibitem[Doersch et~al.(2015)Doersch, Gupta, and
+  Efros]{doersch2015unsupervised}
+Carl Doersch, Abhinav Gupta, and Alexei~A Efros.
+\newblock Unsupervised visual representation learning by context prediction.
+\newblock In \emph{ICCV}, 2015.
+
+\bibitem[Dosovitskiy et~al.(2021)Dosovitskiy, Beyer, Kolesnikov, Weissenborn,
+  Zhai, Unterthiner, Dehghani, Minderer, Heigold, Gelly,
+  et~al.]{dosovitskiy2020image}
+Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn,
+  Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg
+  Heigold, Sylvain Gelly, et~al.
+\newblock An image is worth 16x16 words: Transformers for image recognition at
+  scale.
+\newblock In \emph{ICLR}, 2021.
+
+\bibitem[Fang et~al.(2021)Fang, Liao, Wang, Fang, Qi, Wu, Niu, and
+  Liu]{fang2021you}
+Yuxin Fang, Bencheng Liao, Xinggang Wang, Jiemin Fang, Jiyang Qi, Rui Wu,
+  Jianwei Niu, and Wenyu Liu.
+\newblock You only look at one sequence: Rethinking transformer in vision
+  through object detection.
+\newblock In \emph{NeurIPS}, 2021.
+
+\bibitem[He et~al.(2020)He, Fan, Wu, Xie, and Girshick]{he2020momentum}
+Kaiming He, Haoqi Fan, Yuxin Wu, Saining Xie, and Ross Girshick.
+\newblock Momentum contrast for unsupervised visual representation learning.
+\newblock In \emph{CVPR}, 2020.
+
+\bibitem[He et~al.(2022)He, Chen, Xie, Li, Doll{\'a}r, and
+  Girshick]{he2021masked}
+Kaiming He, Xinlei Chen, Saining Xie, Yanghao Li, Piotr Doll{\'a}r, and Ross
+  Girshick.
+\newblock Masked autoencoders are scalable vision learners.
+\newblock In \emph{CVPR}, 2022.
+
+\bibitem[Ilharco et~al.(2021)Ilharco, Wortsman, Wightman, Gordon, Carlini,
+  Taori, Dave, Shankar, Namkoong, Miller, Hajishirzi, Farhadi, and
+  Schmidt]{ilharco_gabriel_2021_5143773}
+Gabriel Ilharco, Mitchell Wortsman, Ross Wightman, Cade Gordon, Nicholas
+  Carlini, Rohan Taori, Achal Dave, Vaishaal Shankar, Hongseok Namkoong, John
+  Miller, Hannaneh Hajishirzi, Ali Farhadi, and Ludwig Schmidt.
+\newblock Openclip.
+\newblock 2021.
+
+\bibitem[Jaegle et~al.(2021)Jaegle, Gimeno, Brock, Vinyals, Zisserman, and
+  Carreira]{jaegle2021perceiver}
+Andrew Jaegle, Felix Gimeno, Andy Brock, Oriol Vinyals, Andrew Zisserman, and
+  Joao Carreira.
+\newblock Perceiver: General perception with iterative attention.
+\newblock In \emph{ICML}, 2021.
+
+\bibitem[Jaegle et~al.(2022)Jaegle, Borgeaud, Alayrac, Doersch, Ionescu, Ding,
+  Koppula, Brock, Shelhamer, H'enaff, Botvinick, Zisserman, Vinyals, and
+  Carreira]{Jaegle2021PerceiverIO}
+Andrew Jaegle, Sebastian Borgeaud, Jean-Baptiste Alayrac, Carl Doersch, Catalin
+  Ionescu, David Ding, Skanda Koppula, Andrew Brock, Evan Shelhamer, Olivier~J.
+  H'enaff, Matthew~M. Botvinick, Andrew Zisserman, Oriol Vinyals, and Jo{\~a}o
+  Carreira.
+\newblock Perceiver io: A general architecture for structured inputs \&
+  outputs.
+\newblock In \emph{ICLR}, 2022.
+
+\bibitem[Kirillov et~al.(2023)Kirillov, Mintun, Ravi, Mao, Rolland, Gustafson,
+  Xiao, Whitehead, Berg, Lo, et~al.]{kirillov2023segment}
+Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura
+  Gustafson, Tete Xiao, Spencer Whitehead, Alexander~C Berg, Wan-Yen Lo, et~al.
+\newblock Segment anything.
+\newblock \emph{arXiv preprint arXiv:2304.02643}, 2023.
+
+\bibitem[Krizhevsky et~al.(2012)Krizhevsky, Sutskever, and Hinton]{alexnet}
+Alex Krizhevsky, Ilya Sutskever, and Geoffrey~E Hinton.
+\newblock Imagenet classification with deep convolutional neural networks.
+\newblock In \emph{NeurIPS}, 2012.
+
+\bibitem[Locatello et~al.(2020)Locatello, Weissenborn, Unterthiner, Mahendran,
+  Heigold, Uszkoreit, Dosovitskiy, and Kipf]{locatello2020object}
+Francesco Locatello, Dirk Weissenborn, Thomas Unterthiner, Aravindh Mahendran,
+  Georg Heigold, Jakob Uszkoreit, Alexey Dosovitskiy, and Thomas Kipf.
+\newblock Object-centric learning with slot attention.
+\newblock In \emph{NeurIPS}, 2020.
+
+\bibitem[Lowe(2004)]{lowe2004distinctive}
+David~G Lowe.
+\newblock Distinctive image features from scale-invariant keypoints.
+\newblock \emph{IJCV}, 2004.
+
+\bibitem[Oquab et~al.(2023)Oquab, Darcet, Moutakanni, Vo, Szafraniec, Khalidov,
+  Fernandez, Haziza, Massa, El-Nouby, et~al.]{oquab2023dinov2}
+Maxime Oquab, Timoth{\'e}e Darcet, Th{\'e}o Moutakanni, Huy Vo, Marc
+  Szafraniec, Vasil Khalidov, Pierre Fernandez, Daniel Haziza, Francisco Massa,
+  Alaaeldin El-Nouby, et~al.
+\newblock Dinov2: Learning robust visual features without supervision.
+\newblock \emph{arXiv preprint arXiv:2304.07193}, 2023.
+
+\bibitem[Psomas et~al.(2023)Psomas, Kakogeorgiou, Karantzalos, and
+  Avrithis]{psomas2023keep}
+Bill Psomas, Ioannis Kakogeorgiou, Konstantinos Karantzalos, and Yannis
+  Avrithis.
+\newblock Keep it simpool: Who said supervised transformers suffer from
+  attention deficit?
+\newblock In \emph{ICCV}, 2023.
+
+\bibitem[Radford et~al.(2021)Radford, Kim, Hallacy, Ramesh, Goh, Agarwal,
+  Sastry, Askell, Mishkin, Clark, et~al.]{radford2021learning}
+Alec Radford, Jong~Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+  Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark,
+  et~al.
+\newblock Learning transferable visual models from natural language
+  supervision.
+\newblock In \emph{ICML}, 2021.
+
+\bibitem[Russakovsky et~al.(2015)Russakovsky, Deng, Su, Krause, Satheesh, Ma,
+  Huang, Karpathy, Khosla, Bernstein, Berg, and
+  Fei-Fei]{russakovsky2015imagenet}
+Olga Russakovsky, Jia Deng, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma,
+  Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, Alexander~C
+  Berg, and Li~Fei-Fei.
+\newblock Imagenet large scale visual recognition challenge.
+\newblock \emph{IJCV}, 2015.
+
+\bibitem[Sandler et~al.(2022)Sandler, Zhmoginov, Vladymyrov, and
+  Jackson]{sandler2022fine}
+Mark Sandler, Andrey Zhmoginov, Max Vladymyrov, and Andrew Jackson.
+\newblock Fine-tuning image transformers using learnable memory.
+\newblock In \emph{CVPR}, 2022.
+
+\bibitem[Shi et~al.(2023)Shi, Gai, Darrell, and Wang]{shi2023toast}
+Baifeng Shi, Siyu Gai, Trevor Darrell, and Xin Wang.
+\newblock Toast: Transfer learning via attention steering, 2023.
+
+\bibitem[Sim{\'e}oni et~al.(2021)Sim{\'e}oni, Puy, Vo, Roburin, Gidaris,
+  Bursuc, P{\'e}rez, Marlet, and Ponce]{simeoni2021localizing}
+Oriane Sim{\'e}oni, Gilles Puy, Huy~V Vo, Simon Roburin, Spyros Gidaris, Andrei
+  Bursuc, Patrick P{\'e}rez, Renaud Marlet, and Jean Ponce.
+\newblock Localizing objects with self-supervised transformers and no labels.
+\newblock In \emph{BMVC}, 2021.
+
+\bibitem[Song et~al.(2021)Song, Sun, Chun, Jampani, Han, Heo, Kim, and
+  Yang]{song2021vidt}
+Hwanjun Song, Deqing Sun, Sanghyuk Chun, Varun Jampani, Dongyoon Han, Byeongho
+  Heo, Wonjae Kim, and Ming-Hsuan Yang.
+\newblock Vidt: An efficient and effective fully transformer-based object
+  detector.
+\newblock In \emph{ICLR}, 2021.
+
+\bibitem[Torralba \& Efros(2011)Torralba and Efros]{torralba2014dataset}
+Antonio Torralba and Alexei~A. Efros.
+\newblock Unbiased look at dataset bias.
+\newblock In \emph{CVPR}, 2011.
+
+\bibitem[Touvron et~al.(2022)Touvron, Cord, and J{\'e}gou]{touvron2022deit}
+Hugo Touvron, Matthieu Cord, and Herv{\'e} J{\'e}gou.
+\newblock Deit iii: Revenge of the vit.
+\newblock In \emph{ECCV}, 2022.
+
+\bibitem[Wang et~al.(2023)Wang, Girdhar, Yu, and Misra]{wang2023cut}
+Xudong Wang, Rohit Girdhar, Stella~X Yu, and Ishan Misra.
+\newblock Cut and learn for unsupervised object detection and instance
+  segmentation.
+\newblock In \emph{CVPR}, 2023.
+
+\bibitem[Xue et~al.(2023)Xue, Likhosherstov, Arnab, Houlsby, Dehghani, and
+  You]{xue2023adaptive}
+Fuzhao Xue, Valerii Likhosherstov, Anurag Arnab, Neil Houlsby, Mostafa
+  Dehghani, and Yang You.
+\newblock Adaptive computation with elastic input sequence.
+\newblock In \emph{ICML}, 2023.
+
+\bibitem[Yu et~al.(2024)Yu, Chu, Tong, Wu, Pai, Buchanan, and
+  Ma]{yu2023emergence}
+Yaodong Yu, Tianzhe Chu, Shengbang Tong, Ziyang Wu, Druv Pai, Sam Buchanan, and
+  Yi~Ma.
+\newblock Emergence of segmentation with minimalistic white-box transformers.
+\newblock In \emph{CPAL}, 2024.
+
+\bibitem[Zheng et~al.(2021)Zheng, Lu, Zhao, Zhu, Luo, Wang, Fu, Feng, Xiang,
+  Torr, et~al.]{zheng2021rethinking}
+Sixiao Zheng, Jiachen Lu, Hengshuang Zhao, Xiatian Zhu, Zekun Luo, Yabiao Wang,
+  Yanwei Fu, Jianfeng Feng, Tao Xiang, Philip~HS Torr, et~al.
+\newblock Rethinking semantic segmentation from a sequence-to-sequence
+  perspective with transformers.
+\newblock In \emph{CVPR}, 2021.
+
+\bibitem[Zhou et~al.(2022)Zhou, Wei, Wang, Shen, Xie, Yuille, and
+  Kong]{zhou2021ibot}
+Jinghao Zhou, Chen Wei, Huiyu Wang, Wei Shen, Cihang Xie, Alan Yuille, and Tao
+  Kong.
+\newblock ibot: Image bert pre-training with online tokenizer.
+\newblock In \emph{ICLR}, 2022.
+
+\end{thebibliography}

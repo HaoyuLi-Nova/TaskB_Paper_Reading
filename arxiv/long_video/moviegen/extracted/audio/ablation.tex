@@ -1,0 +1,105 @@
+\subsubsection{Ablations}\label{sec:audio_ablation}
+We ablate critical design decisions for \OursAudio in this section, including text prompts, scaling, data, and extension methods. Unless otherwise described, we use the 13B parameter model and evaluate on \OursAudioBenchSGen SFX for sound effect generation.
+
+\textbf{Text prompt: audio quality control.}
+We vary the audio quality specified in the text prompt (blue part in \cref{tab:audio_caption}) and demonstrate it can effectively control the audio quality.
+We evaluate both SFX and joint SFX+music generation,
+and present object and subjective metrics on both audio quality and video-SFX alignment in \cref{fig:audio_abl_qual_obj} and \cref{tab:audio_abl_qual_sbj}, respectively.
+Qualitative samples are shown in \cref{app:qual_control}.
+
+\input{tables/audio/abl_audio_qual.tex}
+
+As we increase the conditioned audio quality, the predicted audio quality scores consistently improve on both datasets, and aligns with the subjective tests mostly up to 6.5.
+Human raters show similar preference to 6.5 and 7.0 for SFX generation, where quality is harder to differentiate at that level.
+These results validate the correlation between the subjective quality metric and the objective proxy metric (AQual), and demonstrate the effectiveness of quality control.
+In terms of the impact on video-SFX alignment, the impact is not significant on SFX generation (IB score is between 0.33 and 0.35, and subjective preference is not significant for any pair). In contrast, we observe significant improvement on SFX+music generation from 5.0 to 6, where IB score improves from 0.28 to 0.32 and raters show significant preference to higher conditioned quality.
+More details on metric correlation can be found in~\Cref{sec:app-audio-corr}.
+
+
+\begin{figure}[h]
+    \begin{subfigure}[b]{.48\linewidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{figures/audio/qual_ctrl_aes.pdf}
+        \subcaption{Audio quality score \vs prompted audio quality.}
+    \end{subfigure}
+    \begin{subfigure}[b]{.48\linewidth}
+        \centering
+        \includegraphics[width=.8\linewidth]{figures/audio/qual_ctrl_ib.pdf}
+        \subcaption{\IB score \vs prompted audio quality.}
+    \end{subfigure}
+    
+    \caption{\textbf{\OursAudio audio quality control ablations with objective tests}}
+    \label{fig:audio_abl_qual_obj}
+\end{figure}
+
+\textbf{Text prompt: control SFX and music styles}
+\cref{fig:audio_ablation_text_sfx} and \cref{fig:audio_ablation_text_music} in the appendix present examples of audio event and music style control through text prompts.
+We observe in \cref{fig:audio_ablation_text_sfx} that text is particularly useful for dictating what \textit{unseen} sound events should be generated.
+On the other hand, \cref{fig:audio_ablation_text_music} shows that text prompts can effectively control the music style, rendering different emotions for the same video.
+
+\input{figures/audio/teaser_ablation_cap_audio.tex}
+
+\textbf{Text prompt: with \vs without prompts.}
+We study the impact of using text prompts during training and generation.
+Here we pre-train and fine-tune two 1B parameter models, one with text input and other without, denoted as TV2A and V2A, respectively.
+Text dropout is used for training for TV2A, so we can generate samples using only video input with that model as well.
+We denote model trained with caption and generating without caption as ``TV2A $\rightarrow$ V2A'', and similarly for other setups.
+
+Results are presented in \cref{tab:audio_abl_text_cap}.
+We first note that on subjective tests, using text captions slightly improves quality, and significantly improves most alignment metrics.
+Second, when running inference without text prompt, the model trained with text prompts (TV2A $\rightarrow$ V2A) outperforms the one without (V2A $\rightarrow$ V2A) especially on the subjective alignment metrics, showing that text can facilitate learning audio-visual correspondence.
+Third, using text prompts can effectively guide model to generate the desired sound effects as shown by the higher CLAP score (0.37 \vs 0.23),
+since there is still a high level of ambiguity on what sound events should present given a video.
+
+\input{tables/audio/abl_text_cap.tex}
+
+\textbf{Model: scaling}.
+We study the benefit of scaling and compares models of four different sizes: 300M, 3B, 9B, and 13B parameters.
+The 300M model adopts the same architecture and configuration as \citet{vyas2023audiobox},
+while the remaining ones use the DiT architecture described in \cref{sec:audio_model}.
+Performance generally improves across all metrics as the model scales up, as shown in \cref{tab:audio_abl_model_size}.
+
+\input{tables/audio/abl_model_size.tex}
+
+\textbf{Data: effectiveness of fine-tuning}.
+We compare performance before and after fine-tuning in \cref{tab:audio_abl_pt_vs_ft}.
+Fine-tuning significantly enhances both audio quality and video alignment.
+Qualitatively, the generated videos exhibit a much more cinematic feel after fine-tuning, which highlights the importance of high-quality data curation for the fine-tuning process.
+
+\input{tables/audio/abl_data_ft.tex}
+
+\textbf{Data: effectiveness of high-quality audio-only data for fine-tuning}.
+During fine-tuning, we supplement the cinematic audio-video data (Cin-AV), with an additional high-quality audio data (HQ-A) including both music and sound effects.
+We show in \cref{tab:audio_abl_hq_data} that inclusion of high-quality audios yields significant improvement on quality and even slightly improves video alignment for SFX-only generation.
+For joint sound effect and music generation, it leads to significant improvement on video-music alignment.
+The inclusion of large-scale text-sound effect and text-music pairs enables the model to effectively disentangle different audio types.
+The alignment between audio and video thus also improves, along with the overall quality of the generated sound.
+
+\input{tables/audio/abl_data_hq_audio.tex}
+
+
+\textbf{Extension: autoregressive \vs multi-diffusion}.
+We compare the default extension method used in the main results (multi-diffusion, MD, with triangle window) with the other method (segment-level autoregressive generation, AR) and other configurations (windowing function for MD, use of beam search and conditioning methods for AR) described in \cref{sec:audio_ext}.
+A one-shot generation topline that generates audio for the entire video without extension is also included.
+We evaluate on the \OursAudioBenchSGen SFX+music set, following the setup described in \cref{sec:main_res},
+and study models in two scale: 3B and 13B.
+Results are shown in \cref{tab:audio_abl_ext}. We show qualitative samples for extension methods from the 13B model in \cref{fig:audio_ablation_extn}.
+
+\input{tables/audio/abl_ext.tex}
+
+\input{figures/audio/ablations/audio_extn.tex}
+
+We observed
+\begin{enumerate*}[label=(\arabic*)]
+    \item most methods are statistically similar on video-SFX alignment metrics,
+    \item multi-diffusion outperforms most alternative extension methods on quality significantly on 3B, but the gap disappears after scaling to 13B,
+    \item multi-diffusion is on par with the one-shot generation topline at 3B and even marginally better at 13B,
+    \item the proposed triangle window leads to smoother transitions compared to the uniform window proposed in~\citep{bar2023multidiffusion}
+    and results in higher audio quality (\vs ``MD w/ uni. win'') at 3B, but the gain again disappears at the larger scale.
+    \item beam search improves autoregressive generation (``AR w/ traj. reg. \& tri. win.'' \vs ``AR w/ traj. reg. \& tri. win. \& beam'') at 3B,
+    likely because the sample quality varies more for different seeds at smaller scales.
+\end{enumerate*}
+
+
+
+

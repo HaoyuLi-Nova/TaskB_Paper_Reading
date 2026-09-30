@@ -1,0 +1,35 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{framework.pdf}
+\end{center}
+\vspace{-0.6cm}
+   \caption{Architecture of StableAvatar. (a) refers to the structure of the Audio Adapter. Embeddings from the Image Encoder and Text Encoder are injected to each block of DiT. Given the audio, we extract the audio embeddings utilizing Wav2Vec. 
+   To model joint audio-latent representations, the audio embeddings are fed into the Audio Adapter, and its outputs are injected into the DiT via cross-attention.
+   }
+\label{fig:framework}
+\vspace{-0.5cm}
+\end{figure*}
+
+\noindent\textbf{Video Generation.}
+The capacity for diversity and high fidelity in diffusion models~\cite{dhariwal2021diffusion,ho2020denoising,ho2022cascaded, tu2023implicit,nichol2021improved,song2020score,song2020denoising,rombach2022high,meng2021sdedit,hertz2022prompt,tumanyan2023plug} has sparked significant interest in their potential for video generation. 
+Early video diffusion models~\cite{singer2022make, blattmann2023stable, guo2023animatediff, wu2023tune, wang2024magicvideo, tu2024motioneditor, videoworldsimulators2024,tu2024motionfollower,tu2025stableanimator} primarily leverage the U-Net architecture for video generation by adding temporal layers to pre-trained image diffusion models for joint spatio-temporal modeling.
+Recent works~\cite{bao2024vidu, hong2022cogvideo, kong2024hunyuanvideo, wan2025} replace the U-Net with the Diffusion-in-Transformer (DiT) architecture~\cite{peebles2023scalable} for stronger scalability.  Inspired by previous works~\cite{wang2025fantasytalking, kong2025let, gan2025omniavatar}, we utilize Wan2.1~\cite{wan2025} as the backbone.
+
+\noindent\textbf{Audio-Driven Avatar Video Generation.}
+Audio-driven avatar video generation aims to animate a reference human image based on given audio.
+Early works~\cite{guan2023stylesync, zhang2023sadtalker, cheng2022videoretalking, pang2023dpe, yin2022styleheat, gong2023toontalker, wang2024v_express} first convert audio into features~\cite{tran2018nonlinear, song2022audio}, and then use a motion-to-video model (GAN~\cite{goodfellow2020generative}) projects these features into videos. 
+Recently, some studies have applied diffusion models to this field. Most works~\cite{tian2024emo, wei2024aniportrait, ji2025sonic, chen2025echomimic, li2024latentsync, jiang2024loopy} leverage the diffusion model to integrate audio cues with lips, which only supports head movement. 
+CyberHost~\cite{lin2025cyberhost} and FantasyTalking~\cite{wang2025fantasytalking} aim to animate half-body avatars. 
+EMO2~\cite{tian2025emo2} and EchomimicV2~\cite{meng2025echomimicv2} use hand pose sequences to improve half-body video quality. 
+OmniHuman~\cite{lin2025omnihuman} applies a mixed data training strategy for scaling up.
+HunyuanVideo-Avatar~\cite{chen2025hunyuanvideo} and MultiTalk~\cite{kong2025let} aim to synthesize multi-character animation. OmniAvatar~\cite{gan2025omniavatar} supports full-body avatar video generation.
+However, previous works suffer from face/body distortion and color drift, particularly when generating long avatar videos. While some works~\cite{cui2025hallo3, ji2025sonic, kong2025let, gan2025omniavatar, xu2024hallo} propose strategies for long video generation, their approaches are only activated during inference and primarily improve smoothness, without addressing the underlying cause of distortion—latent error accumulation.
+StableAvatar addresses these issues and performs infinite-length high-quality avatar video generation.
+
+\noindent\textbf{Long Video Generation Strategy.}
+Generating long videos~\cite{skorokhodov2022stylegan, brooks2022generating, harvey2022flexible, voleti2022mcvd, tseng2023consistent, yin2023nuwa, lu2024freelong, lu2025freelong++} is extremely challenging due to temporal complexity and the need for content consistency. 
+Nuwa-XL~\cite{yin2023nuwa} and StreamingT2V~\cite{henschel2025streamingt2v} both adopt short-long memory blocks to ensure long video consistency. Gen-L-Video~\cite{wang2023gen} and FreeNoise~\cite{qiu2023freenoise} extend videos by merging overlapping sub-segments with a sliding window. FreeLong~\cite{lu2024freelong} and FreeLong++~\cite{lu2025freelong++} blend global and local video features for consistency.
+However, audio-driven avatar video generation cannot directly apply the above methods, as they are designed for Text-to-Video tasks and exhibit a significant domain gap with audio.

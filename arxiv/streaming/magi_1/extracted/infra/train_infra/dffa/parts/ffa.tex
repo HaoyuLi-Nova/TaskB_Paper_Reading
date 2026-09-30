@@ -1,0 +1,15 @@
+\paragraph{Flex-Flash-Attention.}\label{sec:magiattn_ffa}
+\input{infra/train_infra/figs/mask_with_attn_slice}
+
+FlashAttention~\citep{dao2022flashattention, dao2023flashattention, shah2024flashattention3fastaccurateattention} is a foundational technique in large-scale model training for its superior performance and support for varlen-packed data with causal attention masks. However, it offers limited support for irregular attention masks, particularly when such patterns are distributed across CP ranks, resulting in increased complexity and underscoring the need for a more flexible attention kernel~\citep{pytorch_sdpa, dong2024flexattentionprogrammingmodel,wang2025flashmaskefficientrichmask} without compromising performance.
+
+Therefore, we introduce Flex-Flash-Attention (FFA), which is natively designed for distribution scenarios and provides greater flexibility in handling diverse attention mask types. The core idea behind FFA is to generalize a distributable formulation for irregular attention masks by decomposing the entire mask into multiple computational units, each referred to as an \texttt{AttnSlice}. Each \texttt{AttnSlice} is defined by a triplet \texttt{\(QRange, KRange, MaskType\)}, which specifies a submask with a basic shape bounded by a contiguous 2D query-key region (see Fig.~\ref{fig:attnslice_interpret}). Using this formulation, a wide variety of commonly used attention masks (Fig.~\ref{fig:mask_with_attn_slice}) (including our varlen block-causal mask) can be expressed as a composition of multiple such triplets, making FFA highly suitable for distributed attention computation.
+
+
+Built on FA3 kernels, Flex-Flash-Attention leverages NVIDIA Hopper GPUs' TMA feature~\citep{nvidia2024accelerating} and introduces slice-level parallelism with atomic operations for correctness (Fig~\ref{fig:ffa_slice_parallel}), achieving comparable MFU to FA3 while supporting the flexible \texttt{AttnSlice} formulation~\footnote{Redundant computation from padding tokens is excluded by easily passing empty \texttt{QRange} or \texttt{KRange}.} (see Appendix~\ref{appendix:magiattn_exps} for benchmarks).
+
+
+
+
+
+

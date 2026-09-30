@@ -1,0 +1,32 @@
+\begin{table}[!ht]
+
+\vspace{-1em}
+\caption{\textbf{Fine Control Comparison with Multi-Entity Input.}}
+\label{tab:control_level}
+
+\centering
+\begin{threeparttable}
+
+\resizebox{.9\textwidth}{!} 
+{
+\begin{tabular}{ccccccccccc}
+\toprule
+&  Location  & Orientation & Entity-Traj. Corresp. & Learning-based? \\
+
+\midrule
+Direct-a-Video &  \checkmark(2D) & \ding{55} & \checkmark & \ding{55} \\
+MotionCtrl/Tora &  \checkmark(2D) & \ding{55} & \ding{55}  & \checkmark (not decoupled)  \\
+\midrule
+3DTrajMaster (Ours) & \textbf{\checkmark} (3D) & \checkmark & \checkmark & \checkmark (decoupled) \\
+
+
+\bottomrule
+
+\end{tabular}
+}
+
+\vspace{-1em}
+\end{threeparttable}
+\end{table}
+
+

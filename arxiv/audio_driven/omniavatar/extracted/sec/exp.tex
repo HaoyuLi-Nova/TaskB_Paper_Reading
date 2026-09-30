@@ -1,0 +1,160 @@
+\section{Experiments}
+% Tab
+\begin{table*}[htp!]
+\centering
+\small
+\begin{tabular}{c|cccccc}
+\Xhline{1pt}
+\textbf{Methods} & \textbf{FID}    & \textbf{FVD}     & \textbf{Sync-C}  $\uparrow$  & \textbf{Sync-D}      & \textbf{IQA}  $\uparrow$  & \textbf{ASE}  $\uparrow$ \\ \hline
+\multicolumn{7}{c}{HDTF} \\ \hline
+Sadtalker~\cite{zhang2023sadtalker}  & 50.0 & 538 & 7.01 & 8.54 & 3.16 & 2.23 \\ 
+Aniportrait~\cite{wei2024aniportrait} & 46.1* & 546* & 3.64* & 10.79* & 3.96* &  2.35* \\ 
+V-express~\cite{wang2024v} & 59.1* & 548* & 8.02* & 7.69* &  3.32* & 1.96* \\ 
+EchoMimic~\cite{chen2025echomimic} & 61.7* & 575* & 5.71* & 9.14* & 3.61* & 2.19*   \\ 
+Hallo3~\cite{cui2024hallo3} & 42.1 & 406 & 6.89 & 8.71 & 3.55 & 2.15 \\
+FantasyTalking~\cite{wang2025fantasytalking} & 43.9 & 441 & 3.75 & 11.0 & 3.59 & 2.17   \\ 
+HunyuanAvatar~\cite{chen2025hunyuanvideoavatar} & 47.3 & 588 & 7.31 & 8.33 & 3.58 & 2.20 \\ 
+MultiTalk~\cite{kong2025let} & 44.2 & 436 & 7.63 & 7.78 & 3.54  & 2.14  \\ 
+GT & - & - & 8.20 & 6.89 & 3.94  &  2.48 \\ 
+\cellcolor[HTML]{D9D9D9}{Ours} & \cellcolor[HTML]{D9D9D9}{\textbf{37.3}} & \cellcolor[HTML]{D9D9D9}{\textbf{382}} & \cellcolor[HTML]{D9D9D9}{\underline{7.62}} & \cellcolor[HTML]{D9D9D9}{\underline{8.14}} & \cellcolor[HTML]{D9D9D9}{\textbf{3.82}} & \cellcolor[HTML]{D9D9D9}{\textbf{2.41}} \\ \Xhline{1pt}
+  \multicolumn{7}{c}{AVSpeech-Face}  \\  \hline
+Sadtalker~\cite{zhang2023sadtalker}  & 103 & 1182 & 4.31 & 9.68 & 2.45 & 1.49 \\ 
+Aniportrait~\cite{wei2024aniportrait} & 100 & 1095 & 2.09 & 11.6 & 2.31 & 1.39 \\ 
+V-express~\cite{wang2024v} & 194 & 1589 & 6.19 &  8.88  & 2.26 & 1.54 \\ 
+EchoMimic~\cite{chen2025echomimic} & 69.1 & 751 & 4.31 & 9.81 & 2.71 & 1.56 \\ 
+Hallo3~\cite{cui2024hallo3} & 68.6 & 703 & 4.93 & 9.76 & 2.64 & 1.49 \\ 
+FantasyTalking~\cite{wang2025fantasytalking} & 86.1 & 885 & 3.34 & 11.1 & 2.69 & 1.57  \\ 
+HunyuanAvatar~\cite{chen2025hunyuanvideoavatar} & 88.6 & 796 & 5.97 & 8.66 & 2.52 & 1.45\\ 
+MultiTalk~\cite{kong2025let} & 78.3 & 729 & 6.23 & 8.43 & 2.74  &  1.59 \\ 
+GT  & - & - & 7.08 & 8.07 & 2.54 & 1.47 \\
+\cellcolor[HTML]{D9D9D9}{Ours} & \cellcolor[HTML]{D9D9D9}{\textbf{66.5}} & \cellcolor[HTML]{D9D9D9}{\textbf{692}} & \cellcolor[HTML]{D9D9D9}{\textbf{6.32}} & \cellcolor[HTML]{D9D9D9}{\textbf{8.38}} & \cellcolor[HTML]{D9D9D9}{2.63} & \cellcolor[HTML]{D9D9D9}{1.51} \\ \Xhline{1pt}
+\end{tabular}
+\vspace{-0.1in}
+\caption{Quantitative comparison on the test set with existing audio-driven talking face video generation methods.}
+\vspace{-0.3in}
+\label{tab:face}
+\end{table*}
+
+\begin{table*}[htp!]
+\centering
+\small
+\begin{tabular}{c|cccccc}
+\Xhline{1pt}
+\textbf{Methods} &  \textbf{FID}    & \textbf{FVD}     & \textbf{Sync-C}  $\uparrow$  & \textbf{Sync-D}      & \textbf{IQA}  $\uparrow$  & \textbf{ASE}  $\uparrow$ \\ \hline
+Hallo3~\cite{cui2024hallo3} & 104 & 1078 & 5.23 & 9.54 & 3.41 & 2.00 \\
+FantasyTalking~\cite{wang2025fantasytalking} & 78.9 & 780 & 3.14 & 11.2 & 3.33 & 1.96   \\ 
+HunyuanAvatar~\cite{chen2025hunyuanvideoavatar} & 77.7 & 887 & 6.71 & 8.35 &  3.61 & 2.16 \\ 
+MultiTalk~\cite{kong2025let} & 74.7 & 787 & 4.76 & 9.99 &  3.67 & 2.22  \\ 
+GT & - & - & 6.75 & 7.76 & 3.92  &  2.38 \\ 
+\cellcolor[HTML]{D9D9D9}{Ours} & \cellcolor[HTML]{D9D9D9}{\textbf{67.6}} & \cellcolor[HTML]{D9D9D9}{\textbf{664}} & \cellcolor[HTML]{D9D9D9}{\textbf{7.12}} & \cellcolor[HTML]{D9D9D9}{\textbf{8.05}} & \cellcolor[HTML]{D9D9D9}{\textbf{3.75}} & \cellcolor[HTML]{D9D9D9}{\textbf{2.25}} \\ \Xhline{1pt}
+\end{tabular}
+\vspace{-0.1in}
+\caption{Quantitative comparison on the AVSpeech~\cite{ephrat2018looking} test set with existing audio-driven semi-body video generation methods. $*$ denotes the test videos maybe are used to train by the methods.}
+\vspace{-0.3in}
+\label{tab:semi-body}
+\end{table*}
+
+% Fig
+\begin{figure*}
+    \centering
+    \includegraphics[width=0.95\linewidth]{figs/face.pdf}
+    \vspace{-0.1in}
+    \caption{The qualitative comparison on HDTF~\cite{zhang2021flow} and AVSpeech~\cite{ephrat2018looking} for facial generation. We use cropped square faces as input in the AVSpeech test set.}
+    \vspace{-0.1in}
+    \label{fig:face}
+\end{figure*}
+\subsection{Experimental Setups}
+
+\noindent\textbf{Implementation.}
+To train OmniAvatar, we use Wan2.1-T2V-14B~\cite{wan2025wan} as the base model. The training process consists of two phases. In the first phase, we train the model on low-resolution (480p) audio-video data to establish fundamental audio-visual alignment. In the second phase, we combine both low-resolution and high-resolution audio-video data to further refine the model, with the goal of improving motion stability.
+The maximum latent token length for video during training is set to 30,000, and 10\% of the data is dropped for audio to perform classifier-free guidance. During training, we pre-extract the video latents and caption embeddings for efficiency and randomly select the length of prefix latent between 1 and 4. For the LoRA optimization, we set the rank to 128 and the alpha to 64, ensuring a balance between efficient fine-tuning and preserving the performance of the base model.
+The training process is conducted on 64 A100 80GB GPUs, with a learning rate set to 5e-5.
+
+During inference, we apply a 13-frame video overlap for long video generation. The denoising process runs for 25 steps, with both the audio and text classifier-free guidance (CFG) set to 4.5 for stable video generation.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/fullbody.pdf}
+    \vspace{-0.25in}
+    \caption{Visual comparison for semi-body generation on AVSpeech~\cite{ephrat2018looking} test set.}
+    \vspace{-0.1in}
+    \label{fig:fullbody}
+\end{figure*}
+
+\noindent\textbf{Dataset.}
+We use the fully open-source AVSpeech~\cite{ephrat2018looking} dataset for training our model. AVSpeech is a large-scale audio-visual dataset containing over 4700 hours of human video. To ensure high-quality training data, we utilize SyncNet~\cite{chung2017out} and Q-Align~\cite{wu2023q} to filter for higher-quality videos by evaluating lip-sync accuracy and video fidelity.
+After applying these filters, we obtain a subset of 774,207 samples with durations ranging from 3 to 20 seconds, totaling approximately 1,320 hours of data. From this dataset, we randomly select 100 samples for the semi-body test set, with the remaining data used for training. For comprehensive evaluation with existing methods, we select 100 samples from the HDTF~\cite{zhang2021flow} dataset as an extra talking face test set.
+
+\noindent\textbf{Metrics.}
+To validate the performance of our model, we use FID~\cite{heusel2017gans} to evaluate the quality of generated images. For video quality assessment, we use FVD~\cite{unterthiner2018towards}. Additionally, we employ the Q-align~\cite{wu2023q} visual language model to evaluate the video quality (IQA) and aesthetic metrics (ASE). For assessing the synchronization of generated lip movements with audio, we use Sync-C and Sync-D metrics~\cite{chung2017out}.
+
+
+\subsection{Comparisons with Existing Methods}
+
+
+\noindent\textbf{Comparison on Talking Face.} We compare OmniAvatar with several existing talking face methods, including Sadtalker~\cite{zhang2023sadtalker}, Aniportrait~\cite{wei2024aniportrait}, V-express~\cite{wang2024v}, EchoMimic~\cite{chen2025echomimic}, Hallo3~\cite{cui2024hallo3}, FantasyTalking~\cite{wang2025fantasytalking},  HunyuanAvatar~\cite{chen2025hunyuanvideoavatar} and MultiTalk~\cite{kong2025let}. The experiments are conducted on two test sets: the HDTF~\cite{zhang2021flow} test set and the cropped face test set from AVSpeech~\cite{ephrat2018looking}. Fig.~\ref{fig:face} presents the qualitative results, demonstrating that our model generates videos with superior image quality, more natural and expressive facial movements, and enhanced visual aesthetics. With our designed pixel-wised audio embedding strategy, the generated videos demonstrate more accurate lip-syncing, and a more realistic alignment between the audio and facial expressions. 
+
+The quantitative results in Tab.~\ref{tab:face} further confirm the superiority of OmniAvatar. Our model achieves leading performance in Sync-C, showcasing superior lip-sync accuracy, which is a key measure for talking face methods. We also achieve competitive results in other metrics like FID, FVD, and IQA, reflecting our model’s ability to generate high-quality and perceptually accurate images and videos. While methods like Sadtalker and V-express achieve decent lip-sync scores, OmniAvatar stands out due to its balance of high video quality, lip-sync precision, and aesthetic appeal. FantasyTalking~\cite{wang2025fantasytalking} and MultiTalk~\cite{kong2025let}, although trained based on Wan~\cite{wan2025wan}, freezes the weights of diffusion blocks, which restricts its ability to align audio and video effectively. HunyuanAvatar~\cite{chen2025hunyuanvideoavatar} demonstrates competitive lip-sync capabilities, while our method achieves superior image quality, offering more visually appealing results while maintaining high lip-sync accuracy.
+
+\noindent\textbf{Comparison on Semi-Body Animation.}
+We compare OmniAvatar with FantasyTalking~\cite{wang2025fantasytalking},  HunyuanAvatar~\cite{chen2025hunyuanvideoavatar}, MultiTalk~\cite{kong2025let} and OmniHuman~\cite{lin2025omnihuman} on semi-body animation tasks using the AVSpeech test set in semi-body scenarios. Our method outperforms these existing methods across both qualitative and quantitative evaluations. The qualitative results, shown in Fig.~\ref{fig:fullbody}, demonstrate that OmniAvatar generates more natural and fluid body movements while preserving realistic and synchronized lip-syncing. The generated videos exhibit smoother transitions, more coherent upper-body movements.
+
+Table~\ref{tab:semi-body} shows that OmniAvatar excels in several key metrics for semi-body video generation, especially in audio-lip synchronization and overall video quality. The results confirm that OmniAvatar not only excels at generating realistic body movements but also maintains seamless audio-visual synchronization.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/control.pdf}
+    \vspace{-0.15in}
+    \caption{Driven by a piece of audio and a specific prompt, OmniAvatar can manage various scenes, including human-object interactions, gesture control, and dynamic background configuring.}
+    \vspace{-0.15in}
+    \label{fig:more1}
+\end{figure*}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/emotion.pdf}
+    \vspace{-0.2in}
+    \caption{\textbf{Facial expression control.} By configuring prompts to control the emotions of characters. The two lines above are a comparison with HunyuanAvatar~\cite{chen2025hunyuanvideoavatar}, using the same set of audio and images.}
+    \vspace{-0.1in}
+    \label{fig:emo}
+\end{figure}
+\noindent\textbf{More results} The results shown in Fig.~\ref{fig:more1} illustrate the versatility of OmniAvatar in generating realistic video animations. Attributed to the text control capability of Wan2.1-T2V and our LoRA training design, not only can it generate natural human movements in response to audio, but it also supports the interaction between the avatars and surrounding objects. OmniAvatar also enables gesture manipulation and background control, making it a powerful tool for dynamic, interactive, audio-driven video generation across various scenarios. The emotions of characters can also be controlled by prompts, as shown in the Fig.~\ref{fig:emo}.
+
+
+\subsection{Ablation Studies}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/abl_lora.pdf}
+    \vspace{-0.2in}
+    \caption{Ablation study on different training strategies: full training vs. LoRA-based training.}
+    \vspace{-0.2in}
+    \label{fig:lora}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\begin{tabular}{c|cccc}
+\Xhline{1pt}
+\textbf{Methods} &  \textbf{FVD}     & \textbf{Sync-C}  $\uparrow$  & \textbf{Sync-D}      & \textbf{IQA}  $\uparrow$   \\ \hline
+Frozen-DiT & 678 & 4.26 & 9.98 & 3.74  \\
+Full-Training & 715 & 5.58 & 9.23 & 3.54  \\
+LoRA$+$SHE & 685 & 6.58 & 8.73 & 3.73    \\ \hline
+CFG-3 & 677 & 6.92 & 8.08 &  3.70 \\ 
+CFG-6 & 669 & \textbf{7.37} & \textbf{7.94} & 3.67 \\ \hline
+Wan-1.3B & 711 & 3.75 & 9.72 & 2.24 \\ 
+\cellcolor[HTML]{D9D9D9}{Ours} & \cellcolor[HTML]{D9D9D9}{\textbf{664}} & \cellcolor[HTML]{D9D9D9}{7.13} & \cellcolor[HTML]{D9D9D9}{8.05} & \cellcolor[HTML]{D9D9D9}{\textbf{3.75}} \\ \Xhline{1pt}
+\end{tabular}
+    \vspace{-0.1in}
+\caption{Ablation study on model design. We conduct experiments on model selection, classifier-free guidance settings and model size. SHE represents audio input through single hierarchical embedding.}
+\vspace{-0.1in}
+\label{tab:ablation}
+\end{table}
+
+
+\noindent\textbf{Ablation on LoRA and full training.}
+Although full training results in faster convergence and better scene adaptation, as shown in Tab.~\ref{tab:ablation}, it may reduce the quality of video generation. Due to the constraints of the dataset quality, particularly the lack of high-resolution portrait data, full training can lead to a degradation in image quality and cause distortions. Motion blur in low-quality data can negatively impact the performance of human motion elements, like hands and mouths, in the generated video, resulting in lower lip-sync scores. As shown in Fig.~\ref{fig:lora}, full training will damage to character details such as hands and eyes. On the other hand, the design of LoRA effectively preserves the original capabilities of the model while seamlessly integrating the newly introduced audio features, allowing for high-quality outputs with the incorporation of additional audio conditioning.
+
+\noindent\textbf{Ablation on Multi- and Single-hierarchical Audio Embedding.} We conduct an ablation experiment by adding audio embedding to only a single layer for comparison. To align with the perception field of the model, the audio embedding is applied at the middle layer. As shown in the Tab.~\ref{tab:ablation}, the multi-hierarchical audio embedding approach leads to better audio synchronization performance. This highlights the benefit of integrating audio features at various levels, enabling more precise alignment between the audio and the generated video.
+
+\noindent\textbf{Ablation on Classifier-Free Guidance (CFG).} The experiment demonstrates that higher values of classifier-free guidance (CFG) improve the synchronization between lip movements and pose generation, resulting in more accurate alignment with the audio. However, excessive high CFG values can lead to exaggerated lip movements, causing unrealistic character expressions and unnatural video generation. Therefore, we choose 4.5 as a reasonable value for CFG of audio and text.

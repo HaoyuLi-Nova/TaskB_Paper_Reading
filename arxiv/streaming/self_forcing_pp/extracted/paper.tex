@@ -1,0 +1,89 @@
+\documentclass[]{bytedance_seed}
+
+% single-column: \documentclass[]{bytedance_seed}, 
+%Please prioritize using single-column。
+
+% twocolumn: \documentclass[twocolumn]{bytedance_seed}
+
+\usepackage[toc,page,header]{appendix}
+
+\input{resources/packages}
+% \input{resources/math_macro}
+\setlength{\cftbeforesubsecskip}{1.5pt}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%
+
+\title{Self-Forcing++: Towards Minute-Scale High-Quality Video Generation}
+
+\author{
+  Justin Cui\texorpdfstring{$^{1,2}$}{} \hspace{0.1cm}
+  Jie Wu\texorpdfstring{$^{2,\dagger}$}{} \hspace{0.1cm}
+  Ming Li\texorpdfstring{$^{2,3}$}{} \hspace{0.1cm}
+  Tao Yang\texorpdfstring{$^{2}$}{} \hspace{0.1cm}
+  Xiaojie Li\texorpdfstring{$^{2}$}{} \hspace{0.1cm}
+  Rui Wang\texorpdfstring{$^{2}$}{} \\ \hspace{0.1cm} 
+  Andrew Bai\texorpdfstring{$^{1}$}{} \hspace{0.1cm}
+  Yuanhao Ban\texorpdfstring{$^{1}$}{} \hspace{0.1cm}
+  Cho-Jui Hsieh\texorpdfstring{$^{1,\ddagger}$}{}
+}
+
+
+\affiliation[1]{UCLA}
+\affiliation[2]{ByteDance Seed}
+\affiliation[3]{University of Central Florida}
+\contribution[\ddagger]{Corresponding author} 
+\contribution[\dagger]{Project lead}
+
+
+\begin{document}
+
+
+\abstract{
+Diffusion models have revolutionized image and video generation, achieving unprecedented visual quality. However, their reliance on transformer architectures incurs prohibitively high computational costs, particularly when extending generation to long videos. Recent work has explored autoregressive formulations for long video generation, typically by distilling from short-horizon bidirectional teachers. Nevertheless, given that teacher models cannot synthesize long videos, the extrapolation of student models beyond their training horizon often leads to pronounced quality degradation, arising from the compounding of errors within the continuous latent space. In this paper, we propose a simple yet effective approach to mitigate quality degradation in long-horizon video generation without requiring supervision from long-video teachers or retraining on long video datasets. Our approach centers on exploiting the rich knowledge of teacher models to provide guidance for the student model through sampled segments drawn from self-generated long videos. Our method maintains temporal consistency while scaling video length by up to 20$\times$ beyond teacher's capability, avoiding common issues such as over-exposure and error-accumulation without recomputing overlapping frames like previous methods. When scaling up the computation, our method shows the capability of generating videos up to \textbf{4 minutes and 15 seconds}, 
+equivalent to 99.9\% of the maximum span supported by our base model’s position embedding and more than \textbf{50x} longer than that of our baseline model.  Experiments on standard benchmarks and our proposed improved benchmark demonstrate that our approach substantially outperforms  baseline methods in both fidelity and consistency. Our long-horizon videos demo can be found at \href{https://self-forcing-plus-plus.github.io/}{https://self-forcing-plus-plus.github.io/}.
+}
+
+\maketitle
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.95\textwidth]{images/teaser.pdf}
+\caption{Self-forcing++ generates videos up to four minutes long.
+The radar chart highlights our model's superiority, while the line plot shows its sustained motion dynamics over long durations.}
+\label{fig:teaser}
+\end{figure}
+
+
+
+
+% \newpage
+
+
+% \tableofcontents
+
+% \newpage
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/method}
+\input{sections/experiments}
+\input{sections/conclusion}
+\input{sections/limitation}
+\input{sections/discussion}
+
+\clearpage
+
+\bibliographystyle{plainnat}
+\setlength{\bibhang}{0pt}   % remove hanging indent if natbib is used
+\setlength\bibindent{0pt}   % for some styles
+\bibliography{main}
+
+\clearpage
+
+% \beginappendix
+\input{sections/appendix}
+
+% \end{CJK*}
+\end{document}

@@ -1,0 +1,169 @@
+% CVPR 2025 Paper Template; see https://github.com/cvpr-org/author-kit
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+\usepackage{cvpr}              % To produce the CAMERA-READY version
+% \usepackage[review]{cvpr}      % To produce the REVIEW version
+%\usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{multirow}
+\usepackage{makecell}
+% \usepackage{footmisc}
+\usepackage{booktabs}
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+\usepackage[table]{xcolor} % 加载表格颜色支持，定义颜色
+\usepackage{mathtools}
+\usepackage{graphicx}
+\usepackage{nicefrac}
+\usepackage[accsupp]{axessibility}  % Improves PDF readability for those with disabilities.
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\definecolor{lightblue}{rgb}{0.9, 0.95, 1} 
+
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+\usepackage{pifont} % For \ding{51} and \ding{55}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\newcommand{\fmark}{\ding{109}}
+
+\def \pzo {\phantom{0}} 
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{1298} % *** Enter the Paper ID here
+\def\confName{CVPR}
+\def\confYear{2026}
+
+\definecolor{myorange}{HTML}{EE8980} 
+\definecolor{mypink}{RGB}{255, 150, 200}
+\definecolor{myblue}{RGB}{80, 180, 255}
+\definecolor{mygray}{HTML}{9CB898}
+
+\def\modelname{Harmony}
+
+\newcommand{\yr}{\textcolor{black}}
+\newcommand{\hut}{\textcolor{black}}
+\newcommand{\hutnew}{\textcolor{black}}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{Harmony: Harmonizing Audio and Video Generation \\ through Cross-Task Synergy}
+
+
+\author{
+Teng Hu$^1$\footnotemark[1]\thanks{Equal Contribution}
+\quad Zhentao Yu$^2$\footnotemark[1]
+\quad Guozhen Zhang$^2$
+\quad Zihan Su$^1$
+\quad Zhengguang Zhou$^2$\\
+\quad Youliang Zhang$^2$
+\quad Yuan Zhou$^2$
+\quad Qinglin Lu$^2$ 
+\quad Ran Yi$^1$\thanks{Corresponding author.} \\
+\normalsize $^1$Shanghai Jiao Tong University \quad $^2$Tencent Hunyuan\\
+% \texttt{\{hu-teng, ranyi\}@sjtu.edu.cn}\\
+% \texttt{\{zhentaoyu, wellszhou, vtzhang, tikonovzhou, qinglinlu\}@tencent.com} \\
+% \texttt{186368@zju.edu.cn}
+{\tt\small Project page: \href{https://sjtuplayer.github.io/projects/Harmony}{\textcolor{magenta}{https://sjtuplayer.github.io/projects/Harmony}}}
+\\
+}
+
+
+\begin{document}
+
+\twocolumn[{%
+\maketitle
+\begin{figure}[H]
+\vspace{-0.3in}
+\hsize=\textwidth 
+\centering
+\includegraphics[width=0.95\textwidth]{figures/teaser2.pdf}
+\vspace{-0.05in}
+\caption{\textbf{Harmony} employs a cross-task synergy training strategy to achieve robust audio-visual synchronization. This versatile framework supports multiple generation paradigms, including joint audio-video synthesis as well as audio-driven and video-driven generation, while also demonstrating strong generalizability to diverse audio types (e.g., music) and visual styles.
+}
+\vspace{-0.05in}
+\end{figure}
+}]
+
+\maketitle
+
+{%
+\renewcommand{\thefootnote}{}%
+\footnotetext{\textsuperscript{*} Equal Contribution.}%
+\footnotetext{\textsuperscript{\dag} Corresponding author.}%
+}
+
+\input{arxiv/0_abstract}   
+
+% \blfootnote{\textsuperscript{\dag} Equal Contribution.}
+% \blfootnote{\textsuperscript{*} Corresponding author.}
+
+
+\input{arxiv/1_intro}
+
+\input{arxiv/2_related_work}
+\input{arxiv/3_method}
+\input{arxiv/4_experiment}
+\input{arxiv/5_summary}
+
+\section*{Acknowledgments}
+\label{sec:ack}
+This work is supported by Tencent Hunyuan. We thank our team lead, Yuan Zhou, and Qinglin Lu, for their guidance. We also thank Zhentao Yu, Guozheng Zhang, Zhengguang Zhou, Youliang Zhang, Yi Chen, Zixiang Zhou, and Sen Liang for their help with data and technique support. 
+
+% /apdcephfs_jn2/share_302243908/terohu/data/Avideo-meta_all_metas2.txt
+% /apdcephfs_jn2/share_302243908/terohu/data/Avideo这个要换成/apdcephfs_jn2/share_302243908/0_public_dataset/Avideo_env
+% /apdcephfs_jn2/share_302243908/terohu/experiments/ARWAN/save_models/wan22_video_env_mmaudio//2025.11.07-11.21.32/log/global_step_0002250
+
+%http://30.72.67.34/?in_path=%2Fapdcephfs_cq8%2Fshare_1367250%2Fzixiangzhou%2Fprojects%2FVideoChat%2Fbaselines%2FOvi%2Foutputs-set1
+
+%/apdcephfs_cq10/share_1367250/terohu/code/VC/Wan22-T_to_AVideo-v2/jobs/train_diffusion_video.sh
+%https://iwiki.woa.com/p/4016289513
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+
+\clearpage
+
+\appendix
+
+\input{arxiv/6_suppl}
+
+% WARNING: do not forget to delete the supplementary pages from your submission 
+% \input{sec/X_suppl}
+
+
+\clearpage
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.98\textwidth]{figures/more_results_on_speech.pdf}
+    \caption{More results on human-speech video generation.}
+    \label{fig:more_results_on_speech}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.98\textwidth]{figures/diverse_style.pdf}
+    \caption{Visualization of speech-video generation in diverse style.}
+    \label{fig:diverse stlyle performance}
+\end{figure*}
+
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.98\textwidth]{figures/more_results_on_env.pdf}
+    \caption{More results on ambient-sound video generation.}
+    \label{fig:more_results_on_env}
+\end{figure*}
+
+
+\end{document}

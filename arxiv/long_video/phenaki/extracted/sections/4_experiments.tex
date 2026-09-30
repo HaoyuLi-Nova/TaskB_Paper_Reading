@@ -1,0 +1,74 @@
+\section{Experiments}
+\label{sec:exp}
+To evaluate \model, we test it on the following tasks: 1)~text conditional video generation, 2)~text-image conditional video generation, 3)~time variable text conditional video generation (i.e.) \story mode, 4)~video quantization and 5)~image conditional video generation a.k.a. video prediction. To the best of our knowledge, 3)~time variable text conditional video generation has not been explored in prior work. Given the dynamic nature of videos, we highly encourage readers to visit \website\ to check the generated videos. The website also includes qualitative comparisons to a subset of the prompts from the CogVideo paper~\cite{cogvideo}. While the focus is on the text to video generation tasks, it is remarkable that \phenaki is still competitive on the more traditional video tasks despite not being developed explicitly for these tasks. We implemented \phenaki in JAX~\cite{jax2018github} using FLAX~\cite{flax2020github} library.
+% \rubville{Not sure where exactly to include text+frame-conditioned generation but we have to include it}
+% In this section, we evaluate our method in three key aspects: 1) video reconstruction quality of our encoder-decoder model, 2) frame-conditioned video generation performance without text conditioning, 3) text-conditioned and text+frame-conditioned video generation, and 4) visual story generation by dynamic text inputs. We encourage the readers to visit \website, and check out our video samples.
+\subsection{Text conditional video generation} 
+\label{sec:t2v}
+Currently there is no established benchmark for evaluating text to video methods.
+This makes comparing \phenaki to recent methods such as NUWA~\cite{nuwa}, CogVideo~\cite{cogvideo}, NUWA-Infinity~\cite{wu2022nuwa} and video diffusion models \cite{ho2022video} difficult. 
+
+Unless specified otherwise, we train a 1.8B parameter \phenaki model on a corpus of ${\sim}15$M text-video pairs at 8 FPS mixed with ${\sim}50$M text-images plus ${\sim}400$M pairs of LAION-400M~\cite{schuhmann2021laion} (more details in Appendix~\ref{app:sec:text2vid}).  The model used in the visualisations in this paper was trained for 1 million steps at a batch size of 512, which took less than 5 days. In this setup 80\% of the training data came from the video dataset and each image dataset contributed 10\%.  
+
+\paragraph{Qualitative evaluation:} Samples from this model can be seen in Figure~\ref{fig:compos} and additional samples are provided at \website. We observe that there is a high degree of control over both the actors and the background dynamics in the videos. The appearance of the actors and the video style can be adjusted by the text prompt as well (e.g. a regular video, a cartoon or a pencil drawing). 
+
+On \website\ we provide examples from prompts that were provided in the CogVideo~\cite{cogvideo} demo. Since there are substantial differences between these methods it is hard to compare them on an equal footing. As an example, there are massive differences in scale: 9B parameters for CogVideo and 1.8B for our model. Additionally, the training data is different. Finally, we do not know how representative the prompts in the CogVideo demo are for the general performance of the CogVideo. 
+
+\paragraph{Quantative comparison:} 
+The NUWA~\cite{nuwa} paper provided a qualitative evaluation on Kinetics-400. Since the NUWA model is only $0.9$B parameters we also use a model of the same size. Our model was trained on 50\% video and 50\% image data in this experiment. The NUWA model fine-tuned on Kinetics but the \phenaki model is not: it is evaluated in a \emph{zero shot setting}.  The results in Table~\ref{table:t2v_comp} show that \phenaki achieves comparable generation quality, in a zero-shot setting, compared to previous text to video methods that were actually trained or finetuned on this dataset. 
+% \rubville{The numbers here keep improving and closing in on the FID-img numbers :P. I need to specify the temperature, cfg scale, and maskgit iterations being used here}
+
+\paragraph{On the importance of joint text-to-image and text-to-video training}
+%\input{tables/t2v_results}
+\input{tables/t2v_joint}
+While there are some text-video datasets, text-image datasets dominate the internet in terms of quality and quantity \cite{videocc}. Consequently, there is simply not enough video data available to cover all the concepts present in text-image datasets. For example using only our video data, concepts such as pencil drawings or different painting styles cannot be learned. To be able to learn a model that can combine video dynamics with these additional concepts we have to combine training on image and video data. In Table~\ref{tab:video_image}, we evaluate the performance of using different ratios of video and images. We start with data splits of only video, and vary the ratio of image and video datasets up to using $50\%$ image and $50\%$ video datasets. In our results, we find that there is a trade-off in performance between models trained with only video video (i.e., significantly better FVD), and models trained with more image data (i.e., better text-video and text-image alignment, and significantly better FID in image datasets). On \website\ we show samples from different models side by side where this trade-off between control over the content and the quality of the dynamics can be seen. We believe that the trade-off between concepts and dynamics will be improved as the quality and size of text-video datasets increases in the future.
+
+%\input{tables/t2v_comparison}
+
+\subsection{Text-Image conditional video generation}
+Given that \phenaki can be conditioned on both still images and text, an interesting setup is to \textit{animate} existing images given a text prompt. For this experiment, we use the same model from Section~\ref{sec:t2v} but conditioned on unseen pictures (captured with our phones from local subjects) and a related prompt. As it can be seen in Figure~\ref{fig:cat} the model can generate coherent videos starting from the given images, while following the given prompts. 
+\input{figures/composition}%
+
+\input{figures/cat}%
+
+\subsection{Visual story telling by dynamic text inputs}
+A notable and useful feature of \phenaki is that it is auto-regressive in time. This allows for generating long videos, while the prompt changes over time. Time variable prompts can be thought of as a \textit{\story}; a narration of the entire video where each prompt corresponds to a scene from the video. This allows for creating dynamically changing scenes. To the best our knowledge, this paper is the first work to generate such videos. 
+An example of this can be seen in Fig.~\ref{fig:story} and on \website. The way it works is that we generate a video with the first prompt and then extend it in time by conditioning a possibly new prompt and on the last $N$, typically 5, previously generated frames.
+
+\subsection{Video Encoding}
+\label{sec:vid_quant}
+To evaluate the video encoding and reconstruction performance of \cvivit, we use the Moments-in-Time (MiT)~\citep{monfortmoments} dataset. MiT contains ${\sim}802$K training, ${\sim}33$K validation and ${\sim}67$K test videos at 25 FPS. The MiT dataset, in contrast to other publicly available video datasets, is a high quality balanced dataset with high coverage and density of verbs depicting moments of a few seconds~\cite{monfortmoments}. We compare \cvivit against per-frame image based encoder-decoders that have been used as video quantizers for conditional video generation~\citep{harp,nuwa,cogvideo,nuwa,cogvideo,godiva}: a ViT \cite{vit_vqgan} and a convolutional VQ-GAN\cite{vqgan}. The experimental details can be found in the Appendix~\ref{app:sec:vid_quant}. 
+
+\input{tables/quant_results}
+
+As demonstrated in Table~\ref{tab:quant}, we evaluate the video reconstruction quality using FID~\cite{heusel2017gans} and FVD~\cite{unterthiner2018towards}. Both FID and FVD compare the distribution of generated videos (or images) to the ground truth distribution. The FID ignores temporal coherency, while the FVD measures how well the spatio-temporal dynamics of the videos are reconstructed. Results in Table~\ref{tab:quant} show that per-frame image based methods slightly outperform our video method (indicated by marginally higher FID of \cvivit), however, they do poorly at modeling the spatio-temporal dynamics in video (significantly lower FVD of \cvivit). This is expected as \cvivit has spatio-temporal connections between patches in each frame, allowing space and time to be modeled together. In addition, \cvivit compresses the video into fewer tokens per video compared to the image based baselines. This is crucial as the number of tokens drastically impacts the computational cost of the transformer in downstream tasks. Furthermore, \cvivit tokens are auto-regressive in time which enables variable length videos to be modeled with the same encoder which is important for video extrapolation conditioned on previously generated frames.
+% So, while \vivit achieves lower FID and FVD, \cvivit is more useful in practice.
+
+\subsection{Image conditional video generation a.k.a Video prediction}
+\label{sec:vid_bair}
+
+\input{tables/vidpred_results}
+To evaluate the learnt video representation of \cvivit beyond reconstruction, we test it on the task of frame-conditioned video generation, also commonly known as video prediction~\cite{fitvid}. In this experiment, we test \phenaki on BAIR Robot Pushing benchmark~\cite{BAIRRobotPush} where the task is to generate 15 frames conditioned on a given single frame. For open domain videos, we test \phenaki on Kinetics-600~\cite{Kinetics600} where the task is to predict 11 frames given 5 frames. More details about these experiments can be found in Appendix~\ref{app:sec:vid_bair}. \cref{tab:bair,tab:kinetics} show the results of these experiments. Note that \phenaki is not specifically designed for video prediction, therefore, it lacks components such as skip connections in U-Nets which are known to improve the performance for video prediction methods~\cite{svg,villegas2019high,fitvid}. Nevertheless, our method is competitive on these benchmarks with SOTA video prediction methods. Overall, these experiments show that \phenaki is strong at modeling dynamics of the videos which is required for generating coherent videos from text.
+%, by generating multiple frames in the future purely in the spatio-temporal latent space learned by our \cvivit encoder.
+
+% \begin{itemize}
+%     \item We show that our method is competitive at video prediction with SOTA
+%     \item Our method is NOT made with video prediction specific design choices such as skip connections which help video prediction.
+%     \item Our method is mainly designed with representation learning in mind for text-to-video synthesis
+% \end{itemize}
+
+% \begin{itemize}
+%     \item Show we are better than NUWA at temporal dynamics due to cvivit as shown by FID-vid in zero-shot setting (we may want to have a model ready for the same datasets during rebuttal.
+%     \item Show interesting things from` our model: Effects of CFG, short text-to-video examples, text-and-image-to-video
+%     \item Depending on our results from Pieter's models, show study of using images and videos during training
+%     \item Depending on our results from Pieter's models, evaluate on FID for text2image (on top of FVD on text2-video)
+% \end{itemize}
+
+
+% -- As we increase CFG scale \\
+% - Training with video + images improves text-video alignment (CLIP and VideoCLIP score) \\
+% - Training with t5x embeddings + images + video improves text-video alignment (CLIP and VideoCLIP) over training without t5x embeddings \\
+% - Training and evaluating on the same dataset (LMS Video) seems to be the best on FVD \\
+
+% -- We should compute first frame FID only to disambiguate the FVD results above when training and testing on lms video
+

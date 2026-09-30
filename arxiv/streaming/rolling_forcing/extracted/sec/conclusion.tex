@@ -1,0 +1,6 @@
+
+
+
+\section{Conclusion}
+
+We presented \emph{Rolling Forcing}, a framework for real-time long-horizon video generation that mitigates error accumulation while sustaining sub-second latency. By introducing a rolling-window joint denoising strategy, Rolling Forcing enables mutual refinement across consecutive frames, effectively reducing long-term drift. The integration of the attention sink mechanism further enhances global consistency by anchoring initial frames as persistent context, while our efficient training algorithm enables few-step distillation over extended denoising windows while mitigating exposure bias. Extensive experiments demonstrate that Rolling Forcing achieves state-of-the-art temporal coherence and visual fidelity over multi-minute streaming sequences, significantly outperforming prior streaming approaches in both quality and efficiency.

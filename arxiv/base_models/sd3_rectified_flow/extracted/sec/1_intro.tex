@@ -1,0 +1,90 @@
+\section{Introduction}%
+\label{sec:intro}
+Diffusion models create data from noise~\citep{Song2020ScoreBasedGM}. 
+They are trained to 
+%
+invert forward paths of data towards random noise and, thus, %
+in 
+conjunction with approximation and generalization properties of neural networks, %
+can be used to generate new data points that are not present in the training data but follow the distribution of the training data~\citep{SohlDickstein2015DeepUL, song2020generative}. This generative modeling technique has proven to be very effective for modeling high-dimensional, perceptual data such as images~\citep{ho2020denoising}. In recent years, diffusion models have become the de-facto approach for generating high-resolution images and videos from natural language inputs with impressive generalization capabilities~\citep{saharia2022photorealistic, ramesh2022hierarchical, Rombach_2022, podell2023sdxl, dai2023emu, esser2023structure, blattmann2023align, betker2023improving, blattmann2023stable, singer2022makeavideo}. Due to their iterative nature and the associated computational costs, as well as the long sampling times during inference, research on formulations for more efficient training and/or faster sampling of these models has increased~\citep{karras2023analyzing, liu2022flow}. 
+
+While specifying a forward path from data to noise leads to efficient training, it also raises the question of which path to choose. 
+This choice can have important implications for sampling. For example, a forward process that fails to remove all noise from the data can lead to a discrepancy in training and test distribution and result in artifacts such as gray image samples~\citep{lin2024common}. 
+Importantly, the choice of the forward process also influences the learned backward process and, thus, the sampling efficiency. While curved paths require many integration steps to simulate the process, a straight path could be simulated with a single step and is less prone to error accumulation. Since each step corresponds to an evaluation of the neural network, this has a direct impact on the sampling speed.
+
+A particular choice for the forward path is a so-called \emph{Rectified Flow}~\citep{liu2022flow,albergo2022building,lipman2023flow}, which connects data and noise on a straight line. Although this model class has better theoretical properties, it has not yet become decisively established in practice. So far, some advantages have been empirically demonstrated in small and medium-sized experiments~\cite{ma2024sit}, but these are mostly limited to class-conditional models. 
+In this work, we change this by introducing a re-weighting of the noise scales in rectified flow models, similar to noise-predictive diffusion models~\citep{ho2020denoising}. Through a large-scale study, we compare our new formulation to existing diffusion formulations and demonstrate its benefits.  
+
+We show that the widely used approach for text-to-image synthesis, where a fixed text representation is fed directly into the model (e.g., via cross-attention~\citep{vaswani2017attention, Rombach_2022}), is not ideal, and present a new architecture that incorporates learnable streams for both image and text tokens, which enables a two-way flow of information between them. 
+We combine this with our improved rectified flow formulation and investigate its scalability. 
+We demonstrate a predictable scaling trend in the validation loss and show that a lower validation loss correlates strongly with improved automatic and human evaluations.
+
+Our largest models outperform state-of-the art open models such as \emph{SDXL}~\citep{podell2023sdxl},  \emph{SDXL-Turbo}~\citep{sauer2023adversarial}, \emph{Pixart-$\alpha$}~\citep{chen2023pixart}, and closed-source models such as DALL-E 3~\citep{betker2023improving} both in quantitative evaluation~\citep{ghosh2023geneval} of prompt understanding and human preference ratings.
+
+The core contributions of our work are: 
+(i) We conduct a large-scale, systematic study on different diffusion model and rectified flow formulations to identify the best setting. For this purpose, we introduce new noise samplers for rectified flow models that improve performance over previously known samplers. %
+(ii) We devise a novel, scalable architecture for text-to-image synthesis that allows bi-directional mixing between text and image token streams within the network. We show its benefits compared to established backbones such as UViT~\citep{hoogeboom2023simple} and DiT~\citep{Peebles_2023}. 
+Finally, we (iii) perform a scaling study of our model and demonstrate that it follows predictable scaling trends. We show that a lower validation loss correlates strongly with improved text-to-image performance assessed via metrics such as T2I-CompBench~\citep{huang2023t2i}, GenEval~\citep{ghosh2023geneval} and human ratings.
+%
+%
+We make results, code, and model weights publicly available.
+\vspace{-1em}
+%
+%
+%
+%
+%
+%
+
+%
+
+%
+
+%
+
+%
+
+%
+
+
+%
+
+%
+
+%
+%
+
+
+
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+
+
+%
+
+%
+
+%
+
+%
+%
+%
+%
+%
+%
+%
+
+
+
+
+%

@@ -1,0 +1,133 @@
+\section{Method}
+\label{method}
+\dq{In this section, we first show our analysis of the problems encountered when extending LLM architectures for long video generation. Then, we show how the proposed methods are motivated and then used to solve those problems point by point. Are we to add in some visualization and analysis? } 
+
+
+
+In this section, we present our approach to tackle the challenges of long video generation using autoregressive language models. We start by analyzing the key problems encountered in this task and describe the main design choices for our overall framework in Section~\ref{sec:3.1}. Then, in Section~\ref{sec:3.2}, we illustrate how to overcome the training challenges and extend the training length, enabling our model to learn from long-range video sequences.  In Section~\ref{sec:3.3}, we describe the issues faced when generating videos beyond the training range and propose solutions to address them. The aforementioned designs allow us to generate videos spanning several minutes. To further enhance the resolution of the generated videos, we employ a super-resolution module to upscale the entire video, which is detailed in Section~\ref{sec:3.4}.
+
+
+
+% \subsection{Overall Framework: Modeling Text and Video as a Sequence}
+\subsection{Overall Framework for Autoregressive LLM-based Video Generation}
+\label{sec:3.1}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{LaTeX/figs/stage1.pdf}
+    \vskip -0.1in
+    \caption{\textbf{Text-to-Video Generation via Autoregressive LLM.} Given the input text tokens, the model predict video tokens autoregressively. All the text and video information is formulated into a unidirectional discrete token sequence, where the model predicts the next token based on the previous tokens. The grey tokens represent special separate tokens used to delineate different parts of the sequence.}
+    \label{fig:stage1}
+\end{figure}
+
+
+
+\xihui{We need to emphasize our design choice and motivation. for long video generation, it is critical to reduce redundancy and enable efficient modeling of long videos by LLMs -> spatial-temporal compression in tokenizer, low resolution and low fps for tokenizer}
+
+There are two main challenges when it comes to directly modeling long videos using language models. First, as LLMs are designed to process discrete data, they are not inherently suited for handling the continuous nature of video data. To effectively model videos with LLMs, it is necessary to convert the continuous video data into a discrete representation. This is typically accomplished by employing a tokenizer that maps video frames or patches to a set of discrete tokens, enabling the LLM to process the video data in a discrete manner. The second challenge comes from the length and redundancy of long video data. Modeling long videos directly with LLMs can be computationally expensive, especially considering the limited context window of the language models. To efficiently generate long videos, it is important to use a highly compressed tokenizer that can factorize a long video segment into a manageable number of tokens while preserving the essential content and motion information. To better model the long-range dependencies and dynamics in long videos, we choose to work with lower resolution and lower frame rate videos. By reducing the spatial and temporal resolution, we can effectively compress the video data, enabling the LLM to capture long-range interactions within its limited context window.
+
+
+\textbf{Video Tokenizer.} Based on the above analysis, we choose to utilize a highly compressive tokenizer. The tokenizer architecture is inspired by MAGViT2~\cite{yu2023language}, which employs a causal 3D CNN structure to process both image and video data while aligning with the causal nature of LLMs. Instead of using the original quantization approach, we adopt Vector Quantization, which is more commonly used in image tokenizers. Specifically, we use the Clustering Vector Quantization (CVQ) proposed by CVQ-VAE~\cite{Zheng_2023_CVQ}, an improved version of VQGAN\cite{esser2020taming} designed to enhance codebook utilization. By incorporating the CVQ quantization scheme into our video tokenizer, we can ensure efficient codebook utilization while leveraging pre-trained weights from image domains. In our implementation, we independently model the first frame and apply a 4-fold temporal compression and an 8-fold spatial compression in both dimensions. This allows us to reduce a 10-second video at a resolution of $65 \times 128\times 128$ to a sequence of $17\times 16 \times 16$ discrete tokens.
+
+\textbf{LLM-based Long Video Generation.} With the video frames converted into discrete tokens, we can now model the text and video tokens as a single sequence (for simplicity, we omit the special separate tokens in the following formulation). The whole process is illustrated in Fig~\ref{fig:stage1}. 
+Let $\mathbf{t} = \{t_1, t_2, \ldots, t_N\}$ represent the sequence of text tokens, where $N$ is the number of text tokens. Similarly, let $\mathbf{v} = \{v_1, v_2, \ldots, v_L\}$ represent the sequence of video tokens, where $L$ is the number of video tokens. We concatenate the text tokens $\mathbf{t}$ and the video tokens $\mathbf{v}$ to form a unified sequence $\mathbf{s} = [\mathbf{t}; \mathbf{v}]$. The LLM is then trained to model the joint probability distribution over the text and video tokens:
+\begin{equation}
+p(\mathbf{s}) = \prod_{i=1}^{N+L} p(s_i \mid s_{<i}),
+\end{equation}
+where $s_i$ represents the $i$-th token in the unified sequence $\mathbf{s}$, and $s_{<i}$ denotes all the tokens preceding $s_i$. By modeling the text and video tokens in this manner, the LLM learns to capture the dependencies between the text and video content, enabling it to generate coherent and aligned videos based on the given text input.
+
+
+A important aspect of our approach is the joint modeling of text and video tokens within the same architecture. Although the text and video tokens have separate tokenizers and codebooks, they are jointly trained within the same model, allowing the model to learn a shared representation that captures the dependencies between the two modalities. This joint modeling approach enables the LLM to understand the relationships between the text and video modalities, potentially benefiting unified multimodal LLM tasks such as understanding and generation.\xihui{We cannot claim ``unified token space'', because the vocabularies of video tokens and text tokens are learned independently. We can only claim the joint autoregressive modeling of text tokens and video tokens and its potential benefits for unified multimodal LLM (understanding and generation).}
+
+\subsection{Extending the Training Range: Learning from Longer Video Sequences}
+%\subsection{Capturing Long-Range Dependencies via Progressive Training}
+\label{sec:3.2}
+
+\begin{wrapfigure}{r}{0.45\textwidth} 
+    \includegraphics[width=\linewidth]{LaTeX/figs/clip_loss_curves.png}
+    \vskip -0.15in
+    \caption{\textbf{Imbalanced Training Losses When Directly Training on Long Video.} The training loss decreases for later frame ranges, showing that the model focus more on the later parts of the video, leading to suboptimal visual quality of the early frames.}
+    \label{fig:clip_loss_curve}
+    \vskip -0.2in
+\end{wrapfigure}
+
+During training, the model takes the unified token sequence as input and learns to predict the next token given the previous tokens in the sequence. The loss computation is performed over both text tokens and video tokens, \tianwei{The implementation I read masks text tokens for loss calculation, is this strategy changed?} allowing the model to capture the dependencies between them. However, most video generation models are trained on short video clips, typically no more than 5 seconds in length, which limits their ability to capture long-term dependencies and model large and dynamic motions.
+
+To investigate the effectiveness of directly training on longer videos, we conduct experiments on video sequences of 65 frames (approximately 10 seconds at 6.5 FPS). Despite utilizing text-to-image pre-training, we observe that the visual quality of the generated videos degrade largely when trained on these longer sequences. To further analyze this issue, we examine the training loss curves for different frame ranges during training. We divide the 65-frame video into five segments: the first frame, frames 2-17, frames 18-33, frames 34-49, and frames 50-65. As shown in Figure~\ref{fig:clip_loss_curve}, the training loss decreases for later frame ranges, with frames 50-65 achieving a significantly lower loss compared to frames 2-17. However, the loss for the first frame remains relatively high throughout the training process and shows minimal improvement.
+
+% \xihui{suboptimal text-to-video alignment or suboptimal generation quality of early frames?} 
+This observation suggests that the model tends to focus more on the later parts of the video while neglecting the early frames, leading to suboptimal visual quality of the early frames. 
+We hypothesize that this behavior stems from the inherent redundancy and strong inter-frame dependencies in videos. The model learns better when more context is available, which is the case for later frames in the sequence. However, despite the higher loss values for early frames, the overall loss is dominated by the later frames due to the large number of video tokens in the later parts of the sequence. The cumulative loss contribution from the later frames, which have lower individual loss values but are much greater in number, outweighs the loss contribution from the early frames. This results in an imbalance in the loss contribution, causing the model to prioritize the later frames during optimization.
+
+To mitigate the issue, we introduce an additional loss term that specifically focuses on the quality of early frames. Let $\mathbf{v}_{\text{early}} = \{v_1, v_2, \ldots, v_K\}$ represent the sequence of video tokens corresponding to a early short clip (e.g., the first $K$ tokens of the video), where $K < L$. We define the early frame loss as:
+\begin{equation}
+\mathcal{L}_{\text{early}} = -\sum_{i=1}^{K} \log p(v_i \mid \mathbf{t}, v_{<i}),
+\end{equation}
+
+where $v_i$ represents the $i$-th token in the early clip $\mathbf{v}_{\text{early}}$, and $v_{<i}$ 
+%\tianwei{$v_{<i}$ not in Eq.~2}
+denotes all the video tokens preceding $v_i$ in the early clip. The early frame loss $\mathcal{L}_{\text{early}}$ is computed separately from the overall training loss and is added to it with a weighting factor $\lambda$:
+\begin{equation}
+\mathcal{L}_{\text{total}} = -\sum_{i=1}^{N+L} \log p(s_i \mid s_{<i}) + \lambda \mathcal{L}_{\text{early}},
+\end{equation}
+
+By introducing the early frame loss, we ensure that the model pays sufficient attention to the quality of the early frames, even as the video length increases during training.
+
+Another aspect of our approach to enable the model effectively learn from longer video sequences is a progressive training strategy. This strategy involves gradually increasing the video length during training, allowing the model to smoothly adjust to longer-range dependencies and more complex motion patterns. 
+We begin by pre-training the model on a large dataset of static images, which helps the model to establish a strong foundation for learning object appearance and structure. This is followed by training on short video clips, where the model learns to capture basic temporal dependencies and motion patterns. These initial training stages are crucial, as they provide the model with the necessary priors to handle longer video sequences effectively. After the pre-training stages, we progressively increase the length of the video sequences used for training. We introduce a warmup strategy where we gradually increase the video length until reaching the maximum length. Throughout this progressive training process, we jointly train the model on images, short video clips, and the gradually increasing longer video sequences. 
+
+By combining the early frame loss with the progressive training strategy, our approach effectively mitigates the issues of neglecting early frames and suboptimal visual quality that arise when directly training on long video sequences. The model learns to generate extended videos with improved temporal coherence and consistency while maintaining a strong connection to the appearance and motion priors learned from the image and short video clip stages.
+
+% To address the challenges of directly training on long video sequences, we propose a novel progressive training strategy that gradually increases the video length during the training process. Our approach enables the model to effectively learn from longer video sequences while maintaining a balance between motion learning and appearance learning.
+
+% Our progressive training strategy consists of the following stages:
+% \begin{itemize}
+% \item Static Image Pre-training: We begin by pre-training the model on a large dataset of static images. This stage aims to establish a strong foundation for learning object appearance, structure, and semantic understanding. By leveraging the rich information available in static images, the model can acquire a robust representation of visual concepts, which is crucial for generating coherent and detailed video frames. As described in Sec.~\ref{sec:3.1}, we employ a casual tokenizer that can handle both images and videos with different frame numbers and a shared codebook. This allows us to seamlessly transition from images to longer videos while preserving the token information learned during the image pre-training stage. 
+% \item Short Video Clip Training: In the next stage, we introduce short video clips (e.g., 17 frames of around 2.6 seconds) into the training process. The purpose of this stage is to teach the model basic motion patterns, scene changes, and temporal dependencies. The model learns to predict the next frame based on the previous frames and the corresponding text description. By training on short video clips, the model develops an understanding of how objects move and interact within a scene.
+% \item Progressive Video Length Increase: The image and short video clip training stages provide a strong prior for the model, preventing it from neglecting the early frames and ensuring better visual quality. Building upon this foundation, we can rapidly adapt the model to longer video sequences. We introduce a warmup strategy where we gradually increase the video length until reaching the maximum length. This progressive increase allows the model to smoothly adjust to longer-range dependencies and more complex motion patterns. Throughout this progressive training process, we jointly train the model on images, short video clips, and the gradually increasing longer video sequences. This joint training approach helps to balance the learning process between the different sequence lengths and maintains a strong connection to the appearance and motion priors learned from the image and short video clip stages.
+
+% \end{itemize}
+
+% By incrementally exposing the model to longer video sequences while simultaneously training on images and short clips, we enable the model to capture the temporal coherence and consistency required for generating extended videos without compromising the quality of the early frames. The progressive nature of the training process allows the model to effectively learn from the longer sequences while leveraging the strong priors established in the earlier stages. 
+% \xihui{Describe the progressive training more concretely.}
+
+ \subsection{Extending the Inference Range: Generating Videos Beyond Training Range}
+%\subsection{Generating Videos Beyond Training Length via Token Re-alignment}
+\label{sec:3.3}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{LaTeX/figs/stage2.pdf}
+    \caption{stage2}
+    \label{fig:stage2}
+\end{figure}
+
+The training loss and strategy described in the previous section enables us to train on longer video sequences, such as 10-second clips. However, our ultimate goal is to generate even longer videos on the scale of minutes. One advantage of autoregressive models is that they can leverage previously generated frames as conditioning information to generate subsequent frames, enabling the creation of extended videos. To ensure that the generation process remains within the context window of the trained LLM, we adopt a sliding window approach for inference. Specifically, we generate video tokens in a fixed-length window, typically the same length as the training clips, and then slide the window forward to generate the next set of tokens, using the previously generated tokens as conditioning information.
+However, we find that directly applying this approach leads to severe token misalignment and error accumulation issues. 
+% Although Phenaki~\cite{villegas2022phenaki} proposes a method for generating long videos by conditioning on previously generated frames, their approach is based on a bidirectional masked transformer. This allows them to generate multiple tokens simultaneously and access more contextual information, which helps mitigate the error accumulation problem. In contrast, our purely autoregressive LLM model generates tokens one by one and is limited to a causal view of only the preceding tokens, making the error accumulation issue more pronounced.
+
+The token misalignment problem arises from the non-equivalence of token distributions between the last $n$ frames of the previously predicted window and the first $n$ frames in a new window. This is because the tokens in the previous window are generated based on the entire context of that window, while the tokens in a new window are generated based on the context starting from the first frame of the new window. To address this issue and align the token distributions with the training process, we propose a token re-encoding alignment mechanism. As illustrated in Fig~\ref{fig:stage2}. Instead of directly using the tokens of the last $n$ frames from the previous window, we first decode all the frames in the previous window back to the pixel space using the video tokenizer decoder. Then, we re-encode only the last $n$ frames using the same encoding process as the first frame of a new window. This re-encoding step ensures that the token distribution of the last $n$ frames is compatible with the tokens used during training.
+
+On the other hand, the error accumulation problem stems from the autoregressive nature of the model and the strong inter-frame dependencies of video tokens. Errors in predicting one token can propagate and influence the generation of subsequent tokens, leading to a degradation in video quality as the length increases. To mitigate this issue, we draw inspiration from the Top-K sampling strategy commonly used in NLP tasks. During the token sampling process, we only sample from the Top-K most probable tokens, ensuring that the generated tokens are of high quality. By focusing on the most likely tokens, we reduce the influence of potential errors on subsequent token generation, effectively alleviating the error accumulation problem.
+%\xihui{At least separate the two techniques into two paragraphs.}
+
+\subsection{Refinement Module}
+\label{sec:3.4}
+To generate high-resolution videos, we utilize the publicly available diffusion-based super-resolution model \cite{stable_diff}. To improve the frame consistency after upsampling, we utilize the motion module from AnimateDiff \cite{guo2023animatediff}. Specifically, with a sequence of LLM generated video frames $\vf_i$ and the corresponding text condition $\vt$, the target of the refinement module is to sample data from the leaned distribution for better spatial quality, the refinement module is mathematically formulated as:
+
+
+% \begin{equation*}
+%     \mathbf{\Theta} = \argmin_\Theta \E_{\vx, \vc} \left[ \sum_{\vx_i \in \mathbf{\vx}} \mathcal{L}_{\rm}(\vx_i, \vc, \vs, \theta_{\rm c}, \theta_{\rm m})  \right]
+% \end{equation*}
+
+\begin{equation}
+    \mathbf{\Theta} = \argmin_\Theta \E_{\mathbf{f}, \mathbf{t}} \left[ \sum_{\mathbf{f}_i \in \mathbf{f}} \mathcal{L}(\mathbf{f}_i, \mathbf{t}, \mathbf{s}, \theta_{\rm c}, \theta_{\rm m}) \right]
+\end{equation}
+
+
+
+
+    where $\mathcal{L}$ refers to the noise estimation loss, $\theta_{\rm m}$ is the parameters of the motion module form AnimateDiff \cite{guo2023animatediff} and  $\theta_{\rm c}$ is the parameters from the tile model from ControlNet \cite{controlnet}. In this work, the motion dynamics and the major layout is generated by LLMs and the refinement module is used in a zero-shot manner. The initial noise is obtained by injecting noise onto the generated frames from LLM in a similar manner as Null-text Inversion \cite{mokady2023null}.
+
+% In our experiments, we observed the SR model trained on images could also perform well on the videos. 
+% To reduce its computational and memory cost, we train the SR model on 512$\times$512 random crops of 1024$\times$1024 images with 128$\times$128 input frames. During inference, we feed the generated 256$\times$256 frames as the input to generate frames with 1024$\times$1024   dimension. Chitwan et al.~\cite{saharia2022photorealistic} observed noise conditioning augmentation on super-resolution is critical for generating high-fidelity images. Thus, following~\cite{saharia2022photorealistic}, we degrade low-resolution images with  random Gaussian noise   and add the noise level as another conditioning signal of the diffusion model.

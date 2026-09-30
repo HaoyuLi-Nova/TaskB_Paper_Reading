@@ -1,0 +1,82 @@
+\section{Data}
+\label{sec:data}
+
+The performance of video generation models is inextricably linked to the scale, diversity, and quality of the training data. While our broader training corpus incorporates both video and image datasets, with image data preparation following methodologies similar to Seedream~\cite{gong2025seedream}, this section specifically details our rigorous approach to curating video data. We develop a systematic data processing workflow, illustrated in~\cref{fig:data_processing}, to transform vast, heterogeneous raw video collections into a refined, high-quality, diverse, and safe dataset for training robust video generation models. This workflow is deployed as a robust, automated system optimized for high-throughput processing of massive data volumes.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/data_processing.pdf}
+\caption{
+Our video data processing pipeline, transforming heterogeneous raw videos into a refined, feature-rich training dataset. The workflow comprises three main phases:
+(1) Diversity-oriented data sourcing for initial acquisition and compliance prescreening from diverse sources;
+(2) Multi-stage data curation refines raw data into video clips; and
+(3) Offline data packing where video captioning and VAE encoding are used to generate text and VAE embeddings for model training.}
+\label{fig:data_processing}
+\end{figure*}
+
+
+\subsection{Data Pre-Processing}
+\label{sec:data_process}
+
+At the heart of our video data curation is a multi-stage pre-processing pipeline, designed to tackle the challenges of raw video collections. Each subsequent stage systematically elevates the dataset's standard, preparing it for robust model training. The following paragraphs detail each component of this comprehensive pipeline, which ensures that only video clips meeting our stringent criteria contribute to the final dataset.
+
+\textbf{\textit{Diversity-Oriented Data Sourcing.}}  
+Our video data acquisition strategy prioritizes ethically and legally sourced content from diverse public and licensed repositories. We aim to maximize coverage across critical dimensions, including clip duration, resolution, subject matter (e.g., humans, animals, objects), scene types (e.g., natural landscapes, urban environments), subject actions, genres (e.g., documentary, animation), artistic styles, camera kinematics, and cinematographic techniques. Raw video collections exhibit significant heterogeneity and often contain undesirable elements, posing key challenges that our pipeline is designed to address.
+
+\textbf{\textit{Shot-Aware Temporal Segmentation.}}  
+Raw long-form videos are not suitable for direct model training. We employ automated shot boundary detection techniques by analyzing inter-frame visual dissimilarities or utilizing pre-trained detectors to identify natural scene transitions. Subsequently, videos are segmented into shorter clips, with a maximum duration of $12$ seconds. Each resulting clip may contain one or multiple temporally coherent shots, preserving local narrative flow while ensuring manageable input lengths for model ingestion.
+
+\textbf{\textit{Visual Overlay Rectification.}}  
+Many source videos contain extraneous visual overlays such as logos, watermarks, subtitles, or on-screen graphics that can introduce noise or bias. Our rectification stage identifies these occlusions using a hybrid approach of heuristic rule-based systems and specialized object detection models. Frames are then adaptively cropped to maximize the retention of the primary visual content, yielding cleaner and more focused video data.
+
+\textbf{\textit{Quality and Safety Filtering.}}  
+To ensure the model is trained on high-quality and ethically compliant data, we enforce rigorous filtering via visual assessment and safety screening. First, clips exhibiting visual defects such as blurriness, excessive jittering, low aesthetic quality, poor cinematographic composition, or predominantly static content are systematically identified and removed by our specialized visual quality model. 
+Second, we rigorously exclude harmful or inappropriate material, deploying advanced classifiers to detect content pertaining to pornography, explicit violence, child exploitation, and explicit nudity, thereby ensuring ethical compliance and dataset safety.
+
+\textbf{\textit{Semantic Deduplication.}}  
+To promote dataset diversity and prevent model overfitting to redundant content, we perform semantic deduplication. Video clips are represented by robust feature embeddings extracted from an internally developed video representation model, and these embeddings enable clustering of visually and semantically similar clips. Within each identified cluster of near-duplicates, only the single instance with the highest overall quality score (from the preceding quality filtering stage) is retained.
+
+\textbf{\textit{Distribution Rebalancing.}}  
+Raw data often exhibits significant category imbalance across various attributes. We analyze the dataset’s distribution along these dimensions by quantifying frequencies across attributes tailored to different semantic and technical perspectives, such as subject categories, scene types, dominant actions, genres, visual styles, clip duration, resolution, and motion characteristics. For over-represented head categories, downsampling is applied. Conversely, for under-represented tail categories, we increase their sampling probability during training and initiate targeted data acquisition to augment their presence, aiming for a more equitable and comprehensive representation of the visual world.
+
+
+
+\subsection{Video Captioning}
+\label{sec:caption}
+
+Video captions largely affect the instruction-following capabilities of the video generation model. We mainly improve the quality and accuracy of captions to ensure that important content and actions can be seen and described proprerly.
+
+\textbf{Caption Style.} We adopt a dense caption style integrating dynamic and static features. For dynamic features, we meticulously describe actions and camera movements of a video clip, highlighting changing elements. For static features, we elaborate on the characteristics of core characters or scenes in the video.
+
+\textbf{Caption Elements.} We define specific categories dynamic and static features respectively. dynamic features cover categories of motions, subjects or scenes changing and camera movements, while static features include appearances, aesthetics, styles, etc. We collect diverse data on such categories and conduct high-quality manual annotations for training. The trained caption model can accurately describe the critical content of complex and abstract video materials.
+
+\textbf{Model Training.} We train the caption model on the annotated data with Tarsier2~\cite{yuan2025tarsier2advancinglargevisionlanguage}, a model with strong video understanding capabilities. The visual encoder is frozen and the language model is fully fine-tuned. We train on both Chinese and English data to acquire bilingual capabilities. 
+
+During inference, we use our PE model described in Sec~\ref{sec:pe} to rephrase user prompts into detail video captions, in which the format is aligned with the training captions in content and structure.
+
+
+\subsection{Efficient Engineering Infrastructure}
+\label{sec:engineering_infra}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/data_engineering.pdf}
+\caption{
+Overview of our engineering infrastructure for data processing.
+}
+\label{fig:data_engineering}
+\end{figure*}
+
+\textbf{\textit{Engineering Infrastructure Overview.}}
+Our engineering infrastructure for data processing is illustrated in~\cref{fig:data_engineering},  which consists of three layers: 
+at the top is the unified platform layer, automating human-in-the-loop workflows, managing tasks, visualizing data, and monitoring pipelines, etc.; 
+in the middle is the computation framework layer, which employs BMF~\cite{bmf} and Ray~\cite{ray} for heterogeneous computing across CPU/GPU/NPU architectures and optimizes resource allocation for both stable and elastic computing; 
+at the bottom is the underlying resources layer, which leverages cloud infrastructure from ByteCloud (internal) and Volcengine (external).
+
+\textbf{\textit{Efficient Heterogeneous Computing.}}
+\label{sec:engineering_infra_computing}
+To maximize resource utilization, our frameworks dynamically allocate video operations to optimal hardware (e.g., CPU for decoding, GPU for deep model inference). Asynchronous communication between computation units is used to mitigate bottlenecks introduced by the performance gap between different types of computation hardware.
+%
+To address the complexities arising from the instability of elastic computation resources, our frameworks incorporate two critical capabilities: adaptive auto-scaling to handle resource fluctuations and failure retry mechanisms for preempted tasks. 
+%
+Customized versions of BMF and Ray implement these optimizations, delivering near-linear scalability and extremely high throughput to efficiently process massive-scale video training data.

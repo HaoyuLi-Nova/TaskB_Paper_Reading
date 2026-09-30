@@ -1,0 +1,26 @@
+name: SADM_Pan_GF2
+dataset_name: 'GF2'
+model_name: 'FD-SSFN'
+spatial_ratio: 4
+bit_depth: 10
+
+# Training
+epoch_num: 500
+batch_size: 16
+base_lr: 6e-5
+weight_decay: 0.0
+hid_channels: 64
+lms_channels: 4
+data_range: 1023  
+bit_depth: 10  
+lambda_grad: 0.1   
+train_data_path: '/home/vm1/Proj/pansharpening_data/training_gf2/train_gf2.h5'
+valid_data_path: '/home/vm1/Proj/pansharpening_data/training_gf2/valid_gf2.h5'
+
+# Testing
+test_mode: 'reduced'
+test_data_path: '/home/vm1/Proj/pansharpening_data/training_gf2/test_gf2_multiExm1.h5'
+
+weights_path: 'weights'
+results_path: 'results'
+rgb_bands: [2, 1, 0]   

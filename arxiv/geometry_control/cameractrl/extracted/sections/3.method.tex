@@ -1,0 +1,192 @@
+\section{CameraCtrl}\label{sec:method}
+Introducing precise control of the camera into existing video generation methods is challenging, but holds significant value in terms of achieving desired results. 
+%
+To accomplish this, we address this problem by considering three key questions:
+\textbf{(1)} How can we effectively represent the camera condition to reflect the geometric movement in 3D space?
+\textbf{(2)} How can we seamlessly inject the camera condition into existing video generators without compromising frame quality and temporal consistency?
+\textbf{(3)} What type of training data should be utilized to ensure proper model training? 
+
+This section is thus organized as follows: \cref{subsec:preliminary} presents a brief background discussion of video generation models; \cref{subsec:cam_represent} introduces the camera representation used by \method; \cref{subsec:cam_control} presents the camera model $\mathrm{\Phi}_c$ for injecting camera representation into the video diffusion models. The data selection process is discussed in \cref{subsec:cam_data}.
+\subsection{Preliminaries of Video Generation}\label{subsec:preliminary}
+\noindent \textbf{Video diffusion models.} T2V diffusion models have seen significant advancements in recent years. 
+%
+Some approaches~\citep{makeavideo, ho2022video} train video generators from scratch, while others~\citep{animatediff, alignyourlatents} utilize powerful T2I diffusion models as the pretrained model and train some temporal blocks on them. 
+%
+Besides, some methods jointly train the video generators using images and videos~\citep{yang2024cogvideox}.
+%
+Despite with different training recipes, these models often adhere to the original formulation used for image generation.
+%
+Concretely, a sequence of $N$ images~(or their latent features) $z_0^{1:N}$ are first added noises $\epsilon$ gradually to a normal distribution at $T$ steps. Given the noised input $z_t^{1:N}$ at the $t$ step, a neural network $\hat{\epsilon}_{\theta} $ is trained to predict the added noises.
+%
+During the training, the network tries to minimize the mean squared error~(MSE) between its prediction and the ground truth noise scale; the training objective function is formulated as follows:
+\begin{equation}
+	\L(\theta) = \mathbb{E}_{z_{0}^{1:N}, \epsilon, c_t , t}[\|\epsilon - \hat{\epsilon}_{\theta}(z_{t}^{1:N}, c_t, t)\|^2_2],
+	\label{equ: t2v obj}
+\end{equation}
+where $c_{t}$ represents embeddings of the corresponding condition signal, like text prompts.
+
+\noindent \textbf{Controllable video generation.} 
+In addition to text conditioning, there have been further advancements in enhancing controllability. By incorporating additional structural control signals $s_t$ (\emph{e.g.}, depth maps and canny maps) into the process, controllability for both image and video generation can be enhanced. 
+%
+Typically, these control signals are first fed into an additional encoder $\mathrm{\Phi}_s$ and then injected into the generator through various operations \citep{controlnet, t2iadaptor, ipadaptor}. 
+%
+Consequently, the objective of training this encoder can be defined as follows:
+\begin{equation}
+	\L(\theta) = \mathbb{E}_{z_{0}^{1:N}, \epsilon, c_t, s_t, t}[\|\epsilon - \hat{\epsilon}_{\theta}(z_{t}^{1:N}, c_t, \mathrm{\Phi}_s(s_t), t)\|^2_2].
+	\label{equ: t2v obj control}
+\end{equation}
+
+In this work, we take the camera poses as an additional control signal to the video diffusion models and strictly follow the objective of \cref{equ: t2v obj control} to train our camera encoder $\mathrm{\Phi}_c$. 
+
+%\subsection{Representing Camera Condition Effectively} 
+\subsection{Camera Pose Representation} \label{subsec:cam_represent}
+Before diving into the architecture and training of the camera control module, we first investigate which kind of camera representation could precisely reflect the camera movement in 3D space.
+
+\noindent \textbf{Camera representation.} Typically, the camera pose refers to the intrinsic and extrinsic parameters, denoted as $\mathbf{K} \in \mathbb{R}^{3 \times 3}$ and $\mathbf{E}=\lbrack \mathbf{R}; \mathbf{t} \rbrack \in \mathbb{R}^{3 \times 4}$, respectively, where $\mathbf{R} \in \mathbb{R}^{3 \times 3}$ representations the rotation part of the extrinsic parameters, and $\mathbf{t} \in\mathbb{R}^{3 \times 1}$ is the translation part.
+
+To condition a video generator on camera pose, one straightforward choice is to feed raw values of the camera parameters into the generator.
+%
+However, such a choice may not contribute to accurate camera control for several reasons: \textbf{(1)} While the rotation matrix $\mathbf{R}$ is constrained by orthogonality, the translation vector $\mathbf{t}$ is typically unconstrained in magnitude, leading to a mismatch in the learning process of camera control model.
+%
+\textbf{(2)}  Direct use of raw camera parameters makes it difficult for the model to correlate these values with image pixels, limiting precise control over visual details.
+%
+We thus choose Plücker embeddings~\citep{lfn} as the camera pose representation. 
+%
+Specifically, for each pixel $(u, v)$ in the image coordinate space, its Plücker embedding is $\mathbf{p}_{u, v} = (\mathbf{o} \times \mathbf{d}_{u, v}, \mathbf{d}_{u, v})\in \mathbb{R}^6$, where $\mathbf{o}\in \mathbb{R}^3 $ is the camera center in world coordinate space, and $\mathbf{d}_{u, v} \in \mathbb{R}^3$ is the direction vector in world coordinate space pointed from the camera center to the pixel $(u, v)$, it is calculated as,
+\begin{equation}
+    \label{equ: pluckeremb}
+	\mathbf{d}_{u, v} = \mathbf{RK^{-1}}[u, v, 1]^T + \mathbf{t}.
+\end{equation} 
+%
+Then, it is normalized to ensure it has a unit length. For the $i$-th frame in a video sequence, its Plücker embedding can be expressed as $\mathbf{P}_i \in \mathbb{R}^{6 \times h \times w}$, where $h$ and $w$ are the height and width for the frame.
+
+Note that \cref{equ: pluckeremb} represents the inverse process of camera projection, which maps a point from the 3D world coordinate space into the pixel coordinate system through the use of matrices $\mathbf{E}$ and $\mathbf{K}$. 
+%
+Thus, compared with the numerical values of extrinsic and intrinsic matrices, the Plücker embedding has more geometric interpretation for each pixel of a video frame then can provide a more informative description of camera pose information to the base video generators.
+%
+Consequently, it can better adopt the temporal consistency ability of base video generators to generate video clips with a specific camera trajectory.
+%
+Besides, the value ranges of each item in the Plücker embedding are more uniform, which is beneficial for the learning process of a data-driven model.
+%
+The illustration of different camera representations are in the~\cref{suppfig:illu_diff_camera_rep}, both the camera matrices and the Euler angles are numerical values, while the Plücker embedding is a pixel-wise spatial embedding.
+%
+After obtaining the Plücker embedding $\mathbf{P}_i$ for the camera pose of the $i$-th frame, we represent the entire camera trajectory of a video as a Plücker embedding sequence $\mathbf{P} \in \mathbb{R}^{n \times 6 \times h \times w}$, where $n$ denotes the total number of frames in a video clip.
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/fig2.pdf}
+    \caption{
+    \textbf{Framework of \method.}
+    % 
+    (a) Given a pre-trained video diffusion model (\emph{e.g.} AnimateDiff~\citep{animatediff}) and SVD~\citep{svd}, \method trains a camera encoder on it, which takes the Plücker embedding as input and outputs multi-scale camera representations.
+    % 
+    These features are then integrated into the temporal attention layers of the U-Net at their respective scales to control the video generation process. 
+    %For compactness, we exclude components related to text.
+    % 
+    (b) Details of the camera injection process.
+    % 
+    The camera features $c_t$ and the latent features $z_t$ are first combined through the element-wise addition.
+    % 
+    A learnable linear layer is adopted to further fuse two representations which are then fed into the first temporal attention layer of each temporal block.
+    % 
+    }
+    \label{fig:pipeline}
+    \vspace{-5mm}
+\end{figure}
+
+\subsection{Camera Controllability into Video Generators}\label{subsec:cam_control}
+Due to the fact that a camera trajectory is parameterized by a Plücker embedding sequence as a pixel-wise spatial ray map, we follow the literature~\citep{controlnet, t2iadaptor} by first using an encoder model to extract the features of a Plücker embedding sequence and then fusing the camera features into video generators. 
+
+\noindent \textbf{Camera encoder.}
+%
+Given a specific camera encoder, we can take both the Plücker embedding sequence and the corresponding image features as its input, like the ControlNet~\citep{controlnet}.
+%
+Alternatively, we can input only the camera features into the camera encoder, as done by the T2I-Adaptor~\citep{t2iadaptor}.
+%
+Through empirical analysis, we observe that the first approach tends to leak appearance information from the training dataset due to the use of the input image’s latent representation. 
+%
+This causes the model to rely on the appearance bias inherent in the training data, thereby limiting its ability to generalize camera pose control across various domains.
+%
+Therefore, as illustrated in \cref{fig:pipeline}(a), our camera encoder $\mathrm{\Phi}_c$ only take the Plücker embedding as input and delivers multi-scale features.
+%
+Based on the encoder used in T2I-Adaptor, we introduce a camera encoder specifically designed for videos. 
+%
+This camera encoder includes a temporal attention module after each convolutional block, allowing it to capture the temporal relationships between camera poses throughout the video clip. 
+%
+The detailed architecture of camera encoder is in \cref{suppsubsec:camera_encoder_arch}.
+
+\noindent \textbf{Camera fusion.} 
+After obtaining the multi-scale camera features, we aim to integrate these features seamlessly into the U-Net architecture of the video diffusion model.
+%
+Thus, we further investigate the different types of layers in the U-Net, aiming to determine which layer should be used to incorporate the camera information. 
+%
+Recall that the U-Net model contains both spatial and temporal attention. 
+%
+We inject the camera features into the temporal attention blocks.
+%
+This decision stems from the capability of the temporal attention layer to capture temporal relationships, aligning with the inherent sequential and causal nature of a camera trajectory, while the spatial attention layers always picture the individual frames.
+% 
+This camera feature fusion process is shown in ~\cref{fig:pipeline}(b).
+%
+The image latent features $z_t$ and the camera pose features $c_t$ are directly combined through pixel-wise addition.
+%
+Then, the integrated feature is passed through a linear layer, whose output is fed directly into the fixed first temporal attention layer of each temporal attention module.
+\subsection{Learning Camera Distribution in Data-Driven Manner}\label{subsec:cam_data}
+Training the aforementioned camera encoder and the fusion linear layers on a video generator usually requires a lot of videos with camera pose annotations. 
+%
+One can obtain the camera trajectory through structure-from-motion (SfM), \emph{e.g.,} COLMAP~\citep{schoenberger2016sfm} for realistic videos while others could collect videos with ground-truth camera poses from rendering engines, such as Blender. 
+%
+We thus investigate the effect of various training data on the camera-controlled generator.
+
+\noindent \textbf{Dataset selection.}
+We aim to select a dataset with appearances that closely match the training data of the base video diffusion models and have as wide a camera pose distribution as possible.
+%
+We choose three datasets as the candidates: Objaverse~\citep{objaverse}, MVImageNet~\citep{mvimgnet}, and RealEstate10K~\citep{realestate10k}.
+%
+Samples from the three datasets can be found in the \cref{suppfig:dataset_samples}.
+
+Indeed, datasets with computer-generated imagery, such as Objaverse~\citep{objaverse}, exhibit diverse camera distributions since we can control the camera parameters during the rendering process.
+Yet, these datasets often suffer from a distribution gap in appearance when compared to real-world datasets, such as WebVid10M~\citep{webvid10m}, which is used to train the base video diffusion model.
+%
+%
+When dealing with real-world datasets, such as MVImageNet and RealEstate10K, the distribution of camera parameters is often not very broad.
+%
+In this case, a balance needs to be found between the complexity of individual camera trajectory and the diversity among multiple camera trajectories.
+%
+The former ensures that the model learns to control complex trajectories during each training process, while the latter guarantees that the model does not overfit to certain fixed patterns.
+%
+In reality, while the complexity of camera trajectories in MVImageNet may slightly exceed than that of RealEstate10K for individual trajectories, the trajectories of MVImageNet are typically limited to horizontal rotations.
+%
+In contrast, RealEstate10K showcases a wide variety of camera trajectories. 
+% 
+Considering our goal is to apply the model to a wide range of custom trajectories, we ultimately selected RealEstate10K as our training dataset.
+%
+Besides, there are some other datasets with characteristics similar to RealEstate10K, such as ACID~\citep{acid} and MannequinChallenge~\citep{MannequinChallenge}, but their data volume is much smaller than RealEstate10K. 
+% 
+We tried to combine them with RealEstate10K to jointly train the \method model, but found no benefit.
+
+\noindent \textbf{Measuring the camera controllability.}
+To monitor the training process of our camera encoder, we design two metrics to measure the camera control quality by quantifying the error between the input camera conditions and the camera trajectory of generated videos. 
+%
+Concretely, we utilize COLMAP~\citep{schoenberger2016sfm} to extract the camera pose sequence of generated videos, 
+which consists of the rotation matrices $\mathbf{R}_{gen} \in \mathbb{R}^{n \times 3 \times 3}$ and translation vectors $\mathbf{T}_{gen}  \in \mathbb{R}^{n \times 3 \times 1}$ of a camera trajectory.
+%
+Furthermore, since the rotation angles and the translation scales are two different mathematical quantities, we measure the angle error and translation error separately and term them as \rote and \te.
+%
+Motivated from ~\citep{SO3rotationdistance}, the \rote is computed by comparing the ground truth rotation matrix $\mathbf{R}_{gt}$ and $\mathbf{R}_{gen}$, formulated as,
+\begin{equation}
+    \label{equ: roterr}
+    \rote = \sum_{i=1}^n \arccos{\frac{tr (\mathbf{R}_{gen}^{i} \mathbf{R}_{gt}^{i\mathrm{T}})) - 1}{2}},
+\end{equation}
+where $\mathbf{R}_{gt}^{i}$ and $\mathbf{R}_{gen}^{i}$ represent the ground truth rotation matrix and generated rotation matrix for the $i$-th frame, respectively. 
+%
+And $\textit{tr}$ is the trace of a matrix.
+%
+To quantify the translation error, we use the $L2$ distances between the ground truth translation vector $\mathbf{T}_{gt}$ and $\mathbf{T}_{gen}$, that is,
+ \begin{equation}
+     \label{equ: transerr}
+     \te = \sum_{j=1}^n \|\mathbf{T}_{gt}^{i} - \mathbf{T}_{gen}^{i} \|_2^2 ,
+ \end{equation}
+ where $\mathbf{T}_{gt}^{i}$ and $\mathbf{T}_{gen}^{i}$ are the ground truth and generated translation vectors in the $i$-th frame.
+ %
+ More discussions of \rote and \te can be founded in \cref{suppsubsec: more_detail_rote_te}.
+ 

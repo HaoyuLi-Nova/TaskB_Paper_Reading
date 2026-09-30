@@ -1,0 +1,30 @@
+\begin{table}
+    \centering
+    \small
+    \begin{tabular}{c|c|c}
+    \toprule
+     & 4.5B & 24B \\
+    \midrule
+    Layers & 34 & 48 \\
+    Model Dimension  & 3072  & 6144 \\
+    FFN Activation & GLU & SwiGLU \\
+    FFN Dimension & 12288 &  16384 \\
+    Attention Type & GQA + QK-Norm &  GQA + QK-Norm  \\
+    Block-Casual Attention Head & 128 & 128 \\
+    Block-Casual Attention Group & 8 & 8\\
+    Cross Attention Head & 128 &128\\
+    Cross Attention Group & 8 & 8\\
+    Positional Embedding & Learnable 3d RoPE & Learnable 3d RoPE  \\
+    \midrule
+    Optimizer & AdamW & AdamW \\
+    Weight Decay & $1 \times 10^{-1}$ & $1 \times 10^{-1}$ \\
+    Peak LR & $1 \times 10^{-4}$ & $1 \times 10^{-4}$\\
+    Warm-up & 1000 & 10000 \\
+    $  \beta_{1}$ & 0.9 & 0.9 \\
+    $  \beta_{2}$ & 0.95 & 0.95 \\
+    \bottomrule
+    \end{tabular}
+    \vspace{0.5em}
+    \caption{Model Specification of \magi. }
+    \label{table:model_specification}
+\end{table}

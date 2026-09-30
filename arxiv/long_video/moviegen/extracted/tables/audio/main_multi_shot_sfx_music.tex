@@ -1,0 +1,28 @@
+\begin{table}[H]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{lll ccc cc cc}
+    \toprule
+    & & & \multicolumn{7}{c}{\OursAudio net win rate \vs baseline} \\
+    Dataset & \multicolumn{2}{c}{Baseline method} & \multicolumn{3}{c}{Quality} & \multicolumn{2}{c}{Video-SFX Alignment} & \multicolumn{2}{c}{Video-Music Alignment} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10} 
+    & SFX Model & Music Model & Ovr. & Nat. & Pro. & Corr. & Sync. & Mood & Action \\
+    \midrule
+    \multicolumn{10}{c}{\textit{joint sound effect and music generation}} \\
+    \multirow{8}{*}{\OursAudioBenchMGen SFX+music}
+    & \multicolumn{2}{c}{S\&H TV2A} & \meanci{89.9}{5.0} & \meanci{82.4}{5.9} & \meanci{89.9}{5.0} & \meanci{76.1}{6.7} & \meanci{81.3}{6.5} & \meanci{67.5}{8.8} & \meanci{71.8}{8.3} \\
+    \cmidrule(lr){2-10}
+    \multicolumn{10}{c}{\textit{separate sound effect and music generation}} \\
+    & S\&H TV2A & S\&H TV2A & \meanci{67.7}{8.6} & \meanci{69.3}{8.4} & \meanci{66.4}{8.7} & \meanci{48.6}{9.4} & \meanci{42.3}{7.6} & \meanci{59.3}{8.4} & \meanci{65.1}{9.6} \\
+    & S\&H TV2A & \Suno T2A & \meanci{12.5}{11.8} & \meanci{11.3}{11.4} & \meanci{11.3}{11.9} & \meanci{55.2}{9.8} & \meanci{57.4}{9.0} & \meanci{32.5}{12.3} & \meanci{26.8}{9.3}  \\
+    & Diff-Foley V2A & \Suno T2A & \meanci{27.4}{11.1} & \meanci{20.6}{11.1} & \meanci{28.0}{10.9} & \meanci{25.2}{11.1} & \meanci{22.7}{8.4} & \meanci{49.2}{9.3} & \meanci{42.2}{11.0} \\
+    & FoleyCraft V2A & \Suno T2A & \meanci{38.9}{10.0} & \meanci{39.8}{10.3} & \meanci{32.6}{10.6} & \meanci{60.8}{8.7} & \meanci{60.9}{10.2} & \meanci{18.0}{11.2} & \meanci{23.9}{10.7} \\
+    & VTA-LDM V2A & \Suno T2A & \meanci{38.7}{11.5} & \meanci{28.5}{12.8} & \meanci{35.3}{11.4} & \meanci{80.4}{6.1} & \meanci{77.0}{7.9} & \meanci{52.9}{9.2} & \meanci{45.2}{7.2}\\
+    \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Sound effect and music generation pairwise subject evaluation.}
+    This table compares \OursAudio with prior work on audio quality and video alignment.
+    We report net win rate, which has a range [-100\%, 100\%], and its 95\% confidence intervals.
+    Positive values indicate \OursAudio outperforms the baseline on the metric.}
+    \label{tab:eval_audio_main_ms_sfx_music}
+\end{table}

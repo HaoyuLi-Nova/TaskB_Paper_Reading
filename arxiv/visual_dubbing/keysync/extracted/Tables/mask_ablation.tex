@@ -1,0 +1,15 @@
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Mask     &        CMMD & FVD & LipScore $\uparrow$ & LipLeak  \\ \midrule
+Mouth-only      &  0.077  &  \underline{200.71}   & 0.23  &  0.38 \\
+Full lower-face   &  0.743   &  219.96   & 0.35  & \underline{0.28}  \\
+Ours (nose-level)   &  \underline{0.071}   &  \textbf{199.39}   &  \underline{0.34} & 0.35 \\
+\rowcolor{Gray!40} Ours &  \textbf{0.070}   &  206.32   & \textbf{0.48}  & \textbf{0.16}  \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Mask ablation} in the cross-sync setting.}
+\label{tab:abl_mask}
+\end{table}

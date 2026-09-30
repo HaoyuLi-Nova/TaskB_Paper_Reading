@@ -1,0 +1,96 @@
+\section{Experiments}
+\label{Experiments}
+
+\subsection{Implementation Details and Metrics}
+\label{Details}
+
+% \xiaodong{!!! evaluation metrics and compare them with other methods.}
+
+% 1. lip-sync [LMD, LSE-D, LSE-C] 
+% 2. stylized head [
+%    1). TraceMap@ICCV21Facial]: larger movement and stylization
+%    2). makeittalk
+% 3. overall quality
+%    1). FID, CPBD
+% 4. user study
+
+\paragraph{Datasets} We use VoxCeleb~\cite{voxceleb} dataset for training which contains over 100k videos of 1251 subjects. We crop the original videos following previous image animation methods~\cite{fomm} and resize the video to 256$\times$256. After preprocessing, the data is used to train our FaceRender. Since some videos and audios are not aligned in VoxCeleb, we select 1890 aligned videos and audios of 46 subjects to train our PoseVAE and ExpNet. The input audios are down-sampled to 16kHz and transformed to mel-spectrograms with the same setting as Wav2lip~\cite{wav2lip}. To test our method, we use the 346 videos' first 8-second video~(around 70k frames in total) from HDTF dataset~\cite{hdtf} since it contains high resolution and in-the-wild talking head videos. These videos are also cropped and processed following \cite{fomm} and resized to 256 $\times$256 for evaluation. We use the first frame of each video as the reference image to generate videos.
+
+\paragraph{Implementation Details} All of ExpNet, PoseVAE, and FaceRender are trained separately and we employ Adam optimizer~\cite{adam} for all experiments. After training, our method can be inferred in an end-to-end fashion without any manual intervention. All the 3DMM parameters are extracted through pre-trained deep 3D face reconstruction method~\cite{deng2019accurate}. We perform all the experiments on 8 A100 GPUs. ExpNet, PoseVAE, and FaceRender are trained with a learning rate of $2e^{-5}$, $1e^{-4}$, and $2e^{-4}$, respectively. As for the temporal consideration, ExpNet uses continuous 5 frames to learn. PoseVAE is learned via  continuous 32 frames. The frames in FaceRender are generated frame-by-frame with the coefficients of 5 continuous frames for stability.
+%All the sub-network of ExpNet, PoseVAE and FaceRender are trained separately. After training, our method can be inferred in an end-to-end fashion without any manual intervention. In details, ExpNet is trained on \xiaodong{add dataset and how todo}.
+
+\paragraph{Evaluation Metrics} We demonstrate the superiority of our method on multiple metrics that have been widely used in previous studies. We employ Frechet Inception Distance (FID)~\cite{fid,fidpaper} and cumulative probability blur detection (CPBD)~\cite{cpbd} to evaluate the quality of the images, in which FID is for the realism of generated frames and CPBD is for the sharpness of generated frames. To evaluate identity preservation, we calculate the cosine similarity~(CSIM) of identity embedding between the source images and the generated frames, in which we use ArcFace~\cite{arcface} to extract identity embedding of images. 
+To evaluate lip synchronization and mouth shape, 
+% the Landmarks Distance (LMD) around mouths is utilized to calculate the landmark distance between generated frames and ground truth. 
+we evaluate the perceptual differences of the mouth shape from Wav2Lip~\cite{wav2lip}, including the distance score~(LSE-D) and confidence score~(LSE-C). We also conduct some metrics to evaluate the head motions of generated frames. For the diversity of the generated head motions, a standard deviation of the head motion feature embeddings extracted from the generated frames using Hopenet~\cite{hopenet} is calculated. For the alignment of the audio and generated head motions, we compute Beat Align Score as in Bailando~\cite{bailando}. 
+%We evaluate our method on a subset of HDTF dataset~\cite{hdtf} which  contains 346 high resolution and in the wild talking head videos. \xiaodong{add the implementation details}
+
+\input{tables/compare}
+
+\input{figs/comparsion}
+
+\subsection{Compare with other state-of-the-art methods}
+We compare several state-of-the-art methods for the talking head video generations~(MakeItTalk~\cite{zhou2020makelttalk}, Audio2Head~\cite{wang2021audio2head} and Wang~\etal\cite{wang2021one}~\footnote{This method needs to extract the phoneme from audio, which only works on the specific language.}) and audio to expression generations~(Wav2Lip~\cite{wav2lip}, PC-AVS\cite{pcavs}). 
+The evaluation is performed on their publicly available checkpoint directly. As shown in Table~\ref{tab:compare}, the proposed method shows better overall video qualities and head pose diversity and also shows comparable performance with other fully talking-head generation methods in terms of the lip synchronization metrics. We argue that these lip synchronization metrics are too sensitive to the audio where the unnatural lip movement may get a better score.
+However, our method achieves a similar score to the real videos, which demonstrates our advantages. We also illustrate the visual results of different methods in Figure~\ref{fig:compare}. Here, we give the lip reference to visualize the lip synchronization of our method.
+From the figure, our method has a very similar visual quality to the original target video and with different head poses as we expected. Compared with other methods, Wav2Lip~\cite{wav2lip} produces blur half-face. PC-AVS~\cite{pcavs} and Audio2Head~\cite{wang2021audio2head} are struggling for identity preservation. Audio2Head can only generate the front talking face. Besides, MakeItTalk~\cite{zhou2020makelttalk} and Audio2Head~\cite{wang2021audio2head} generate the distorted face video due to 2D warping. We give the video comparison in the supp. to show more clear comparisons.
+
+
+
+% \todo{{Compare figure with other method}}
+
+\subsection{User Studies}
+We conduct user studies to evaluate the performance of all the methods. We generate overall 20 videos as our testing. These samples contain almost equal genders with different ages, poses and expressions to show the robustness of our method. We invert 20 participants and let them choose the best method in terms of video sharpness, lip synchronization, the diversity and naturalness of the head motion, and overall quality. The results are shown in Table~\ref{tab:user}, where the participants like our method mostly because of the video and motion quality. We also find that 38\% of the participants think our methods show better lip synchronization than other methods, which is inconsistent with Table~\ref{tab:compare}. We think it might be because most of the participants focus on the overall quality of the video, where the blurry and still face videos~\cite{pcavs, wav2lip} influence their opinions.
+
+\input{tables/user_study}
+
+\subsection{Ablation Studies}
+\label{ablation}
+
+\input{figs/blink}
+
+\input{tables/ablation_exp}
+
+
+\paragraph{Ablation of ExpNet} For ExpNet, we mainly evaluate the necessity  of each component via the lip synchronization metrics. Since there are no disentangled methods before, we consider a baseline~(Speech2Gesture~\cite{speech2gesture}, which is an audio to keypoint generation network) to learn the head pose and expression coefficients jointly. As shown in Table~\ref{tab:exp} and Figure~\ref{fig:baseline}, learning all the motion coefficients altogether is hard to generate truth-worthy talking head videos. We then consider the variants of the proposed ExpNet, both the initial expression $\beta_0$, lip reading loss $\mathcal{L}_{read}$ and the necessity of lip-only coefficients are critical. The visual comparison is shown in Figure~\ref{fig:expnet_ablation}, where our method w/o the initial expression $\beta_0$ shows huge identity changes as expected. 
+Also, if we use the real coefficients to replace the lip-only coefficients we use, the performance drops a lot in lip synchronization.
+
+
+
+\input{figs/exp_ablation}
+
+\paragraph{Ablation of PoseVAE}
+
+% \todo{A figure to show the difference of training head pose and expression coefficient jointly and ours}
+
+% \todo{A t-SNE figure to show the ID-awareness of head pose}
+
+% \input{figs/pose_distribution}
+
+We evaluate the proposed PoseVAE in terms of motion diversities and audio beat alignments. As shown in Table.~\ref{tab:pose}, the baseline Speech2Gesture~\cite{speech2gesture} also performs worse in pose evaluation. As for our variants, 
+since our method contains several identity style labels, to better evaluate other components, we first consider the perform the ablation studies on a fixed one-hot style of our full method for evaluation~(OurFull, Single Fixed Style). 
+Each condition in our settings benefits the overall motion quality in terms of diversity and beat alignment. We further report the results of the mixed style of our full method, which uses the randomly-selected identity label as style and shows a better diversity performance also. Since the pose differences are hard to be shown in the figure, please refer to our supplementary materials for better comparison.
+
+\input{tables/ablation_pose}
+
+\input{figs/render_ablation}
+
+\paragraph{Ablation of Face Render}
+We conduct the ablation study on the proposed face render from two aspects. On the one hand, we show the reconstruction quality of our method with the PIRenderer~\cite{ren2021pirenderer}, since both methods use 3DMM as an intermediate representation. As shown in the first row of Fig.~\ref{fig:render_ablation}, the proposed face render shows better expression reconstruction qualities thanks to the mapping of sparse unsupervised keypoints. Where accurate expression mapping is also the key to achieving lip synchronization. Besides, we evaluate the pose unnaturalness caused by the additional alignment coefficients used in PIRenderer~\cite{ren2021pirenderer}. As shown in the second row of Fig.~\ref{fig:render_ablation}, we plot the trace map of the landmarks from the generated video with the same head pose and expression coefficients. Using the fixed or learning-able crop coefficients~(as part of pose coefficients in our poseVAE) will generate the face-aligned video, which is strange as a natural video. We remove it and directly use the head pose and expression as modulation parameters showing a more realistic result.
+
+
+
+
+% \todo{A figure[!important] and table to compare our method with pirender-based method}
+
+
+\subsection{Limitation}
+Although our method generates realistic video from a single image and audio, there still have some limitations in our system. Since 3DMMs do not model the variation of eyes and teeth, the mappingNet in our Face Render will also struggle to synthesize the realistic teeth in some cases. This limitation can be improved via the blind face restoration networks~\cite{gfpgan} as shown in Fig.~\ref{fig:limitation}. Another limitation of our work is that we only concern the lip motion and eye blinking other than the other facial expressions, \eg, emotion and gaze direction. Thus, the generated video has a fixed emotion, which also reduces the realism of generated content. We consider it as future work. 
+
+% 1. facial artifacts of eyes and teeth but can be improved via face restoration network.
+
+% 2. Stiff expression since we only consider the lip motion and eye blink. We will consider to add the emotions to our framework.
+
+% \xiaodong{add a figure about limitation}
+
+\input{figs/limitation}

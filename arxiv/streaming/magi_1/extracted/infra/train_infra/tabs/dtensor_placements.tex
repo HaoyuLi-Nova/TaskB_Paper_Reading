@@ -1,0 +1,73 @@
+\begin{table}[htbp]
+\caption{Examples of DTensor's parallel placements and propagation common in modern training workflows w.r.t. \ref{sec:train_infra_odin}}
+\label{tab:dtensor_placements}
+\begin{threeparttable}
+\resizebox{\columnwidth}{!}{%
+\renewcommand{\arraystretch}{1.5} %
+\begin{tabular}{|Sc|Sc|Sl|}
+\hline
+\multicolumn{1}{|c|}{Basic Placements} & \multicolumn{1}{c|}{Specific Placements} & \multicolumn{1}{c|}{Examples} \\ \hline
+Replicate                             & Replicate \(^{(\mathrm{R})}\)                                 & 
+    \(\begin{aligned}
+    & \text{LayerNorm w/o SP:} \\
+    & y^{(\mathrm{R})} = \frac{x^{(\mathrm{R})} - \mathrm{E}[x^{(\mathrm{R})}]}{ \sqrt{\mathrm{Var}[x^{(\mathrm{R})}] + \epsilon}} * \gamma^{(\mathrm{R})} + \beta^{(\mathrm{R})}
+    \end{aligned}\)
+                    \\ \hline
+\multirow{4}{*}{Partial}               & SumPartial \(^{(\mathrm{P}_{sum})}\)                            & \(\begin{aligned}
+    &\text{RowLinear w/o SP:}\\
+    & O^{(\mathrm{R})} =  \mathrm{AllReduce}((X^{(\mathrm{S}(1))} \times W^{(\mathrm{S}(0))})^{(\mathrm{P}_{sum})}) \\
+    &\text{ZERO-1 Grad Sync:}\\
+    & grad^{(\mathrm{R})} = \mathrm{AllReduce}(grad^{(\mathrm{P}_{sum})})  \\
+    &\text{FSDP Grad Sync:}\\
+    & grad^{(\mathrm{S(0)})} = \mathrm{ReduceScatter}(grad^{(\mathrm{P}_{sum})}) \\
+    &\text{MSE Loss Sync:}\\
+    & loss^{(\mathrm{R})} = \mathrm{AllReduce}(loss^{(\mathrm{P}_{sum})})
+\end{aligned}\)                         \\ \cline{2-3}
+& AvgPartial \(^{(\mathrm{P}_{avg})}\)                          &      \(\begin{aligned}
+    &\text{Parallel RMSNorm:}\\
+    & y^{(\mathrm{R})} = \frac{x^{(\mathrm{S}(1))}}{\mathrm{AllReduce}(\mathrm{RMS}(x^{(\mathrm{S}(1))})^{(\mathrm{P}_{avg})})} * \gamma^{(\mathrm{S}(1))}  \\
+\end{aligned}\)                         \\ \cline{2-3}
+                                       & MaxPartial \(^{(\mathrm{P}_{max})}\)                                &    
+\(\begin{aligned}
+    &\text{Grad L}_{\infty}\text{-Norm}:\\
+    & grad\_norm^{(\mathrm{R})} = \mathrm{AllReduce}(grad\_norm^{(\mathrm{P}_{max})})
+\end{aligned}\)                         \\ \cline{2-3} 
+& MinPartial \(^{(\mathrm{P}_{min})}\)                                &    
+\(\begin{aligned}
+    &\text{FP8 Scaling:}\\
+    & \tilde{x}^{(\mathrm{R})} =  x^{(\mathrm{R})} \times \mathrm{AllReduce}((scaling\_factor^{-1})^{(\mathrm{P}_{min})})
+\end{aligned}\)                         \\ \cline{2-3}
+                                       & NormPartial \(^{(\mathrm{P}_{norm})}\)                              &    \(\begin{aligned}
+    &\text{Grad L}_{p}\text{-Norm}:\\
+    & grad\_norm^{(\mathrm{R})} = \mathrm{AllReduce}(\mathrm{pow}(grad\_norm^{(\mathrm{P}_{norm})}, p)^{(\mathrm{P}_{sum})})^{\frac{1}{p}}
+\end{aligned}\)                          \\ \cline{2-3} 
+& \textbf{LSEPartial} \(^{(\mathrm{P}_{lse})}\)                              &    \(\begin{aligned}
+    &\text{LSE Correction}:\\
+    & lse^{(\mathrm{R})} = \log(\mathrm{AllReduce}(\exp(lse^{(\mathrm{P}_{lse})})^{(\mathrm{P}_{sum})}))
+\end{aligned}\)                          \\ \cline{2-3} 
+                                       & \textbf{AttnPartial}  \(^{(\mathrm{P}_{attn})}\)                             & \(\begin{aligned}
+    &\text{Attention Forward Correction:}\\
+    & o^{(\mathrm{R})} = \mathrm{AllReduce}((\exp(lse^{(\mathrm{P}_{lse})}{-}lse^{(\mathrm{R})})\cdot o^{(\mathrm{P}_{attn})})^{(\mathrm{P}_{sum})})
+\end{aligned}\)                              \\ \hline
+\multirow{3}{*}{Shard}                 & (Even)Shard  \(^{(\mathrm{S}(dim))}\)                              &   \(\begin{aligned}
+    &\text{ColLinear with SP}:\\
+    & O^{(\mathrm{S}(1))} = \mathrm{AllGather}(X^{(\mathrm{S}(0))}) \times W^{(\mathrm{S}(1))} \\
+    &\text{LayerNorm with SP:}\\
+    & y^{(\mathrm{S}(0))} = \frac{x^{(\mathrm{S}(0))} - \mathrm{E}[x^{(\mathrm{S}(0))}]}{ \sqrt{\mathrm{Var}[x^{(\mathrm{S}(0))}] + \epsilon}} * \gamma^{(\mathrm{R})} + \beta^{(\mathrm{R})}
+\end{aligned}\)                        \\ \cline{2-3}                                   & (Even)StridedShard \(^{(\mathrm{SS}(dim))}\)                        &        \(\begin{aligned}
+    &\text{FSDP + ColLinear w/o SP}:\\
+    & O^{(\mathrm{S}(1))} = X^{(\mathrm{R})}\times \mathrm{AllGather}(W^{(\mathrm{SS}(0), S(1))})^{(\mathrm{S}(1))} \\
+    &\text{MHA QKV-fused ColLinear w/o SP}:\\
+    & Q^{(\mathrm{S}(1))},K^{(\mathrm{S}(1))},V^{(\mathrm{S}(1))} = \mathrm{split}(QKV^{(\mathrm{SS}(1))}), \\&QKV^{(\mathrm{SS}(1))} = X^{(\mathrm{R})} \times W_{qkv}^{(\mathrm{SS}(1))}
+\end{aligned}\)                          \\ \cline{2-3} 
+                                       & \textbf{UnevenStridedShard} \(^{(\mathrm{USS}(dim))}\)                       &     \(\begin{aligned}
+    &\text{GQA QKV-fused ColLinear w/o SP}:\\
+    & Q^{(\mathrm{S}(1))},K^{(\mathrm{S}(1))},V^{(\mathrm{S}(1))} = \mathrm{split}(QKV^{(\mathrm{USS}(1))}), \\&QKV^{(\mathrm{USS}(1))} = X^{(\mathrm{R})} \times W_{qkv}^{(\mathrm{USS}(1))}
+\end{aligned}\)                         \\ \hline
+\end{tabular}%
+}
+\begin{tablenotes}\footnotesize
+\item \textbf{Note:} the specific placements with the \textbf{bold text} are the ones we've complemented.
+\end{tablenotes}
+\end{threeparttable}
+\end{table}

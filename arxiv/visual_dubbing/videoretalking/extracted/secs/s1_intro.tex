@@ -1,0 +1,84 @@
+\section{Introduction}
+\input{figs_tex/fig_pipeline}
+
+%The rapid development of Internet brings people together with a growing connection and intercultural communication becomes ever common in our daily life. 
+%For example, the famous movies, popular TV shows, or online courses are usually produced with multiple languages to appeal audiences with different native languages. 
+%However, the high cost of manual labors restricts such multi-lingual services only available to those most influential resources. 
+%In this background, machine translation has been devoted with active researches and important progress is achieved for application deployment. 
+%Anyhow, for talking videos translation, another long-standing notorious problem, i.e. the out-of-sync lip movement and speech, has attracted relatively less research attention and still remains challenging.
+%In this work, we are motivated to tackle this challenge by proposing an effective audio-based lip synchronization system.
+% % 1. Task definition, applications
+%Editing the talking-head videos is hard topic 
+%Videos contains the multi-media information with most easy-to-understand content. Previously, capturing and sharing the video is expensive and people need to pay for it in the cinema or the television. 
+% People likes watching and sharing videos since the popular of the smartphone camera and short video mobile application. 
+% % Talking is the one of the most important and basic 
+% Talking-head videos, which focus on the talking person, are one of the most important type. When these videos spread world-widely, the content needs to be translated to the local languages by the audio dubbing. 
+% It has been widely used in the films, online tutorials and TV shows. However, it is hard to align the talking-related motions on the videos caused by different languages automatically. These out-of-sync visual-audio contents are easily to be identified by the human eyes.
+
+%Editing these pre-recorded video by changing the speech content is difficult.
+% However, it is much like a disaster when the general users showing their self-generated talking contents on the social media with their face and voice. They often need to re-capture the whole video due to a slip of the tongue. Thus, editing these talking-related motions~(\emph{e.g.}, the lip motion and emotion) as pose-processing will greatly reduce the cost of the video maker. 
+%The actor's lines and the expression needs times of the attempts for a perfect performance, even for a professional actor. As for the general user,  %For example, a 10 minutes video often films and edits in a week. So what if we can change the talking related motions seamlessly in a video according to the new audio, which will save a lot of time for video/film creation. 
+
+% % 2. Previous work how to solve this problem
+\if 0
+We seek helps from the learning-based algorithm so as the talking-related motions in the video can match the new audio. This task is also called visual dubbing, given a talking-head video, the face animation and emotion can be edited according to the new given audio and leave all other motions remains~(As shown in Figure~\ref{fig:teaser}). It has been studied by several prior researches~\cite{obama,AudioDVP,NVP} and these methods work perfect on the certain speaker~\cite{obama,AudioDVP,NVP}.
+% and need to be retrained on the specific new person. 
+As in the age where everyone can upload and show their daily life, we believe a generic model for in-the-wild video editing is more useful. 
+However, the current generic methods produce blurry lower-face~\cite{wav2lip} or inaccurate lip synchronous~\cite{song2022everybody}, which are easily to be identified by the human eyes. Meanwhile, these methods can not edit the emotion, which also bounds their real-world applications.
+\fi
+
+The task of editing a talking head video according to an input speech audio has important real-world applications, such as translating an entire video into a different language, or modifying the speech after video recording. Known as visual dubbing, this task has been studied in several prior works~\cite{obama,AudioDVP,NVP,wav2lip}, which edit the input talking-head video by modifying the facial animation and emotion to match the target audio, while leaving all the other motions unchanged~(shown in Figure~\ref{fig:teaser}).
+Some methods~\cite{obama,AudioDVP,NVP} can achieve satisfactory results on a specific speaker, but require training on the talking corpus of the target speaker to obtain a personalized model, which is not always available. %So, the fast forward based generic model is more promising.
+On the other hand, the current generic methods produce blurry lower faces~\cite{wav2lip} or inaccurate lip synchronization~\cite{song2022everybody}, 
+% \menghan{it is better to give an brief explanation about why this limitation exist, e.g., the difficulties of the task or the ignored issues in their methods, etc} 
+which are visually intruding. These methods also do not support emotion editing, which is often desirable when changing the speech content.
+
+
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.9\columnwidth]{figs_pdf/overview_vrt.pdf}
+%     % \vspace{-2em}
+%     \caption{Our method modifies the original video and generates a lip-syncing video by an input audio through expression editing and lip-sync networks.}
+%     % \vspace{-1em}
+%     \label{fig:overview}
+% \end{figure}
+
+
+% % 3. Our solution
+Inspired by previous inpainting-based talking-head video editing approaches~\cite{wav2lip}, we present a new system to edit the talking lips to match the input audio with more stable lip-sync results and better visual quality. 
+Previous works consider the original frames in the video as the head pose references. 
+However, we have found that lip generation is very sensitive to these references, and directly using original frames as basis for lip generation often produces out-of-sync results. 
+To this end, as shown in Figure~\ref{fig:overview}, we employ a divide-and-conquer strategy by neutralizing the facial expressions first, then use the modified frames as pose references for lip generation, which is more accurate given that all reference faces now have the same canonical expression. %we edit the expression of the original video firstly, and then, the new month shape will also be inherited to the lip-sync network, resulting an emotional talking-head generation by changing the expression parameters of the references.
+% and synthesizing the talking-head videos with the stable expression. 
+Finally, in contrast to previous works that often produce low-resolution and blurry results, we produce photo-realistic results via the proposed identity-aware enhancement network and the restorations ~\cite{gpen,gfpgan} based on StyleGAN's facial prior~\cite{stylegan}. 
+%StyleGAN~\cite{stylegan} prior restorations~\cite{gpen,gfpgan}.
+
+
+Specifically, given an arbitrary talking video, we first crop the face region and extract the pose and expression coefficients of the 3D Morphable Model~(3DMM) by a deep neural network~\cite{face3d}. 
+We then use the parameters of the 3DMM with a standard neutral template expression
+%a standard neutral template expression parameters of the 3DMM 
+and re-generate a video through the semantic-guided expression reenactment network similar to \cite{pirender}. 
+By doing so, we obtain a video with the same canonical expression across all the frames, and they will be considered as the structure references for our lip-sync network. 
+Interestingly, we can also synthesize talking head videos with different emotions by changing the expression template. 
+For example, by changing the lip shape of the expression template to match the ``happy" emotion, this lip shape will be taken into account in the lip-sync network, causing the talking-head video exhibits the same emotion.
+
+After expression neutralization, a lip-sync network is then applied to synthesize photo-realistic lower-half faces using the synthesized expression as the conditional structure information.
+Specifically, we design an hourglass-like network with the Fast Fourier Convolution block~\cite{ffc} as the basic learning unit, since it achieves great success in the general image inpainting task~\cite{lama}. 
+As for the audio injection, we use the Adaptive Instance Normalization~(AdaIN) block~\cite{huang2017adain} to modulate the audio features in global. 
+Similar to \cite{wav2lip}, we use a pre-trained lip-sync discriminator to ensure the audio-visual synchronicity. 
+
+Although previous steps can synthesize talking-head videos with relatively accurate lip shapes, the visual quality is still limited by the low-resolution training  datasets~\cite{voxceleb,lrs2}. 
+To solve this problem, we design an identity-preserving face enhancement network to produce high-quality outputs by  progressive training. 
+The enhancement network is trained on an enhanced LRS2 dataset~\cite{lrs2} enhanced by the face restoration method~\cite{gpen}. We also apply the StyleGAN prior guided face restoration network~\cite{gfpgan} to remove visual artifacts around the teeth.
+
+All the above modules can be applied in sequential order without manual intervention or fine-tuning. 
+We conduct extensive experiments to evaluate our framework on several existing benchmarks as well as in-the-wild videos.  
+Results show that the proposed system can produce videos with much higher visual quality than previous methods while providing accurate lip synchronization.
+
+% % % 4. contribution
+% We summary our contributions as fellow:
+
+% \begin{itemize}
+%     \item We propose a new method to edit the talking-head video in the wild.
+%     \item Our method achieves the state-of-the-art performance with respect to the video quality and lip-sync results.
+% \end{itemize}

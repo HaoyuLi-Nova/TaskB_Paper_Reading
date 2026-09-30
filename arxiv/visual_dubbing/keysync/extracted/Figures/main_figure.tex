@@ -1,0 +1,6 @@
+\begin{figure*}
+  \centering
+  \includegraphics[width=\textwidth]{Images/drawing.pdf}
+    \caption{\textbf{Overview of the KeySync framework.} KeySync consists of two stages, both of which involve generating video using latent diffusion conditioned on an input video and audio, differing only in the reference frames selection, as described in (b). During keyframe generation, the model receives an identity frame  $x_{\text{id}}$, which is repeated and concatenated with the noised video input. During interpolation, the model is conditioned on two successive keyframes $z_{i}$ and $z_{i+1}$, along with intermediate learnable embeddings $z_m$. Both stages integrate audio embeddings $a$ from HuBERT~\cite{hubert}. In (c), we illustrate our occlusion handling pipeline, which we apply during inference.}
+    \label{fig:architecture}
+\end{figure*}

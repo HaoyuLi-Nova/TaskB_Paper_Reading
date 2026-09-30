@@ -1,0 +1,55 @@
+\section{Additional Results}
+
+\subsection{Additional Audio Generation Results}
+
+\subsubsection{Additional Metrics for Main Results on Sound Effect Generation}\label{sec:app_audio_main_sfx}
+We present results on objective metrics and additional subjective metrics for the ``sound effect generation'' experiments in \ref{sec:main_res}.
+Table~\ref{tab:app_eval_audio_main_ss_sfx} should be compared against \cref{tab:eval_audio_main_ss_sfx}.
+
+\input{tables/audio/app_main_single_shot_sfx.tex}
+
+We first note that on text-audio alignment, \OursAudio outperforms all baselines supporting text input on recall (how many sound effects described in the text caption are generated),
+which is the main metric we concern for the text-audio alignment axis. It also outperforms most baselines on precision and is on par with ElevenLabs on the real videos.
+It should also be noted that CLAP score between TV2A are similar, which does not correlate strongly with the relative ranking.
+However, CLAP is much higher for TV2A models compared to V2A models,
+which shows its discriminative power when the delta is large enough,
+as we expect V2A models to generate audio that has much worse alignment with text not they are not conditioned on.
+
+For audio quality, we find reasonable correlation between AQual and subjective pairwise comparison.
+On pairwise subjective tests \OursAudio outperforms all baselines,
+and PikaLabs and ElevenLabs have the smallest gaps.
+On the objective metrics, \OursAudio also has the highest score, followed by those two models.
+
+On video-SFX alignment, the correlation between objective and subjective is much weaker.
+We first note that Seeing\&Hearing directly use ImageBind for classifier-guidance which maximizes that.
+Therefore, both the V2A and TV2A variant show IB score on par with \OursAudio, despite that the subjective tests reveal that the video-SFX alignment is much worse compared to \OursAudio.
+Next, we observe that \OursAudio achieves the higher IB score compared to other baselines, and also outperforms them on subjective evaluations.
+However the ranking for the baselines in terms of relative performance to \OursAudio on subjective tests does not correlate highly with IB ranking.
+
+Objective results on \OursAudioBench for sound effect generation are shown in \cref{tab:app_eval_audio_main_ss_sfx_audiobench}. We note that similar trends are observed, where \OursAudio leads in AQual and IB (except when compared to Seeing\&Hearing which optimizes IB in inference), and on par with baselines on CLAP.
+
+\subsubsection{Control audio quality through text prompts}\label{app:qual_control}
+\cref{fig:audio_ablation_audio_quality_sfx} and \cref{fig:audio_ablation_audio_quality_sfx_music} present examples for audio quality control via text prompts for sound effect generation and joint music and sound effect generation respectively.
+When conditioned on prompts indicating low quality (\ie, quality score of 5.0), \OursAudio generates natural but low quality audio that contains for example wind noises or music with broken bass.
+\input{figures/audio/teaser_ablation_aqual_sfx.tex}
+\input{figures/audio/teaser_ablation_aqual_sfx_music.tex}
+
+
+\subsubsection{Control music style through text prompts}\label{app:music_control}
+\cref{fig:audio_ablation_text_music} shows an example of varying music captions for the same video.
+
+\input{figures/audio/teaser_ablation_cap_music.tex}
+
+\subsubsection{Additional Audio Samples}\label{app:audio_samples}
+\cref{fig:audio_more_sfx} and \cref{fig:audio_more_sfx_music} presents additional samples of sound effect generation and joint SFX + music generation, respectively.
+
+\input{figures/audio/teaser_app_more_sfx.tex}
+
+\input{figures/audio/teaser_app_more_sfx_music.tex}
+\clearpage
+\subsection{Additional Results from \OursVideo}
+Here, we include some further example generations from \OursVideo in~\cref{fig:t2v_qual_ours_figure_app1,fig:t2v_qual_ours_figure_app2}
+
+\input{figures/T2V_qualitative_appendix1/t2v_qual}
+
+\input{figures/T2V_qualitative_appendix2/t2v_qual}

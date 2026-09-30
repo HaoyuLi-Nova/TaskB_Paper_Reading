@@ -1,0 +1,76 @@
+
+\section{Introduction} 
+Generating animatable avatars from static portraits through diverse control signals (including audio, facial keypoints, text prompts, and dense motion flow) represents a fundamental challenge in computer vision and graphics. This technology has broad applications across gaming, filmmaking, and virtual reality.
+%Among these control signals, animation driven by audio—commonly known as talking head generation—has emerged as a particularly valuable and widely studied task.
+Among animation techniques driven by these control signals, audio-driven animation (commonly termed talking head generation) has emerged as particularly valuable and widely studied.
+It focuses on synthesizing realistic digital characters whose facial expressions, lip movements, and head poses are precisely synchronized with input speech audio. 
+Recent sophisticated methods have made significant strides in high-fidelity talking portrait generation, with recent advances largely powered by diffusion models 
+\cite{chenEchoMimicLifelikeAudioDriven2024,cuiHallo2LongDurationHighResolution2024,cuiHallo3HighlyDynamic2025,jiSonicShiftingFocus2024,linOmniHuman1RethinkingScalingUp2025,tianEMO2EndEffectorGuided2025,mengEchoMimicV2StrikingSimplified2024,yangMegActor$S$UnlockingFlexible2024,weiMoChaMovieGradeTalking2025,yiMagicInfiniteGeneratingInfinite2025,zhangLetsTalkLatentDiffusion2024,zhenTellerRealTimeStreaming2025,wangFantasyTalkingRealisticTalking2025,wangJoyGenAudioDriven3D2025}
+, yet remain constrained primarily to single-character scenarios. Although some approaches generate separate multi-talking-character videos featuring isolated individuals in distinct scenes 
+\cite{qiChatAnyoneStylizedRealtime2025a,zhuINFPAudioDrivenInteractive2024,parkLetsGoReal2024}, the critical challenge of generating unified multi-talking-character videos with multiple physically co-present characters sharing the same spatial environment remains largely unaddressed.
+\begin{table}[t]
+    \centering
+    \caption{Comparison of Supported Input Modalities in State-of-the-Art Character Animation Methods.}
+    \label{tab:comparison-of-supported}
+    \fontsize{6}{6.5}\selectfont
+    \setlength{\tabcolsep}{3pt}
+    \renewcommand{\arraystretch}{1.4}
+    \begin{tabular}{p{1.7cm}C{1.2cm}C{1.3cm}C{1.3cm}C{1.3cm}}
+        \hline\noalign{\hrule height 0.6pt}
+        \textbf{Method} 
+        & \makecell{\textbf{Speech} \\[-2pt] } 
+        & \makecell{\textbf{Multi-stream} \\[1pt] \textbf{Speech }} 
+        & \makecell{\textbf{Overlapping-} \\[-0pt] \textbf{Speech }} 
+        & \makecell{\textbf{Inpainting} \\[-0pt] \textbf{Frame-Free}} \\
+        \hline
+        ConsisID \cite{yuan_identity-preserving_2024} & \XSolidBrush & \XSolidBrush & \XSolidBrush & \Checkmark \\
+        Ingredients \cite{fei_ingredients_2025} & \XSolidBrush & \XSolidBrush & \XSolidBrush & \Checkmark \\
+        Hallo3 \cite{cuiHallo3HighlyDynamic2025} & \Checkmark & \XSolidBrush & \XSolidBrush & \XSolidBrush \\
+        Sonic \cite{jiSonicShiftingFocus2024} & \Checkmark & \XSolidBrush & \XSolidBrush & \XSolidBrush \\
+        Mocha \cite{weiMoChaMovieGradeTalking2025} & \Checkmark & \XSolidBrush & \XSolidBrush & \Checkmark \\
+        MultiTalk \cite{kong2025let} & \Checkmark & \Checkmark & \XSolidBrush & \XSolidBrush \\
+        HunyuanAvatar \cite{chenHunyuanVideoAvatarHighFidelityAudioDriven2025} & \Checkmark & \Checkmark & \XSolidBrush & \XSolidBrush \\
+        \textbf{Ours} & \Checkmark & \Checkmark & \Checkmark & \Checkmark \\
+        \hline\noalign{\hrule height 0.6pt}
+    \end{tabular}
+\end{table}
+
+In this paper, we advance the study of generating unified multi-talking-character videos featuring two physically interacting characters within the same scene, conditioned on multi-stream speech input, multiple reference character images, and natural language descriptions. We refer to this new setting as the task of Multi-Talking-Character Video Generation.
+Unlike traditional talking-head generation, which focuses solely on single-character scenarios, this task involves driving conditions for multiple characters, 
+which introduces the critical need to accurately bind each speech audio to its corresponding character.
+Additionally, while traditional talking-head generation typically uses a reference character image as the first frame of the generated video\footnote{Hereafter, we term this image an inpainting frame.}, this practice does not apply to the multi-character setting, as we cannot simply concatenate multiple character reference images to create an inpainting frame. Instead, natural-language description is utilized to compose the initial frame. As summarized in Table \ref{tab:comparison-of-supported}, compared with other audio-driven multi-modal methods, our approach uniquely supports more flexible input modalities critical for this novel task.
+
+This task presents two key challenges: (1) the precise control of audio-to-character correspondence, ensuring that each character is animated exclusively by their respective speech audio; and (2) the lack of suitable datasets featuring multi-character talking videos within the same scene, which hinders the advancement of effective models in this setting. To address these challenges, we introduce \textbf{Bind-Your-Avatar}, an MM-DiT-based model specifically designed for multi-talking-character video generation in the same scene. 
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.01\textwidth]{figure1} % Reduce the figure size so that it is slightly narrower than the column.
+    \caption{
+    Overview of the proposed framework, which consists of four main components: 
+    (1) a \textbf{Multi-Modal Diffusion Transformer \textcolor{gray}{(MM-DiT)}} that generates video sequences conditioned on text, audio, and visual inputs; 
+    (2) a \textbf{\textcolor[HTML]{82B366}{Face Encoder}} that extracts facial features;
+    (3) an \textbf{\textcolor[HTML]{6C8EBF}{Audio Encoder}} that captures motion-related information; and
+    (4) an \textbf{\textcolor[HTML]{B85450}{Embedding Router}} that binds ``who'' and ``speaks what'' together, enabling precise audio-to-character correspondence control.
+    Dual mask-guided cross-attention modules in MM-DiT selectively incorporate both motion-related speech information and facial embeddings into visual tokens, using fine-grained masks predicted by the embedding router.
+    }
+    \label{fig1}
+\end{figure*}
+For challenge (1), we design a novel framework based on Diffusion Transformer, incorporating a fine-grained Embedding Router that \textbf{binds} speaker identity \textbf{(``who'')} with speech content \textbf{(``what'')} in shared scenes. Three implementations to achieve this router were explored: The Pre-Denoise Router uses face detection from the inpainting frame to guide speech alignment, but fails with dynamic scenes and close interactions. The Post-Denoise Router first generates silent videos to obtain character masks, but introducing costly multi-pass computation. Our optimal Intra-Denoise Router dynamically generates visual masks during the denoising process within a single forward pass, achieving comparable accuracy with minimal overhead.
+
+% For challenge (1), we propose a fine-grained Embedding Router that \textbf{binds} \textbf{``who''} and \textbf{``speak what''} together to address the audio-to-character correspondence control in the same scene.We explore three approaches to implement the embedding router:Pre-Denoise Router is the naive approach we firstly employ, which directly detect the face bounding box from inpainting frame and then use it as the director of "who" so "speak what" could follow the direct of this thoughout the Denoise process; We found it could not handle large dynamic scenes due to the stationary; Besides, the bounding box is not fine-grained enough to handle case that two character close together.We then use a strategy that "Generate first,then detect" as the second approach, which is called Post-Denoise Router.specifically we generate the video without audio input and detect the face region densemask of the generated video, then we use the densemask to direct the Denoise process.
+% However, we found the second approach introduce computational overhead of multiple forward processes and complexity of inference process.We then apply the third approach, which is called Intra-Denoise Router, which directly trains module to dynamically generate visual masks during denoising.We only cost one forward process, and achieve nearly same performance.
+% which detects face regions after the initial denoising process; and the third approach is an \textbf{Intra-Denoise Router}, which dynamically generates visual masks during denoising using a learned module. The embedding router directs multi-stream high-dimensional embeddings containing facial information and motion-related speech information to their corresponding visual tokens, thereby reducing cross-character information fusion. Leveraging the embedding router, the model is capable of generating multi-character talking videos without requiring a pre-defined inpainting frame. We also
+
+% leverage geometric priors and Post-Denoiseence refinement techniques to enhance its effectiveness.
+
+
+% embedding router that dynamically assigns each visual token to a character identity or the background. This enables the facial and speech audio embeddings of each character to interact precisely with their corresponding visual tokens, thereby reducing cross-character information fusion. We explore three approaches to implement the embedding router and leverage geometric priors and Post-Denoiseence refinement techniques to enhance its effectiveness.
+
+% The Embedding Router directs multi-stream high-dimensional embeddings containing facial information and motion-related speech information to their corresponding visual tokens, reducing cross-character information fusion. Leveraging the embedding router, the model is capable of generating multi-character talking videos without requiring a pre-defined inpainting frame.
+For challenge (2), we construct a new dataset  designed specifically for multi-talking-character video generation, comprising over 200 hours of high-quality videos curated from diverse sources. 
+To the best of our knowledge, there is no existing dataset specifically constructed for this task.
+We further develop an automated data processing pipeline to support training for this task, which performs three core operations: (a) separating individual speech audios from multi-character overlapping videos, (b) generating dense segmentation masks for each character, and (c) assigning character identity labels to each audio segment and segmentation mask to specify their corresponding characters.
+
+Our main contributions are as follow: (1) We firstly introduce the multi-talking-character video generation task, analyze its challenges in detail, and propose a novel framework incorporating a Fine-Grained embedding router that binds ``who'' and ``speak what'' together to address the audio-to-character correspondence control in the same scene. 
+(2) We propose two methods to implement a 3D-mask embedding router that enables frame-wise fine-grained control. To further ensure the accuracy of the predicted masks, we introduce distinct geometry-based loss functions and a mask refinement strategy.
+(3) We release, to the best of our knowledge, the \textbf{first} dataset specifically constructed for multi-talking-character video generation, and will open-source our data cleaning and processing pipeline to facilitate further research in this area.
+(4) We establish a benchmark for the dual-talking-character video generation task and demonstrate superior performance compared to multiple state-of-the-art methods.

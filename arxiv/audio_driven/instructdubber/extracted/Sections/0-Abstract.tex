@@ -1,0 +1,40 @@
+% \begin{abstract}
+% Movie dubbing, also known as Visual Voice Cloning, aims to synthesize voice-conditioned speech from a given script while preserving both lip synchronization and emotion-prosody alignment with the character's performance in the video.
+% Previous visual feature-based alignment methods rely on complex handcrafted preprocessing and exhibit inferior generalization to unseen visual domains due to domain-specific biases.
+% In contrast, natural language instructions offer a more domain-invariant and generalizable representation to guide the dubbing alignment. 
+% The advent of multimodal large language models (MLLMs) further facilitates the generation of accurate and fine-grained dubbing instructions directly from video content.
+% In this paper, we propose InstructDubber, a novel dubbing method with instruction-based alignment framework that leverages MLLM-generated fine-grained dubbing instructions for accurate zero-shot movie dubbing.
+% Specifically, we first design an instructed duration distilling module to extract duration cues from speaking rate instructions for phoneme-level duration prediction, thereby achieving lip synchronization.
+% Secondly, for emotion alignment, we design an instructed emotion calibration module that leverages ground-truth dubbing emotions to calibrate the analysis of emotion instructions, enabling the predicted prosody to better match the character's emotional expression.
+% Extensive experiments demonstrate that InstructDubber achieves favorable performance compared to several state-of-the-art models across three major benchmarks and corresponding zero-shot dubbing scenarios.
+% \end{abstract}
+
+\begin{abstract}
+Movie dubbing seeks to synthesize speech from a given script using a specific voice, while ensuring accurate lip synchronization and emotion-prosody alignment with the character’s visual performance. 
+However, existing alignment approaches based on visual features face two key limitations: 
+(1) they rely on complex, handcrafted visual preprocessing pipelines, including facial landmark detection and feature extraction; and (2) they generalize poorly to unseen visual domains, often resulting in degraded alignment and dubbing quality.
+% Movie dubbing aims to convert a script into speech with a specific voice, while maintaining lip synchronization and emotion-prosody alignment with the character's on-screen performance.
+% Existing visual feature-based alignment approaches suffer from two primary limitations: 
+% (1) They rely on complex handcrafted visual preprocessing, such as facial landmark detection and various feature extraction.
+% % cropping regions and extracting features from input videos; 
+% (2) They exhibit inferior generalization on both alignment accuracy and dubbing quality to unseen visual domains.
+% due to the visual domain gap.
+% Previous visual feature-based alignment methods rely on complex handcrafted preprocessing and exhibit inferior generalization to unseen visual domains due to domain-specific biases, which hinder the broader application.
+To address these issues, we propose InstructDubber, a novel instruction-based alignment dubbing method for both robust in-domain and zero-shot movie dubbing.
+% Specifically, we first input the video, script, and corresponding prompts into a multimodal large language model to generate dubbing instructions that describe the speaking rate and emotional state depicted in the video, while maintaining robustness to visual domain variation.
+Specifically, we first feed the video, script, and corresponding prompts into a multimodal large language model to generate natural language dubbing instructions regarding the speaking rate and emotion state depicted in the video, which is robust to visual domain variations.
+% .
+% Specifically, we first leverage the multimodal large language models to obtain dubbing instructions of the input video in terms of speaking rate and emotion in natural language modality, which is robust to visual domain variations.
+Second, we design an instructed duration distilling module to mine discriminative duration cues from speaking rate instructions to predict lip-aligned phoneme-level pronunciation duration.
+% to align the 
+% % fine-grained 
+% speaking-rate instruction with pronunciation duration, we design an instructed duration distilling module to extract discriminative duration cues guided by the instructions for phoneme-level duration prediction.
+% Third, for emotion-prosody alignment, we devise an instructed emotion calibrating module that fine-tunes an LLM-based instruction analyzer supervised by ground-truth dubbing emotions and predicts the prosody based on the calibrated emotion analysis.
+Third, for emotion-prosody alignment, we devise an instructed emotion calibrating module, which fine-tunes an LLM-based instruction analyzer using ground truth dubbing emotion as supervision and predicts prosody based on the calibrated emotion analysis.
+% from the calibrated emotion analysis.
+Finally, the predicted duration and prosody, together with the script, are fed into the audio decoder to generate video-aligned dubbing. 
+Extensive experiments on three major benchmarks demonstrate that InstructDubber outperforms state‑of‑the‑art approaches across both in‑domain and zero‑shot scenarios.
+% Extensive experiments demonstrate that InstructDubber achieves favorable performance 
+% % compared to several state-of-the-art models 
+% in both in-domain and zero-shot dubbing scenarios across three major benchmarks.
+\end{abstract}

@@ -1,0 +1,45 @@
+
+\begin{table*}[!t]
+    \centering
+    \begin{tabular}{p{0.3\linewidth} p{0.64\linewidth}}
+        \toprule
+        User prompts & Rewritten results \\
+        \midrule
+        A Viking warrior wields a great axe with both hands, battling a mammoth at dusk, amidst a snowy landscape with snowflakes swirling in the air. & An epic battle scene, unfolds as a tall and muscular Viking warrior wields a heavy great axe with both hands, facing off against a massive mammoth. The warrior is clad in leather armor and a horned helmet, with prominent muscles and a fierce, determined expression. The mammoth is covered in long hair, with sharp tusks, and roars angrily. It is dusk, and the snowy landscape is filled with swirling snowflakes, creating an intense and dramatic atmosphere. The backdrop features a barren ice field with the faint outlines of distant mountains. The use of cool-toned lighting emphasizes strength and bravery. The scene is captured in a dynamic close-up shot from a high-angle perspective. \\
+        \midrule
+        The camera follows a motorboat chasing dolphins in the sea. & In a documentary photography style, the camera follows a motorboat chasing a pod of dolphins leaping out of the vast ocean. On the motorboat, there is a driver wearing a life jacket and a safety helmet, with a focused and excited expression. The dolphins are sleek and smooth-skinned, occasionally leaping out of the water and diving back in with agility. The sky is bright blue, the sun is shining, and the sea is shimmering with light. A few white clouds dot the distant sky. The scene is dynamic and full of energy, captured from a medium shot in a tracking perspective. \\
+        \midrule
+        The tiny Potato King, wearing a majestic crown, sits on the throne as potato subjects pay homage to it. & In a surrealist style, the tiny Potato King wears a magnificent gold crown and sits on a towering throne. Its skin has a natural earthy yellow tone with subtle bumpy textures. The potato subjects are lined up on either side, bowing their heads in homage to the king. The background features the grand interior of a palace, with gold and red decorations that appear luxurious and solemn. A beam of light shines down from above, creating a sacred atmosphere. The scene is captured in a close-up shot from a high-angle perspective. \\
+        \bottomrule
+    \end{tabular}
+    \caption{Examples of user prompts and their rewritten results. These examples are in Chinese originally and have been translated into English for the purpose of presentation.}
+    \label{tab:rewritten_prompts}
+\end{table*}
+
+
+\subsection{Prompt Alignment}
+\label{sec:alignment}
+Prompt alignment is designed to boost the effectiveness of model inference by aligning the user's input prompt with the format and style of captions used during training.
+We employ two primary strategies in this process.
+First, we augment each video with a variety of captions, thereby increasing diversity.
+Second, we rewrite user prompts to align them with the distribution of video captions from the training stage. In the following, we detail these strategies.
+
+To accommodate diverse user inputs, each image or video is paired with multiple captions reflecting various styles and lengths. For example, we use captions of differing lengths (e.g., long, medium, and short) and styles (e.g., formal, informal, and poetic) to create a varied set of sample-caption pairs for our training data. These captions establish different mapping relations between text and video, effectively covering the range of prompts that users might provide.
+
+Despite the diversity of captions, a distribution mismatch often exists between the dataset captions and user input prompts. 
+%
+Typically, users prefer concise prompts consisting of a few simple words, which are significantly shorter than the training captions. This discrepancy can adversely affect the quality of the generated videos. 
+%
+To address this issue, we rewrite prompts by utilizing a large language model (LLM) to refine user prompts. 
+%
+Our primary objective is to align the distribution of these refined prompts with the distribution of the training captions, thereby achieving improved inference performance.
+The LLM is guided by the following principles when rewriting user prompts:
+\begin{enumerate}
+    \item We instruct the LLM to add details to prompts without altering their original meanings, enhancing the completeness and visual appeal of the generated scenes.
+    \item The rewritten prompts should incorporate natural motion attributes, where we add appropriate actions for the subject based on its category to ensure smoother and more fluent motion in the generated videos.
+    \item We recommend structuring the rewritten prompts similarly to the post-training captions, beginning with the video style, followed by an abstract of the content, and concluding with a detailed description. This method helps align prompts with the distribution of high-quality video captions.
+\end{enumerate}
+
+We evaluate the effectiveness of LLM-assisted prompt rewriting on our benchmark, and several results are presented in Tab.~\ref{tab:rewritten_prompts}.
+Our findings suggest that LLMs with strong instruction-following capabilities can generate suitable prompts that enhance video generation. To balance speed and performance, we use Qwen2.5-Plus as our rewriting model.
+

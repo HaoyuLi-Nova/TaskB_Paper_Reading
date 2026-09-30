@@ -1,0 +1,38 @@
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figs/teaser.jpg} 
+    \caption{Overview of the proposed OpenHumanVid dataset. The dataset comprises 52.3 million human video clips, totaling 70.6K hours of content. After applying video quality and human quality filters, the refined dataset includes 13.2 million high-quality human video clips. Each video is accompanied by three types of textual prompts: short, long, and structured. Additionally, each video contains human skeleton sequences and corresponding speech audio.}
+    \label{fig:teaser}
+    \vspace{-2mm}
+\end{figure*}
+
+\section{Introduction}
+The emergence of general-purpose video generation models has catalyzed significant advancements in the field, particularly with the introduction of notable frameworks such as Stable Diffusion~\cite{rombach2022high}, Sora~\cite{liu2024sora}, and MovieGen~\cite{polyak2024movie}. 
+Stable Diffusion employs a U-Net-based diffusion model~\cite{weng2021convolutional} within the latent space of a pre-trained Variational Autoencoder (VAE)~\cite{kingma2013auto}, thereby facilitating high-resolution visual generation while optimizing computational efficiency. 
+In contrast, the Diffusion Transformer (DiT) network~\cite{peebles2023scalable} leverages a transformer architecture~\cite{vaswani2017attention} for denoising within the latent space, demonstrating superior scalability and enhanced visual quality.
+Recently, video generation networks~\cite{polyak2024movie,kondratyuk2023videopoet,villegas2022phenaki} that utilize auto-regressive techniques for next-token prediction have exhibited considerable promise, particularly regarding scalability for long video generation and the achievement of high resolutions. 
+A critical factor underpinning these advancements is the availability of high-quality, large-scale datasets, which are essential for the effective pretraining and fine-tuning of these models.
+
+Nevertheless, existing video generation methods, especially those focused on generating videos featuring human subjects, encounter several notable limitations. 
+These limitations can be categorized as follows:
+(1)~\textbf{Appearance consistency}: Significant challenges persist concerning the appearance of human identities, including issues related to human body deformation and inconsistencies in identity representation.
+(2)~\textbf{Motion alignment}: The alignment of human motion and motion control information remains problematic, resulting in unnatural human poses and expressions. 
+Furthermore, there is often a temporal misalignment between lip movements, facial expressions, gesture motions, and the corresponding speech audio.
+(3)~\textbf{Textual prompt support}: 
+While contemporary general-purpose video generation models demonstrate robust support for textual prompts, they exhibit inadequate performance concerning fine-grained descriptions related to human appearance, motion, and expressions. 
+Additionally, there is a lack of sufficient support for motion control signals, such as speech audio and human skeletal sequences.
+
+Existing large-scale video datasets suitable for pretraining tasks in video generation, such as WebVid-10M~\cite{bain2021frozen}, Panda-70M~\cite{chen2024panda} and Open-Vid~\cite{nan2024openvid}, are characterized by their vast scale and diverse categories. 
+However, these datasets exhibit a relative scarcity of data pertaining to human categories, resulting in insufficient diversity in human identities and motions, as well as inadequate textual prompts and motion conditions such as skeletal and speech audio. 
+Concurrently, various human-centric datasets~\cite{soomro2012ucf101,shahroudy2016ntu,sadoughi2015msp,caba2015activitynet,chang2023magicdance,wang2024disco,jiang2023text2performer,ju2023human,camgoz2018neural} containing different identities, actions, and scenes have been applied. 
+However, these datasets primarily target specific tasks such as human action, dance, fashion, and body language, rendering them unsuitable for further pretraining or fine-tuning general video generative models in the human domain.
+To address these limitations, we introduce OpenHumanVid, which offers three key advantages:
+(1)~\textbf{Large scale and high resolution}: OpenHumanVid is a high-resolution dataset (720P or 1080P) derived from reputable video sources, including films, television series, and documentaries.
+This dataset encompasses a wide range of tasks and features rich identity appearances, varying human scales, human motion, expressions, and environmental information.
+(2)~\textbf{Various human motion conditions}: We provide diverse motion-driven conditions, including textual prompts, skeletal data, and speech audio. Our prompts support short, long, and structured formats, encompassing identity appearance, motion, emotion, and background.
+(3)~\textbf{Optimized text-video alignment}: We achieve a well-defined alignment between textual prompts and video visual information, including human appearance, facial motion, and human body motion.
+
+
+To validate the effectiveness of our dataset, we conducted an analysis based on the prestigious diffusion transformer network~\cite{yang2024cogvideox}, examining improvements in human appearance consistency, motion smoothness, and motion-text alignment following further pretraining with our data. 
+Based on these findings, we developed an enhanced version of the baseline model, demonstrating that even straightforward extensions of the network architecture can achieve notable improvements in the VBench~\cite{huang2024vbench} task after further pretraining on our proposed dataset. 
+We intend to contribute the relevant datasets and code to the research community to facilitate further advancements in this domain.

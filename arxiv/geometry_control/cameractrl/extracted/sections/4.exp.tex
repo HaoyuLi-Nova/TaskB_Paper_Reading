@@ -1,0 +1,289 @@
+\section{Experiments}\label{sec:experiment}
+In this session, we evaluate \method with other methods and show its applications in different video generation settings.
+%
+\cref{subsec:implementation} presents the implementation details. \cref{subsec:benchmark_compare} compares \method with baseline methods AnimateDiff~\citep{animatediff} and MotionCtrl~\citep{motionctrl}. \cref{subsec:ablation} shows the comprehensive ablation studies of \method. \cref{subsec:application} express the various applications of \method.
+
+\subsection{Implementation details} \label{subsec:implementation}
+\noindent \textbf{Base video diffusion model.}
+In the T2V setting, AnimateDiff~V3~\citep{animatediff} is used as the base model. 
+% 
+AnimateDiff can be integrated with various T2I LoRAs or base models across different genres. 
+%
+This feature helps us evaluate the generalization ability of \method.
+%
+When implementing \method in the I2V setting, SVD~\citep{svd} is the base model.
+
+\noindent \textbf{Training.} 
+We use the AdamW optimizer to train our model with a constant learning rate of 1$\times 10^{-4}$~(T2V) or 3$\times 10^{-5}$~(I2V).
+ As stated in \cref{subsec:cam_data}, we choose RealEstate10K as the dataset, with around 65$K$ video clips for training. The camera encoder and the linear layers for camera feature injection are trained together with a batch size of 32 for 50$K$ steps. More details in \cref{suppsubsec:train_detail}.
+ 
+ \noindent \textbf{Evaluation metrics.} 
+ To ensure that our camera model does not negatively impact the appearance quality of the original video diffusion models, we utilize the Fréchet Video Distance~(FVD)~\citep{unterthiner2018towards, unterthiner2019fvd}, CLIPSIM~\citep{radford2021learning}, and Frame Consistency~(FC)~\citep{huang2023vbench} to evaluate the video appearance quality. 
+ %
+Besides, motivated from the Dynamic Degree metric in VBench~\citep{huang2023vbench}, we propose an Object Dynamic Degree~(ODD), details in~\cref{suppsubsec: object dynamic degree};, to evaluate the extent of object motion.
+ %
+ Additionally, the quality of camera control is evaluated using the metrics \rote and \te introduced in the~\cref{subsec:cam_data}.
+ %
+For the reference videos and (or) the text captions for FVD, CLIPSim, FC, ODD, we random sample 1,000 videos from WebVid10M dataset.
+%
+For the \rote, and \te, we have randomly chosen 1,000 videos and the corresponding camera poses from the RealEstate10K test set.
+ 
+ \begin{table}[t]
+    \centering\small
+    \caption{%
+    \textbf{Quantitative comparisons.} MotionCtrl$_{\rm{ VC}}$ and MotionCtrl$_{\rm{ SVD}}$ represent MotionCtrl with VideoCrafter~\citep{chen2023videocrafter1} and SVD~\citep{svd} as base model, respectively. Correspondingly, CameraCtrl$_{\rm{AD}}$ and CameraCtrl$_{\rm{SVD}}$ denote base models of AnimateDiff and SVD with \method respectively. 
+    %Our \method achieves the best camera control results in both rotation and translation accuracy.
+    }
+    \setlength{\tabcolsep}{3pt}
+    \begin{tabular}{lccccccc}
+        \toprule
+        Method & FVD  & CLIPSIM $\uparrow$ & FC $\uparrow$ & ODD $\uparrow$ &\te  & \rote  & User Preference Rate $\uparrow$ ($\%$)\\
+        \midrule
+        AnimateDiff & \textbf{1022.4} &  0.298 & 0.930 & \textbf{56.4} &Incapable & Incapable & 19.4 \\
+        MotionCtrl$_{\rm{VC}}$ & 1123.2 & 0.286 & 0.922 & 42.3 & 14.02 & 1.58 & 37.0  \\
+        \textbf{CameraCtrl$_{\rm{AD}}$} & 1088.9 & \textbf{0.301} & \textbf{0.941} & 49.8 & \textbf{12.98} & \textbf{1.29} & \textbf{43.6} \\
+        \midrule
+        SVD & 371.2 & \textbf{0.312} & 0.957 & \textbf{47.5} & Incapable & Incapable & Incapable \\
+        MotionCtrl$_{\rm{ SVD}}$ & 386.2 & 0.303 & 0.953 & 41.8 & 10.21 & 1.41 & 26.9\\
+        \textbf{CameraCtrl$_{\rm{SVD}}$} & \textbf{360.3} & 0.298 &\textbf{0.960} & 46.5  & \textbf{9.02} & \textbf{1.18} & \textbf{73.1}\\
+        \bottomrule
+    \end{tabular}
+    \label{table:benckmarkcomp}
+\end{table}
+
+\subsection{Comparisons with other methods} \label{subsec:benchmark_compare}
+\noindent \textbf{Quantitative comparison.} To prove the effectiveness of \method, we compare it with two alternative methods: AnimateDiff with MotionLoRA~\citep{animatediff}, and MotionCtrl~\citep{motionctrl}.
+%
+Notably, AnimateDiff supports only eight basic camera movements and we do not have the ground truth camera trajectories of these camera movements. 
+%
+Thus, we cannot calculate the \rote and \te for AnimateDiff.
+%
+Instead, we conducted a user study~(details in \cref{suppsec:user_study}) to assess user preference for camera control capabilities between different models.
+%
+Besides, we compare \method with MotionCtrl in both T2V and I2V settings. 
+%In contrast, for comparisons with MotionCtrl, besides base camera trajectories, we select 1,000 random camera trajectories from the RealEstate10K test set, generate videos using these trajectories along with their corresponding captions, and subsequently evaluate them using \re and \te. Notability, \method and the MotionCtrl utilize different T2V base models, evaluating the quality of appearance using metrics like FID may not yield accurate comparisons. Therefore, we do not compare these metrics.
+%
+The quantitative results are shown in \cref{table:benckmarkcomp}.
+%
+The results of middle block are in the T2V setting, while the results of I2V setting are shown in the bottom block.
+%
+Compared to AnimateDiff with MotionLoRA and MotionCtrl, it is evident that our approach outperforms them in terms of camera control accuracies~(\te, \rote, and user preference).
+%
+The lower bounds of \te and \rote are listed in the~\cref{suppsubsec:lower_bounds}.
+%
+Besides, compared with the base models~(AnimateDiff and SVD), \method does not sacrifice the visual quality and the dynamic degree of the gerneated videos, demonstrated by the better or comparable metrics of FVD, CLIPSIM, FC, and ODD.
+%
+
+\noindent \textbf{Qualitative comparison.} We also provide qualitative comparisons between \method and MotionCtrl in both T2V and I2V settings in \cref{fig:visual comparison with motionctrl}. 
+%
+From the comparisons between the first two rows, we find that MotionCtrl cannot follow the camera condition, it shows the scene rotation, not the camera movement.
+%
+In contrast, \method can distinguish the camera movement from the scene motion, strictly following the camera trajectory condition.
+%
+Besides, MotionCtrl is insensitive to small camera movements. 
+%
+As illustrated in the third row, the result of MotionCtrl shows only forward camera movement, ignoring small movement to the left in the condition trajectory.
+%
+By comparison, the \method result in the last row accurately follows both the forward and left camera movements.
+%
+More qualitative comparison results can be found in \cref{suppsec:visual_comparison}.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.9\linewidth]{images/figure3.pdf}
+	\caption{
+ \textbf{Qualitative comparisons between CameraCtrl and MotionCtrl.}
+ The first two rows are in the T2V setting, representing MotionCtrl with VideoCrafter and \method with AnimateDiffV3 as base model, respectively. The last two rows are MotionCtrl and \method with SVD as base model taking the image as a condition signal. Condition images are the first images of each row.}
+	\label{fig:visual comparison with motionctrl}
+\vspace{-3mm}
+\end{figure}
+
+\vspace{-3mm}
+\subsection{Ablation study} \label{subsec:ablation}
+
+We break down the camera control problem into three challenges, regarding the selection of camera representation in \cref{subsec:cam_represent}, the architecture of camera control model in \cref{subsec:cam_control}, and the learning process of camera control model in \cref{subsec:cam_data}.
+%
+In this session, we comprehensively ablate the design choices to each of them using the FVD, \te, and \rote as the main metrics.
+%
+All the \method models in this section are implemented with the AnimateDiffV3 model.
+%
+Unless otherwise specified, we use the same 1,000 video clips in RealEstate10K dataset as in~\cref{subsec:benchmark_compare}.
+%
+
+\noindent \textbf{Plücker embeddings represent a camera precisely.}
+Plücker embeddings naturally serve as a spatial, pixel-wise map with distinct values across locations.
+%
+As an alternative, we could directly use the numerical values for intrinsic matrix $\mathbf{K}$ and extrinsic matrix $\mathbf{E}$, or convert the rotation matrix of $\mathbf{E}$ into Euler angles. 
+%
+Then, repeating them spatially to form a pixel-wise map with identical content across locations.
+%
+Another approach is to combine ray directions (varying across pixels) and a repeated camera origin (constant across spatial positions) into a spatial pixel map.
+%
+Experiment results are illustrated in \cref{table:ablation_cam_rep} -- using the Plücker embeddings as the camera representation yields the best camera control results.
+%
+This stems from Plücker embedding's ability to provide a geometric interpretation for every pixel.
+%
+By contrast, relying solely on numerical values might lead to numerical mismatches, adversely affecting the camera model’s learning efficiency.
+%
+For the representation using ray direction and camera origin, though it can provide the accurate camera origin information, the repeated the camera origin parameters adds redundancy, potentially misaligning features and hindering the model’s understanding of camera motion.
+
+\noindent \textbf{Noised latents as input limit the generalization.} 
+In ablating the architecture of camera encoders, we differentiate between ControlNet~\citep{controlnet}, whose input is the summation of image features and Plücker embedding sqeuence, and the T2I-Adaptor, solely taking Plücker embedding sequence as input. 
+%
+This distinction is crucial as the use of noised latent, mentioned in SparseCtrl~\citep{sparsectrl}, has been associated with appearance leakage, effectively limiting the generalization capability of the camera control quality between different domains.
+%
+Besides, to enhance inter-frame camera coherence, we also consider adding a temporal attention block to each encoder.
+%
+Thus, when choosing the camera architecture of camera encoder, our experiment covers four configurations: ControlNet, T2I-Adaptor, and their temporal attention-enhanced variants.
+%
+The ablation result is in the \cref{tab:camera_enc_arch}. 
+%
+With ControlNet as the camera encoder, the appearance quality is suboptimal as shown by the FVD metric in the first two rows.
+%
+%Considering that the ControlNet takes the rgb images as additional input, it may learn some bias towards controlling T2V model to generate contents similar to the training data. This phenomenon is contrary to our objective of creating a camera control model versatile enough to be applicable across various video themes
+For the models utilizing the T2I-Adaptor, it is observable that the model with additional temporal attention module exhibits better camera control ability.
+%
+Therefore, we chose the T2I-Adaptor encoder with a temporal attention module as our camera encoder.
+
+\setlength{\tabcolsep}{0.5pt}
+\begin{table}[t]
+  \captionsetup[subfloat]{position=bottom}
+  \caption{
+    \textbf{Ablation study} on camera representation, condition injection and effect of various datasets.
+  }
+  \label{table:ablation}
+  \centering \small
+  \subfloat[How to represent camera parameters.\label{table:ablation_cam_rep}]{
+    \begin{tabular}{lccc}
+        \toprule
+        Representation type & FVD$ \downarrow$ & \te$ \downarrow$ & \rote$ \downarrow$ \\
+        \midrule
+        Raw Values & 230.1 & 13.88 & 1.51 \\
+        Euler angles & \textbf{221.2} & 13.71 & 1.43\\
+        Direction + Origin & 232.3 & 13.21 & 1.57 \\
+        \textbf{Plücker embedding} & 222.1 & \textbf{12.98} & \textbf{1.29} \\
+        \bottomrule
+    \end{tabular}
+  }
+  \subfloat[Camera encoder architecture.\label{tab:camera_enc_arch}]{
+\begin{tabular}{lccc}
+\toprule
+Encoder architecture type & FVD$ \downarrow$& \te$ \downarrow$ & \rote$  \downarrow$ \\
+\midrule
+ControlNet & 295.8 & 13.51 & 1.42 \\
+ControlNet + Temporal & 283.4 & 13.13 & 1.33 \\
+T2I Adaptor & 223.4 & 13.27 & 1.38 \\
+T2I Adaptor + Temporal & \textbf{222.1} & \textbf{12.98} & \textbf{1.29} \\
+\bottomrule
+\end{tabular}
+  }
+  \hfill
+  \subfloat[Where to inject camera representations.\label{tab:abla_camera_feat_inj}]{
+\begin{tabular}{lccc}
+\toprule
+Attention  & FVD$ \downarrow$ & \te$ \downarrow$ & \rote$ \downarrow$ \\
+\midrule
+Spatial Self & 241.2 & 14.72 & 1.42 \\
+Spatial Cross & 237.5  & 14.31 & 1.51 \\
+Spatial Self + Cross & 240.1 & 14.52 & 1.60 \\
+\textbf{Temporal} & \textbf{222.1} &  \textbf{12.98} & \textbf{1.29} \\
+\bottomrule
+\end{tabular}
+  }
+\subfloat[Effect of datasets.\label{tab:abla_diff_data}]{
+\begin{tabular}{lccc}
+\toprule
+Datasets  & FVD$ \downarrow$ & \te$ \downarrow$ & \rote$ \downarrow$ \\
+\midrule
+Objaverse & 1435.4 & Incapable & Incapable \\
+MVImageNet & 1143.5 & 13.87 & 1.52  \\
+RealEstate10K + ACID & 1102.4 & 13.48 & 1.41 \\
+RealEatate10K & \textbf{1088.9} & \textbf{12.99} & \textbf{1.39} \\
+\bottomrule
+\end{tabular}
+  }
+\end{table}
+
+\noindent \textbf{Injecting camera condition into temporal attention.} 
+Next, we investigate where the extracted camera features should be inserted within the pre-trained U-Net architecture. 
+%
+For this purpose, we conduct four experiments to insert the features into the spatial self attention, spatial cross attention, both spatial self and cross attention, and temporal attention layers of the U-Net, respectively.
+%
+The results are presented in the \cref{tab:abla_camera_feat_inj}, indicating that inserting camera features into the temporal attention layers yields better outcomes. 
+%
+This improvement can be attributed to the fact that camera motion typically induces global view changes across frames.
+%
+Integrating camera poses with the temporal blocks of the U-Net resonates with this dynamic nature.
+
+\noindent \textbf{Videos with similar appearance distribution and diverse camera help controllability.}
+To test our argument on dataset selection, as discussed in ~\cref{subsec:cam_data}, we train \method using different datasets.
+%
+The Objaverse~\citep{objaverse} dataset, has the widest distribution of camera poses but has a significantly different appearance from WebVid10M. 
+%
+For real-world datasets, compared to MVImageNet, RealEstate10K possesses a more diverse range of camera trajectories. 
+%
+We evaluate these models using diverse data sources, including WebVid10M for FVD, and MannequinChallenge~\citep{MannequinChallenge} camera trajectories for \te and \rote.
+%
+The results, as shown in \cref{tab:abla_diff_data}, display that compared to RealEstate10K, both FVD scores and camera errors are significantly higher with MVImageNet.
+%
+For Objaverse, COLMAP struggles to extract a sufficient number of camera poses to yield meaningful \te and \rote metrics.
+%
+One possible reason for this result is that the difference in the dataset appearance may prevent the model from effectively distinguishing between camera pose and appearance, making a difficult for COLMAP to estimate the camera pose.
+%
+We also jointly train \method with RealEstate10K and a similar dataset ACID, but there is no improvement regarding the camera control ability.
+%
+This result indicates that to improve \method further, a dataset with a larger camera distribution is needed.
+
+\subsection{Applications of \method} \label{subsec:application}
+\noindent \textbf{Applying \method to different video generators.} 
+As detailed in \cref{subsec:cam_control}, our camera control model exclusively uses Plücker embeddings as input, making it independent of the appearance of the training dataset.
+%
+Besides, as mentioned in~\cref{subsec:cam_data}, we select a dataset with an appearance closely resembling that of the training data of the base video generators.
+%
+Benefiting from these design choices, \method can focus solely on learning camera control-related information.
+%
+This enables its application across various video generators.
+%
+We demonstrate this in \cref{fig:used on various base model}, \cref{suppsubsec:visualization_res_t2v}, and \cref{suppsubsec:visualization_res_i2v}.
+%
+In the T2V setting, we implement \method based on AnimateDiff.
+%
+The result shown in the first row adopts the vanilla AnimateDiff model depicting a natural scene.
+%
+Rows two and three showcase results generated by AnimateDiff embedded with other personalized image generators~(Realistic Vision~\citep{realisticvision} and ToonYou~\citep{toonyou}). 
+%
+Row two represents a video style divergent from the typical reality, the buildings of a cyberpunk city. 
+%
+The third row expresses a video of a cartoon character.
+%
+Besides, we implement \method with SVD and sample a video in the I2V setting, shown in the last row.
+%
+Across these varied video generation types, \method consistently demonstrates effective control over the camera trajectories, showcasing its broad applicability and effectiveness in enhancing video narratives through dynamic camera trajectory control.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.95\linewidth]{images/figure4.pdf}
+	\caption{
+ \textbf{Applications of \method.}
+ The first row represents a video generated by the base AnimateDiff. The Following two rows showcase the results of two personalized T2V generators, RealisticVision and ToonYou. The fourth row expresses the video generated by \method integrated with another video control method, SparseCtrl~\citep{sparsectrl}. The video of the last row is produced by a I2V generator, SVD, taking the first image of last row as a condition.
+ }
+	\label{fig:used on various base model}
+\vspace{-3mm}
+\end{figure}
+
+\noindent \textbf{Integrating \method with other video control methods.}
+Thanks to the plug-and-play nature of our method, not only can it be used during the generation processes of different base video generators, but it can also be integrated with other video generation control techniques together to produce videos. 
+%
+For example, we utilize SparseCtrl~\citep{sparsectrl}, a recent approach that controls the overall video generation by manipulating a few sparse frames.
+%
+This control can be based on RGB images, sketch maps, or depths.
+%
+Here, we adopt the RGB encoder and sketch encoder of SparseCtrl, results are shown in the last row of \cref{fig: teaser} and the fourth row of \cref{fig:used on various base model}, using RGB and sketch encoder of SparseCtrl, respectively.
+%
+As illustrated in these two videos, this approach has a high level of consistency between the scenes and objects in the generated video and those in the reference frame.
+%
+Additionally, it is obvious that the camera movements of the generated videos possess a high level of alignment with the provided camera trajectories.
+%
+The successful integration of \method with SparseCtrl further demonstrates the generalization capabilities of \method and enhances its application scenarios.
+%
+More visual results of this part can be found in \cref{suppsubsec:visualization_res_wsparsectrl}.

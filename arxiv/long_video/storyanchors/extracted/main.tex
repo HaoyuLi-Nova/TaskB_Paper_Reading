@@ -1,0 +1,99 @@
+  \documentclass{article}
+
+
+% if you need to pass options to natbib, use, e.g.:
+\PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2025
+
+
+% ready for submission
+% \usepackage{neurips_2025}
+\usepackage[preprint]{neurips_2025}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}         % colors
+\usepackage{enumitem}
+
+\usepackage{ulem}
+% added package
+\usepackage{subfigure} % 旧版子图包
+\usepackage{lipsum}
+\usepackage{booktabs}  % For three-line table
+\usepackage{longtable}  % For tables that need automatic line wrapping
+\usepackage{verbatim}  
+
+\usepackage{graphicx}
+
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{array}
+\usepackage{pifont}
+\usepackage{tabularx}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{tcolorbox}
+\usepackage{booktabs,amsfonts,dcolumn}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,bm,stmaryrd,bbm}
+\usepackage[noorphans,vskip=0.75ex,leftmargin=2ex]{quoting}
+\usepackage{footmisc}\interfootnotelinepenalty=10000
+\usepackage{colortbl}
+\usepackage[noabbrev,capitalize]{cleveref}
+\newtcolorbox[list inside=prompt,auto counter,number within=section]{prompt}[1][]{
+    colbacktitle=black!60,
+    coltitle=white,
+    fontupper=\footnotesize,
+    boxsep=5pt,
+    left=0pt,
+    right=0pt,
+    top=0pt,
+    bottom=0pt,
+    boxrule=1pt,
+    #1,
+}
+% \usepackage{geometry}
+\usepackage{wrapfig,lipsum}
+\newcommand{\ours}{\textsc{StoryAnchors}}
+\title{\textsc{StoryAnchors}: Generating Consistent Multi-Scene Story Frames for Long-Form Narratives
+}
+
+\author{
+Bo Wang\textsuperscript{1}, Haoyang Huang\textsuperscript{2}, Zhiying Lu\textsuperscript{3}, Fengyuan Liu\textsuperscript{3}, Guoqing Ma\textsuperscript{2}, \\
+\textbf{Jianlong Yuan}\textsuperscript{2}, \textbf{Yuan Zhang}\textsuperscript{4}, \textbf{Nan Duan}\textsuperscript{2}, \textbf{Daxin, Jiang}\textsuperscript{2}\\
+\textsuperscript{1}Beijing Institute of Technology, China \\
+\textsuperscript{2}StepFun, China \\
+\textsuperscript{3} University of Science and Technology of China, China \\
+        \textsuperscript{4}Peking University, China
+}
+
+\begin{document}
+
+
+\maketitle
+
+
+\input{section/0-abs}
+\input{section/1-intro}
+\input{section/3-rw}
+\input{section/2-method}
+\input{section/4-exp}
+\input{section/5-con}
+
+
+\bibliographystyle{unsrt}
+% \bibliographystyle{plain}
+\bibliography{costum}
+\input{section/app}
+
+\end{document}

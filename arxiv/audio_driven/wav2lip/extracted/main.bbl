@@ -1,0 +1,395 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{28}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{}, \showDOI{}, and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showDOI}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showDOI #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showDOI      \undefined \def \showDOI       #1{#1}\fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[\protect\citeauthoryear{Afouras, Chung, Senior, Vinyals, and
+  Zisserman}{Afouras et~al\mbox{.}}{2018c}]%
+        {Afouras18c}
+\bibfield{author}{\bibinfo{person}{T. Afouras}, \bibinfo{person}{J.~S. Chung},
+  \bibinfo{person}{A. Senior}, \bibinfo{person}{O. Vinyals}, {and}
+  \bibinfo{person}{A. Zisserman}.} \bibinfo{year}{2018}\natexlab{c}.
+\newblock \showarticletitle{Deep Audio-Visual Speech Recognition}. In
+  \bibinfo{booktitle}{\emph{arXiv:1809.02108}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Afouras, Chung, and Zisserman}{Afouras
+  et~al\mbox{.}}{2018a}]%
+        {Afouras18}
+\bibfield{author}{\bibinfo{person}{T. Afouras}, \bibinfo{person}{J.~S. Chung},
+  {and} \bibinfo{person}{A. Zisserman}.} \bibinfo{year}{2018}\natexlab{a}.
+\newblock \showarticletitle{The Conversation: Deep Audio-Visual Speech
+  Enhancement}. In \bibinfo{booktitle}{\emph{INTERSPEECH}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Afouras, Chung, and Zisserman}{Afouras
+  et~al\mbox{.}}{2018b}]%
+        {afouras2018lrs3}
+\bibfield{author}{\bibinfo{person}{Triantafyllos Afouras},
+  \bibinfo{person}{Joon~Son Chung}, {and} \bibinfo{person}{Andrew Zisserman}.}
+  \bibinfo{year}{2018}\natexlab{b}.
+\newblock \showarticletitle{LRS3-TED: a large-scale dataset for visual speech
+  recognition}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1809.00496}}
+  (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chen, Li, K~Maddox, Duan, and Xu}{Chen
+  et~al\mbox{.}}{2018}]%
+        {chen2018lip}
+\bibfield{author}{\bibinfo{person}{Lele Chen}, \bibinfo{person}{Zhiheng Li},
+  \bibinfo{person}{Ross K~Maddox}, \bibinfo{person}{Zhiyao Duan}, {and}
+  \bibinfo{person}{Chenliang Xu}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Lip movements generation at a glance}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the European Conference on Computer
+  Vision (ECCV)}}. \bibinfo{pages}{520--535}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chen, Maddox, Duan, and Xu}{Chen
+  et~al\mbox{.}}{2019a}]%
+        {chen2019hierarchical}
+\bibfield{author}{\bibinfo{person}{Lele Chen}, \bibinfo{person}{Ross~K Maddox},
+  \bibinfo{person}{Zhiyao Duan}, {and} \bibinfo{person}{Chenliang Xu}.}
+  \bibinfo{year}{2019}\natexlab{a}.
+\newblock \showarticletitle{Hierarchical cross-modal talking face generation
+  with dynamic pixel-wise loss}. In \bibinfo{booktitle}{\emph{Proceedings of
+  the IEEE Conference on Computer Vision and Pattern Recognition}}.
+  \bibinfo{pages}{7832--7841}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chen, Zheng, Maddox, Duan, and Xu}{Chen
+  et~al\mbox{.}}{2019b}]%
+        {chen2019sound}
+\bibfield{author}{\bibinfo{person}{Lele Chen}, \bibinfo{person}{Haitian Zheng},
+  \bibinfo{person}{Ross~K Maddox}, \bibinfo{person}{Zhiyao Duan}, {and}
+  \bibinfo{person}{Chenliang Xu}.} \bibinfo{year}{2019}\natexlab{b}.
+\newblock \showarticletitle{Sound to Visual: Hierarchical Cross-Modal Talking
+  Face Video Generation}. In \bibinfo{booktitle}{\emph{IEEE Computer Society
+  Conference on Computer Vision and Pattern Recognition workshops}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chung, Jamaludin, and Zisserman}{Chung
+  et~al\mbox{.}}{2017}]%
+        {chung2017you}
+\bibfield{author}{\bibinfo{person}{Joon~Son Chung}, \bibinfo{person}{Amir
+  Jamaludin}, {and} \bibinfo{person}{Andrew Zisserman}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{You said that?}
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1705.02966}}
+  (\bibinfo{year}{2017}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chung and Zisserman}{Chung and
+  Zisserman}{2016a}]%
+        {chung2016lip}
+\bibfield{author}{\bibinfo{person}{Joon~Son Chung} {and}
+  \bibinfo{person}{Andrew Zisserman}.} \bibinfo{year}{2016}\natexlab{a}.
+\newblock \showarticletitle{Lip reading in the wild}. In
+  \bibinfo{booktitle}{\emph{Asian Conference on Computer Vision}}. Springer,
+  \bibinfo{pages}{87--103}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Chung and Zisserman}{Chung and
+  Zisserman}{2016b}]%
+        {Chung16a}
+\bibfield{author}{\bibinfo{person}{Joon~Son Chung} {and}
+  \bibinfo{person}{Andrew Zisserman}.} \bibinfo{year}{2016}\natexlab{b}.
+\newblock \showarticletitle{Out of time: automated lip sync in the wild}. In
+  \bibinfo{booktitle}{\emph{Workshop on Multi-view Lip-reading, ACCV}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Cooke, Barker, Cunningham, and Shao}{Cooke
+  et~al\mbox{.}}{2006}]%
+        {cooke2006audio}
+\bibfield{author}{\bibinfo{person}{Martin Cooke}, \bibinfo{person}{Jon Barker},
+  \bibinfo{person}{Stuart Cunningham}, {and} \bibinfo{person}{Xu Shao}.}
+  \bibinfo{year}{2006}\natexlab{}.
+\newblock \showarticletitle{An audio-visual corpus for speech perception and
+  automatic speech recognition}.
+\newblock \bibinfo{journal}{\emph{The Journal of the Acoustical Society of
+  America}} \bibinfo{volume}{120}, \bibinfo{number}{5} (\bibinfo{year}{2006}),
+  \bibinfo{pages}{2421--2424}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Dolhansky, Bitton, Pflaum, Lu, Howes, Wang,
+  and Ferrer}{Dolhansky et~al\mbox{.}}{2020}]%
+        {dolhansky2020deepfake}
+\bibfield{author}{\bibinfo{person}{Brian Dolhansky}, \bibinfo{person}{Joanna
+  Bitton}, \bibinfo{person}{Ben Pflaum}, \bibinfo{person}{Jikuo Lu},
+  \bibinfo{person}{Russ Howes}, \bibinfo{person}{Menglin Wang}, {and}
+  \bibinfo{person}{Cristian~Canton Ferrer}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \bibinfo{title}{The DeepFake Detection Challenge Dataset}.
+\newblock
+\newblock
+\showeprint[arxiv]{2006.07397}~[cs.CV]
+
+
+\bibitem[\protect\citeauthoryear{Duchi, Hazan, and Singer}{Duchi
+  et~al\mbox{.}}{2011}]%
+        {duchi2011adaptive}
+\bibfield{author}{\bibinfo{person}{John Duchi}, \bibinfo{person}{Elad Hazan},
+  {and} \bibinfo{person}{Yoram Singer}.} \bibinfo{year}{2011}\natexlab{}.
+\newblock \showarticletitle{Adaptive subgradient methods for online learning
+  and stochastic optimization.}
+\newblock \bibinfo{journal}{\emph{Journal of machine learning research}}
+  \bibinfo{volume}{12}, \bibinfo{number}{7} (\bibinfo{year}{2011}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Fried, Tewari, Zollh{\"o}fer, Finkelstein,
+  Shechtman, Goldman, Genova, Jin, Theobalt, and Agrawala}{Fried
+  et~al\mbox{.}}{2019}]%
+        {fried2019text}
+\bibfield{author}{\bibinfo{person}{Ohad Fried}, \bibinfo{person}{Ayush Tewari},
+  \bibinfo{person}{Michael Zollh{\"o}fer}, \bibinfo{person}{Adam Finkelstein},
+  \bibinfo{person}{Eli Shechtman}, \bibinfo{person}{Dan~B Goldman},
+  \bibinfo{person}{Kyle Genova}, \bibinfo{person}{Zeyu Jin},
+  \bibinfo{person}{Christian Theobalt}, {and} \bibinfo{person}{Maneesh
+  Agrawala}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Text-based editing of talking-head video}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics (TOG)}}
+  \bibinfo{volume}{38}, \bibinfo{number}{4} (\bibinfo{year}{2019}),
+  \bibinfo{pages}{1--14}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Harte and Gillen}{Harte and Gillen}{2015}]%
+        {harte2015tcd}
+\bibfield{author}{\bibinfo{person}{Naomi Harte} {and} \bibinfo{person}{Eoin
+  Gillen}.} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{TCD-TIMIT: An audio-visual corpus of continuous
+  speech}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Multimedia}}
+  \bibinfo{volume}{17}, \bibinfo{number}{5} (\bibinfo{year}{2015}),
+  \bibinfo{pages}{603--615}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{He, Zhang, Ren, and Sun}{He
+  et~al\mbox{.}}{2016}]%
+        {he2016deep}
+\bibfield{author}{\bibinfo{person}{Kaiming He}, \bibinfo{person}{Xiangyu
+  Zhang}, \bibinfo{person}{Shaoqing Ren}, {and} \bibinfo{person}{Jian Sun}.}
+  \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Deep residual learning for image recognition}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the IEEE conference on computer
+  vision and pattern recognition}}. \bibinfo{pages}{770--778}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Hsu, Zhuang, and Lee}{Hsu
+  et~al\mbox{.}}{2020}]%
+        {Hsu2020DeepFI}
+\bibfield{author}{\bibinfo{person}{Chih-Chung Hsu}, \bibinfo{person}{Yi-Xiu
+  Zhuang}, {and} \bibinfo{person}{Chia-Yen Lee}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Deep Fake Image Detection based on Pairwise
+  Learning}.
+\newblock \bibinfo{journal}{\emph{Applied Sciences}}  \bibinfo{volume}{10}
+  (\bibinfo{year}{2020}), \bibinfo{pages}{370}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Jamaludin, Chung, and Zisserman}{Jamaludin
+  et~al\mbox{.}}{2019}]%
+        {jamaludin2019you}
+\bibfield{author}{\bibinfo{person}{Amir Jamaludin}, \bibinfo{person}{Joon~Son
+  Chung}, {and} \bibinfo{person}{Andrew Zisserman}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{You said that?: Synthesising talking faces from
+  audio}.
+\newblock \bibinfo{journal}{\emph{International Journal of Computer Vision}}
+  \bibinfo{volume}{127}, \bibinfo{number}{11-12} (\bibinfo{year}{2019}),
+  \bibinfo{pages}{1767--1779}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{KR, Mukhopadhyay, Philip, Jha, Namboodiri, and
+  Jawahar}{KR et~al\mbox{.}}{2019}]%
+        {kr2019towards}
+\bibfield{author}{\bibinfo{person}{Prajwal KR}, \bibinfo{person}{Rudrabha
+  Mukhopadhyay}, \bibinfo{person}{Jerin Philip}, \bibinfo{person}{Abhishek
+  Jha}, \bibinfo{person}{Vinay Namboodiri}, {and} \bibinfo{person}{CV
+  Jawahar}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Towards Automatic Face-to-Face Translation}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the 27th ACM International
+  Conference on Multimedia}}. ACM, \bibinfo{pages}{1428--1436}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Kumar, Sotelo, Kumar, de~Br{\'e}bisson, and
+  Bengio}{Kumar et~al\mbox{.}}{2017}]%
+        {kumar2017obamanet}
+\bibfield{author}{\bibinfo{person}{Rithesh Kumar}, \bibinfo{person}{Jose
+  Sotelo}, \bibinfo{person}{Kundan Kumar}, \bibinfo{person}{Alexandre de
+  Br{\'e}bisson}, {and} \bibinfo{person}{Yoshua Bengio}.}
+  \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Obamanet: Photo-realistic lip-sync from text}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1801.01442}}
+  (\bibinfo{year}{2017}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Maas, Hannun, and Ng}{Maas
+  et~al\mbox{.}}{2013}]%
+        {maas2013rectifier}
+\bibfield{author}{\bibinfo{person}{Andrew~L Maas}, \bibinfo{person}{Awni~Y
+  Hannun}, {and} \bibinfo{person}{Andrew~Y Ng}.}
+  \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{Rectifier nonlinearities improve neural network
+  acoustic models}. In \bibinfo{booktitle}{\emph{Proc. icml}},
+  Vol.~\bibinfo{volume}{30}. \bibinfo{pages}{3}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{NPD}{NPD}{2016}]%
+        {videocalling}
+\bibfield{author}{\bibinfo{person}{NPD}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{52 Percent of Millennial Smartphone Owners
+  Use their Device for Video Calling, According to The NPD Group}}.
+\newblock
+\urldef\tempurl%
+\url{https://www.npd.com/wps/portal/npd/us/news/press-releases/2016/52-percent-of-millennial-smartphone-owners-use-their-device-for-video-calling-according-to-the-npd-group/}
+\showURL{%
+\tempurl}
+
+
+\bibitem[\protect\citeauthoryear{Suwajanakorn, Seitz, and
+  Kemelmacher-Shlizerman}{Suwajanakorn et~al\mbox{.}}{2017}]%
+        {suwajanakorn2017synthesizing}
+\bibfield{author}{\bibinfo{person}{Supasorn Suwajanakorn},
+  \bibinfo{person}{Steven~M Seitz}, {and} \bibinfo{person}{Ira
+  Kemelmacher-Shlizerman}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Synthesizing obama: learning lip sync from audio}.
+\newblock \bibinfo{journal}{\emph{ACM Transactions on Graphics (TOG)}}
+  \bibinfo{volume}{36}, \bibinfo{number}{4} (\bibinfo{year}{2017}),
+  \bibinfo{pages}{95}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Thies, Elgharib, Tewari, Theobalt, and
+  Nie{\ss}ner}{Thies et~al\mbox{.}}{2019}]%
+        {thies2019neural}
+\bibfield{author}{\bibinfo{person}{Justus Thies}, \bibinfo{person}{Mohamed
+  Elgharib}, \bibinfo{person}{Ayush Tewari}, \bibinfo{person}{Christian
+  Theobalt}, {and} \bibinfo{person}{Matthias Nie{\ss}ner}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Neural Voice Puppetry: Audio-driven Facial
+  Reenactment}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1912.05566}}
+  (\bibinfo{year}{2019}).
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Tolosana, Vera-Rodriguez, Fierrez, Morales,
+  and Ortega-Garcia}{Tolosana et~al\mbox{.}}{2020}]%
+        {tolosana2020deepfakes}
+\bibfield{author}{\bibinfo{person}{Ruben Tolosana}, \bibinfo{person}{Ruben
+  Vera-Rodriguez}, \bibinfo{person}{Julian Fierrez}, \bibinfo{person}{Aythami
+  Morales}, {and} \bibinfo{person}{Javier Ortega-Garcia}.}
+  \bibinfo{year}{2020}\natexlab{}.
+\newblock \bibinfo{title}{DeepFakes and Beyond: A Survey of Face Manipulation
+  and Fake Detection}.
+\newblock
+\newblock
+\showeprint[arxiv]{2001.00179}~[cs.CV]
+
+
+\bibitem[\protect\citeauthoryear{Tursman, George, Kamara, and Tompkin}{Tursman
+  et~al\mbox{.}}{2020}]%
+        {Tursman_2020_CVPR_Workshops}
+\bibfield{author}{\bibinfo{person}{Eleanor Tursman}, \bibinfo{person}{Marilyn
+  George}, \bibinfo{person}{Seny Kamara}, {and} \bibinfo{person}{James
+  Tompkin}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Towards Untrusted Social Video Verification to
+  Combat Deepfakes via Face Geometry Consistency}. In
+  \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF Conference on Computer
+  Vision and Pattern Recognition (CVPR) Workshops}}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Vougioukas, Petridis, and Pantic}{Vougioukas
+  et~al\mbox{.}}{2019}]%
+        {vougioukas2019realistic}
+\bibfield{author}{\bibinfo{person}{Konstantinos Vougioukas},
+  \bibinfo{person}{Stavros Petridis}, {and} \bibinfo{person}{Maja Pantic}.}
+  \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Realistic speech-driven facial animation with
+  gans}.
+\newblock \bibinfo{journal}{\emph{International Journal of Computer Vision}}
+  (\bibinfo{year}{2019}), \bibinfo{pages}{1--16}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Wang, Bovik, Sheikh, Simoncelli,
+  et~al\mbox{.}}{Wang et~al\mbox{.}}{2004}]%
+        {wang2004image}
+\bibfield{author}{\bibinfo{person}{Zhou Wang}, \bibinfo{person}{Alan~C Bovik},
+  \bibinfo{person}{Hamid~R Sheikh}, \bibinfo{person}{Eero~P Simoncelli},
+  {et~al\mbox{.}}} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Image quality assessment: from error visibility to
+  structural similarity}.
+\newblock \bibinfo{journal}{\emph{IEEE transactions on image processing}}
+  \bibinfo{volume}{13}, \bibinfo{number}{4} (\bibinfo{year}{2004}),
+  \bibinfo{pages}{600--612}.
+\newblock
+
+
+\bibitem[\protect\citeauthoryear{Zhou, Liu, Liu, Luo, and Wang}{Zhou
+  et~al\mbox{.}}{2018}]%
+        {zhou2018talking}
+\bibfield{author}{\bibinfo{person}{Hang Zhou}, \bibinfo{person}{Yu Liu},
+  \bibinfo{person}{Ziwei Liu}, \bibinfo{person}{Ping Luo}, {and}
+  \bibinfo{person}{Xiaogang Wang}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Talking Face Generation by Adversarially
+  Disentangled Audio-Visual Representation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1807.07860}}
+  (\bibinfo{year}{2018}).
+\newblock
+
+
+\end{thebibliography}

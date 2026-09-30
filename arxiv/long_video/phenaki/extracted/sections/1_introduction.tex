@@ -1,0 +1,25 @@
+\section{Introduction}
+\afterpage{%
+\input{figures/story}%
+}
+
+It is now possible to generate realistic high resolution images given a description \cite{DALLE,ramesh2022hierarchical,nichol2021glide,saharia2022photorealistic,PARTI}, but generating high quality videos from text remains challenging. In essence, videos are just a sequence of images, but this does not mean that generating a long coherent video is easy.  In practice, it is a significantly harder task because there is much less high quality data available and the computational requirements are much more severe~\cite{clark2019adversarial}. For image generation, there are datasets with billions of image-text pairs (such as LAION-5B~\cite{schuhmann2021laion} and JFT4B~\cite{zhai2022scaling}) while the text-video datasets are substantially smaller~e.g. WebVid~\cite{bain2021frozen} with ${\sim}10$M videos, which is not enough given the higher complexity of open domain videos. As for computation, training current state-of-the-art image generation models is already pushing the state-of-the-art computational capabilities~\cite{PARTI}, leaving little to no room for generating videos, particularly videos of variable length.
+
+To make the matters worse, one can argue that a single short text prompt is not sufficient to provide a complete description of a video (except for short clips), and instead, a generated video must be conditioned on a sequence of prompts, or \textit{a \story}, which narrates what happens over time. Ideally, a video generation model must be able to generate videos of arbitrary length, all the while having the capability of conditioning the generated frames at time $t$ on prompts at time $t$ that can vary over time. Such capability can clearly distinguish the \textit{video} from a ``moving image" and open up the way to real-world creative applications in art, design and content creation. To the best our knowledge, \story based conditional video generation has never been explored before and this is the first paper to take early steps towards that goal. A traditional deep learning approach of simply learning this task from data is not possible, since there is no story-based dataset to learn from. Instead, to achieve this we rely on a model that is designed specifically with this capability in mind.
+
+% In this paper we introduce the \cvivit model with the following advantages:
+In this paper, we introduce \phenaki, a text to video model trained on both text to video and text to image data that can:
+\begin{itemize}[leftmargin=0.2in]
+    \item[--] Generate temporally coherent and diverse videos conditioned on open domain prompts even when the prompt is a new composition of concepts (Fig.~\ref{fig:compos}). The videos can be long (minutes) even though the model is trained on 1.4 seconds videos (at 8 fps).
+    \item[--] Generate videos conditioned on a \story (i.e. a sequence of prompts), e.g.~Fig.~\ref{fig:story} and Fig.~\ref{fig:story2}.
+    % \item[--] it can also achieve competitive performance on traditional video generation tasks, despite not being trained on them explicitly.
+\end{itemize}
+
+To enable these capabilities, we could not rely on current video encoders, because they either can only decode fixed size videos or they encode frames independently. Hence, we introduce \cvivit, a novel encoder-decoder architecture that:
+\begin{itemize}[leftmargin=0.2in]
+\item[--] Exploits temporal redundancy in videos to improve reconstruction quality over a per frame model while compressing the number of video tokens by 40\% or more.
+\item[--] Allows encoding and decoding of variable length videos given its causal structure.
+\end{itemize}
+
+%In this paper, we introduce \model, a model capable of generating videos from a \story i.e. a sequence of prompts. In order to address the computational requirements, we propose \cvivit, a causal variation of \vivit~\cite{vivit} with additional architectural design changes for video generation, which provides temporal-spatial compression while being auto-regressive in time. This enables the model to generate long videos while maintaining temporal coherence. To address data issues, we train the \model on a mix of images and videos. We demonstrate how this enables the model to \textit{transfer} motion from a smaller set of observed videos to new subjects that only exist in the image datasets. As such, \model can generalize to a wider domain compared to what text-video datasets provide. We also show for auto-regressive models, it is possible to generalize from single prompt description per video to a \story in zero-shot. This combination enables \model to generate videos that could span over multiple minutes, given a series of prompts that potentially describe a story. To the best of our knowledge, this is the first paper taking steps toward generating a long video based on time variable text prompts. 
+\input{figures/models_diagram}

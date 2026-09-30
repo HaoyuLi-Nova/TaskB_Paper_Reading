@@ -1,0 +1,46 @@
+%\begin{figure*}[h]
+\begin{figure}[tp]
+% \addtocounter{figure}{-1} %Prevent subfigures increasing main figure count  % for some reason, this needed to be commented out to get this figure to have a different number than the preceeding figure.
+\centering
+% Arc shot
+\begin{subfigure}[b]{0.4\linewidth}
+%{0.5\textwidth}
+\centering
+\videoframe{figures/video_frames/train_original_00001.jpg}
+\videoframe{figures/video_frames/train_original_00006.jpg}
+\videoframe{figures/video_frames/train_original_00011.jpg}
+\videoframe{figures/video_frames/train_original_00017.jpg}
+%\captionof{figure}{Example of directed camera movement }
+%\end{figure}
+{\textbf{Original Video}
+\ \\
+\ \\}
+\end{subfigure}
+
+
+\begin{subfigure}[b]{0.4\linewidth}
+\centering
+\videoframe{figures/video_frames/train_outpaint_00001.jpg}
+\videoframe{figures/video_frames/train_outpaint_00006.jpg}
+\videoframe{figures/video_frames/train_outpaint_00011.jpg}
+\videoframe{figures/video_frames/train_outpaint_00017.jpg}
+{\textbf{Outpainted Video}
+\ \\
+\ \\}
+\end{subfigure}
+
+
+\begin{subfigure}[b]{0.4\linewidth}
+\centering
+\videoframe{figures/video_frames/train_food_00001.jpg}
+\videoframe{figures/video_frames/train_food_00006.jpg}
+\videoframe{figures/video_frames/train_food_00011.jpg}
+\videoframe{figures/video_frames/train_food_00017.jpg}
+{\textbf{Stylized Video} \\
+\textbf{Prompt:} A gingerbread and candy train on a track
+\ \\}
+\end{subfigure}
+
+\caption{\textbf{Example of zero-shot video editing via task chaining (outpainting and stylization)} -- the original video is first outpainted and then stylized via a text prompt.}
+\label{fig:outpaint_stylize}
+\end{figure}

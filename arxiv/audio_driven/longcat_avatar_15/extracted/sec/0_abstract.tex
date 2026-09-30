@@ -1,0 +1,44 @@
+\begin{abstract}
+
+Despite advances in audio-driven video generation, achieving commercial-grade stability remains challenging. We present LongCat-Video-Avatar 1.5, an upgraded open-source framework prioritizing systematic engineering and production-readiness over architectural novelty.
+
+By upgrading the audio encoder to Whisper Large and meticulously scaling our training recipes, v1.5 achieves accurate lip-synchronization, full-body temporal stability, and robust long-video generation with strict identity consistency. Through rigorous data curation and RLHF Training, the model readily generalizes to stylized domains such as anime and animals, and natively handles complex real-world conditions—such as multi-person interactions and object handling. Furthermore, addressing the practical demands of industrial deployment, we employ advanced step distillation to accelerate inference to an optimal 8 NFE, achieving a favorable trade-off between serving efficiency and visual fidelity.
+
+The superiority of our approach is validated through extensive quantitative metrics and a rigorous human evaluation conducted on a comprehensive benchmark of over 500 diverse test cases. 
+Results show that v1.5 achieves competitive or superior performance compared to leading closed-source systems (e.g., HeyGen, OmniHuman 1.5, Kling Avatar 2.0) across human-likeness ratings and expert-level quality assessments on our benchmark. With its open-source release, LongCat-Video-Avatar 1.5 narrows the gap between academic research prototypes and commercial-grade deployment.
+
+
+\vspace{0.1cm}
+
+
+\textbf{Page}: \href{https://meigen-ai.github.io/LongCat-Video-Avatar-1.5-Page}{https://meigen-ai.github.io/LongCat-Video-Avatar-1.5-Page} \\
+\textbf{GitHub}: \href{https://github.com/meituan-longcat/LongCat-Video}{https://github.com/meituan-longcat/LongCat-Video}
+
+
+
+\begin{figure}[htbp]
+  \centering
+  
+  \begin{subfigure}[c]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/image_all.jpg}
+    \caption{} 
+    \label{fig:comp1}
+  \end{subfigure}
+  \hfill 
+  \begin{subfigure}[c]{0.5\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{png/img_cmp.png}
+    \caption{}
+    \label{fig:comp2}
+  \end{subfigure}
+  
+  \caption{Human evaluation. The overarching benchmark includes over 500 test samples with varying audio-visual complexities, scenarios, and languages. For the results in the two figures, only images containing a single talker are evaluated. (a) Expert-level objective quality evaluation across four dimensions~\cite{zhou2025evaltalker}, calculated as 100 $-$ Issue Rate, \textit{i.e.,} rationality, stability, harmony, and consistency. Issue rate means the percentage of samples rated as having the corresponding artifact by expert evaluators. (b) Human-likeness comparison with leading commercial models.}
+  \label{fig:comp}
+  
+\end{figure}
+
+    
+\end{abstract}
+
+

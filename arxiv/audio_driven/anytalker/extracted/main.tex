@@ -1,0 +1,99 @@
+% CVPR 2026 Paper Template; see https://github.com/cvpr-org/author-kit
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+% \usepackage{cvpr}              % To produce the CAMERA-READY version
+% \usepackage[review]{cvpr}      % To produce the REVIEW version
+\usepackage{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+\usepackage{lineno}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{amssymb,amsmath}
+\usepackage{mathrsfs}
+\usepackage{forest}
+\usepackage{xspace}
+\usepackage{multirow}
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{xxxx} % *** Enter the Paper ID here
+\def\confName{CVPR}
+\def\confYear{2026}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{AnyTalker: Scaling Multi-Person Talking Video Generation \\with  Interactivity Refinement}
+
+% \title{AnyTalker: Scaling Interactive Talking Video Generation for Any Number of Identities}
+
+\author{
+Zhizhou Zhong$^{1,2}$\quad
+Yicheng Ji$^{2,3}$\quad
+Zhe Kong$^{1}$\quad
+Yiying Liu$^{2*}$\quad
+Jiarui Wang$^{2}$\quad 
+Jiasun Feng$^{2}$\quad \\
+Lupeng Liu$^{2,4}$\quad
+Xiangyi Wang$^{2,4}$\quad
+Yanjia Li$^{2}$\quad
+Yuqing She$^{2,4}$  
+Ying Qin$^{4}$\quad 
+Huan Li$^{3}$\quad \\
+Shuiyang Mao$^{2}$\quad 
+Wei Liu$^{2}$\quad
+Wenhan Luo$^{1\dagger}$
+\\
+$^{1}$Hong Kong University of Science and Technology \quad
+$^{2}$Video Rebirth \quad \\
+$^{3}$Zhejiang University \quad
+$^{4}$Beijing Jiaotong University
+\\
+{\tt\small Homepage: https://hkust-c4g.github.io/AnyTalker-homepage}
+\\
+{\tt\small Code: https://github.com/HKUST-C4G/AnyTalker}
+}
+
+\begin{document}
+
+\twocolumn[{%
+\renewcommand\twocolumn[1][]{#1}%
+\maketitle
+\includegraphics[width=\textwidth]{fig/teaser.pdf}
+\vspace{-1.5em}
+\captionof{figure}{
+We propose AnyTalker, a powerful audio-driven framework for interactive multi-person video generation. It can generate natural videos that are rich in gestures, lively emotions, and interactivity, and can freely generalize to arbitrary IDs or even non-human cases.
+\vspace{1em}}
+\label{fig:teaser}
+}]
+
+\def\thefootnote{}\footnotetext{$^*$ Project leader.}
+\def\thefootnote{}\footnotetext{$^\dagger$ Corresponding author.}
+
+\input{sec/0_abstract}    
+\input{sec/1_intro}
+\input{sec/2_related_work}
+\input{sec/3_method}
+\input{sec/4_evaluation}
+\input{sec/5_exp}
+\input{sec/6_conclusion}
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+\input{sec/X_suppl}
+% WARNING: do not forget to delete the supplementary pages from your submission 
+% \input{sec/X_suppl}
+
+\end{document}

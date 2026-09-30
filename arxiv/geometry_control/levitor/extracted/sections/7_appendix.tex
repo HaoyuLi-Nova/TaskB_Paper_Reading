@@ -1,0 +1,84 @@
+\clearpage
+\appendix
+\renewcommand\thesection{\Alph{section}}
+\renewcommand\thefigure{S\arabic{figure}}
+\renewcommand\thetable{S\arabic{table}}
+\renewcommand\theequation{S\arabic{equation}}
+\setcounter{figure}{0}
+\setcounter{table}{0}
+\setcounter{equation}{0}
+\setcounter{page}{1}
+\maketitlesupplementary
+
+
+\section*{Appendix}
+
+\section{Comparison with more methods}
+This section compares our \method with more recent methods SG-I2V~\cite{sgi2v} and MOFA-Video~\cite{mofa}. The qualitative comparison in ~\cref{fig:supp0} shows that these methods fail to follow complex trajectories or produce proper depth variation.
+
+\begin{figure}[h]
+\vspace{-8pt}
+  \centering
+  \includegraphics[width=\linewidth]{re_pics/pingpang_re_final.pdf}
+  \caption{Qualitative comparison with SG-I2V and MOFA-Video.}
+  \vspace{-18pt}
+  \label{fig:supp0}
+\end{figure}
+
+\section{More Ablations on the Number of Control Points for Inference}\label{sec:points_number}
+In this section, we show more examples of choosing different numbers of control points to generate videos with~\method. We conduct inference with our default number of control points and with more densely packed points, respectively. The results are shown in~\cref{fig:supp1}. It can be seen that with the default number of control points, our~\method can reasonably represent the state of fluid movement and human running. However, since the generation strictly follows the control points, the more control points used, the less space is left for our model to produce some non-rigid movements, resulting in the unreasonable results of waves floating in the air and people gliding on the road. This demonstrates that overly dense control points cannot generate non-rigid motion well. Thus, we implement~\method with multiple clustered points control rather than directly using object masks as the condition. In this way, users can flexibly adjust the number of control points as needed to generate both rigid and non-rigid motions.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\columnwidth]{images/supp1.pdf}
+    \caption{Ablation results on the Number of Control Points for Inference. We highly recommend viewing the visualization results for detailed video demonstrations.}
+    \label{fig:supp1}
+    \vspace{-5pt}
+\end{figure}
+
+\begin{table}[ht]
+\centering
+\caption{
+    Quantitative comparison with Single-point Control on DAVIS~\cite{davis}.
+    }
+\resizebox{0.9\linewidth}{!}{
+    \begin{tabular}{cccc}
+    \toprule
+    % \hline
+    Methods & FID  & FVD  & ObjMC  \\
+    \midrule
+    % \hline
+    Single-Point Control  &  30.91  & 253.73 & 38.21  \\
+    Ours  &  \textbf{25.41} & \textbf{190.44} & \textbf{25.97} \\
+    \hline
+    \end{tabular}
+}
+\label{tab:supp1}
+\vspace{-5pt}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{images/supp2.pdf}
+    \caption{Comparison with Single-point Control model. We highly recommend viewing the visualization results for detailed video demonstrations.}
+    \label{fig:supp2}
+    \vspace{-10pt}
+\end{figure}
+
+
+\section{Comparison with Single-point Control}\label{sec:single_point}
+One of our key motivations is to represent 3D motions by utilizing the clustering and dispersion of multiple points within object masks. Another more intuitive idea is whether we can represent 3D motion using 2D trajectories combined with depth information. That is, representing a 3D trajectory through a single 2D trajectory along with changes of depth values input by users. To validate this idea, we use the center point of each object's mask as a control point and train the model with the value change of that point as the generation condition. We conduct both qualitative and quantitative analysis. Qualitative results in~\cref{fig:supp2} show that such single-point control can not represent 3D motions well. The first two examples test the representation of occlusion. It can be observed that a single point with depth changes controlling struggles to accurately express occlusion, resulting in the disappearance of the purple light cluster and the deformation and merging of the cars. The third example tests the control of forward and backward movements. Compared to our~\method, single-point control is not very sensitive to size changes caused by forward and backward movement. Quantitative results in~\cref{tab:supp1} also show the advantage of 3D motion representation with clustering and dispersion of multiple points. Ablation study in Tab. 2 of the main text indicates that the value of depth does not significantly affect the quality of the generated results. And results in this section show that 2D trajectories with depth value changes can not represent 3D motions. These conclusions both suggest that in our method, the clustering and dispersion of multiple control points are the key aspects of 3D motion representation, while depth information is generally used for moving objects in 3D space to obtain rendered object masks.
+
+\section{Bad Case Analysis}\label{sec:bad}
+In this section, we list some bad generation cases for analysis. Results in~\cref{fig:supp3} indicate that our~\method has difficulties in reconstructing small faces and generating scenes with large motions. It may also confuse similar parts of objects. For example, in the first row of~\cref{fig:supp3}, the horse's faces become blurry while walking, and the movement of their legs is also quite unnatural. In~\cref{fig:supp1}, the movement of the person's feet while running also appears unnatural. In the second row, the elephant's front leg suddenly turns into a back one, and then a regenerated front leg appears. We attribute this phenomenon to the fact that the underlying video base model Stable Video Diffusion (SVD)~\cite{SVD} we apply can not reconstruct small faces and tends to produce artifacts when generating large-scale movements. We are going to enhance our model by integrating more advanced video-based models in the future, hoping to better capture deformable objects and complex dynamics to handle large-scale and non-rigid motions. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\columnwidth]{images/supp3.pdf}
+    \caption{Bad Cases of~\method.}
+    \label{fig:supp3}
+    \vspace{-5pt}
+\end{figure} 
+
+
+

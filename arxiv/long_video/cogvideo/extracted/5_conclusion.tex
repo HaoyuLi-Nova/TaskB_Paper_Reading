@@ -1,0 +1,7 @@
+\section{Conclusion}
+We present CogVideo, to the best of our knowledge, 
+the largest and the first open-source pretrained transformer for text-to-video generation in general domain. CogVideo is also the first attempt to efficiently leverage the pretrained text-to-image generative model to the text-to-video generation model without hurting its image generation capacity.
+%, which solves the problem of low quality and scarcity in text-video data. 
+With the proposed multi-frame-rate hierarchical training framework, CogVideo is endowed with a better understanding of text-video relations and abilities to control the intensity of changes during generation. We extend swin attention to CogLM, which achieves acceleration in both training and inference. There are still some limitations in CogVideo, e.g. restriction on the length of the input sequence still exists due to the large scale of the model and limitation of GPU memory, and we leave them for future work. 
+
+\textbf{Broader Impact. }This paper aims to advance the open-domain text-to-video generation, which will ease the effort of short video and digital art creation. The efficient training method transfers knowledge from text-to-image models to text-to-video models, which helps avoid training from scratch, and thus reduces energy consumption and carbon emission. A negative impact is the risk of misinformation. To alleviate it, we can train an additional classifier to discriminate the fakes. We believe the benefits outweigh the downsides.

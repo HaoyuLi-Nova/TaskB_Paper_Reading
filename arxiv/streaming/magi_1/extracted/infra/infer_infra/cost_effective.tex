@@ -1,0 +1,38 @@
+\subsubsection{Cost-effective Inference on RTX 4090} 
+The NVIDIA GeForce RTX 4090 is a highly cost-effective GPU with 24G memory. However, through in-depth memory profiling and analysis, we identified memory insufficiency as the primary bottleneck to serve our model on it. To address this challenge, we developed a highly memory-efficient inference architecture and performs systematically optimizations. As a result, we successfully deployed and ran our 4.5B-parameter model on a single RTX 4090 GPU, and also support our largest 24B model on an 8$\times$RTX 4090 GPUs. In the following section, we briefly introduce the key optimization techniques.
+
+\paragraph{Memory Optimization} 
+To address the memory constraints of the RTX 4090, we used a variety of techniques to do systematically optimization:
+ 
+\begin{itemize}
+\item \emph{Quantization:} We adopt the same quantization strategy (WA8A SmoothQuant) as for streaming video generation.
+\item \emph{KV-offload:} KV-offload is a technique that stores the KV cache in CPU memory by default and dynamically re-load it back to the GPU as needed. This approach significantly reduces peak GPU memory usage and is widely adopted in long-sequence processing for large language models (LLMs). In \magi, we also adopt this technique to effectively address memory constraints.
+
+\item \emph{Hybrid Parallelism and Communication Optimization:} The above two optimizations only enable 4.5B model deployment on a single RTX 4090 GPU. However, the largest 24B model further requires multi-GPU parallelism. Unlike the streaming setting where we primarily adopt a Ulysses-based context-parallelism (CP) approach, deployment on RTX 4090 employs a hybrid strategy combining pipeline-parallelism (PP) and context-parallelism.
+
+Specifically, pipeline-parallelism is used to partition model weights, while context-parallelism is used to partition activations. However, since the RTX 4090 utilizes PCIe for inter-GPU communication, both PP and CP suffer from communication-induced bubbles that degrade compute utilization, as measured by Model FLOPs Utilization (MFU). For PP, we mitigate this by interleaving tasks to overlap GPU idle. For context-parallelism, we initially adopted the Ulysses approach, but found that communication could not be fully overlapped with computation under PCIe constraints.
+
+Therefore, we propose an enhancement to Ulysses called Context Shuffle Overlap (CSO)(Details in Sec.~\ref{sec:appendix_context_shuffle_overlap}), which scatters each chunk evenly across all GPUs, enabling finer-grained overlap between computation and communication than plain Ulysses. This strategy significantly improves MFU under the limited interconnect bandwidth of the RTX 4090. 
+\end{itemize}
+
+With the above optimizations, we constrained peak memory usage to 19.07GB for the 4.5B model on a single RTX 4090 GPU, and 19.29 GB for the 24B model on 8$\times$RTX 4090 GPUs. For the 24B model, the maximum MFU reached 66\%.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

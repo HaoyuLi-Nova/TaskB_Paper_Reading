@@ -1,0 +1,26 @@
+
+\begin{table}[t]
+\centering
+\caption{
+    Ablations on Object Instance and Depth information.
+    }
+\vspace{-5pt}
+\resizebox{0.7\linewidth}{!}{
+    \begin{tabular}{cc|cccc}
+    \toprule
+    % \hline
+    Depth & Instance & FID & FVD & ObjMC \\
+    \midrule
+    % \hline
+    \xmark & \xmark & 27.83 & 227.58 & 29.82 \\
+    \checkmark & \xmark & 28.04 & 221.29 & 29.13 \\
+    \xmark & \checkmark  & 25.45 & 199.44 & \textbf{25.40} \\
+    \midrule
+    \checkmark & \checkmark  & \textbf{25.41} & \textbf{190.44} & 25.97 \\
+    \bottomrule
+    \hline
+    \end{tabular}
+}
+\label{tab:ablations}
+\vspace{-12pt}
+\end{table}

@@ -1,0 +1,92 @@
+\section{Experiments}
+
+\subsection{Settings}
+\textbf{Baseline methods} We include the following baseline methods such as NOVA~\citep{deng2024nova}, Pyramid Flow~\citep{jin2024pyramidal}, SkyReels-V2-1.3B~\citep{chen2025skyreels}, MAGI-1-4.5B~\citep{teng2025magi} distilled to 16 steps for long video generation, CausVid~\citep{yin2025causvid} and Self-Forcing~\citep{huang2025self}, both 1.3B distilled few-step generators similar to ours. Additional two state-of-the-art bidirectional models LTX-Video~\citep{hacohen2024ltx} and Wan2.1~\citep{wan2025} are included for references.
+
+ 
+ \textbf{Evaluation metrics}
+We conduct evaluations under two primary settings. The first setting follows the general VBench protocol~\citep{huang2024vbench}, which measures generation quality on short videos of 5 seconds using 946 prompts across 16 dimensions. The second setting examines the model’s capacity to extend generation up to 50/75/100 seconds with the same prompt set used in CausVid, consisting of 128 prompts from MovieGen~\citep{polyak2024movie}. Performance in this setting is assessed with both VBench Long and our proposed improved evaluation metric.
+
+\subsection{Empirical Results in Long Video Generation}
+Quantitative and qualitative results are presented in \cref{tab:main,tab:main_more}, and \cref{fig:teaser,fig:main}, respectively. Our method achieves competitive performance in short-horizon generation and demonstrates substantial advantages as the generation horizon extends.
+
+\textbf{Short-Horizon (5s)}: Although not specifically trained for the initial 5 seconds, our model performs comparably to Self-Forcing on short clips, achieving strong overall results with a semantic score of 80.37 and a total score of 83.11, both surpassing the remaining baselines.
+\begin{table}[h]
+\vspace{-2pt}
+      \caption{Performance comparisons on 5s short videos and 50s long videos. Baseline methods achieve high temporal quality scores primarily due to stagnation reflected by their dynamic degree.}  \input{main_tables/main_performance_5s_50s}
+      
+      \label{tab:main}
+\end{table}
+
+
+\textbf{Long-Horizon (50s/75s/100s)}: The superiority of our method becomes more pronounced in long-horizon generation. We observe consistent improvements across key metrics. E.g. our model achieves a text alignment score of 26.04 and dynamic degree of 54.12 with 100-second video, outperforming CasuVid by 6.67\% and 56.4\% respectively which relies on recomputing overlapping frames and our baseline method Self-Forcing by 18.36\% and 104.9\% respectively   as shown in~\cref{fig:main}. This  suggests that our approach effectively mitigates error accumulation during long rollouts.
+\begin{table}[h]
+\vspace{-2pt}
+  \centering
+  \caption{Performance comparisons on 75s and 100s long videos. Baseline methods achieve high temporal quality scores primarily due to stagnation or degrade to pure noise.}  
+  \input{main_tables/main_performance_75s_100s}
+  
+  \label{tab:main_more}
+\end{table}
+
+In contrast, baseline methods exhibit significant degradation when generating long videos. Their primary failure modes are:
+\textbf{i)} Motion Collapse: While maintaining short-term temporal structure, their videos frequently collapse into nearly static sequences, as reflected by their low dynamic degree scores. Our method, however, sustains coherent motion throughout the entire sequence.
+\textbf{ii)} Fidelity Degradation: Baselines often suffer from exposure instability. For instance, CausVid trends towards over-exposure, while Self-Forcing videos progressively darken. Our model maintains stable brightness and visual quality. This degradation in Self-Forcing is a direct consequence of accumulated errors without explicit long-horizon training. While some diffusion forcing methods show sporadic recovery from noise collapse such as SkyReels, the resulting content is of low fidelity.
+\begin{figure}[h]
+    \centering
+    \input{main_demo_figures/main_1_figure}
+    \caption{100-second video generated for prompt ``A vibrant tropical fish glides gracefully through colorful ocean reefs, surrounded by swaying coral...''. Baseline methods usually suffer from error accumulation and over-exposure, causing severe quality degradation when generating long videos.}
+    \label{fig:main}
+\end{figure}
+
+
+\subsection{Ablation Study}
+\subsubsection{Length of attention window}
+
+A straightforward way to mitigate Self-Forcing’s training–inference mismatch is to shorten the attention span during training, exposing the model to more diverse cache states within a limited horizon. \begin{wraptable}{r}{0.55\textwidth}
+\centering
+\caption{Ablation study on various methods to reduce error accumulation measured by visual stability on 50s videos.}
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{ccccccc}
+\toprule
+  Causvid&   Self-Forcing & Attn-15 & Attn-12 & Attn-9 & Ours \\
+\midrule
+   40.47 & 40.12                  & 44.69                  & 42.19                 & 52.50  &  \textbf{90.94}   \\
+\bottomrule
+\end{tabular}
+}
+\label{tab:ablation_study}
+\end{wraptable}For instance, a 5-second clip corresponds to 21 latent frames; by reducing the attention window, the model is forced to slide attention multiple times. As shown in~\cref{tab:ablation_study} and visualized in Appendix~\cref{fig:ablation_study}, smaller windows bring modest gains. For example, visual stability improves from 40.12 to 52.50 with a window of 9 latent frames. However, this comes at the cost of increased inconsistency, since the model now relies on much less context compared to the original 21-frame history.
+
+
+
+
+
+
+
+
+
+\subsubsection{The effect of GRPO with optical-flow reward}
+\begin{wrapfigure}{r}{0.5\linewidth}
+    \centering
+    \vspace{-16pt} % adjust vertical spacing if needed
+    \includegraphics[width=0.8\linewidth]{ablation_study/flow_plot.pdf}
+    \caption{Comparison of generation outcomes with and without GRPO. Variance is computed with window size 8.}
+    \label{fig:optical-flow}
+\end{wrapfigure}
+
+Here we show its effectiveness for enhancing temporal consistency by examining the optical flow magnitude, a proxy for temporal stability.
+As visualized in fig. \ref{fig:optical-flow}, videos generated without GRPO may suffer from abrupt scene transitions. These transitions manifest as sharp spikes in the optical flow magnitude, an artifact that is exacerbated by the rolling window mechanism used during inference. By promoting smoother temporal transitions, our GRPO method effectively suppresses these spikes. This results in a marked improvement in long-range consistency and overall perceptual quality of the generated videos.
+
+
+
+
+\subsection{Training Budget Scaling}
+Finally, we investigate the effect of scaling the training budget on the model's long-duration video generation capabilities. As illustrated in \cref{fig:scale_up}, our model, following ODE initialization, exhibits only a nascent ability to generate short, low-fidelity clips. We establish a baseline (1$\times$ budget) as the training required to produce a coherent 5-second video. At this scale, extending generation leads to significant temporal flickering and error accumulation, a failure mode similar to that of Self-Forcing~\citep{huang2025self}. Increasing the budget to 4$\times$ enables the model to maintain semantic coherence over longer horizons, successfully rendering a consistent subject like the specified elephant. At 8$\times$, the model begins to generate detailed backgrounds and more semantically accurate subjects, although motion dynamics remain limited and temporal quality degradation persists. A further scaling to 20$\times$ yields a substantial improvement, producing high-fidelity videos that remain stable for over 50 seconds. Remarkably, at a 25$\times$ budget, the model successfully generates a 255-second video with negligible quality loss. These findings indicate that scaling the training budget is a viable path toward high-quality, long-duration video synthesis, circumventing the reliance on large-scale real video datasets, which are notoriously difficult to acquire.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1.0\linewidth]{images/scale_up.pdf}
+    \caption{Scaling phenomenon observed in 255-second generation for prompt: ``A massive elephant walks slowly across a sunlit savannah, dust rising around its feet, the warm glow of sunset...''.}
+    \label{fig:scale_up}
+\end{figure}

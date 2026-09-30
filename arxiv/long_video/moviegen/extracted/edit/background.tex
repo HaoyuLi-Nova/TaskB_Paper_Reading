@@ -1,0 +1,24 @@
+\subsection{Instruction-Guided Video Editing}
+\label{subsec:edit_background}
+In the task of text-based video editing\footnote{For brevity, we refer to text or instruction-based video editing simply as video editing.} the user provides the model with a video (either real or generated) along with an editing instruction text that specifies how they would like to alter the video.
+The model is then expected to precisely modify the input video according to the given instruction, changing only the specified elements while preserving those that should remain intact.
+The main challenge in developing a high-performing video editing model arises from the difficulty in collecting supervised data for this task.
+
+As a result of this challenge, most prior work relies on training-free approaches~\citep{meng2021sdedit,Geyer2023TokenFlowCD,vid2vid-zero,text2video-zero,li2023vidtome,Ceylan2023Pix2VideoVE,2312.04524,yang2023rerender}, which can be applied to any \textToV model without requiring additional training.
+In contrast to training-free methods, some approaches train models to generate videos by providing additional features of the video as input (\eg, depth or segmentation maps)~\citep{esser2023structure,Liang2023FlowVidTI,Yan2023MotionConditionedIA}.
+However, these methods are inherently limited, as they cannot control features that were not incorporated during training.
+For example, preserving the identity of an object or subject is impossible when conditioning only on the depth maps of a video.
+Overall, both training-free methods and feature-based approaches tend to be imprecise and have been shown to perform worse than methods that explicitly adapt model parameters to process the entire video input during training~\citep{EVE,Qin2023InstructVid2VidCV}.
+
+The current state-of-the-art approach for video editing, Emu Video Edit (EVE)~\citep{EVE}, employs two training stages to develop a video editing model.
+First, it trains dedicated adapters for text-image-to-video generation and image editing on top of a shared \textToI model.
+Next, it performs Factorized Diffusion Distillation (FDD) to align the adapters towards video editing.
+In each training step of FDD, the model first generates an edited video through multiple diffusion steps.
+Then, the edited video is given as input to two adversarial losses and two knowledge distillation losses, which provide supervision for the quality of the edited video.
+Finally, this supervision is backpropagated through both the different losses and the entire generation chain.
+
+We identify several key differences when comparing our approach to EVE.
+First, we initialize training from a \textToV model and perform full model training (\Cref{subsec:edit_stage_1}), rather than training adapters for \textToV and image editing on top of a shared \textToI model.
+Additionally, EVE's FDD backpropagates supervision through multiple forward passes with the model during generation, and an additional forward pass using each of the models it uses to provide supervision.
+This makes FDD an order of magnitude more memory demanding than our approach, which limits the scalability of FDD.
+By applying our approach to the \OursVideo (see~\Cref{sec:image_video_model}, we demonstrate that we can significantly surpass the reported results by EVE and set new state-of-the-art results in video editing.

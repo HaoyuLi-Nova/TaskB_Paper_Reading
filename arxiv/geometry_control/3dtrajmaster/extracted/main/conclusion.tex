@@ -1,0 +1,7 @@
+\section{Conclusion}
+
+In this work, we introduce 3DTrajMaster, a unified framework for controlling multi-entity motions in 3D space, with motion representation as 6DoF location and rotation sequences. Our flexible object injector establishes entity-wise correspondence and allows flexible editing of entity descriptions.
+
+\noindent \textbf{Limitation.} 
+Generalizable entities, like animals, cannot be edited with the same level of granularity as humans. This limitation can be addressed by constructing more diverse and detailed 3D assets of the same category. Currently, the model is constrained to global motion patterns; however, fine-grained local motions (\eg, human dancing or waving hands) and interactions between different entities (\eg, a man picking up a dog) can also be modeled similarly to our 6 DoF motions with structured motion patterns. 
+At present, our model can only generate limited entities ($\leq$3) at a time, but this can be improved with more powerful video foundation models and paired datasets.

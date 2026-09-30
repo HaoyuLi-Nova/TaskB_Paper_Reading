@@ -1,0 +1,44 @@
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \begin{table}[t]
+%   \caption{Ablation Study. $^*$: Zero-shot performance.}
+%   % \vspace{-1em}
+%   \label{tab:ablation_study}
+% \resizebox{\linewidth}{!}{
+%   \setlength{\tabcolsep}{2.1pt}
+%   \centering
+%   \begin{tabular}{lcccccc}
+%   \toprule
+%     Variant  &RotErr &TransErr &FVD &+ \#Tokens& Latency\\
+%     \midrule
+% Gaussian map$^*$  & 0.8250& 0.2551& 116.47&8800 &75s\\
+%  Plucker embedding  & \best{0.5965}& 0.2244& \best{25.71}& 28,160&210s\\
+%  \rowcolor{Gray}
+%  Trajectory coeff. (Ours)$^*$ & 0.6334& \best{0.2188}&34.09& \best{100}& \best{32s}\\
+%   \bottomrule
+%   \end{tabular}
+% }
+% % \vspace{-0.8em}
+% \end{table}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t]
+  \caption{Ablation study of applying different camera motion representations on our base model. $^*$: Zero-shot performance.%assume avg. text token len is 20
+  }
+  \label{tab:ablation_study_camera}
+\resizebox{\linewidth}{!}{
+  \setlength{\tabcolsep}{2.1pt}
+  \centering
+  \begin{tabular}{lcccccc}
+  \toprule
+    Variant  &RotErr &TransErr &FVD &+ Tokens(\%)& Latency\\
+    \midrule
+Gaussian map$^*$  & 0.8250& 0.2551& 116.47&99.7 &75s\\
+ Plucker  & \best{0.5965}& 0.2244& \best{25.71}& 319.2&210s\\
+ \rowcolor{Gray}
+ Traj. coeff. (Ours)$^*$ & 0.6334& \best{0.2188}&34.09& \best{1.1}& \best{32s}\\
+  \bottomrule
+  \end{tabular}
+}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

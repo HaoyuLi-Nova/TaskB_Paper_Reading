@@ -1,0 +1,54 @@
+\begin{table}
+    \small
+    \vspace{-.5cm}
+    \begin{minipage}{.55\linewidth}
+        \caption{\small Video prediction on Kinetics-600~\cite{Kinetics600}. While \phenaki is not designed for video prediction it achieves comparable results with SOTA video prediction models.}
+        \vspace{-.3cm}
+        \begin{center}
+            \begin{tabular}{lr}
+            \label{tab:kinetics}
+                Method  & FVD  \\
+                \hline
+                Video Transformer \cite{videotranf}            & 170.0 $\pm$ 5.00 \\
+                CogVideo \cite{cogvideo}                    & 109.2 \quad \quad \ \ \ \ \\
+                DVD-GAN-FP \cite{clark2019adversarial}                  & 69.1 $\pm$ 0.78 \\
+                Video VQ-VAE \cite{videovqvae}            & 64.3 $\pm$ 2.04 \\
+                CCVS  \cite{ccvs}                         & 55.0 $\pm$ 1.00 \\
+                TrIVD-GAN-FP \cite{trIVD}                 & 25.7 $\pm$ 0.66 \\
+                Transframer  \cite{transframer}           & 25.4  \quad \quad \ \ \ \ \\
+                RaMViD \cite{diff4pred}                   & 16.5  \quad \quad \ \ \ \ \\
+                Video Diffusion \cite{ho2022video}          & 16.2 $\pm$ 0.34 \\
+                \hline
+                Phenaki (Ours)                            & 36.4 $\pm$ 0.19 \\
+            \end{tabular}
+        \end{center}    
+    \end{minipage}\hspace{0.2cm}%
+    \begin{minipage}{.45\linewidth}
+        \caption{\small Video prediction on BAIR~\cite{BAIRRobotPush}.}
+        \vspace{-.3cm}
+        \begin{center}
+            \begin{tabular}{lr}
+            \label{tab:bair}
+                Method  & FVD  \\
+                \hline
+                DVD-GAN \cite{clark2019adversarial}                & 109.8 \\
+                VideoGPT \cite{videogpt}             & 103.3 \\
+                TrIVD-GAN \cite{trIVD}               & 103.3 \\
+                Transframer  \cite{transframer}      & 100.0 \\
+                HARP \cite{harp}                     & 99.3 \\
+                CCVS  \cite{ccvs}                    & 99.0 \\
+                Video Transformer \cite{videotranf}  & 94.0 \\
+                FitVid \cite{fitvid}                 & 93.6 \\
+                MCVD \cite{mcvd}                     & 89.5 \\
+                NUWA \cite{nuwa}                     & 86.9 \\
+                RaMViD  \cite{diff4pred}             & 84.2 \\
+                \hline
+                Phenaki (Ours)                       & 97.0 \\
+                % Phenaki (Ours) - 100 samples & 70.9 \\
+                % Video Diffusion \cite{videodiff} - 100 samples & 66.9\\
+            \end{tabular}
+        \end{center}
+
+    \end{minipage}
+    
+\end{table}

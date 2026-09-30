@@ -1,0 +1,11 @@
+\begin{abstract}
+We present \method,
+a framework that leverages video generators to jointly reconstruct 4D geometry and estimate dense motion from a monocular video.
+The key idea is a joint representation of dense 3D point maps and 3D scene flows in a shared coordinate system,
+together with a 4D VAE tailored to learn this representation effectively.
+Unlike prior work that strictly aligns 3D values and latents with RGB VAE latents—despite their fundamentally different distributions—we show that such alignment is unnecessary and can hurt performance.
+Instead, we propose a new data normalization and VAE training strategy that better transfers diffusion priors and greatly improves reconstruction quality.
+Extensive experiments on multiple datasets show that \method achieves state-of-the-art performance in both geometry reconstruction and dense scene flow estimation,
+delivering 38.64\% and 25.0\% improvements in geometry and motion reconstruction, respectively, all without any post-optimization. 
+{Project page: \url{https://ruijiezhu94.github.io/MotionCrafter_Page/}.}
+\end{abstract}

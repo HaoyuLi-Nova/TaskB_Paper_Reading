@@ -1,0 +1,443 @@
+\documentclass{article}
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs} %
+
+\usepackage{hyperref}
+
+
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+
+\usepackage[preprint]{icml2026}
+
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+
+
+\usepackage[capitalize,noabbrev]{cleveref}
+
+\usepackage{url}
+\usepackage{graphicx} 
+\usepackage{wrapfig}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage[normalem]{ulem}
+\useunder{\uline}{\ul}{}
+\usepackage{fontawesome}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{pifont}
+
+
+\input{math_commands.tex}
+\newcommand{\methodname}{X-Dub}
+\newcommand{\benchname}{X-DubBench}
+\newcommand{\myparagraph}[1]{\noindent\textbf{#1}}
+\newcommand{\app}{{\color{amber}{\textit{Appendix}}}}
+\newcommand{\hxnote}[1]{{\bfseries{\textcolor{airforceblue}{[hx: #1]}}}}
+\newcommand{\third}[1]{\colorbox[HTML]{FFFFC7}{#1}}
+\newcommand{\second}[1]{\colorbox[HTML]{FFDA8F}{#1}}
+\newcommand{\first}[1]{\colorbox[HTML]{FE996B}{#1}}
+
+
+\newcommand{\Gmask}{\mathcal{G}_{\text{mask}}}
+\newcommand{\Gfree}{\mathcal{G}_{\text{free}}}
+
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\usepackage[textsize=tiny]{todonotes}
+
+\icmltitlerunning{From Inpainting to Editing: Unlocking Robust Mask-Free Visual Dubbing via Generative Bootstrapping}
+
+\begin{document}
+
+\twocolumn[
+  \icmltitle{From Inpainting to Editing: \\ Unlocking Robust Mask-Free Visual Dubbing via Generative Bootstrapping}
+
+  \icmlsetsymbol{equal}{*}
+
+  \begin{icmlauthorlist}
+    \icmlauthor{Xu He}{thu}
+    \icmlauthor{Haoxian Zhang}{ks}
+    \icmlauthor{Hejia Chen}{ks}
+    \icmlauthor{Changyuan Zheng}{thu}
+    \icmlauthor{Liyang Chen}{thu}
+    \icmlauthor{Songlin Tang}{ks}
+    \icmlauthor{Jiehui Huang}{hkust}
+    \icmlauthor{Xiaoqiang Liu}{ks}
+    \icmlauthor{Pengfei Wan}{ks}
+    \icmlauthor{Zhiyong Wu}{thu,cuhk}
+  \end{icmlauthorlist}
+
+  \icmlaffiliation{thu}{Tsinghua University}
+  \icmlaffiliation{ks}{Kling Team, Kuaishou Technology}
+  \icmlaffiliation{hkust}{Hong Kong University of Science and Technology}
+  \icmlaffiliation{cuhk}{The Chinese University of Hong Kong}
+
+  \icmlcorrespondingauthor{Zhiyong Wu}{zywu@sz.tsinghua.edu.cn}
+
+  {
+    \begin{center}
+        \vskip 0.1in
+        \includegraphics[width=0.98\linewidth]{figures/teaser.pdf}
+        \begin{flushleft}
+        \small \textit{Figure 1.} Our proposed generative bootstrapping framework unlocks high-fidelity mask-free visual dubbing, delivering precise lip sync and faithful identity preservation, even in challenging scenarios with occlusions and dynamic lighting.
+        \end{flushleft}
+        \vspace{-8pt}
+    \end{center}
+  }
+
+  \vskip 0.2in
+]
+
+\printAffiliationsAndNotice{%
+Xu He completed this work during an internship at Kling Team, Kuaishou Technology.\ 
+Haoxian Zhang is the project leader.
+}
+
+
+\begin{abstract}
+Audio-driven visual dubbing aims to synchronize a video's lip movements with new speech but is fundamentally challenged by the lack of ideal training data: paired videos differing only in lip motion.
+Existing methods circumvent this via mask-based inpainting. However, masking inevitably destroys spatiotemporal context, leading to identity drift and poor robustness (e.g., to occlusions), while also inducing lip-shape leakage that degrades lip sync.
+To bridge this gap, we propose \textbf{\methodname{}}, a novel two-stage generative bootstrapping framework leveraging powerful Diffusion Transformers to unlock mask-free dubbing.
+Our core insight is to repurpose a mask-based inpainting model exclusively as a dedicated data generator to synthesize scalable, high-fidelity pseudo-paired data, which is subsequently utilized to train and bootstrap a robust, mask-free editing model as the final video dubber.
+The final dubber is liberated from masking artifacts and leverages the complete video input for high-fidelity inference.
+We further introduce timestep-adaptive multi-phase learning to disentangle conflicting objectives (structure, lip motion, and texture) across diffusion phases, facilitating stable convergence and advanced editing quality.
+Additionally, we present \benchname{}, a benchmark for diverse scenarios.
+Extensive experiments demonstrate that our method achieves state-of-the-art performance with superior lip sync, visual quality, and robustness.
+Code, demos, and additional resources are available at \url{https://github.com/KlingAIResearch/X-Dub}.
+\end{abstract}
+
+
+
+\section{Introduction}
+Audio-driven visual dubbing aims to synchronize an existing video's lip movements with new speech~\citep{kr2019lipgan}, demonstrating broad applications from personalized avatars~\citep{thies2020puppetry} to multilingual film translation~\citep{prajwal2020wav2lip}.
+While recent advances in Diffusion Transformers (DiTs)~\citep{peebles2023dit} have accelerated progress in audio-driven portrait animation~\citep{chen2025humo,lin2025omnihuman1} by enabling high-fidelity video synthesis, these methods predominantly focus on generating entire videos from a single still image.
+Visual dubbing, however, poses unique challenges: it requires precise modification of speech-relevant facial regions while faithfully preserving all other visual attributes (e.g., identity, head poses, and scene dynamics), thereby ensuring seamless integration into the source footage~\citep{guan2023stylesync}.
+
+Existing approaches predominantly rely on \textit{mask-guided inpainting}~\citep{prajwal2020wav2lip,li2024latentsync}, where the mouth region in source frames is masked and subsequently inpainted conditioned on speech.
+While this design conveniently enables self-supervised training on unlabeled videos, it introduces intrinsic limitations.
+First, manually designed masks inevitably induce lip-shape leakage, either through movements of adjacent regions (e.g., cheeks, jaws) or via adaptive mask boundaries~\citep{pan2025rasa}.
+This leakage is further exacerbated by audio's inferior conditioning capacity relative to visual cues, driving the model towards visual-to-visual shortcut learning~\citep{bigata2025keysync} that fundamentally compromises lip sync during inference.
+Moreover, masking physically destroys the spatiotemporal context of the provided video, stripping away essential identity and environmental cues.
+Although these methods attempt to compensate using reference frames from other segments, the model is still forced to hallucinate missing content (e.g., facial occlusions, shifting lighting, and shadows) and extract identity from pose-misaligned references.
+This inherently leads to identity drift and visual artifacts, particularly when target poses or scene dynamics diverge significantly from the references~\citep{zhong2023iplap,peng2025omnisync}.
+
+Ideally, these limitations could be overcome by formulating visual dubbing as a direct audio-driven \textit{video-to-video (V2V) editing} task, bypassing explicit masks and their constraints.
+However, training such a model necessitates paired video data: two videos identical in identity, pose, and environment, differing only in lip motion. 
+In reality, obtaining such pairs from real footage is virtually impossible.
+While synthetic alternatives like 3D renderings~\citep{chen2025cafe} exist, they often lack the photorealistic diversity and scalability required to generalize to complex real-world scenarios.
+This data scarcity remains the primary bottleneck preventing the adoption of robust V2V frameworks in visual dubbing.
+
+To bridge this gap, we propose \methodname{}, a novel \textbf{generative bootstrapping framework} built upon a powerful pre-trained DiT backbone, that finally unlocks mask-free visual dubbing through a two-stage learning paradigm.
+Our core insight is to relegate a mask-guided inpainting-based model to the role of a dedicated \textit{data generator}, utilizing it to synthesize scalable paired pseudo-training data (\textbf{Stage I}), which is subsequently utilized to train and bootstrap a robust, mask-free editing-based final \textit{video dubber} for final inference (\textbf{Stage II}).
+Consequently, the final video dubber is liberated from the adverse effects of masking, such as lip-shape leakage, and can perform inference by directly leveraging the complete input video as comprehensive spatiotemporal context.
+This design offers a dual benefit.
+On the one hand, by harnessing the generative capability of DiT, we produce highly photorealistic and scalable training pairs directly from real-world footage, overcoming the scalability limits and domain gaps of alternative synthetic data sources (e.g., 3D renderings).
+On the other hand, instead of enforcing mask constraints during unpredictable final inference as other mask-based methods do, we strategically shift the burden of masking and its associated artifacts to a controllable data construction phase.
+This allows potential leakage or instability to be mitigated and filtered out during data preparation, rather than manifesting in the final inference output, ultimately yielding superior mask-free dubbing results.
+
+\setcounter{figure}{1}      %
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/overview.pdf}
+\caption{\textbf{Overview of \methodname{}.} 
+\textbf{Stage I (Data Construction):} We formulate a mask-guided inpainter as a data generator to create pseudo-paired data (identical context, altered lips) via a dedicated curation pipeline.
+\textbf{Stage II (Mask-Free Dubbing):} These pairs bootstrap a mask-free video dubber that learns to dub directly from complete video inputs, overcoming mask limitations.
+Crucially, our \textbf{multi-phase strategy} disentangles training by aligning specific diffusion phases with structure, lip, and texture objectives.}
+\label{fig:overview}
+\end{figure*}
+
+Specifically, in the \textbf{first stage (Data Construction)}, we develop a mask-guided inpainting model trained on large-scale unlabeled audiovisual data, functioning exclusively as a \textit{data generator}.
+Once trained, it replaces the audio of real source videos with alternative speech to generate corresponding dubbed counterparts, forming \textbf{synthetic-real video data pairs} where only lip movements differ.
+Acknowledging that mask-based generation is not always perfect, we tailor specific mitigation measures to this controllable, in-domain data preparation phase.
+Dedicated data creation, filtering, and augmentation strategies are designed to foster a curated dataset that is high-quality, diverse, and closely aligned with real-world distributions, thereby laying a robust foundation for the subsequent mask-free training.
+In the \textbf{second stage (Mask-Free Dubbing)}, the mask-free editing-based \textit{video dubber} is trained to predict the authentic source video from its synthetic counterpart, conditioned on the original speech.
+By consistently utilizing real videos as the supervision target, we effectively anchor the editor's output distribution to real-world data, preventing the learning of synthesis errors while alleviating the strict requirement for precise lip-sync in the generated training input.
+Moreover, training on these potentially imperfect synthetic inputs implicitly enhances the model's robustness against artifacts in complex, in-the-wild scenarios.
+It is worth noting that our intention lies not merely in an advanced network architecture, but in exploring a novel \textbf{learning paradigm} for high-quality visual dubbing by constructing pseudo-paired videos from abundant, unlabeled, in-the-wild audiovisual resources.
+
+However, effectively training this mask-free editor in the second stage presents a distinct optimization challenge: the model must simultaneously perform lip editing while maintaining rigorous global structure (e.g., head pose and background layout) and fine-grained texture preservation (e.g., skin details), which span vastly different spatiotemporal frequencies.
+Monolithic training often struggles to balance these competing objectives, leading to unstable convergence in our early experiments.
+To address this, we introduce a \textbf{timestep-adaptive multi-phase learning strategy}.
+Leveraging the inherent frequency bias of diffusion models which capture distinct information levels at different denoising timesteps~\citep{zhang2025flexiact, wang2025fantasytalking2}, we decouple the training process into progressive phases, aligning high, mid, and low noise levels with structure, lip motion, and texture refinement, respectively.
+This ``divide-and-conquer'' design facilitates training and also enables targeted supervision (e.g., lip-sync and identity reward) at optimal intervals, enhancing editing quality while to some extent compensating for potential synthetic data imperfections.
+
+Finally, to rigorously assess visual dubbing performance in more complex scenarios, we introduce \benchname{}, a benchmark comprising diverse real-world footage and high-quality AI-generated videos, covering varied motions and environments beyond the scope of existing lab-controlled datasets~\citep{afouras2018LRS,zhang2021hdtf}.
+
+
+To summarize, our main contributions are: 
+1) We propose a \textbf{generative bootstrapping framework} for visual dubbing. 
+By repurposing a mask-guided inpainting model to synthesize pseudo-paired data, we bootstrap a robust, mask-free editing model as the final video dubber, fundamentally eliminating mask artifacts and achieving superior lip sync and robustness across diverse complex scenarios.
+2) We introduce a \textbf{timestep-adaptive multi-phase learning strategy} to disentangle conflicting editing objectives across diffusion timesteps, facilitating training convergence and enhancing lip sync and visual fidelity.
+3) We release \textbf{\benchname{}}, a diverse benchmark specifically designed for evaluating dubbing in challenging practical scenarios.
+4) Extensive experiments demonstrate that our method achieves state-of-the-art performance, significantly outperforming existing approaches across comprehensive metrics regarding lip sync accuracy, visual fidelity, and identity preservation.
+
+\section{Related Work}
+\myparagraph{Visual dubbing.}
+Early visual dubbing methods leverage GANs~\citep{goodfellow2014generative} for mask-based inpainting.
+LipGAN~\citep{kr2019lipgan} pioneers reference-guided synthesis, while Wav2Lip~\citep{prajwal2020wav2lip} improves lip sync via SyncNet~\citep{chung2016syncnet}.
+Subsequent works extend this paradigm by addressing expression bias, resolution, and intelligibility, including VideoReTalking~\citep{cheng2022videoretalking}, DINet~\citep{zhang2023dinet}, and TalkLip~\citep{wang2023talklip}, with IP-LAP~\citep{zhong2023iplap} and StyleSync~\citep{guan2023stylesync} improving identity preservation.
+Recent diffusion-based approaches demonstrate stronger generation capability.
+DiffTalk~\citep{shen2023difftalk} and Diff2Lip~\citep{mukhopadhyay2024diff2lip} validate diffusion for visual dubbing, while MuseTalk~\citep{zhang2024musetalk} and LatentSync~\citep{li2024latentsync} improve efficiency and temporal stability.
+Nevertheless, existing methods remain bound to a \textit{mask-guided} inpainting workflow, where explicit masks often cause lip-sync errors and visual artifacts, particularly under occlusions or large head motions.
+By contrast, we restrict mask-based inpainting to a controllable data construction stage for synthesizing pseudo-paired data, which bootstraps a superior \textit{mask-free} video dubber and eliminates mask-induced constraints during inference.
+
+
+\myparagraph{Audio-driven portrait animation.}
+Another related line of work is audio-driven portrait animation, which generates talking videos from still images or text prompts.  
+Recent DiT-based models achieve expressive talking-head~\citep{tian2024emo,cui2024hallo2}, half-body~\citep{cui2024hallo3,meng2025echomimicv3}, and full-body results~\citep{wang2025fantasytalking2,lin2025omnihuman1}. 
+These works demonstrate the power of DiTs for human-centric video generation. 
+Visual dubbing instead is a stricter V2V editing task: it requires precise speech-driven modifications while preserving other visual cues, enabling seamless integration into recorded videos. 
+
+
+\section{Our Approach}
+\label{sec:method}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=.9\columnwidth]{figures/arch.pdf}
+  \caption{\textbf{Conditioning structure.} References (sparse frames for inpainter; full video for editor) are concatenated with the target for 3D self-attention, while audio is injected via cross-attention.}
+  \label{fig:arch}
+\end{figure}
+
+Fig.~\ref{fig:overview} illustrates our generative bootstrapping framework.
+Unlike prevalent methods that directly deploy mask-guided models for dubbing inference, which often yield degraded lip sync and visual artifacts, we adopt a two-stage strategy:
+a mask-guided model functions solely as a \textit{data generator} to construct realistic pseudo-paired training data within a controllable scope, which then bootstraps a superior, mask-free \textit{video dubber} for in-the-wild inference.
+In Sec.~\ref{sec:stage1} (\textbf{Stage I}), we first introduce the audio-driven \textit{mask-based inpainting model}, featuring tailored designs to function as a specialized \textit{data generator}.
+We then detail the synthesis of highly realistic pseudo-paired data through a dedicated pipeline comprising creation, filtering, and augmentation strategies, laying a robust foundation for the subsequent training.
+In Sec.~\ref{sec:stage2} (\textbf{Stage II}), we present how we utilize this curated dataset to bootstrap a \textit{mask-free editing model}, which functions as the robust \emph{video dubber} during final inference.
+Finally, in Sec.~\ref{sec:multi_train}, we detail a timestep-adaptive multi-phase learning scheme, which facilitates stable training and further enhances the editor's capabilities by disentangling conflicting objectives across diffusion timesteps.
+
+\myparagraph{DiT backbone.}
+Our DiT backbone follows the latent diffusion paradigm with a 3D VAE for video compression and a DiT for sequence modeling~\citep{peebles2023dit}. Each DiT block combines 2D spatial and 3D spatio-temporal self-attention with cross-attention for external conditions.
+
+\subsection{Stage I: Pseudo-Paired Data Construction with Mask-Based Data Generator}
+\label{sec:stage1}
+In this stage, we first establish an audio-driven mask-based inpainting model, denoted as $\mathcal{G}_{\text{mask}}$, and train it on extensive unlabeled audiovisual data in a self-supervised manner.
+Once trained, $\mathcal{G}_{\text{mask}}$ functions as a specialized data generator to synthesize highly realistic pseudo-paired data through a tailored in-domain data preparation pipeline, laying the foundation for the subsequent mask-free stage.
+
+\myparagraph{Audio-Driven Mask-Guided Inpainting Model.}
+$\Gmask$ is trained under a self-supervised reconstruction paradigm.
+Given a target video clip $\mV_{\text{tgt}}$ and its corresponding audio $\va_{\text{tgt}}$, we mask the lower facial regions using a binary mask $\mM$ to obtain the background frames $\mV_{\text{bg}} = \mV_{\text{tgt}} \odot \mM$.
+The model takes $\mV_{\text{bg}}$, $\va_{\text{tgt}}$, and $N$ reference frames $\{\mI_{\text{ref}}^i\}_{i=1}^N$ randomly sampled from different segments of the same video as input to reconstruct the target video, yielding $\hat{\mV}_{\text{tgt}}$.
+
+Specifically, as illustrated in Fig.~\ref{fig:arch}, the background frames $\mV_{\text{bg}}$, target frames $\mV_{\text{tgt}}$, and reference frames are encoded by the VAE into latents $\vz_{\text{bg}}, \vz_{\text{tgt}} \in \mathbb{R}^{b \times f \times c \times h \times w}$ and $\vz_{\text{ref}} \in \mathbb{R}^{b \times N \times c \times h \times w}$, respectively.
+We concatenate $\vz_{\text{bg}}$ channel-wise with the noised target latent $\vz_{\text{tgt}}$ (or pure noise during inference). To align dimensions, we channel-pad the reference latents with zeros.
+The unified input sequence $\vz_{\text{in}}$ is constructed by concatenating these components along the frame dimension:
+$\vz_{\text{in}} = \big[ \,[\mathbf{0}, \vz_{\text{ref}}]_{\text{ch}},\; [\vz_{\text{bg}}, \vz_{\text{tgt}}]_{\text{ch}} \,\big]_{\text{fr}}$,
+enabling the DiT to model interactions between the target context and reference identity via 3D self-attention.
+For audio conditioning, we extract audio embeddings from $\va_{\text{tgt}}$ using a pre-trained Whisper~\citep{radford2023whisper} encoder and inject them into the DiT blocks via cross-attention.
+
+The training of $\Gmask$ is governed by a flow-matching loss $\mathcal{L}_{\text{FM}}$, spatially weighted by face masks $\mM_{\text{face}}$ and lip masks $\mM_{\text{lip}}$ derived from DWPose~\citep{yang2023dwpose}:
+\begin{equation}
+    \mathcal{L}_{\text{wFM}} = (1 + \lambda \mM_{\text{face}} + \lambda_{\text{lip}} \mM_{\text{lip}}) \odot \mathcal{L}_{\text{FM}}.
+\label{eq:weighted_loss}
+\end{equation}
+
+To support long-video generation, we employ motion-frame-based concatenation~\citep{tian2024emo}: the generation of each segment is conditioned on the last $m=2$ frames of the preceding segment. During training, the first $m$ frames of $\vz_{\text{tgt}}$ remain unnoised to serve as motion guidance.
+
+
+
+
+
+
+
+
+\myparagraph{Tailored Design as a Data Generator.}
+Functioning as a specialized data generator in our framework rather than a generic dubbing model, $\Gmask$ is tailored to faithfully preserve visual attributes like identity and color from the source video.
+Conversely, lip sync accuracy is less emphasized, as the output of $\Gmask$ never serves as supervision in Stage II, and any lip imperfections will not be propagated to our final dubber.
+In our initial empirical observations, we found that relying on a single reference frame~\citep{li2024latentsync} or generating long clips directly in a single pass with the mask-based $\Gmask$ often results in non-negligible identity and color drift.
+Therefore, we condition $\Gmask$ on multiple reference frames and restrict it to generate shorter segments than the final video dubber.
+These segments are then concatenated via motion frames to form complete synthetic video data with minimized visual drift, albeit at the potential cost of degraded lip sync.
+Further details are provided in Appendix~\ref{appendix_sec:data_creation}.
+
+\myparagraph{Dedicated Data Construction Pipeline.}
+Leveraging the well-trained and tailored $\mathcal{G}_{\text{mask}}$, we establish a robust pipeline to construct pseudo-paired data.
+For each real video clip $\mV_{\text{real}}$, we replace its audio $\va_{\text{real}}$ with an alternative track $\va_{\text{alt}}$ to synthesize a counterpart $\mV_{\text{syn}}$.
+Specifically, we restore the original background in $\mV_{\text{syn}}$ with boundary fusion, eliminating potential background artifacts.
+This process yields aligned pair videos $(\mV_{\text{syn}}, \mV_{\text{real}})$ identical in identity, pose, and background but differing in lip motion.
+To promote the quality and diversity, we design dedicated strategies encompassing:
+\textbf{1) In-domain creation.} We perform data synthesis strictly within the training domain of $\mathcal{G}_{\text{mask}}$ and sample $\va_{\text{alt}}$ from the same speaker as $\mV_{\text{real}}$, avoiding instability from unseen data or cross-identity audio-visual combinations. 
+\textbf{2) Quality filtering.} We perform multi-dimensional quality filtering using landmark distance, identity similarity, and visual quality scores to ensure sufficient lip divergence, identity preservation, and high visual fidelity.
+\textbf{3) Augmentation.} To prepare the mask-free editor for challenging scenarios, we augment the curated pairs with diverse occlusions and lighting conditions, compensating for complex samples that may have been excluded during the filtering process.
+Furthermore, we additionally supplement the dataset with a subset of 3D-rendered data featuring perfectly-aligned identity, scene, and pose to anchor precise lip editing.
+Data construction details can be found in Appendix~\ref{appendix_sec:data_creation}.
+With these designs together, we establish a highly realistic and scalable pseudo-paired video dataset derived from widely available unlabeled real-world data.
+
+\subsection{Stage II: Robust Mask-Free Video Dubber}
+\label{sec:stage2}
+
+Leveraging the curated pseudo-paired dataset from Stage I, we train and bootstrap a mask-free editing model $\mathcal{G}_{\text{free}}$, which is the ultimate goal and final executor of our video dubbing framework.
+Driven by aligned pairs, $\mathcal{G}_{\text{free}}$ autonomously learns to locate and edit speech-relevant facial regions, thereby fundamentally eliminating boundary leakage and artifacts inherent to mask-based approaches.
+
+Structurally, as shown in Fig.~\ref{fig:arch}, we encode paired reference and target videos into latents $\vz_{\text{ref}}, \vz_{\text{tgt}}$. 
+The clean $\vz_{\text{ref}}$ is concatenated with the noised $\vz_{\text{tgt}}$ (or pure noise during inference) along the frame axis to form the input $\vz_{\text{in}} \in \mathbb{R}^{b \times 2f \times c \times h \times w}$.
+Patchifying this combined sequence enables contextual interaction via 3D self-attention, which minimally alters the DiT backbone yet fully exploits its contextual modeling capacity.
+Audio features and motion frames are integrated identically to the protocol in Sec.~\ref{sec:stage1}.
+
+During training, we consistently use the real video $\mV_{\text{real}}$ from the curated pairs as the supervision target and its synthesized counterpart $\mV_{\text{syn}}$ as the reference input.
+This strategy prevents artifacts remaining in the curated data from propagating to the video dubber $\Gfree$, and also relieves the data generator $\Gmask$ of the burden of perfect lip accuracy in stage I.
+At inference, $\mathcal{G}_{\text{free}}$ directly processes user-provided real videos, leveraging full spatiotemporal contexts without mask-induced degradation.
+Moreover, training on potentially imperfect synthetic inputs with high-quality real supervision to some extent enhances the model's robustness against noise and artifacts in complex, in-the-wild scenarios.
+
+
+\input{tables/tab_hdtf_comparison}
+
+\input{tables/tab_bench_comparison} 
+
+\subsection{Timestep-Adaptive Multi-Phase Learning}
+\label{sec:multi_train}
+While the pseudo-paired data raises the performance ceiling of visual dubbing, training a robust mask-free editing model poses unique challenges. 
+Specifically, it requires the model to autonomously learn and balance potentially conflicting objectives: inheriting global spatiotemporal structure, precisely editing lip motion, and preserving fine-grained identity details. 
+Observing that diffusion models exhibit phase-wise specialization across timesteps~\citep{zhang2025flexiact,wang2025fantasytalking2}, we are motivated to introduce a timestep-adaptive multi-phase scheme, where different noise regions target these complementary objectives.
+
+\myparagraph{Training Phase Partitioning.} During training, instead of sampling timesteps uniformly, we follow~\citet{esser2024sd3} to shift the sampling distribution to concentrate on different noise levels for distinct training phases:
+\begin{equation}
+t_{\text{shift}} = \alpha t_{\text{base}} / \bigl(1 + (\alpha - 1)t_{\text{base}}\bigr),
+\label{eq:timeshift}
+\end{equation}
+where $t_{\text{base}}$ is logit-normal and $\alpha$ sets the shift strength. This allows us to target: 1) high-noise steps for global structure and motion (e.g., background, pose, overall contours); 2) mid-noise steps for lip movements; 3) low-noise steps for texture refinement concerning identity details.
+
+\myparagraph{High-noise full training.} 
+We first optimize the editor under a high-noise distribution via full-parameter tuning. 
+This fosters convergence~\citep{esser2024sd3} and structural learning, seamlessly transferring global dynamics (e.g., background, pose) from the input while achieving preliminary lip sync. 
+The objective remains $\mathcal{L}_{\text{wFM}}$ (Eq.~\ref{eq:weighted_loss}).
+
+
+\myparagraph{Mid- and low-noise tuning with LoRA experts.} 
+We then attach lightweight LoRA modules for mid- and low-noise tuning. 
+To enable pixel-level supervision without training overhead, we design a single-step denoising strategy:
+\begin{equation}
+\hat{\vx}_0 = \mathcal{D}(\vz_0 + (\vv - \hat{\vv}) \cdot \tau),
+\label{eq:single_step_denoising}
+\end{equation}
+where $\tau = t$ if $t \le t_{\text{thres}}$, and $\tau = t_{\text{thres}}$ otherwise. This truncation ensures stable denoising at high noise levels (see Appendix~\ref{appendix_sec:multi_phase_training} for detailed derivation).
+
+
+The \emph{lip expert} operates at mid-noise, where we incorporate an auxiliary SyncNet loss $\mathcal{L}_{\text{sync}}$ to enforce audio-visual alignment. 
+The \emph{texture expert} functions at low-noise, additionally supervised by identity loss $\mathcal{L}_{\text{id}}$~\citep{deng2019arcface,radford2021clip} computed
+against references to refine fidelity. 
+To avoid hurting sync, we randomly disable audio cross-attention ($p=0.5$) during texture tuning, applying texture supervision only on the silent branches.
+
+During inference, we activate the texture ($t \in [0, 0.3]$) and lip ($t \in [0.4, 0.8]$) experts within their most effective ranges. 
+Timestep selection details are provided in Appendix~\ref{appendix_sec:multiphase_param}.
+
+\section{Experiments}
+\label{sec:exp}
+\myparagraph{Benchmark.}
+To evaluate visual dubbing in practical settings, we construct \benchname{}, a challenging benchmark of 440 video-audio pairs combining real-world and AI-generated content.
+Videos include challenging scenarios like pose changes, occlusions, and stylizations, while audio covers speech and singing across six languages.
+Unlike existing controlled datasets, it enables evaluation under complex, realistic conditions, as detailed in Appendix~\ref{appendix_sec:benchmark}.
+
+\myparagraph{Evaluation metrics.}
+We evaluate generation quality using PSNR, SSIM, Fr\'echet Inception Distance (FID) for spatial quality, and Fr\'echet Video Distance (FVD) for temporal consistency.
+Lip-sync quality is measured by landmark distance (LMD) and SyncNet confidence (Sync-C).
+Identity preservation is assessed through cosine similarity of ArcFace embeddings (CSIM), CLIP score (CLIPS) for semantic features, and LPIPS for perceptual similarity.
+For the more challenging \benchname{}, we additionally report no-reference perceptual metrics, including Natural Image Quality Evaluator (NIQE), Blind/Referenceless Image Spatial Quality Evaluator (BRISQUE), and HyperIQA~\citep{su2020hyperiqa}.
+We also report the success rate over all video samples, which is crucial in practice, as many mask-based methods completely fail under challenging scenarios.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=.93\textwidth]{figures/comp.pdf}
+\caption{\textbf{Qualitative comparisons} across diverse scenarios. Lip-sync errors are marked with \textcolor[RGB]{253,191,1}{yellow}, visual artifacts with \textcolor[RGB]{1,175,239}{blue}, and lip leakage during silence with \textcolor{red}{red}. ``ERROR'' indicates runtime failure from missing 3DMM or landmarks despite best efforts. Our method exhibits robust performance with superior lip accuracy and identity consistency. Please \textbf{\faSearch{}zoom in} for details.
+}
+\label{fig:result_comp}
+\end{figure*}
+
+\input{tables/tab_user_study_ablation}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=.93\textwidth]{figures/ablation.pdf}
+\caption{\textbf{Ablations.} \emph{Channel concat} (vs. our \emph{token concat}) harms lip sync. Omitting \emph{lip} or \emph{texture} phases degrades sync or fidelity.}
+\label{fig:result_ablation}
+\end{figure*}
+
+\subsection{Quantitative Evaluation}
+We evaluate our mask-free video dubber $\Gfree$ on both HDTF~\citep{zhang2021hdtf} and \benchname{}, comparing against state-of-the-art methods including Wav2Lip~\citep{prajwal2020wav2lip}, VideoReTalking~\citep{cheng2022videoretalking}, TalkLip~\citep{wang2023talklip}, IP-LAP~\citep{zhong2023iplap}, Diff2Lip~\citep{mukhopadhyay2024diff2lip}, MuseTalk~\citep{zhang2024musetalk}, and LatentSync~\citep{li2024latentsync}.
+To isolate paradigm gains from backbone capacity, we additionally reimplement a generic variant of our mask-based data generator, noted as $\Gmask^*$, by removing its data-creation constraints.
+This allows for a fair comparison between mask-guided inpainting and our mask-free editing approach.
+
+Tables~\ref{tab:hdtf_comparison} and~\ref{tab:bench_comparison} show that $\Gfree$ establishes a new state-of-the-art. On HDTF, it achieves significant gains in visual quality (FID –12.6\%), lip sync (Sync-C +4.9\%), and identity retention (CSIM +4.3\%). 
+These gains are amplified on the challenging \benchname{}, where $\Gfree$ delivers superior visual scores (NIQE 5.78, BRISQUE 29.9), lip sync (Sync-C +16.0\%), and identity preservation (CSIM +6.1\%).
+Notably, it attains a 96.4\% success rate (+24 points over the strongest baseline), highlighting the robustness of our mask-free approach in unconstrained scenarios.
+
+Crucially, while our mask-based $\mathcal{G}_{\text{mask}}^*$ already surpasses priors on HDTF (CLIPS +1.7\%, FVD –26.8\%), confirming the backbone's capacity for synthesizing realistic pseudo-pairs, our mask-free $\mathcal{G}_{\text{free}}$ achieves further improvements (CSIM +3.3\%, Sync-C +6.4\%, LPIPS –22.2\%) while maintaining comparable FVD. 
+This effectively validates our paradigm, demonstrating that data synthesized by the mask-based generator successfully bootstraps a superior mask-free dubber.
+
+
+
+
+
+\subsection{Qualitative Evaluation}
+Fig.~\ref{fig:result_comp} presents qualitative comparisons, where our method consistently produces realistic, lip-synced results under challenging scenarios.
+Mask-based baselines frequently suffer from inaccurate lip shapes (Col.~1), visual artifacts (Col.~2), poor occlusion robustness (Col.~5), and side-view distortions with identity drift (Col.~2\&9).
+Even our $\Gmask^*$, despite its powerful DiT backbone, exhibits blurring around occlusions.
+Notably, the rightmost column reveals severe lip-shape leakage in all mask-based methods, corrupting silent frames with open-mouth artifacts.
+In contrast, our mask-free $\Gfree$ enables precise lip editing with faithful identity preservation and robustness to spatiotemporal variations.
+Unlike mask-based methods that rely on human-face priors (e.g., landmarks) and often fail on stylized or non-human characters (marked ``ERROR''), our mask-free video dubber implicitly localizes speech-relevant regions without mask heuristics, yielding stable performance across diverse character types and occlusions.
+Furthermore, by operating on the full input video with frame-wise alignment to the target output, $\Gfree$ benefits from complete spatiotemporal context and remains free of identity or color drift even on videos longer than one minute.
+
+\myparagraph{User study.}
+We further conduct a user study with 30 participants on 24 dubbing videos from different methods, collecting Mean Opinion Scores (MOS).
+Each video is rated on a 5-point Likert scale for realism, lip sync, identity preservation, and overall quality. As shown in Tab.~\ref{tab:user_study}, our method holds clear margins over existing baselines across all aspects. Moreover, our $\Gfree$ surpasses $\Gmask^*$, particularly in identity consistency and lip sync, validating the bootstrapping effect that yields perceptually superior and higher-quality dubbing.
+
+\subsection{Ablation Study}
+We conduct ablations on two key components: 1) reference video injection mechanism, and 2) timestep-adaptive multi-phase learning, with results in Tab.~\ref{tab:ablation} and Fig.~\ref{fig:result_ablation}.
+
+For reference conditioning, replacing our frame-level token concatenation with channel concatenation causes a 12.5\% drop in Sync-C, also visible as lip-shape errors in Fig.~\ref{fig:result_ablation}. Channel concatenation enforces rigid spatial fusion that conflicts with lip editing, while our token-based design uses self-attention to transfer identity without disturbing lips.
+
+For training, replacing progressive multi-phase sampling with uniform timestep sampling, i.e., learning all noise levels at once, causes severe degradation and even divergence. Removing the lip phase reduces lip sync (–10.3\%), with negligible gains in FID and LPIPS, while removing the texture phase weakens fidelity and identity (CSIM –4.1\%). These results confirm the complementarity of our phases: the model sequentially learns global structure (high-noise), lip motion (mid-noise), and fine-grained texture (low-noise). 
+This progressive decomposition facilitates learning by allowing the network to address distinct features step-by-step, rather than struggling to optimize all conflicting objectives simultaneously.
+Additional ablations on timestep selection and sensitivity analysis can be found in Appendix~\ref{appendix_sec:multiphase_param}.
+
+\vspace{-5pt}
+
+\section{Conclusion}
+In this paper, we introduce a generative bootstrapping paradigm to address the core challenge in visual dubbing: the scarcity of paired data differing only in lip motion. 
+By repurposing a mask-guided model to synthesize high-fidelity pseudo-pairs, we finally bootstrap a robust mask-free video dubber. 
+This design fundamentally eliminates mask-induced artifacts, such as boundary leakage and identity drift. 
+The training is further bolstered by a timestep-adaptive multi-phase strategy that disentangles the optimization of global structure, lip motion, and fine-grained texture, ensuring high-fidelity output.
+Experiments on standard datasets and our challenging \benchname{} demonstrate that we achieve state-of-the-art results with superior robustness in complex, in-the-wild scenarios. 
+Beyond visual dubbing, we believe this framework offers valuable insights for other conditional video editing tasks where paired supervision is scarce.
+
+
+
+
+\section*{Impact Statement}
+This work advances the field of talking head generation and visual dubbing by introducing a highly generalizable editing paradigm. 
+While this technology holds great promise for applications in education, virtual assistants, and multilingual media, it also necessitates careful consideration of its societal implications. 
+The ability to synthesize realistic audio-visual content raises concerns regarding identity impersonation and the spread of synthetic media. 
+We stress the importance of transparency, such as clear labeling of AI-generated content, and support ongoing efforts in the research community to develop robust detection mechanisms to mitigate potential misuse. 
+Furthermore, we explicitly state that all models and data involved in this work are intended strictly for academic research purposes.
+
+\nocite{langley00}
+
+\bibliography{example_paper}
+\bibliographystyle{icml2026}
+
+\newpage
+\appendix
+\onecolumn
+
+\input{appendix}
+
+
+
+\end{document}

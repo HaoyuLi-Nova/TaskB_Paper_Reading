@@ -1,0 +1,32 @@
+% Please add the following required packages to your document preamble:
+% \usepackage{multirow}
+\begin{table}[t]
+\caption{Specification of training hyperparameters}
+\label{tab:training-hyperparameters}
+% \guande{TODO: GAN hyperparameter}}
+\vspace{0.5em}
+\centering
+% \setlength{\tabcolsep}{6.0pt}
+\renewcommand{\arraystretch}{1.5} % Adjust this factor as needed
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{cccc}
+\toprule
+Hyperparameters                         & DMD                                                                                  & SiD                                                    & GAN                                                                                 \\
+\midrule
+Real score network                      & Wan2.1-T2V-14B                                                                       & Wan2.1-T2V-1.3B                                        & N/A                                                                      \\
+Real score CFG weight                      & 3.0                                                                       & 3.0                                        & N/A                                                                      \\
+Critic network initialization           & Wan2.1-T2V-1.3B                                                                      & Wan2.1-T2V-1.3B                                        & Wan2.1-T2V-1.3B                                                                     \\
+Batch size                              & 64                                                                                   & 64                                                     & 768                                                                                  \\
+\multirow{2}{*}{Optimizer ($G_\theta$)} & AdamW, $\beta_1=0$, $\beta_2=0.999$,                                                                                & Adam, $\beta_1=0$, $\beta_2=0.999$,                                                    & AdamW, $\beta_1=0$, $\beta_2=0.999$,                                                                                \\
+                                        & $\epsilon=1\text{e-8}$,  weight\_decay$=0.01$ & $\epsilon=1\text{e-8}$,  weight\_decay$=0$ & $\epsilon=1\text{e-8}$, weight\_decay$=0.01$ \\
+\multirow{2}{*}{Optimizer ($f_\psi$)} & AdamW, $\beta_1=0$, $\beta_2=0.999$,                                                                                & Adam, $\beta_1=0$, $\beta_2=0.999$,                                                    & AdamW, $\beta_1=0$, $\beta_2=0.999$,                                                                                \\
+                                        & $\epsilon=1\text{e-8}$,  weight\_decay$=0.01$ & $\epsilon=1\text{e-8}$,  weight\_decay$=0$ & $\epsilon=1\text{e-8}$, weight\_decay$=0.01$ \\
+Learning rate ($G_\theta$)              & $2\text{e-6}$                                                                        & $2\text{e-6}$                                          & $2\text{e-6}$                                                                       \\
+Learning rate ($f_\psi$)                & $4\text{e-7}$                                                                        & $2\text{e-6}$                                          & $2\text{e-6}$                                                                      \\
+Generator/critic update ratio                & $5$                                                                        & $5$                                          & $1$                                                                      \\
+EMA decay                & $0.99$                                                                        & $0.99$                                          & $0.99$                                                                      \\
+\bottomrule
+\end{tabular}
+}
+\vspace{-1em}
+\end{table}

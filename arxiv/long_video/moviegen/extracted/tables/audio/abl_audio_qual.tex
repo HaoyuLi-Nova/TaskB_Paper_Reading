@@ -1,0 +1,27 @@
+\begin{table}[h]
+    \centering
+    \adjustbox{max width=0.7\textwidth}{%
+    \begin{tabular}{ccc ccc cc}
+        \toprule
+        \multirow{3}{*}{Dataset} & \multicolumn{2}{c}{\multirow{2}{*}{Prompted audio qual.}} & \multicolumn{5}{c}{A net win rate \vs B} \\
+        & & & \multicolumn{3}{c}{Quality} & \multicolumn{2}{c}{Video-SFX Alignment} \\
+        \cmidrule(lr){4-6} \cmidrule(lr){7-8} 
+        & Model A & Model B & Ovr. & Nat. & Pro. & Corr. & Sync. \\
+        \midrule
+        \multirow{4}{*}{SFX}
+        & 5.5 & 5.0 & \meanci{54.6}{20.0} & \meanci{50.0}{21.7} & \meanci{54.6}{20.0} & \meanci{3.3}{16.7} & \meanci{5.1}{22.2}\\
+        & 6.0 & 5.5 & \meanci{32.4}{21.5} & \meanci{37.7}{17.6} & \meanci{32.3}{21.7} & \meanci{5.9}{15.0} & \meanci{3.1}{19.4} \\
+        & 6.5 & 6.0 & \meanci{29.8}{23.4} & \meanci{27.9}{22.8} & \meanci{30.8}{22.8} & \meanci{-9.8}{18.6} & \meanci{-15.9}{23.5} \\
+        & 7.0 & 6.5 & \meanci{-6.6}{22.8} & \meanci{-4.1}{22.8} & \meanci{-8.8}{21.1} & \meanci{11.5}{13.8} & \meanci{-3.1}{19.2} \\
+        \midrule
+        \multirow{4}{*}{SFX+music}
+        & 5.5 & 5.0 & \meanci{58.6}{19.0} & \meanci{49.9}{19.1} & \meanci{58.6}{19.0} & \meanci{16.1}{16.1} & \meanci{20.9}{15.0} \\
+        & 6.0 & 5.5 & \meanci{27.0}{22.8} & \meanci{33.9}{20.6} & \meanci{28.2}{22.8} & \meanci{23.1}{19.5} & \meanci{21.9}{21.4} \\
+        & 6.5 & 6.0 & \meanci{24.5}{20.6} & \meanci{13.5}{21.7} & \meanci{25.6}{20.6} & \meanci{6.6}{15.6} & \meanci{15.1}{17.5} \\
+        & 7.0 & 6.5 & \meanci{16.2}{20.6} & \meanci{22.9}{21.7} & \meanci{15.0}{22.2} & \meanci{-2.2}{12.8} & \meanci{-11.1}{13.3}\\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{\OursAudio audio quality control ablations with subjective tests}}
+    \label{tab:audio_abl_qual_sbj}
+\end{table}

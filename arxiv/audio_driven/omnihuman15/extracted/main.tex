@@ -1,0 +1,188 @@
+\documentclass[]{bytedance}
+\usepackage[toc,page,header]{appendix}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{minitoc}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{cancel}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{assumption}{Assumption}
+\newtheorem{proof}{Proof}
+\usepackage{multirow}
+\usepackage{tabulary,multirow,xspace}
+\usepackage{fixmath,mathtools,nicefrac,mmstyle}
+\usepackage{subcaption}
+\captionsetup{compatibility=false}
+\usepackage{caption}
+% \usepackage{float}
+\usepackage{wrapfig} % for wrapfigure
+\usepackage[misc]{ifsym} % to use \Letter
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{wrapfig}
+% \usepackage{minted}
+\usepackage{multicol}
+\usepackage[most]{tcolorbox}
+\usepackage{pifont}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{boxblue}{RGB}{57,89,163}
+\definecolor{boxbluebg}{RGB}{230,237,250} 
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=none,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+\lstset{style=mystyle}
+
+\newcommand{\todo}[1]{{\color{red}{[TODO]: {#1}}}}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\tildevect}[1]{\vect{\tilde{#1}}}
+
+\definecolor{mygray1}{gray}{.95}
+\definecolor{mygray2}{gray}{.9}
+\definecolor{mygray3}{gray}{.95}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
+
+\newcommand{\lxt}[1]{{\color{cyan}(xiangtai: {#1})}} % xiangti's comments
+\newcommand{\sy}[1]{{\color{orange}(Shuyang: {#1})}} % Shuyang's comments
+\newcommand{\mjh}[1]{{\color{red}(Jiahao: {#1})}}  % jiahao's comments
+
+
+\newcommand{\cyan}[1]{\textcolor{cyan}{#1}}
+\newcommand{\newgreen}[1]{\textcolor[rgb]{0.0, 0.8, 0.6}{#1}}
+\newcommand{\red}[1]{\textcolor[rgb]{1.0, 0.0, 0.22}{#1}}
+\newcommand{\TBD}[1]{\textcolor{red}{#1}}
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}}
+\newcommand{\myparagraph}[1]{{\noindent\bf #1}}
+
+\newcommand{\twolines}[2]{\begin{tabular}{@{}c@{}}#1 \\ #2\end{tabular}}
+\newlength\savewidth\newcommand\shline{\noalign{\global\savewidth\arrayrulewidth
+  \global\arrayrulewidth 1pt}\hline\noalign{\global\arrayrulewidth\savewidth}}
+\newcolumntype{x}[1]{>{\centering\arraybackslash}p{#1pt}}
+\newcommand{\tablestyle}[2]{\setlength{\tabcolsep}{#1}\renewcommand{\arraystretch}{#2}\centering\small}
+
+\newcommand{\TP}{\mathit{TP}}
+\newcommand{\FN}{\mathit{FN}}
+\newcommand{\FP}{\mathit{FP}}
+\newcommand{\IoU}{\text{IoU}}
+\newcommand{\BN}{\mathbb N}
+\newcommand{\SL}{{\cal L}}
+\newcommand{\things}{\tss{Th}\xspace}
+\newcommand{\stuff}{\tss{St}\xspace}
+\newcommand{\app}{\raise.17ex\hbox{$\scriptstyle\sim$}}
+\newcommand{\tss}[1]{\textsuperscript{#1}}
+\newcommand{\ncdot}{{\mkern 0mu\cdot\mkern 0mu}}
+\newcommand{\dt}[1]{\fontsize{8pt}{.1em}\selectfont \emph{#1}}
+\newcommand{\bd}[1]{\textbf{#1}}
+\newcommand{\x}{$\times$}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\usepackage{xcolor}
+\input{macros}
+\usepackage{listings}
+\usepackage{float}
+
+\definecolor{commentgreen}{rgb}{0.1, 0.4, 0.1}
+\definecolor{keywordblue}{rgb}{0.1, 0.1, 0.7}
+\definecolor{stringred}{rgb}{0.7, 0.1, 0.1}
+
+\lstdefinestyle{mystyle}{
+    commentstyle=\color{commentgreen},
+    keywordstyle=\color{keywordblue},   
+    stringstyle=\color{stringred},
+    basicstyle=\ttfamily\scriptsize, 
+    breaklines=true,
+    keepspaces=true,
+    showstringspaces=false,
+    frame=none,                     
+    language=Python, 
+}
+
+
+% Paper title 
+\newcommand{\name}{OmniHuman-1.5}
+\title{\name{}: Instilling an Active Mind in Avatars via Cognitive Simulation}
+
+
+
+\author{
+\centerline{
+Jianwen Jiang $^{*\dagger}$\quad 
+    Weihong Zeng $^*$ \quad  
+    Zerong Zheng $^*$ \quad 
+    Jiaqi Yang $^*$ \quad
+} 
+\centerline{
+    Chao Liang $^*$ \quad
+    Wang Liao $^*$ \quad
+    Han Liang $^*$ \quad 
+    Yuan Zhang  \quad 
+    Mingyuan Gao \quad 
+}
+}
+
+\affiliation[]{Intelligent Creation Lab, ByteDance}
+
+
+\footnotetext{$^*$Equal contributions}
+\footnotetext{$^\dagger$Project lead and corresponding author: jianwen.alan@gmail.com}
+
+
+\abstract{
+
+Existing video avatar models can produce fluid human animations, yet they struggle to move beyond mere physical likeness to capture a character's authentic essence. Their motions typically synchronize with low-level cues like audio rhythm, lacking a deeper semantic understanding of emotion, intent, or context. To bridge this gap, \textbf{we propose a framework designed to generate character animations that are not only physically plausible but also semantically coherent and expressive.} Our model, \textbf{OmniHuman-1.5},  is built upon two key technical contributions. First, we leverage Multimodal Large Language Models to synthesize a structured textual representation of conditions that provides high-level semantic guidance. This guidance steers our motion generator beyond simplistic rhythmic synchronization, enabling the production of actions that are contextually and emotionally resonant. Second, to ensure the effective fusion of these multimodal inputs and mitigate inter-modality conflicts, we introduce a specialized Multimodal DiT architecture with a novel Pseudo Last Frame design. The synergy of these components allows our model to accurately interpret the joint semantics of audio, images, and text, thereby generating motions that are deeply coherent with the character, scene, and linguistic content. 
+Extensive experiments demonstrate that our model achieves leading performance across a comprehensive set of metrics, including lip-sync accuracy, video quality, motion naturalness and semantic consistency with textual prompts. Furthermore, our approach shows remarkable extensibility to complex scenarios, such as those involving multi-person and non-human subjects.
+
+
+}
+
+
+\date{\today}
+
+
+\checkdata[Project Page]{\url{https://omnihuman-lab.github.io/v1_5}}
+
+
+\begin{document}
+\maketitle
+
+\input{figs/teaser}
+
+\input{sec/intro}
+\input{sec/related_work}
+\input{sec/methods}
+\input{sec/exps}
+\input{sec/conclusion}
+
+\clearpage
+
+\bibliographystyle{plainnat}
+\bibliography{main}
+
+% \clearpage
+% \beginappendix
+
+\end{document}

@@ -1,0 +1,419 @@
+\newcommand{\highlight}[1]{\textbf{#1}}
+As video content continues to dominate across various platforms, the demand for accessible, controllable, and precise video editing tools is rapidly increasing.
+In particular, there is a growing interest in developing text-guided video editing models.
+This interest arises from the limitations of more traditional software, which is inaccessible to most users and time-consuming for expert users.
+In contrast, text-guided video editing models aim to enable \textit{any} user to edit a video (whether real or generated) easily, quickly, and precisely through natural language.
+However, the development of high-performing video editing models is hindered by the scarcity of supervised video editing data.
+In this section we introduce \OursVideoEdit, a model that achieves state-of-the-art results in video editing, and outline our approach for training it without any supervised video editing data.\footnote{We provide examples of our model's video editing capabilities in \url{https://go.fb.me/MovieGen-Figure24}.}
+
+Our approach for training \OursVideoEdit is guided by two main assumptions.
+The first is that explicitly training the model for video editing offers significantly greater potential compared to training-free methods~\citep{meng2021sdedit,Geyer2023TokenFlowCD}.
+Moreover, to fully control all aspects of the input video, we must train the model to process the entire video input rather than limited proxy features of the input video (\eg, depth maps)~\citep{esser2023structure,Liang2023FlowVidTI,Yan2023MotionConditionedIA}.
+Second, unlike tasks where abundant supervised data can be collected (\eg, \textToV), it is far less practical to gather supervised video editing data.
+Consequently, any large-scale training for video editing is expected to suffer from discrepancies between training and test-time scenarios.
+Therefore, the second assumption is that minimizing train-test discrepancies is crucial to unlocking the model’s full potential.
+Accordingly, our approach involves several training stages that aim to gradually reduce such train-test discrepancies.
+
+When considering the \textToV model from \Cref{sec:image_video_model}, a clear discrepancy is that it was never trained to alter a media input based on an editing instruction.
+Therefore, in the first stage we train the \textToV model with a multi-tasking objective that alternates between image editing, which we treat as \textit{single-frame video editing}, and video generation (\Cref{subsec:edit_stage_1}).
+While the model demonstrates some generalization to video editing after this stage, it often produces blurry videos.
+We attribute these artifacts to the distribution shift between training the model on single-frame video editing and testing it on multi-frame video editing.
+Thus, in the second stage we introduce two new synthetic tasks that more closely resemble \textit{multi-frame video editing} and finetune the model on them (\Cref{subsec:edit_stage_2}).
+The first task creates a synthetic video editing example by animating image editing examples using random affine augmentations.
+The second task casts video segmentation as a video editing task, by requiring the model to mark a specific object in the video using a specific color.
+After this stage, the main observed artifacts are lack of natural motion and oversaturation of newly generated elements.
+To address these issues, in the third and final stage, we introduce an adaptation of backtranslation for video editing, enabling us to train the model on multi-frame, high-quality output videos.
+We demonstrate that human annotators prefer \OursVideoEdit more than 74\% of the time when compared to the previous state-of-the-art~\citep{EVE} on the TGVE+ benchmark~\citep{wu2023cvpr,EVE}.
+
+Finally, to facilitate the proper evaluation of the next generation of video editing models we collect a new comprehensive video editing benchmark, which we call \OursVideoEditBench~(\cref{subsec:editing_eval}).
+This benchmark spans six different video editing tasks, each containing diverse editing instructions and corresponding videos.
+Unlike previous benchmarks, which assume models are limited to square, short, low resolution, and low FPS videos, \OursVideoEditBench includes videos with varied aspect ratios, resolutions, FPS, and more.
+
+\subsection{Model}\label{sec:edit_method}
+Given the scarcity of supervised video editing data, methods for training models to perform video editing are prone to train-test discrepancies, resulting in suboptimal quality.
+To address this challenge, we introduce a multi-stage approach that progressively minimizes these discrepancies.
+We explain below the architecture modifications made to support video editing and then detail each step of our approach.
+The process is visualized in~\Cref{fig:edit}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/edit/overview.pdf}
+    \caption{\textbf{Extending the \textToV model to video editing.} We add video editing capabilities to the \textToV model using three training stages: single-frame editing (\Cref{subsec:edit_stage_1}), multi-frame editing (\Cref{subsec:edit_stage_2}), and video editing via backtranslation (\Cref{subsec:edit_stage_3}). We provide examples of our model's video editing capabilities in \url{https://go.fb.me/MovieGen-Figure24}.}
+    \label{fig:edit}
+\end{figure}
+
+\subsubsection{Model Architecture and Initialization}
+\label{subsec:edit_init}
+To support video editing, we introduce several adaptations to the architecture described in \Cref{sec:image_video_model}.
+First, we enable input video conditioning by adding additional input channels to the patch embedder.
+This allows us to concatenate the latent video input with the noisy output latent video along the channels dimension, and provide the concatenated latent videos to the model.
+Additionally, following Emu Edit~\citep{emuedit}, we incorporate support for conditioning the model on specific editing tasks (\eg, adding an object, changing the background, \etc).
+Specifically, our model has a learned task embedding vector for each task.
+For a given task, the model applies a linear transformation on the corresponding task embedding, producing four embeddings that are concatenated to the text encoders' hidden representations.
+We also apply a second linear transformation to the task embedding, and add the resulting vector to the \timestep embedding.
+Crucially, to fully preserve the model's video generation capabilities, we set all newly added weights to zero and initialize the remaining weights from the pre-trained \textToV model.
+
+Formally, the video editing architecture is conditioned on the following triplet $\bc = (\text{TAE}(\bc_{vid}), \bc_{instruct}, j)$, where $\bc_{vid}$ is the input video, $\text{TAE}$ is the temporal auto-encoder, $\bc_{instruct}$ is the editing instruction prompt, and $j$ is the task-id of the relevant editing operation.
+We update the flow step in Eq.~\ref{eq:fm} to be $u(\bx_t, \bc, \FMTime; \theta)$, where $\bx_{\FMTime}$ are the latents of the output video $x_{vid}$ at step flow $\FMTime$, and $\theta$ are the model parameters.
+For brevity, we omit the task-id, $j$, and the activation of the temporal autoencoder, $\text{TAE}$, in the rest of the section.
+
+\subsubsection{Stage~I: Single-frame Video Editing}
+\label{subsec:edit_stage_1}
+We begin by training the model to utilize an editing instruction and a video input during the denoising process of the output video.
+However, since we lack supervised video editing data, we leverage an image editing dataset, treating image editing as single-frame video editing.
+Concretely, the image editing dataset is composed of triplets of $\bc_{img-edit}=(\bc_{img}, \bc_{instruct}, x_{img})$, where $\bc_{img},x_{img}$ are the input and output images which we treat as single-frame videos.
+Clearly, high-quality \textit{video} editing demands more than just precise editing of individual frames.
+For example, it is essential to ensure that the output video maintains temporal consistency and that any newly generated elements appear natural.
+Therefore, we aim to preserve the temporal consistency and generation quality of our model by simultaneously training it on both image editing and \textToV generation.
+
+As the new model architecture expects a video input as an additional condition, we condition the model on a black video during video generation training.
+Formally, given a \textToV dataset with pairs $(\bc_{txt},x_{vid})$ of caption and target video, we create the following triplet, $\bc_{text-to-video} = (\bc_{\emptyset}, \bc_{instruct}, x_{vid})$, where $\bc_{\emptyset}$ is a black video, and $\bc_{instruct}$ is the video output caption with $\bc_{txt}$ rephrased as an instruction.
+
+Due to difference in the sequence length between image editing and video generation, an image editing step requires significantly fewer operations than a video generation step.
+Therefore, we accelerate training by alternating between image editing and video generation batches, instead of mixing both tasks within each batch.
+Additionally, because our model is already trained on \textToV generation, we further accelerate training by sampling image editing batches five times more frequently than video generation batches.
+Hence, we update Eq.~\ref{eq:fm} as follows:
+\begin{equation}
+\label{eq:fm_v2v_stage1}
+\mathbb{E}_{\FMTime, \bx_0, \bx_1, \bc}\|u(\bx_{\FMTime}, \bc, \FMTime; \theta) - \bv_t\|^2, \quad \text{where } \bc \sim \text{Categorical}\left( \left\{ \bc_{text-to-video}: \frac{1}{6}, \bc_{img-edit}: \frac{5}{6} \right\} \right).
+\end{equation}
+
+Interestingly, in preliminary experiments we found that na\"ively using the first frame's positional embedding during image editing training leads to completely distorted outputs when testing the model on video editing.
+We resolve this issue by instead using a randomly sampled temporal positional embedding as the positional embedding for the image
+We train the model using this objective for thirty thousand steps.
+
+\subsubsection{Stage~II: Multi-frame Video Editing}
+\label{subsec:edit_stage_2}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/edit/fig_stage2.pdf}
+    \caption{\textbf{Multi-Frame Editing Stage.} The model is trained on two synthetic multi-frame editing tasks: Animated Frame Editing and Generative Instruction-Guided Video Segmentation.}
+    \label{fig:edit_stage2}
+\end{figure}
+
+The trained model from Stage~I (\ref{subsec:edit_stage_1}) is capable of both precisely editing images and generating high-quality videos from text.
+However, it produces very blurry edited videos when tasked with video editing.
+We hypothesize that these artifacts are due to train-test discrepancies between Stage~I training and video editing.
+The most significant discrepancy that we identify is that the model is not conditioned on multi-frame video inputs during Stage~I training.
+We try to mitigate the blurriness artifacts by creating two complementary datasets that do include multi-frame videos inputs and outputs.
+We describe each of these datasets below and discuss the model's performance after training on them.
+Additionally, we visualize the two tasks in \Cref{fig:edit_stage2}.
+
+\textbf{Animated Frame Editing.}
+We create an animated frame editing dataset by leveraging a video-caption pair dataset  $(\bc_{txt}, x_{vid})$.
+The process begins by prompting a language model (\eg, \llama) with the caption  $\bc_{txt}$~(\eg, ``A person walking down the street'') to generate an editing instruction $\bc_{instruct}$~(\eg, ``Put the person at the beach'') and an output caption for the desired edited image $\hat{\bc}_{txt}$ (\eg, ``A person walking at the beach'').
+Next, a random frame  $x_{frame}$  is selected from  $x_{vid}$, and we apply a single-frame editing model, $p_\theta$~(introduced in Stage~I, \Cref{subsec:edit_stage_1}) to generate an edited frame $\hat{x}_{frame} \sim p_\theta(x_{frame}, \bc_{instruct})$.
+We filter the resulting data points, $(\bc_{txt}, \bc_{instruct}, \hat{\bc}_{txt}, x_{frame}, \hat{x}_{frame})$ using automated image editing metrics in a similar method to the one described in~\citep{emuedit}.
+To animate both the input and edited frames, we use an iterative process.
+In each iteration $i<n$, a random affine transformation $\mathcal{F}_i$ is applied to both the input frame $x_{frame}^{(i-1)}$ and the edited frame $\hat{x}_{frame}^{(i-1)}$, producing the next frames $x_{frame}^{(i)}$ and $\hat{x}_{frame}^{(i)}$.
+This process results in an animated sequence of input frames $\hat{\bc}_{vid} = \{x_{frame}^{(i)}\}_{i=0}^n$ and edited frames $\hat{x}_{vid} = \{\hat{x}_{frame}^{(i)}\}_{i=0}^n$.
+Finally, combining the animated frames with the editing instruction forms a multi-frame editing example $\bc_{animated}=(\hat{\bc}_{vid}, \bc_{instruct}, \hat{x}_{vid})$.
+The full process is outlined in Algorithm~\ref{alg:augmentation}, and a visual example of animated frame editing is provided in \Cref{fig:edit_stage2}.
+\begin{algorithm}[H]
+    \caption{Animated Frame Editing Dataset Creation}
+    \label{alg:augmentation}
+    \begin{algorithmic}[1]
+        \Require Video-caption dataset $ (c_{txt}, x_{vid}) $, editing model $ p_\theta $
+        \State \textbf{Input:} Video $ x_{vid} $, Caption $ c_{txt} $
+        \State \textbf{Output:} Animated frames $ \hat{c}_{vid} $, Editing instruction $ c_{instruct} $, Animated edited frames $ \hat{x}_{vid} $
+
+        \State Generate editing instruction: $ c_{instruct} \sim \text{\llama}(c_{txt}) $
+        \State Sample random frame: $ x_{frame} \sim x_{vid} $
+        \State Generate edited frame: $ \hat{x}_{frame} \sim p_\theta(x_{frame}, c_{instruct}) $
+
+        \State Initialize animated sequences: $ \hat{c}_{vid} \gets \emptyset, \hat{x}_{vid} \gets \emptyset $
+        \State Set initial frames: $ x_{frame}^{(0)} \gets x_{frame}, \hat{x}_{frame}^{(0)} \gets \hat{x}_{frame} $
+
+        \For{$i = 1$ to $n$}
+            \State Sample random affine augmentation: \( \mathcal{F}_i \)
+            \State Apply augmentation: \( x_{frame}^{(i)} \gets \mathcal{F}_i(x_{frame}^{(i-1)}) \), \( \hat{x}_{frame}^{(i)} \gets \mathcal{F}_i(\hat{x}_{frame}^{(i-1)}) \)
+            \State Append frames to sequences: \( \hat{c}_{vid} \gets \hat{c}_{vid} \cup \{x_{frame}^{(i)}\} \), \( \hat{x}_{vid} \gets \hat{x}_{vid} \cup \{\hat{x}_{frame}^{(i)}\} \)
+        \EndFor
+        \State \textbf{Return:} $ (\hat{c}_{vid}, c_{instruct}, \hat{x}_{vid}) $
+    \end{algorithmic}
+\end{algorithm}
+
+\textbf{Generative Instruction-Guided Video Segmentation.}
+The lack of natural motion in animated frame editing examples poses a clear discrepancy between animated frame editing and video editing.
+To address this, we complement the animated frame editing task with the task of generative instruction-guided video segmentation, which extends the Segment task from Emu Edit~\citep{emuedit} from images to videos.
+In this task, the model is required to edit a video by marking a specific object in a particular color based on the given instruction.
+
+We begin by collecting editing instructions using a procedure similar to the one employed while collecting animated frame editing examples.
+However, we prompt the language model to generate an instruction, $\bc_{instruct}$, to \textit{mark} a particular subject or object in the video in a specific color, and to output the name of the edited object (\eg, ``apple'').
+We then use DINO~\citep{groundingdino} and SAM 2~\citep{ravi2024sam2} to extract the segmentation mask for the object in the video.
+Finally, we create the target video, $\hat{x}_{vid}$, by marking the object in the relevant color using the extracted segmentation mask.
+Following the notation described above, the paired data, $\bc_{segmentation}=(\bc_{vid}, \bc_{instruct}, \hat{x}_{vid})$, then consists of a real input video, $\bc_{vid}$, an instruction to mark a specific object in a certain color, $\bc_{instruct}$, and a corresponding edited video, $\hat{x}_{vid}$.
+
+\textbf{Training.}
+We finetune the model from Stage~I on these datasets, alongside \textToV generation using multi-task training for one thousands steps.
+During training we sample animated frame editing examples three times more frequently than generative instruction-guided video segmentation and \textToV generation.
+To put it formally, we update the sampling in Eq.~\ref{eq:fm_v2v_stage1} as follows
+\begin{equation}
+\label{eq:fm_v2v_stage2}
+\bc \sim \text{Categorical}\left( \left\{ \bc_{text-to-video}: \frac{1}{5}, \bc_{animated}: \frac{3}{5}, \bc_{segmentation}: \frac{1}{5} \right\} \right).
+\end{equation}
+We observe that this stage mitigates the blurriness artifacts from Stage~I; however, newly generated elements in the edited video exhibit less motion than desired, and at times appear oversaturated.
+
+\subsubsection{Stage~III: Video Editing via Backtranslation}
+\label{subsec:edit_stage_3}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/edit/fig_stage3.pdf}
+    \caption{\textbf{Backtranslation Stage.} The model is trained to denoise the clean input video while conditioning on the edited generated video.}
+    \label{fig:edit_stage3}
+\end{figure}
+While Stage~II training (\Cref{subsec:edit_stage_2}) mitigates most of the artifacts observed in Stage~I (\Cref{subsec:edit_stage_1}), we notice that newly generated elements often lack motion and sometimes appear oversaturated.
+These artifacts are likely due to the output videos in the animated frame editing dataset, which lack natural motion and are model-generated.
+Therefore, in Stage~III, we create video editing data with \textit{real} output videos.
+Similarly to Stage~II~(\Cref{subsec:edit_stage_2}), we assume access to a dataset of videos $x_{vid}$ and corresponding captions $\bc_{txt}$~(\eg, ``\textit{Apples on a table}'').
+We employ \llama to create an editing instruction $\bc_{instruct}$~(\eg, ``\textit{Put the apples in a small basket}''), and an output caption $\hat{\bc}_{txt}$~(\eg, ``\textit{Apples in a small basket on the table}'').
+Then, we use the model from Stage~II to generate an edited video $\hat{x}_{vid} \sim p_\theta(x_{vid},\bc_{instruct})$ based on the input video $x_{vid}$ and editing instruction $\bc_{instruct}$.
+Afterward, we utilize $\bc_{txt}, \hat{\bc}_{txt}, x_{vid}, \hat{x}_{vid}$ to filter the generated examples based on automatic ViCLIP scores, following a similar filtering process as in Stage~II.
+
+A na\"ive approach would be to tune the model on the resulting dataset, $(x_{vid}, \bc_{instruct}, \hat{x}_{vid})$, teaching the model to predict its own generations.
+However, in this case, the output videos are likely to contain the very same artifacts we aim to mitigate.
+Therefore, we adapt the backtranslation technique from natural language processing~\citep{edunov2018understandingbacktranslationscale} to video editing.
+Specifically, we prompt \llama using $(\bc_{txt}, \hat{\bc}_{txt}, \bc_{instruct})$ to generate an editing instruction, $\bc_{instruct-bwd}$, that should alter the generated video $\hat{x}_{vid}$ into the original video $x_{vid}$~(\eg, ``\textit{Remove the small basket and put the apples on the table}'').
+Then, we build a synthetic paired dataset, $\bc_{backstranslation}=(\hat{x}_{vid}, \bc_{instruct-bwd}, x_{vid})$, and use it to train the model to denoise the clean video $x_{vid}$ while conditioning on the potentially noisy video $\hat{x}_{vid}$ and editing instruction $\bc_{instruct-bwd}$.
+In this manner, we construct a weakly-supervised video editing dataset, with real output videos.
+
+\subsection{Evaluation}
+\label{subsec:editing_eval}
+We evaluate the capabilities of our model against two main video editing benchmarks.
+The first benchmark, TGVE+~\citep{EVE}, is a recently proposed extension of the TGVE benchmark~\citep{wu2023cvpr}.
+While this benchmark is comprehensive, it features low-resolution, low-FPS, short, and square videos.
+This is in contrast to state-of-the-art video generation models and most media content, which typically feature higher resolution, longer videos with higher FPS, and varied aspect ratios.
+Therefore, to enable proper evaluation of next-generation video editing models with more relevant video inputs, we introduce a new benchmark, called \OursVideoEditBench.
+This benchmark consists of videos with varying resolutions, FPS, lengths, and aspect ratios.
+We compare our approach against several baselines and measure its effectiveness across multiple axes, including fidelity to the user instructions and input video, and overall visual quality.
+
+\subsubsection{Video Editing Benchmarks}
+\label{edit:benchmark}
+The TGVE+ benchmark~\citep{EVE,wu2023cvpr} consists of seventy-six videos, each accompanied by seven editing instructions for the following tasks: (i) local object modification, (ii) style change, (iii) background change, (iv) simultaneous execution of multiple editing tasks, (v) object removal, (vi) object addition, and (vii) texture modification.
+While the benchmark offers a comprehensive evaluation across a diverse set of editing tasks, the videos in the benchmark are of 480 $\times$ 480 px resolution, and 3.20 seconds length at 10 FPS, or 8.00 seconds at 16 FPS.
+In contrast, real user videos are expected to have a higher resolution, higher FPS, and may contain various aspect ratios.
+Hence, it is unclear whether evaluation against TGVE+ will accurately reflect video editing performance on real user videos.
+Moreover, current foundational video generation models~\citep{sora,gen2,gen3} can operate at high resolution~(\eg, 768p or 1080p), 16 or more FPS, multiple aspect ratios, and can process much longer videos than those from TGVE.
+
+Thus, to enable the evaluation of video editing using more practical videos, we collect a new benchmark, \OursVideoEditBench, that aims to evaluate the video editing capabilities of the next generation of video editing models.
+To build \OursVideoEditBench, we rely on videos from the publicly released Segment-Anything-V2~\citep{ravi2024sam2} dataset.
+For each video out of the 51,000 videos found in the dataset, we generate a caption using a similar approach to the one in \Cref{sec:pt-data}, calculate its motion score~\citep{motion,opencv_library}, and calculate its aesthetics score~\citep{schuhmann2022laion}.
+We then filter all videos with an aesthetics score lower than the median score of the dataset.
+For each category, we bin the videos based on their motion score and sample videos uniformly from the bins for each category.
+Overall, the benchmark validation set has 64 videos, whereas the test set has 128 videos.
+
+To facilitate a realistic benchmark with editing instructions written by humans, we employ crowd workers.
+For each video and for each editing operation, we assign crowd workers the task of writing down a creative editing instruction.
+Finally, to support the use of CLIP-based image editing evaluation metrics (similar to those used in~\citep{emuedit}), we additionally collect an input caption and output caption.
+Thus, the benchmark has altogether 1,152 examples, and spans six different editing tasks.
+
+\subsubsection{Video Editing Measures}\label{subsubec:edit_measures}
+Our experiments evaluate the ability of video editing models to modify an input video while accurately following the provided instructions and preserving the structure and elements that should remain unchanged.
+We assess the video editing performance of our model and the baselines using both Human evaluation and automated metrics.
+For automated evaluation, we use the main automatic metrics reported by \citep{EVE}, which account for both temporal and spatial coherence.
+Specifically, we measure (i) ViCLIP text-image direction similarity~($\text{ViCLIP}_{dir}$), which evaluates the alignment between changes in captions and corresponding changes in the videos, and (ii) ViCLIP output similarity~($\text{ViCLIP}_{out}$), which measures the similarity between the edited video and the output caption.
+
+For Human evaluation, we follow the standard evaluation protocol of TGVE+~\citep{EVE,wu2023cvpr}.
+Human annotators are presented with an input video, the editing instruction, and a pair of edited videos.
+We then ask the raters to respond to the following questions: (i) Text Alignment: Which edited video more accurately reflects the given caption, (ii) Structure: which edited video better maintains the structural integrity of the original input, and (iii) Quality: which edited video is visually more appealing and aesthetically superior.
+Additionally, we extend this protocol with a fourth question: (iv) Overall: considering quality, structure, and text alignment, which edited video is better.
+
+\subsection{Results}
+In this section, we compare our model with leading video editing baselines.
+We then analyze the importance and impact of the main design and implementation choices in our approach (\Cref{edit:abl}).
+
+
+\subsubsection{Comparisons to Prior Work}
+\label{edit:eval}
+We evaluate our model against different video editing baselines, including both training-free methods, and methods that require prior training such as our method.
+A common training-free method for video editing is Stochastic Differential Editing~(SDEdit)~\citep{meng2021sdedit} which performs image editing by adding noise to the input video and then denoising it while conditioning the model on a descriptive caption.
+Recent video foundation models~\citep{BarTal2024LumiereAS,videoworldsimulators2024}, have used SDEdit for video editing, and demonstrated its ability to maintain the overall structure of the input video.
+However, this approach can lead to the loss of important details, such as subject identity and texture, making it less effective for precise editing.
+In our experiments, we utilize SDEdit with the base T2V model, \OursVideo, and perform the denoising process for 60\% of the total iterations.
+Another prominent approach for video editing is to inject information about the input or generated video from key frames via cross-attention interactions~\citep{Wu2023FairyFP,yatim2023space}.
+
+On the other hand, the current top performing methods for video editing utilize prior training while overcoming the lack of supervised datasets for video editing.
+For example, InsV2V~\citep{Cheng2023ConsistentVT} extends the general approach of InstructPix2Pix~\citep{brooks2022instructpix2pix} to video editing, enabling the creation and training of a video editing model using synthetic data.
+EVE~\citep{EVE}, relies on unsupervised training by employing knowledege distillation from two expert models, one for image editing and the other for \textToV generation (see \Cref{subsec:edit_background} for more details).
+Finally, we compare to Tune-A-Video (TAV)~\citep{wu2023tune} which served as the baseline in the TGVE contest.
+TAV tunes a \textToI model to a specific video, followed by inverting the input video and using the inverted noise to generate the output video.
+We compare with all of the baselines described above on the TGVE+ benchmark.
+
+In addition, we evaluate our method versus SDEdit and Runway Gen3 Video-to-Video\footnote{Runway Gen3 Video-to-Video videos were collected on September 24th, 2024.}~(Runway Gen3 V2V)~\citep{gen3} on \OursVideoEditBench~(Sec.~\ref{edit:benchmark}).
+We compare to Runway Gen3 V2V in two settings.
+The first, employs Runway Gen3 V2V on all tasks comprising the benchmark -- (i) local object modification, (ii) style change, (iii) background change, (iv) object removal, (v) object addition, and (vi) texture modification.
+However, as we observe that Runway Gen3 V2V struggles to preserve fine details in the input video (in contrast to general structure), in the second setting we focus on the style editing task, denoted as Runway Gen3 V2V Style.
+We omit comparison with other baselines, as they are mostly limited to operating on short videos with 32 frames and do not fully utilize \OursVideoEditBench's videos duration, resolution, or varied aspect ratios.
+
+Results of our evaluation versus all baselines are presented in~\Cref{tab:eval_video_editing_tgve}.
+Throughout this section we report `win rates', which can lie in the range $[0,100]$, where 50 indicates a tie between two models.
+Human raters prefer \OursVideoEdit over all baselines by a significant margin on both benchmarks.
+On the TGVE+ benchmark, our model is preferred 74\% more often than the current state-of-the-art EVE in the overall Human evaluation criterion.
+In terms of automated metrics, \OursVideoEdit presents state-of-the-art results on the $\text{ViCLIP}_{dir}$ metric.
+On the $\text{ViCLIP}_{out}$ metric, \OursVideoEdit performance is comparable to EVE.
+However, unlike \OursVideoEdit, EVE has access to the video output caption which is used for calculating the $\text{ViCLIP}_{out}$ score.
+
+On the \OursVideoEditBench, our method is preferred over the Runway Gen3 V2V and Runway Gen3 V2V Style settings.
+Interestingly, when compared to Runway Gen3 V2V Style, Human evaluation metrics highlight our advantage in maintaining the structure of the input videos.
+Compared to SDEdit, \OursVideoEdit is preferred by human raters in Human evaluation criterions by a significant margin, despite a lower $\text{ViCLIP}_{out}$ score.
+Similarly to EVE, SDEdit has an advantage in the $\text{ViCLIP}_{out}$ automatic metric as it has access to the same output caption that $\text{ViCLIP}_{out}$ uses.
+
+\begin{table*}[t]
+\centering
+\adjustbox{max width=\textwidth}{%
+\begin{tabular}{llcccccc}
+\toprule
+\multirow{2}{*}{Dataset} & \multicolumn{1}{c}{\multirow{2}{*}{Method}}  & \multicolumn{4}{c}{Human Evaluation} & \multicolumn{2}{c}{Automated} \\
+    & & Text & Struct. &  Quality & Overall &  $\text{ViCLIP}_{dir}\uparrow$ & $\text{ViCLIP}_{out}\!\uparrow$ \\
+\midrule
+\multirow{6}{*}{\shortstack[c]{TGVE+}} & TAV~\citep{wu2023tune} & 85.00 & 81.94 & 91.57 & 89.70 & 0.131 & 0.242 \\
+& STDF~\citep{yatim2023space}   & 84.43 & 61.60 & 73.21 & 74.43 & 0.093 & 0.227 \\
+& Fairy~\citep{Wu2023FairyFP}   & 84.15  & 77.52 & 84.20 & 84.91 & 0.140 & 0.197   \\
+& InsV2V~\citep{Cheng2023ConsistentVT} & 73.75 & 66.60 & 70.73 & 70.85 & 0.174 & 0.236 \\
+& SDEdit~\citep{meng2021sdedit} & 85.51 & 90.07 & 76.19 & 80.59 & 0.131 & 0.241 \\
+& EVE~\citep{EVE} & 69.48 & 70.05 & 75.18 & 74.38 & 0.198 & 0.251  \\
+& \OursVideoEdit (Ours) & -- & -- & -- & -- & 0.225 & 0.248 \\
+\midrule
+\multirow{4}{*}{\OursVideoEditBench}
+& Runway Gen3 V2V~\citep{gen3} & 88.14 & 98.33 & 83.14 & 93.33 & 0.068 & 0.188 \\
+& Runway Gen3 V2V Style~\citep{gen3} & 55.55 & 73.61 & 58.33 & 59.72 & 0.124 & 0.214 \\
+& SDEdit~\citep{meng2021sdedit} & 94.37 & 86.34 & 85.14 & 91.96 & 0.124 & 0.239 \\
+& \OursVideoEdit (Ours) & -- & -- & -- & -- & 0.209 & 0.224 \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Comparison with video editing baselines on the TGVE+ and \OursVideoEditBench benchmarks.}
+We report ViCLIP metrics and human ratings.
+Human evaluation shows the win rate of \OursVideoEdit~(Ours) against the baselines.
+Runway Gen3 videos were collected on September 24th, 2024.
+For the human evaluations we report `win rates', which can lie in the range $[0,100]$, where 50 indicates a tie between two models.}
+\label{tab:eval_video_editing_tgve}
+\end{table*}
+
+\subsubsection{Ablations}
+\label{edit:abl}
+In this section, we aim to assess and quantify the importance and impact of the main design and implementation choices in our approach.
+Unless stated otherwise, ablations are conducted on the validation set of \OursVideoEditBench (\Cref{edit:benchmark}) using the Human evaluation metrics described in \Cref{subsubec:edit_measures}.
+
+
+\textbf{Stage~I: Multi-tasking versus Adapter.}
+As mentioned in \Cref{subsec:edit_stage_1}, the first stage of our approach involves training the model using a multi-tasking objective that alternates between image editing and video generation.
+However, an alternative approach would be to train an image editing adapter on top of the \textToV generation model.
+The advantage of this approach is that by freezing the weights of the \TextToV model, one can ensure that the model's video generation capabilities are preserved.
+However, this approach is more memory demanding and typically requires providing the model with two text inputs for video editing: (i) a video caption for the frozen text-to-video model, and (ii) an editing instruction for the trained adapter.
+
+To ablate this design choice, we implement a variant of a ControlNet adapter~\citep{zhang2023adding} that aligns with the model described in \Cref{subsec:edit_stage_1}.
+Specifically, we freeze the original \textToV model and clone a trainable copy of it.
+We apply the same adaptations as described in \Cref{subsec:edit_init} to the trainable model.
+Finally, we follow \citep{zhang2023adding} by introducing a zero-initialized convolutional layer after each layer of the trainable model.
+During the forward pass, the frozen model gets a caption that describes the output video, and the trainable model gets similar inputs as described in \Cref{subsec:edit_stage_1}.
+After each layer we add the hidden states of the trainable model to the hidden states of the frozen model.
+
+We train the adapter on image editing using the same image editing data as used in Stage~I (\Cref{subsec:edit_stage_1}) for 10K iterations and compare it to the Stage~I model trained for the same number of iterations.
+
+We evaluate the models' image editing capabilities on the Emu Edit benchmark~\citep{emuedit} and measure performance using the $L_1$ distance between the input and output images, distance between DINO~\citep{groundingdino} features of the input and output images, and several CLIP-based image editing evaluation metrics:
+\noindent{$\text{CLIP}_{im}$} estimates whether the model preserved elements from the input image by measuring the CLIP-space distance between the input image and the edited image.
+\noindent{$\text{CLIP}_{out}$} estimates whether the model followed the editing instruction by measuring the CLIP-space distance between a caption describing the desired edited image and edited image itself.
+\noindent{$\text{CLIP}_{dir}$} estimates if the elements that were supposed to change were edited correctly, while ensuring that elements intended to remain unchanged were preserved.
+Furthermore, we conduct a human evaluation in which human raters assess text alignment and image faithfulness.
+During this assessment the human raters see the original image and instruction alongside two modified images and are asked: (i) which edited image better preserves the required elements from the input image, and (ii) which edited image best follows the editing instruction.
+
+As can be seen, the Stage~I variant achieves comparable results to the ControlNet variant on {$\text{CLIP}_{im}$}, {$\text{CLIP}_{out}$}, and DINO metrics.
+However, it achieves a significantly better performance on both the {$\text{CLIP}_{dir}$} and L1 metrics.
+Furthermore, Human evaluation indicates that full model training results in edits that are better aligned with the editing instructions and more faithful to the input images.
+This indicates that full model training can better support high quality editing than a ControlNet adapter.
+
+\begin{table}[h!]
+\centering
+
+\adjustbox{max width=\textwidth}{%
+\begin{tabular}{lccccccc}
+\toprule
+ \multicolumn{1}{c}{\multirow{2}{*}{Method}} & \multicolumn{2}{c}{Human Evaluation} & \multicolumn{5}{c}{Automated} \\
+ & Text align. & Image faith. & $\text{CLIP}_{dir}\!\uparrow$ &  $\text{CLIP}_{im}\!\uparrow$ & $\text{CLIP}_{out}\!\uparrow$ &  $\text{L1}\!\downarrow$  & DINO$\uparrow$ \\
+\midrule
+ControlNet adapter & 69.325 & 66.235 & 0.115 & 0.843 & 0.235 & 0.099 & 0.794 \\
+Stage~I (\Cref{subsec:edit_stage_1}) & -- & -- & 0.128 & 0.840 & 0.238 & 0.088 & 0.789 \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Ablation on the best way to incorporate image editing information to a \textToV model.} We compare two variants: (i) training a ControlNet on a frozen \textToV model, and (ii), multitask learning on \textToV and image editing.
+Human evaluation shows the win rate of the Stage~I model against the ControlNet adapter.}
+\label{tab:eval_image_editing}
+\end{table}
+
+\begin{table}[h!]
+    \centering
+
+    \adjustbox{max width=\textwidth}{%
+    \centering
+    \begin{tabular}{l@{\hspace{1cm}}cccc}
+        \toprule
+        Method & Text & Structure &  Quality & Overall \\
+        \midrule
+        Animated Image Editing             & 70.67 & 53.4 & 61.31 & 61.16 \\
+        \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Contribution of training the second stage using animated \textit{frames} compared to animated \textit{images}.}  Human evaluation shows the win rate of the Stage~II model (\Cref{subsec:edit_stage_2}) versus its animated \textit{image} editing counterpart.}
+    \label{tab:abl_study_stage2}
+\end{table}
+
+\begin{table}[h!]
+    \centering
+
+    \adjustbox{max width=\textwidth}{%
+    \centering
+    \begin{tabular}{l@{\hspace{1cm}}cccc}
+        \toprule
+        Method & Text & Structure &  Quality & Overall \\
+        \midrule
+            Standard  & 44.66 & 72.56 & 73.61 & 70.23 \\
+        \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Contribution of training with backtranslation rather than standard fine-tuning.} Human evaluation shows the win rate of \OursVideoEdit versus performing Stage~III (\Cref{subsec:edit_stage_3}) with standard fine-tuning rather than backtranslation.}
+    \label{tab:abl_study_stage3}
+\end{table}
+
+
+
+
+\begin{table}[h!]
+    \centering
+
+    \adjustbox{max width=\textwidth}{%
+    \centering
+    \begin{tabular}{l@{\hspace{1cm}}cccc}
+        \toprule
+        Method & Text & Structure &  Quality & Overall \\
+        \midrule
+        Stage~II (vs Stage~I)   & 61.65 & 90.86 & 91.9 & 89.29 \\
+        \OursVideoEdit (vs Stage~II)   & 49.36 & 59.78 & 61.86 & 60.82 \\
+        \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Contribution of each stage in our approach.} In each row, we show the win rate of the model from a certain stage when compared to its previous stage counterpart.}
+    \label{tab:abl_study}
+\end{table}
+
+
+\textbf{Stage~II: Animated Frame/Image Editing}
+As mentioned in \Cref{subsec:edit_stage_2}, the second stage of our approach involves finetuning the model from Stage~I (\Cref{subsec:edit_stage_1}) on an animated \textit{frame} editing dataset.
+However, a more straightforward alternative would have been to animate the \textit{image} editing dataset from Stage I, thereby avoiding the need to collect a new single-frame editing dataset.
+To explore this choice, we train the model from Stage~I using a similar approach to the one described in \Cref{subsec:edit_stage_2}, but animate the image editing dataset from Stage~I rather than the frame-editing dataset.
+As shown in \Cref{tab:abl_study_stage2}, human raters consistently prefer the outputs of the model from Stage~II over its animated image editing counterpart.
+Specifically, they find the model to be more text faithful in over 70\% of the time, and rate its quality higher over 61\% of the time.
+
+
+
+\textbf{Stage~III: Backtranslation versus Standard Fine-tuning.}
+During Stage~III (\Cref{subsec:edit_stage_3}), we generate edited videos using the model from Stage~II, apply filtering, and then perform backtranslation training.
+In this ablation, we assess whether backtranslation is necessary or if standard fine-tuning on model generated outputs suffices.
+We follow the same training protocol as in Stage~III, but instead of backtranslation, we train the model to predict the generated video, $\hat{x}_{vid}$ from the input video $x_{vid}$ and original editing instruction $\bc_{instruct}$.
+As shown in~\Cref{tab:abl_study_stage3}, while training with backtranslation slightly degrades text faithfulness when compared to standard finetuning, it provides very significant improvements in structure, quality, and crucially, overall preference.
+
+
+
+
+
+\textbf{Evaluating the Contribution of Each Stage.}
+To assess the contribution of each training stage, we compare the model from each stage with the model from the previous stage.
+As shown in \Cref{tab:abl_study}, Stage~II (\Cref{subsec:edit_stage_2}) demonstrates significant improvements over the Stage~I model, with human evaluators preferring it more than 89\% of the time.
+The benefits of Stage~III (\Cref{subsec:edit_stage_3}) are more subtle, with human evaluators preferring \OursVideoEdit over the Stage~II model in more than 60\% of cases.
+Importantly, most of the contributions from Stage~III are reflected in the improved quality of the edited videos, with only a very minor trade-off in text faithfulness.

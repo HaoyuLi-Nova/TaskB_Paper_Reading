@@ -1,0 +1,51 @@
+\begin{table*}[!t]
+  \centering
+
+  \resizebox{1.0\linewidth}{!}
+  {
+
+    \begin{tabular}{c|cccc|cccc|cccc|}
+    \hline
+    % Setting & & \multicolumn{6}{c|}{Dub 1.0} & \multicolumn{3}{c}{Dub 2.0} \\ 
+    % \hline
+    
+    Benchmark & \multicolumn{4}{c|}{V2C-Animation} & \multicolumn{4}{c|}{Chem} & \multicolumn{3}{c}{GRID} \\
+    \midrule
+    Methods 
+    & DD  
+    & \small{EMO-SIM} (\%) $\uparrow$
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$   
+    & DD  
+    & \small{EMO-SIM} (\%) $\uparrow$
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$   
+    & DD  
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$     \\
+    \midrule
+    GT  & 0.0000 & 100.00 & 25.55 & 2.26 & 0.0000 & 100.00 & 3.85 & 4.18 & 0.0000 & 22.41 & 3.94\\
+    % GT Mel + Vocoder & 100.00 & 25.55  & 2.26 & 99.96 & 0.00 & 0.00 & 100.00 & 22.55 & 2.26\\
+    \midrule
+    % V2C-Net~\cite{V2C}  & 0.5270 & 52.26 & 73.08 & 1.32 & 0.5038 & 65.84 & 90.47 & 1.81 & 0.2796 & 47.82 & 2.41 \\
+    % HPMDubbing~\cite{HPMDubbing}  & 0.5690 & 49.45 & 164.16 & 1.31 & 0.6388 & 61.24 & 16.05 & 2.16 & 0.2646 & 25.51 & 2.14\\
+    Speak2Dub~\cite{spk2dub} & 0.5173 & 66.58 & 17.51 & 2.41 & 0.4786 & 76.78 & 11.82 & 3.72 & 0.2650 & \textbf{17.40} & 3.69 \\
+    StyleDubber~\cite{styledubber} & \textbf{0.5092} & \underline{67.22} & 31.94 & 1.89 & \underline{0.4508} & \underline{77.99} & 13.14 & 3.02 & \textbf{0.2453} & 18.88 & 3.73 \\
+    DeepDubber*~\cite{deepdubber} & 0.5756 & 56.42 & 35.88 & 2.03 & 0.5041 & 52.37 & 25.51 & 2.53 & 0.3995 & 51.16 & 2.31 \\
+    ProDubber~\cite{ProDubber} & 0.5148 & 67.15 & \textbf{8.04} & \underline{3.10} & 0.4673 & 76.69 & \underline{9.45} & \underline{3.85} & 0.2551 & 18.60 & \underline{3.87} \\
+    \midrule
+    InstructDubber (Ours) & \underline{0.5122} & \textbf{68.46} & \underline{9.27} & \textbf{3.11} & \textbf{0.4461} & \textbf{78.38} & \textbf{8.86} & \textbf{3.87} & \underline{0.2522} & \underline{17.81} & \textbf{3.88} \\
+    \bottomrule
+    \end{tabular}
+    }
+      % \vspace{-0.2cm}
+        \caption{
+  % \color{blue}
+  Results of in-domain dubbing on three major benchmarks, which use the train set and test set from the same benchmark for training and evaluation. The best results are \textbf{in bold} and the second-best ones are \underline{underlined}.
+  }
+
+  % $\uparrow(\downarrow)$ denotes the higher (lower) value is better.
+  % We follow the official code of pre-train HiFi-GAN and the extraction method of mel-spectrogram.
+  \label{Ori_result}%
+  % \vspace{-0.2cm}
+\end{table*}%

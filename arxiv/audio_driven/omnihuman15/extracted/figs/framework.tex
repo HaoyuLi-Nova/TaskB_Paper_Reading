@@ -1,0 +1,6 @@
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figs/framework.jpg}
+  \caption{\textbf{The Dual-System Simulation Framework.} Our framework models avatar behavior by integrating a deliberative \textbf{System 2} for planning with a reactive \textbf{System 1} for rendering. \textbf{Left:} The overall pipeline. System 2 uses an MLLM Agent to reason over all inputs (audio, image, text) and generate a high-level "schedule". This schedule guides System 1's MMDiT network, which synthesizes the final video by fusing information within its dedicated text, audio, and video branches. \textbf{Right:} Key module details. (a) The reasoning pipeline consists of an MLLM Analyser and Planner that work together to create the schedule. (b,c) Our proposed \textbf{MM-Branch Warm-up} and \textbf{Pseudo Last Frame} methods mitigate multimodal conflicts during training.}
+  \label{fig:framework}
+\end{figure}

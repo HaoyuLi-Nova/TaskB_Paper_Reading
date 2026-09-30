@@ -1,0 +1,7 @@
+\begin{figure}[htb!]
+\begin{center}
+\includegraphics[width=0.98\textwidth]{model/figures/algorithm_v4.pdf}
+\end{center}
+\caption{(Left) \magi performs chunk-wise autoregressive denoising. The video is generated in chunks of 24 frames, where each chunk attends to all previously denoised chunks. Once a chunk reaches a certain denoising level, the next chunk begins generation. (Right) A block-causal attention mask enforces temporal causality across chunks, enabling pipelined and parallel generation.}
+\label{fig:main_algorithm}
+\end{figure}

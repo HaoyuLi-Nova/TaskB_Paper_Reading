@@ -1,0 +1,38 @@
+% \begin{table*}
+% \centering
+% \begin{tabular}{ll}
+% \toprule
+%                                             Prefix &                                            Target \\
+% \midrule
+% \bos full\_generation (\textemd text\_embedding(64) \bovin \eovin &             \bov video\_tokens256 \\
+% \bottomrule
+% \end{tabular}
+% \end{table*}
+
+
+\begin{table}
+\centering
+\begin{tabular}{cl}
+\toprule
+Special Token                          & \multicolumn{1}{c}{Usage} \\
+\midrule
+\texttt{<bos>} & Beginning of sequence     \\
+\texttt{<task>} & Task to perform for this sequence \\
+\texttt{<bot\_i>}& Beginning of the text input. \\
+\texttt{<eot\_i>}& End of the text input. \\
+\texttt{<bov\_i>}& Beginning of the visual input. \\
+\texttt{<eov\_i>}& End of the video input. \\
+\texttt{<boa\_i>}& Beginning of the audio input. \\
+\texttt{<eoa\_i>}& End of the audio input. \\
+\texttt{<source>}& The source of the video to generate. \\
+\texttt{<res>} & Output resolution for the video. \\
+\texttt{<bov\_o>}& Beginning of the video output. \\
+\texttt{<eov\_o>}& End of the video output. \\
+\texttt{<boa\_o>}& Beginning of the audio output. \\
+\texttt{<eoa\_o>}& End of the audio output. \\
+\texttt{<eos>}& End of the entire sequence. \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{List of representative special tokens used in training and inference}. }
+\label{tab:special_tokens}
+\end{table}

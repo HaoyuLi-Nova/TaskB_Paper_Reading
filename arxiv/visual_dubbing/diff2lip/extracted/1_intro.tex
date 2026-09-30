@@ -1,0 +1,79 @@
+\section{Introduction}
+
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/Diff2Lip-Teaserv5.pdf}
+    \caption{\textbf{Top:} Our \ours~~approach uses an audio-conditioned diffusion model to generate lip-synchronized videos. (Here $q$ denotes the forward diffusion process and $p_\theta$ is the learned reverse diffusion process.) \textbf{Bottom:} On zooming in to the mouth region it can be seen that our method generates high-quality video frames without suffering from identity loss.}
+    \label{fig:teaser}
+    \vspace{-0.2in}
+\end{figure} 
+
+
+
+Oscar-winning director Bong Joon Ho famously pointed out that subtitles act as a barrier between a foreign audience not adept in the language and their ability to fully enjoy amazing movies~\cite{subtitle-quote}, as the viewer needs to focus on both watching and reading. A rarely explored alternative, multiple-language version movie (MLV), where the same film is shot in multiple languages in parallel, is naturally much more expensive~\cite{mlv}. While dubbing is a popular compromise solution, it can feel unnatural due to the lack of synchronization between speech and actors' video. 
+As a cheaper alternative, lip-synchronization (lip-sync) aims to generate the mouth region of the human face such that the lips correspond to a different speech audio. Its applications beyond movies include education, virtual avatars, and video conferencing.  
+Ideally, lip-sync should support any identity and audio from unseen sources (in-the-wild setting). 
+This setting brings up the challenges of preserving the actors’ identity, pose, emotions, and visual quality while maintaining a realistic lip-sync.
+
+One of the earliest lip-sync methods, Video Rewrite~\cite{video-rewrite}, had a purpose-built solution by mapping phonemes to mouth shapes and then blending them onto the target video. Modern techniques have more general solutions but suffer certain limitations. 
+For instance, PC-AVS~\cite{pcavs} and GC-AVT~\cite{gcavt}, disentangle pose and expression respectively but fail to preserve identity (Fig.~\ref{fig:teaser} bottom), have worse visual quality, and have border inconsistencies (while putting the generated heads back to the scene). On the other hand, works that target a specific identity, such as SynthesizingObama~\cite{synthesizing-obama}, require video/identity-specific training. Other methods which rely on extracting intermediate representations, e.g., landmarks in MakeItTalk~\cite{makeittalk}, have to deal with estimation errors in these representations. Finally, approaches that can generalize on in-the-wild lip-sync settings pose it as an inpainting task, where the mouth region is masked and then generated according to the audio. Examples include Wav2Lip~\cite{wav2lip}, which achieves good lip-sync but at the cost of poor visual quality (see Fig.~\ref{fig:teaser} bottom), and AV-CAT~\cite{avcat}, which has a multistage pipeline but does not capture finer details. In this paper, we introduce \ours, an inpainting style approach that solves the lip-sync task using diffusion models, which addresses most of these shortcomings and achieves visually superior lip-sync results. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+We propose an audio-conditioned diffusion model to solve the task of lip-sync (Fig.~\ref{fig:teaser} top). 
+Diffusion models~\cite{ddpm} are likelihood-based models that can generate astonishing results in high variation datasets~(e.g., ImageNet~\cite{imagenet}), that GANs~\cite{gan} cannot match. To generalize in-the-wild, we pose the problem as a conditional diffusion model based inpainting task~\cite{palette}. \ours  ~takes three inputs: a masked input frame, a reference frame, and an audio frame, and outputs the lip-synced mouth region. \ours  ~leverages (1) the masked input frame to get the pose context; (2) the reference frame to get the identity and mouth region textures; (3) the audio frame to drive the lip shape.
+Using an audio+image conditioned diffusion model, \ours  ~maintains a fine balance between all these contextual input information, avoiding lip-sync problems (e.g. identity loss, reference copying, inaccurate lip shape). \ours  ~optimizes three losses: a reconstruction loss to guide synthesis; a sync-expert loss~\cite{wav2lip} to enforce synchronization; and a sequential adversarial loss to enforce inter-frame continuity.
+\ours  ~generates high image quality without identity loss or generalizability issues as shown in Fig.~\ref{fig:teaser} bottom.
+
+
+
+ 
+
+
+
+
+
+
+We evaluate our work on commonly used benchmarks of Voxceleb2~\cite{voxceleb2} and LRW~\cite{lrw} datasets for the tasks of reconstruction and cross generation (see section~\ref{sec:exp}). We compare against popular methods used for lip-sync like Wav2Lip~\cite{wav2lip} and PC-AVS~\cite{pcavs}. 
+Extensive evaluations show that \ours ~outperform existing methods in terms of image fidelity while having comparable synchronization.
+
+
+The following are the contributions of this work:
+\begin{itemize}[noitemsep,topsep=0pt]
+    \item  
+    We propose a novel diffusion model based approach for audio-conditioned image generation.
+    \item Using frame-wise and sequential losses we are able to successfully generate high quality lip-sync.
+    \item We show that the use of a sequential adversarial loss makes frame-wise video generation more stable for diffusion models across frames.
+    \item Extensive evaluations validate that our generations outperform existing methods in FID metric and MOS of the users showing the effectiveness of \ours. 
+\end{itemize}
+

@@ -1,0 +1,159 @@
+\section{Experiments}
+
+\subsection{Implementations}
+We collected approximately 250 hours of talking head videos from the internet and supplemented this with the HDTF\cite{hdtf} and VFHQ\cite{vfhq} datasets to train our models. As the VFHQ dataset lacks audio, it is only used in the first training stage. We apply the MediaPipe\cite{mediapipe} to obtain the facial bbox. Head rotation velocity was labeled by extracting the 6-DoF head pose for each frame using facial landmarks, followed by calculating the rotational degrees between frames.
+
+The video clips sampled from the dataset are resized and cropped to $512\times{512}$. In the first training stage, the reference image and the target frame are sampled from the video clip separately, we trained the Backbone Network and the ReferneceNet with a batch size of 48. In the second and the third stage, we set $f=12$ as the generated video length, and the motion frames number is set to $n=4$, we adopt a bath size of 4 for training. The additional features number $m$ is set to 2. The learning rate for all stages are set to 1e-5. During the inference, we use the sampling algorithm of DDIM to generate the video clip for 40 steps, we assign a constant speed value for each frame generation. The time consumption of our method is about 15 seconds for one batch ($f=12$ frames).
+
+\subsection{Experiments Setup}
+
+For methods comparisons, we partitioned the HDTF dataset, allocating 10\% as the test set and reserving the remaining 90\% for training. We took precautions to ensure that there was no overlap of character IDs between these two subsets. Additionally, to evaluate the methods in more variable scenarios, 1k video clips were extracted from the our collected internet video dataset, each with a duration of approximately 4 seconds. These clips predominantly feature expressive portrait videos with a substantial proportion depicting singing activities. Compared to the HDTF, the video dataset exhibits a broader diversity in terms of facial expressions, and the range of head motions.
+
+We compare our methods with some previous works including: Wav2Lip\cite{wav2lip}, SadTalker\cite{sadtalker}, DreamTalk\cite{dreamtalk}, MakeItTalk\cite{MakeItTalk}. Additionally, we generated results using the released code from Diffused Heads\cite{diffused_head}, however, the model is trained on CREMA\cite{crema} dataset which contains only green background, the generated results are suboptimal. Furthermore, the results were compromised by error accumulation across the generated frames. Therefore, we only conduct qualitative comparison with the Diffused Heads approach. For DreamTalk, we utilize the talking style parameters as prescribed by the original authors.
+
+To demonstrate the superiority of the proposed method, we evaluate the model with several metrics. We utilize Fréchet Inception Distance (FID)\cite{fid} to assess the quality of the generated frame\cite{portrait3d}. Additionally, to gauge the preservation of identity in our results, we computed the facial similarity (F-SIM) by extracting and comparing facial features between the generated frames and the reference image. It is important to note that using a single, unvarying reference image could result in deceptively perfect F-SIM scores. Certain methods\cite{wav2lip} might produce only the mouth regions, leaving the rest of the frame identical to the reference image, which could skew results. Therefore, we treat F-SIM as population-reference indices\cite{diffused_head}, with closer approximations to the corresponding ground truth (GT) values indicating better performance. We further employed the Fréchet Video Distance (FVD)\cite{fvd} for the video-level evaluation. The SyncNet\cite{syncnet} score was used to assess the lip synchronization quality, a critical aspect for talking head applications. To evaluate the expressiveness of the facial expressions in the generated videos, we introduce the use of the Expression-FID (E-FID) metric. This involves extracting expression parameters via face reconstruction techniques, as described in \cite{deep3d}. Subsequently, we compute the FID of these expression parameters to quantitatively measure the divergence between the expressions in the synthesized videos and those in the ground truth dataset.
+
+\subsection{Qualitative Comparisons}
+
+\begin{figure}[tbh]
+  \centering
+  \includegraphics[width=\textwidth]{images/quality_compare_1.png}
+  \caption{The qualitative comparisons with several talking head generation works. The left column is the generated results on the HDTF dataset. the right column is the results on the internet data.
+  }
+  \label{fig:quality_com}
+\end{figure}
+
+Figure \ref{fig:quality_com} demonstrates the visual results of our method alongside those of earlier approaches. It is observable that Wav2Lip typically synthesizes blurry mouth regions and produces videos characterized by a static head pose and minimal eye movement when a single reference image is provided as input. In the case of DreamTalk\cite{dreamtalk}, the style clips supplied by the authors could distort the original faces, also constrain the facial expressions and the dynamism of head movements. In contrast to SadTalker and DreamTalk, our proposed method is capable of generating a greater range of head movements and more dynamic facial expressions. Since we do not utilize direct signal, e.g. blendshape or 3DMM, to control the character motion, these motions are directly driven by the audio, which will be discussed in detail in the following showcases.
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=\textwidth]{images/quality_wild_hexie.png}
+  \caption{The qualitative results of our method based on \textbf{different portrait styles}. Here we demonstrate 14 generated video clips, in which the characters are driven by the same vocal audio clip. The duration of each generated clip is approximately 8 seconds. Due to space limitations, we only sample four frames from each clip.
+  }
+  \label{fig:quality_wild_com}
+\end{figure}
+
+We further explore the generation of talking head videos across various portrait styles. As illustrated in Figure \ref{fig:quality_wild_com}, the reference images, sourced from Civitai, are synthesized by disparate text-to-image (T2I) models, encompassing characters of diverse styles, namely realistic, anime, and 3D. These characters are animated using identical vocal audio inputs, resulting in approximately uniform lip synchronization across the different styles. Although our model is trained only on the realistic videos, it demonstrates proficiency in producing talking head videos for a wide array of portrait types.
+
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=\textwidth]{images/quality_song_hexie.png}
+  \caption{The results generated by our method for voice with a \textbf{strong tonal quality} over a \textbf{prolonged duration}. In each clip, the character is driven by the strong tonal audio, e.g. singing, and the duration of each clip is approximately 1 minute.
+  }
+  \label{fig:quality_song_com}
+\end{figure}
+
+Figure \ref{fig:quality_song_com} demonstrates that our method is capable of generating richer facial expressions and movements when processing audio with pronounced tonal features. For instance, the examples in the third row reveal that high-pitched vocal tones elicit more intense and animated expressions from the characters.  Moreover, leveraging motion frames allows for the extension of the generated video, we can generate prolonged duration video depending on the length of the input audio. As shown in Figure \ref{fig:quality_song_com} and Figure \ref{fig:diffused_head_com}, our approach preserves the character's identity over extended sequences, even amidst substantial motion.
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{images/diffused_head_com.png}
+  \caption{Comparisons with Diffused Heads\cite{diffused_head}, the duration of generated clips is 6 seconds, the results of Diffused Heads have low resolution and are compromised by error accumulation across the generated frames.
+  }
+  \label{fig:diffused_head_com}
+\end{figure}
+
+\subsection{Quantitative Comparisons}
+
+% \begin{table}[htbp]
+%   \centering
+%   \caption{The quantitative comparisons with several talking head generation works.}
+%   \label{tab:quantitative_comp}
+%   \begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+%     \toprule
+%     Method & FID & SyncNet$\uparrow$ & F-SIM & FVD &  E-FID\\
+%     \midrule
+%     Wav2Lip\cite{wav2lip} & 9.38/31.70 & \textbf{5.79}/\textbf{4.14} & 80.34/78.87 & 407.93/487.00 & 0.693/0.652 \\
+%     SadTalker\cite{sadtalker} & 10.31/31.37 & 4.82/2.90 & 84.56/81.86 & 214.98/418.19 & 0.503/0.539 \\
+%     DreamTalk\cite{dreamtalk} & 58.80/88.21 & 3.43/1.29 & 67.87/56.38 & 619.05/584.63 & 2.257/3.548\\
+%     MakeItTalk\cite{MakeItTalk} & 21.73/39.86 & 2.85/1.64 & \textbf{76.91}/60.12 & 350.96/340.55 & 1.072/0.997 \\
+%     GT & - & 7.3/2.69 & 77.44/72.64 & - & -\\
+%     Ours & \textbf{8.76}/\textbf{17.33} & 3.89/2.74 & 78.96/\textbf{77.16}  & \textbf{67.66}/\textbf{192.77} & \textbf{0.116}/\textbf{0.187} \\
+%     \bottomrule
+%   \end{tabularx}
+% \end{table}
+
+\begin{table}[h!]
+  \centering
+  \caption{The quantitative comparisons on HDTF and internet data, with several talking head generation works.}
+  \label{tab:quantitative_comp}
+  \begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+    \toprule
+    Method & FID & SyncNet$\uparrow$ & F-SIM & FVD &  E-FID\\
+    \midrule
+    Wav2Lip\cite{wav2lip} & {\scriptsize 9.38/31.70} & {\scriptsize \textbf{5.79}/\textbf{4.14}} & {\scriptsize 80.34/78.87} & {\scriptsize 407.93/487.00} & {\scriptsize 0.693/0.652} \\
+    SadTalker\cite{sadtalker} & {\scriptsize 10.31/31.37} & {\scriptsize 4.82/2.90} & {\scriptsize 84.56/81.86} & {\scriptsize 214.98/418.19} & {\scriptsize 0.503/0.539} \\
+    DreamTalk\cite{dreamtalk} & {\scriptsize 58.80/88.21} & {\scriptsize 3.43/1.29} & {\scriptsize 67.87/56.38} & {\scriptsize 619.05/584.63} & {\scriptsize 2.257/3.548}\\
+    MakeItTalk\cite{MakeItTalk} & {\scriptsize 21.73/39.86} & {\scriptsize 2.85/1.64} & {\scriptsize \textbf{76.91}/60.12} & {\scriptsize 350.96/340.55} & {\scriptsize 1.072/0.997} \\
+    GT & - & {\scriptsize 7.3/2.69} & {\scriptsize 77.44/72.64} & - & -\\
+    
+    w/o 250h data & {\scriptsize 10.80/-} & {\scriptsize 5.02/-} & {\scriptsize 79.55/-}  & {\scriptsize 102.78/-} & {\scriptsize 0.215/-} \\
+    
+    Ours & {\scriptsize \textbf{8.76}/\textbf{17.33}} & {\scriptsize 3.89/2.74} & {\scriptsize 78.96/\textbf{77.16}}  & {\scriptsize \textbf{67.66}/\textbf{192.77}} & {\scriptsize \textbf{0.116}/\textbf{0.187}} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+% \begin{table}[htbp]
+%   \centering
+%   \caption{Quantitative comparisons of several talking head generation works on two datasets.}
+%   \label{tab:quantitative_comp}
+%   \begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+%     \toprule
+%     Method & \multicolumn{2}{c}{FID} & \multicolumn{2}{c}{SyncNet$\uparrow$} & \multicolumn{2}{c}{F-SIM} & \multicolumn{2}{c}{FVD} & \multicolumn{2}{c}{E-FID} \\
+%     \midrule
+%     Wav2Lip\cite{wav2lip} & 9.38 & - & \textbf{5.79} & - & 80.34 & - & 407.93 & - & 0.693 & - \\
+%     SadTalker\cite{sadtalker} & 10.31 & - & 4.82 & - & 84.56 & - & 214.98 & - & 0.503 & - \\
+%     DreamTalk\cite{dreamtalk} & 58.80 & - & 3.43 & - & 67.87 & - & 619.05 & - & 2.257 & - \\
+%     MakeItTalk\cite{MakeItTalk} & 58.80 & - & 3.43 & - & 67.87 & - & 619.05 & - & 2.257 & - \\
+%     GT & - & - & 7.3 & - & 77.44 & - & - & - & - & - \\
+%     Ours & \textbf{8.76} & - & 3.89 & - & \textbf{78.96} & - & \textbf{67.66} & - & \textbf{0.116} & - \\
+%     \bottomrule
+%   \end{tabularx}
+% \end{table}
+
+Figure \ref{fig:quality_com} illustrates that the internet dataset encompasses a wider variety of facial expressions and an extensive range of head movements, coupled with diverse poses of the reference character. Such variability has the potential to negatively impact performance metrics, as shown in Table \ref{tab:quantitative_comp}.  our results demonstrate a substantial advantage in video quality assessment, as evidenced by the lower FVD scores. Additionally, our method outperforms others in terms of individual frame quality, as indicated by improved FID scores. Wav2Lip has the highest SyncNet confidence score by training with SyncNet as a dicriminator\cite{dreamtalk}, despite not achieving the highest scores on the SyncNet metric, our approach excels in generating lively facial expressions as shown by E-FID. Furthermore, we also investigated the benefit of our module and the impact of the 250 hours dataset by training our model solely on publicly available datasets including VFHQ, HDTF, and CELEB-V \cite{zhu2022celebvhq}. Even in the absence of the 250-hour dataset, our model still exhibits exceptional performance, particularly in terms of FVD and E-FID. While the further improvements on these metrics caused by the collected dataset demonstrates that the extra data could contributes to enhancing video content dynamics and generating a wider variety of expressions.
+
+\subsection{Ablation Studies}
+\label{sec:ablation}
+
+\subsubsection{the Impact of the Speed Layer.} 
+\label{exp:speed}
+The speed layers are designed to ensure the consistency of the head motion frequency between the contiguous generated video clips. During the inference, we assign a constant speed value for every frame. To measure the effect of the speed layers, we generate video clips with different assigned speed value on the HDTF dataset. As shown in Table \ref{tab:speed_layer}, "No Speed" indicates the results generated by the model without the speed layers. "Velocity Variance" represents the average variance of the velocities across individual video sequences, reflecting the consistency of rotational speed within each clip. "Variance of Mean Velocities (VMV)" indicates the variance of the mean velocities across different clips, providing a measure of the variability in head rotation speeds from one clip to the others. Incorporating speed layers significantly enhances the stability of head motion, as evidenced by the reduced "Velocity Variance" and "VMV" in comparison to the baseline "No Speed" condition. These metrics demonstrate that the model with speed layers yields more consistent head rotation velocities within clips, respectively. Furthermore, the "Mean Velocity" metric substantiates that the pre-defined speed value affect the actual velocity level, confirming the efficacy of the speed layers in modulating the synthesized head motion dynamics. In our approach, speech-driven cases are assigned speeds from 0.1 to 1.0, while singing scenarios might use higher settings (1.0-1.3) for faster, song-congruent head motions. Speeds exceeding 1.5 could lead to unnaturally rapid and jittery movements.
+
+\begin{table}[htbp]
+  \centering
+  \caption{The detected head rotation velocity in the generated videos.}
+  \label{tab:speed_layer}
+  \begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+    \toprule
+      & No Speed & 0.1 & 0.7 & 1.3 & 1.9\\
+    \midrule
+    Mean Velocity & 1.365 & 0.878 & 1.001 &1.162 & 1.246 \\
+    Velocity Variance & 1.002 & 0.357 & 0.454 & 0.550 & 0.657 \\
+    VMV & 0.134 & 0.046 & 0.054 & 0.057 & 0.058\\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsubsection{the Control Effect of the Face Locator.}
+\label{exp:facelocator}
+Face locator take the face region as input, and delineates the permissible domain for facial movements, thereby influencing the range of head motion. This is illustrated in Figure \ref{fig:face_loacte}, where the character exhibits minimal head movement upon receiving an appropriately sized facial region as input. Conversely, a broader input region permits the character to exhibit more head swings during speech, and an input region with increased height facilitates nodding gestures. Furthermore, inputting a uniform white mask does not provide specific guidance, allowing for facial generation in arbitrary locations. The purple bboxes could extend beyond the prescribed white face region, evidencing that the face locator exerts only a weak condition on head movements, permitting a degree of motion that transcends its indicated boundaries.
+
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=\textwidth]{images/face.png}
+  \caption{The comparisons on inputting different face regions, the detected facial bboxes in the generated video are denoted by purple regions, while the designated input face regions are represented by white. a) Utilizing the reference image's facial bbox as the face region; b) input an extended bbox with increased width; c) input an expanded bbox with greater height; d) applying a uniform white mask as face region.
+  }
+  \label{fig:face_loacte}
+\end{figure}
+
+
+% \section{Limitation}
+% There are some limitations for our method. First, it is more time-consuming compared to methods that do not rely on diffusion models. Second, since we do not use any explicit control signals to control the character's motion, it may result in the inadvertent generation of other body parts, such as hands, leading to artifacts in the video. One potential solution to this issue is to employ control signals specifically for the body parts.
+
+\section{Conclusion}
+
+In this work, we introduced EMO, a framework that advances the generation of expressive talking head videos by leveraging audio input to drive the animation process. By eschewing the traditional reliance on intermediate signals, EMO capitalizes on weakly conditioned audio2video diffusion to generate lifelike portraits. Our method demonstrates notable improvements in capturing the nuances of human expressiveness and maintaining consistent identity across video frames. The results outperform existing state-of-the-art methods, confirming the potential of EMO as a powerful tool for creating rich, audio-driven video content.

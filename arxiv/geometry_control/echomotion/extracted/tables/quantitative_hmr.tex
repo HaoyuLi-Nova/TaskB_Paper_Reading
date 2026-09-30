@@ -1,0 +1,20 @@
+
+\begin{table}[t]
+    \centering
+    \caption{\reb{Quantitative comparison of Human Mesh Recovery performance on the 3DPW dataset \citep{von2018recovering}. We categorize methods into reconstruction-based and generative-based approaches. Best results are highlighted in \textbf{bold}.}}
+    \label{tab:hmr_comparison}
+    \begin{tabular}{llcc} 
+        \toprule
+        & Method & PA-MPJPE  & MPJPE   \\
+        \midrule
+        \multirow{2}{*}{{Rec-Based}} & SPIN \citep{spin}  & 62.9 & 102.9 \\
+        & HMR2.0 \citep{hmr2} & \textbf{58.4} & \textbf{91.0}  \\
+        \midrule
+        \multirow{3}{*}{{Gen-Based}} & ChatPose \citep{chatpose} & 81.9 & 163.6  \\
+        & ChatHuman \citep{chathuman} & 58.7 & 91.3 \\
+        & EchoMotion(Video-to-Motion) & 59.8 & 94.1  \\
+        \bottomrule
+    \end{tabular}
+
+\end{table}
+

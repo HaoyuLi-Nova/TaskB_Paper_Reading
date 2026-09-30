@@ -1,0 +1,31 @@
+
+\begin{table}[t]
+\centering
+\caption{
+    Quantitative comparison on DAVIS~\cite{davis}.
+    }
+\resizebox{\linewidth}{!}{
+    \begin{tabular}{clcccc}
+    \toprule
+    % \hline
+    Settings & Methods & FID & FVD & ObjMC \\
+    \midrule
+    % \hline
+    & DragAnything~\cite{DragAnything}    & 36.69 & 327.41 & 42.19 \\
+    & DragNUWA1.5~\cite{DragNUWA}  &  44.82 & 330.17 & \textbf{33.03} \\
+    \cmidrule{2-5}
+    \multirow{-3.5}{*}{\rotatebox[origin=c]{0}{Single-Point}} 
+    & \method (Ours) & \textbf{28.79} & \textbf{226.45} & 37.39 \\
+    \midrule
+    & DragAnything~\cite{DragAnything}    & 36.04 & 324.95 & 38.86 \\
+    & DragNUWA 1.5~\cite{DragNUWA}  & 42.34 & 299.96 & \textbf{23.12} \\
+    \cmidrule{2-5}
+    \multirow{-3.5}{*}{\rotatebox[origin=c]{0}{Multi-Points}} 
+    & \method (Ours) & \textbf{25.41} & \textbf{190.44} & 25.97 \\
+    \bottomrule
+    \hline
+    \end{tabular}
+}
+\label{tab:comparison}
+\vspace{-15pt}
+\end{table}

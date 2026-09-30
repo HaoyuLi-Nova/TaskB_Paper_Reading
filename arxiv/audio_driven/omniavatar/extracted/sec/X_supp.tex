@@ -1,0 +1,20 @@
+\section{Appendix}
+
+\subsection{More Visualization Results}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1.0\linewidth]{figs/more_vis.pdf}
+    \vspace{-0.1in}
+    \caption{More visualization results.}
+    \vspace{-0.1in}
+    \label{fig:more_vis}
+\end{figure*}
+
+Fig.~\ref{fig:more_vis} shows the visualization results on more scenarios, such as video with realistic painting style, plain painting style, oil painting style, cartoon painting style, human-object interaction, background moving, etc.
+
+\subsection{Limitation and Discussion}
+
+Despite the significant advances made by OmniAvatar, there are a few limitations. First, our model inherits the weaknesses of the base model, Wan~\cite{wan2025wan}, such as color shifts and error propagation in long video generation. These issues arise as inaccuracies accumulate over time, particularly in extended videos. Second, while LoRA preserves the model’s capabilities, complex text-based control, such as distinguishing which character is speaking or handling multi-character interactions, remains a challenge. % Fine-grained control over dynamic scenarios, like multiple people conversing, is still difficult to achieve.
+
+Additionally, diffusion-based inference requires a large number of denoising steps, resulting in long inference times. This makes real-time video generation challenging, limiting the applicability of the model in scenarios that demand fast, interactive responses. Addressing these issues in future work will improve the efficiency and versatility of OmniAvatar for a wider range of applications.

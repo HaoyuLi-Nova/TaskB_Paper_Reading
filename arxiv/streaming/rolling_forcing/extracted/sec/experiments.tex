@@ -1,0 +1,61 @@
+\section{experiments}
+
+\input{tab_alg/comparisons}
+
+
+\subsection{Implementation Details}
+
+\textbf{Model.}
+We implement Rolling Forcing with Wan2.1-T2V-1.3B~\citep{wan2025wan} as our base model, which generates 5s videos at 16 FPS with a resolution of $832\times480$.
+Following CausVid~\citep{yin2025slow} and Self Forcing~\citep{huang2025self}, we first initialize the base model with causal attention masking on 16k ODE solution pairs sampled from the base model.
+For both ODE initialization and Rolling Forcing training, we sample text prompts from a filtered and LLM-extended version of VidProM~\citep{wang2024vidprom}. 
+We set $T=5$ and perform chunk-wise denoising with each chunk containing 3 latent frames. 
+The model is trained for 3,000 steps with a batch size of 8 and a trained temporal window of 27 latent frames.  
+We use the AdamW optimizer for both the generator $G_\theta$ (learning rate $1.5\times10^{-6}$) and the fake score $s_{\text{gen}}$ (learning rate $4.0\times10^{-7}$). The generator is updated every 5 steps of fake score updates.
+
+
+\textbf{Evaluation.} We adopt the VBench \citep{huang2024vbench} quality matrices to evaluate the generation quality over 200 randomly sampled MovieGen \citep{polyak2024movie} prompts, where the matrices measure multiple dimensions, including temporal flickering, subject consistency, background consistency, motion smoothness, aesthetic quality, and imaging quality. For fairness, all videos for quantitative evaluation are generated with the same length (30s), frame rate (16 fps), and resolution ($832 \times 480$). 
+To assess quality drift in long video generation, following \citet{zhang2025packing, yin2025slow}, we compute the absolute difference in imaging quality, $\Delta^{\text{Quality}}_{\text{Drift}}$, between the first and the last 5 seconds of each video. The magnitude of $\Delta^{\text{Quality}}_{\text{Drift}}$ directly reflects the severity of error accumulation. Following \citet{huang2025self}, we evaluate real-time performance in terms of both throughput and latency. Unlike prior work that reports the first-frame latency, we measure latency after the generation process reaches a stable speed.
+
+
+\begin{figure}[t]
+\centering
+\vspace{-1em}
+\includegraphics[width=\textwidth]{figure/comparison.pdf}
+\vspace{-1em}
+\caption{Qualitative comparisons. We compare Rolling Forcing with representative open-source autoregressive video generation models on long video generation.}
+\vspace{-1em}
+\label{fig:comparison}
+\end{figure}
+
+
+\subsection{Comparisons}
+We compare Rolling Forcing against several relevant open-source video generation models of comparable scale. Specifically, SkyReels-V2~\citep{chen2025skyreels} is trained under the Diffusion Forcing paradigm~\citep{chen2024diffusion}, which corrupts historical frames during inference to alleviate error accumulation. MAGI-1~\citep{teng2025magi} adopts a FIFO-style denoising paradigm~\citep{kim2024fifo} in both training and inference. We also compare against prior distillation-based approaches, including CausVid~\citep{yin2025slow} and Self Forcing~\citep{huang2025self}. Note that  SkyReels-V2, CausVid, Self Forcing, and our Rolling Forcing are all initialized from the same base model, Wan2.1-T2V-1.3B~\citep{wan2025wan}.
+
+As shown in \cref{tab:comparison}, Rolling Forcing achieves the highest overall quality scores. In particular, it obtains a substantially lower $\Delta^{\text{Quality}}_{\text{Drift}}$, demonstrating its effectiveness in suppressing error accumulation. Qualitative comparisons in \cref{fig:comparison} further highlight that Rolling Forcing preserves high-fidelity and consistent video quality over 2 minutes of autoregressive generation, while the compared models exhibit pronounced degradation, such as color shifts, artifacts, unnatural motion, etc. In addition, Rolling Forcing achieves real-time generation with sub-second latency, marginally faster than Self Forcing and CausVid, thereby establishing its suitability for long-horizon video streaming applications.
+
+
+
+\vspace{-0.5em}
+\subsection{Ablation Studies}
+
+\begin{figure}[t]
+\centering
+\vspace{-1em}
+\includegraphics[width=\textwidth]{figure/ablation.pdf}
+\vspace{-1em}
+\caption{Ablation studies on rolling diffusion window, mixed training strategy, and attention sink.}
+\vspace{-1em}
+\label{fig:ablation}
+\end{figure}
+
+
+\input{tab_alg/ablations}
+
+We conduct ablation studies to assess the contribution of several design options, as summarized in \cref{tab:ablation}.
+
+\textbf{Rolling diffusion window.} We evaluate two variants: w/o RF inference and w/o RF training. In w/o RF inference, we remove the rolling denoising window and adopt frame-by-frame denoising during inference, while keeping the same training procedure and model weights as our full method. In w/o RF training, the model is trained and inferred entirely with the frame-by-frame paradigm. As shown in \cref{fig:ablation}, both variants suffer from noticeable error accumulation within 30s, demonstrating that the rolling window is crucial for suppressing long-term drift.
+
+\textbf{Mixed training strategy.} To assess its effect, we remove the Self Forcing training objective (w/o SF training). As reported in \cref{tab:ablation}, this leads to substantial degradation in consistency and overall quality, primarily due to unnatural camera motion.
+
+\textbf{Attention sink.} Finally, removing the global context frame (w/o attention sink) results in noticeable drift in the generated videos, as illustrated in \cref{fig:ablation}.

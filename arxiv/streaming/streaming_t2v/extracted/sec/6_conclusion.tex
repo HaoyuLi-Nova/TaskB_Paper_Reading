@@ -1,0 +1,13 @@
+\section{Conclusion and Future Work}
+
+% In this paper, we tackled the challenge of generating long videos from textual prompts. We observed that all existing methods produce long videos either with temporal inconsistencies or severe stagnation up to standstill. To overcome these limitations,  we carefully analysed an autoregressive pipeline build on top of a vanilla video diffusion model and proposed StreamingT2V, which incorporates short- and long-term dependency blocks to ensure smooth continuation of video chunks with high motion amount while maintaining scene and object features. We proposed a randomized blending approach that enables to use a video enhancer within the autoregressive process without temporal inconsistencies. Experimental results demonstrate that StreamingT2V outperforms competitors in terms of motion amount and temporal consistency, enabling the generation of long videos from text prompts without content stagnation.
+
+In this paper, we tackled the challenge of generating long videos from textual prompts. We observed that all existing methods produce long videos either with temporal inconsistencies or severe stagnation up to standstill.
+To overcome these limitations,  we proposed StreamingT2V, which incorporates short- and long-term dependencies to ensure smooth continuation of video chunks with high motion amount while preserving scene features. 
+We proposed a randomized blending approach enabling to use a video enhancer within the autoregressive process. 
+Experiments show that StreamingT2V outperforms competitors, generating long videos from text prompts without content stagnation.
+% Experimental results demonstrate that StreamingT2V outperforms competitors enabling the generation of long videos from text prompts without content stagnation.
+
+We also noticed that our method can be generalized to the DiT architectures as well, e.g. for OpenSora (OS) \cite{opensora}, we added the CAM module by allowing the last 14 transformer blocks of OS to attend to the previous chunk information via CAM’s attention mechanism. 
+The APM module is connected to the cross attentions, as in StreamingT2V. 
+After adding our framework to OS, the visual inspection of the results confirmed the generalization ability of the method (see Fig.\ \ref{rebuttal}) enabling the future research to focus on conducting a detailed analysis of this direction.

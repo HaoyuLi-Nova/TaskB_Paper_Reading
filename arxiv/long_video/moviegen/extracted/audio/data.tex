@@ -1,0 +1,216 @@
+\subsection{Data}
+
+\subsubsection{Audio-Visual Data Categorization}
+The relationship between audio and visual components are complex.
+For example, some sound effects like footsteps correlate with the low-level motion of objects in the scene,
+while others like canned laughter in sitcoms correlates with high-level semantics (\eg, when something funny happens).
+Similarly, music in the video can either be played by someone in the scene,
+or be added during post production to enhance the storytelling power.
+
+We classify audio by two axes and show an overview in~\cref{tab:audio_data_class}.
+The first axis is audio type, which is divided into voice (speech and singing), non-vocal music, and general sound.
+An audio event detection (AED) model~\citep{gemmeke2017audio} is used for automatic classification,
+where each sample may contain multiple types of audio. This axis solely considers the audio.
+
+The second axis is diegetic/non-diegetic~\citep{dykhoff2012non, stilwell200711}.
+Diegetic audio components refer to those that \textit{can be heard at the scene} (crowd talking, newscasters speaking, music of a live band performing, birds chirping) and have a causal relationship with the video,
+while non-diegetic, such as narrations in documentaries, background music in movies, or canned laughter in sitcoms, do not.
+Note that diegetic sounds can be either on-screen or off-screen (birds chirping in the forest is diegetic even when birds are not seen), real or created in post-production (\ie, Foley sound).
+A video can also contain both diegetic and non-diegetic sounds, which is especially common in professionally-produced videos like movies~\citep{tan2017effects}.
+We leverage a contrastive audio-video-text pre-training model (\CAVTPShort) to determine how likely an audio sample is diegetic given the corresponding video.
+Because this model is trained on data that contain mostly diegetic sounds,
+the audio and the video embeddings are closer and have higher cosine similarity if the audio is diegetic and matches the video content.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{cp{100px}p{100px}p{100px}}
+        \toprule
+         & Voice & Non-vocal music & General sound \\
+         \midrule
+         \multirow{2}{*}{Diegetic} & on-screen or off-screen people speaking & on-screen or off-screen live music performance & on-screen wave splashing, off-screen barking \\
+         \midrule
+         Non-diegetic & narration & background music & canned laughter, riser \\
+         \bottomrule
+    \end{tabular}
+    \caption{\textbf{Audio data classification and examples from each category.}
+    We focus primarily on diegetic general sounds, non-diegetic sound effects, and instrumental music.
+    }
+    \label{tab:audio_data_class}
+\end{table}
+
+To generate each class of sounds correctly, a model would learn different levels of relationships between audio and conditioning input.
+\begin{enumerate}
+    \item Diegetic on-screen sounds have very strong correspondence between video and audio,
+    where what sound should be heard when is deterministic.
+    This demands stronger video understanding and dense action recognition capabilities from a model.
+    The difficulty depends on how dense and structured the events are,
+    where general sounds are overall easier than music and speech
+    (\eg, generating golf club hitting the ball is easier than generating a person playing a guitar matching the chords one presses).
+    \item Generating diegetic off-screen audio requires understanding what sounds may occur in what environments
+    (\eg, birds chirping are possible in a forest scene) and logical orders between events (\eg, crowd cheering is likely to occur after, rather than before one performs a difficult trick).
+    Hence, compared to on-screen sounds, it demands stronger reasoning capabilities.
+    \item Non-diegetic audio is correlated with the video at the semantic level.
+    For example, background music needs to match the mood,
+    and risers are often used to create a sense of tension or anticipation.
+    This demands the deepest level of understanding beyond understanding the physics of the world and requires reasoning and modeling human emotions.
+\end{enumerate}
+
+In this work, we focus primarily on \textit{diegetic general sounds, non-diegetic sound effects, and instrumental music}.
+Generating diegetic speech is challenging when transcripts are not provided and when there are artifacts from the generated video.
+We also omit non-diegetic speech as it can be created with text-to-speech synthesis systems if scripts are given.
+As there are not only correlations between video and audio, but also between different classes of audio,
+we choose to build a model that generates \textit{all classes of audio jointly},
+instead of having separate models for diegetic/non-diegetic vocal/music/sound effects.
+
+
+\subsubsection{Pre-training Data}\label{sec:audio_pt_data}
+Pre-training aims to learn the structure of audio and alignment between audio and video/text from large quantities of data,
+including both low quality and high quality audio samples. Below we describe filtering criteria based on AED tags and \CAVTPShort scores for pre-training data selection.
+
+We start by sourcing data from a large volume and using the AED model to tag audio events for each sample based on the Audioset~\citep{gemmeke2017audio} ontology that has $527$ classes.
+We then drop any videos where silence is the dominant class.
+
+Next, we map the remaining events to one of three categories: speech, non-vocal music (music), or general sound (sound).
+An event is mapped to ``voice'' if any of the ``speech'' and ``singing'' subclasses in the AudioSet ontology is tagged.
+Similarly, an event is mapped to ``music'' if any of the music subclasses in the ontology is detected.
+If any other subclass not mentioned above is deteced, the event is mapped to ``sound''.
+This means that an utterance can contain any combination of these three classes.
+After grouping samples by audio types, we use \CAVTPShort score, which is the cosine similarity between audio and video emeddings from \CAVTPShort, to categorize an utterance into one of the buckets as described in~\cref{tab:audio_ib_categories}.
+The thresholds are determined based on manual inspection.
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{c@{\hspace{0.75cm}}@{\hspace{0.25cm}}c@{\hspace{0.75cm}}c}
+    \toprule
+    Category & AED detected & \CAVTPShort cosine similarity threshold \\
+    \midrule
+    \multirow{6}{*}{Diegetic} & sound & \\
+     & voice & $> 0.2$ \\
+     & voice + sound & \\
+     \cmidrule(l){2-3}
+     & music & \\
+     & music + sound &  $> 0.3$ \\
+     & voice + music + sound & \\
+    \midrule
+    \multirow{2}{*}{Non-diegetic} & music & $< 0.1$ \\
+    \cmidrule(l){2-3}
+     & sound + music & $> 0.1$ and $< 0.25$ \\
+     \midrule
+     Mixed & sound + voice + music & $> 0.1$ and $< 0.25$ \\
+    \bottomrule
+    \end{tabular}
+    \caption{\textbf{\Pretraining data categorization.} We show the categories, AED tags, and \CAVTPShort thresholds used for grouping.}
+    \label{tab:audio_ib_categories}
+\end{table}
+
+\cref{tab:audio_data_pt} shows the statistics for each category used for pre-training.
+We consider the diegetic-or-mixed audio (filtered by \CAVTPShort score) along with a small proportion of non-diegetic background music. We prioritize general sound (filtered by AED tags),
+as learning low-level physics is challenging and the errors of which are most noticeable.
+
+To reduce noises from the visual modality,
+we applied a series of quality filters to remove videos that contain text with OCR (Optical Character Recognition)~\citep{liao2020mask},
+are static or are of low resolution($\mathit<480$ px).
+The length of the videos have been constrained to be between 4s and 120s.
+Additionally, we leveraged copy detection embeddings~\citep{pizzi2022self} for visual deduplication.
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{crr}
+        \toprule
+         Type&  \#samples (M) & \#hours (K)\\
+         \midrule
+         Sound              &  \bigO(100)   & \bigO(1,000)   \\
+         Music              &  \bigO(10)    & \bigO(100)     \\
+         Sound+Music        &  \bigO(10)    & \bigO(100)     \\
+         Sound+Voice        &  \bigO(10)    & \bigO(100)     \\
+         Sound+Music+Voice  &  \bigO(10)    & \bigO(100)     \\
+         \midrule
+         Total              & \bigO(100)    & \bigO(1,000)   \\
+         \bottomrule
+    \end{tabular}
+    \caption{\textbf{Pre-training data for \mvga{} by audio type.} Only diegetic and mixed diegetic/non-diegetic videos are used in pre-training.}
+    \label{tab:audio_data_pt}
+\end{table}
+
+\subsubsection{Finetuning Data}\label{sec:audio_ft_data}
+Once pre-training learns the foundational knowledge of audio structure and cross-modal alignment,
+finetuning aims to align the model output with what we expect in \textit{cinematic soundtracks for videos},
+which is very different from general recordings like those directly dumped from low-end devices (\eg, cellphones or security cameras).
+Concretely, cinematic soundtracks are expected to be recorded with professional microphones and undergo post-production like mixing and mastering,
+in order to reduce unwanted noises (\eg, pop noise, wind blowing to microphone)
+and balance the presence of various audio events as well as the level of background music
+(\eg, suppressing ambient noise and irrelevant off-screen sounds,
+enhancing audio events like explosion or conversation relevant to storytelling,
+and mixing ambient music with fade-in/fade-out).
+
+Broadly speaking, cinematic soundtracks differ from low-quality recordings in two aspects:
+audio quality (how it sounds) and sound design (what sounds to include).
+To bridge the gap, we include two sources of finetuning data (summarized in~\cref{tab:audio_data_ft}).
+First is the \textit{cinematic split}, which includes clips that are professionally produced that often contains both diegetic and non-diegetic sounds (ambient and theme music).
+Clips with vocals are excluded.
+An audio-visual cinematic classifier and an AED model are used for automatic data filtering, followed by human annotation for selection.
+The second is the \textit{high quality audio split},
+which includes high quality music (O(10)K hours) and sound effects (O(10)K hours) without videos.
+Such data are available in larger quantities compared to the first split,
+and can be used to boost the audio quality.
+During fine-tuning, cinematic videos and high-quality audio are mixed with a 10 batches to 1 batch ratio.
+
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{crr}
+         \toprule
+         Split&  \#samples (K)&  \#hours (K)\\
+         \midrule
+         Cinematic video (video+audio)      &  \bigO(100)   &  \bigO(1) \\
+         High-quality audio (audio-only)    &  \bigO(1,000) &  \bigO(10)\\
+         \midrule
+         Total&  \bigO(1,000) &  \bigO(10) \\
+         \bottomrule
+    \end{tabular}
+    \caption{\textbf{Finetuning data for \mvga{}.} We show the split and statistics of finetuning data used to make the audio generations closer to cinematic soundtracks.}
+    \label{tab:audio_data_ft}
+\end{table}
+
+\subsubsection{Caption Structure and Synthetic Caption}\label{sec:audio_cap}
+The caption is composed of four parts: audio quality, voice and music presence, sound caption~\citep{kim2019audiocaps}, and music style caption~\citep{manco2021muscaps}.
+We use several models to create synthetic captions for all training data.~\cref{tab:audio_caption} shows two examples.
+
+Given the scale, we leverage several models to build synthetic captions for all training samples.
+Audio quality is a real-value number between 1 and 10 labeled by an audio quality prediction model
+(annotations are collected in a similar way to LAION aesthetic~\citep{schuhmann2022laion}, where 10 means the highest quality and 1 means the lowest).
+Voice and music presence are determined by the previously described AED model,
+where the former takes the binary output using a predetermined posterior threshold,
+and the latter is represented with AED posterior probability given the ambiguity
+(certain cinematic sound effects like risers may also be considered music).
+Sound caption is derived from a general audio caption model that provides free-form description about the sound.
+To boost the controllability on music, we further deploy a music caption model to add more details such as mood and genre.
+Note that music caption is appeneded regardless of whether the audio includes music or not.
+We find using both music probability from AED and music caption from music caption model provide the best control, because music caption model is trained on mainly music samples and tend to hallucinate even when music is absent.
+
+Each sample is split into both 10-second chunks and 30-second chunks, and then captioned.
+Note that they are still segments of different lengths, which are from the last chunk of a sequence.
+During training, the 10-second and 30-second chunks are sampled with a 5 batches to 1 batch ratio.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{p{15cm}}
+    \toprule
+    \textbf{Example captions for \mvga{}} \\
+    \midrule
+    \textcolor{capblue}{This audio has quality: 8.0}.
+    \textcolor{capyellow}{This audio does not contain speech. This audio does not contain vocal singing.}
+    \textcolor{capteal}{This audio has a description: "gentle waves lapping against the shore, and music plays in the background.".}
+    \textcolor{capyellow}{This audio contains music with a 0.90 likelihood.}
+    \textcolor{cappink}{This audio has a music description (if applicable): "A beautiful, romantic, and sentimental jazz piano solo.".} \\ \midrule
+    \textcolor{capblue}{This audio has quality: 7.0}.
+    \textcolor{capyellow}{This audio does not contain speech. This audio does not contain vocal singing.}
+    \textcolor{capteal}{This audio has a description: "fireworks exploding with loud booms and crackles.".}
+    \textcolor{capyellow}{This audio contains music with a 0.01 likelihood.}
+    \textcolor{cappink}{This audio has a music description (if applicable): "A grand, majestic, and thrilling orchestral piece featuring a massive symphony orchestra with a soaring melody and pounding percussion, evoking a sense of awe and wonder.".}
+    \\
+    \bottomrule
+    \end{tabular}
+    \caption{\textbf{Two example captions for \mvga{}.} The blue part describes audio quality, the orange part controls presence of speech, vocal, and music, the teal part controls general sounds, and the pink part provides fine-grained control of music styles.}
+    \label{tab:audio_caption}
+\end{table}

@@ -1,0 +1,7 @@
+\section{Conclusion}
+\label{sec:conclusion}
+In this paper, we present a new system for stylized audio-driven talking head video generation. We use the motion coefficients from 3DMM as an intermediate representation and learn the relationships. To generate realistic 3D coefficients from audio, we propose ExpNet and PoseVAE for realistic expressions and diverse head poses. To model the relationships between 3DMM motion coefficients and the real video, we propose a novel 3D-aware face render inspired by the image animation method~\cite{facevid2vid}. 
+The experiments demonstrate the superiority of our entire framework. Since we predict the realistic 3D facial coefficients, our method can also be used in other modalities directly, \ie, personalized 2D visual dubbing~\cite{audiodvp}, 2D Cartoon animation~\cite{zhou2020makelttalk}, 3D face animation~\cite{faceformer,codetalker} and NeRF-based 4D talking-head generation~\cite{headnerf}.
+
+\paragraph{Ethical Considerations} We consider the misuse of
+the proposed method since it can generate very realistic video from a single face image. Both visible and invisible video watermarks will be inserted into the produced video for generated content identification similar to Dall-E~\cite{dalle} and Imagen~\cite{imagen}. We also hope our method can provide new research samples in the area of forgery detection.

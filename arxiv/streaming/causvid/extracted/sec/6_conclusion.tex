@@ -1,0 +1,14 @@
+
+
+
+
+\section{Discussion}
+\label{sec:discussion}
+Although our method is able to generate high-quality videos up to 30 seconds, we still observe quality degradation when generating videos that are extremely long.
+Developing more effective strategies to address error accumulation remains future work.
+Moreover, while the latency is significantly lower—by multiple orders of magnitude—compared to previous approaches, it remains constrained by the current VAE design, which necessitates the generation of five latent frames before producing any output pixels. Adopting a more efficient frame-wise VAE could reduce latency by an additional order of magnitude, significantly improving the model's responsiveness.
+
+Finally, while our method produces high-quality samples using the DMD objective, it comes with reduced output diversity. This limitation is characteristic of reverse KL-based distribution matching approaches. Future work could explore alternative objectives such as EM-Distillation~\cite{xie2024distillation} and Score Implicit Matching~\cite{luo2024one}, which may better preserve the diversity of outputs.
+
+While our current implementation is limited to generating videos at around $10$ FPS, standard engineering optimizations (including model compilation, quantization, and parallelization) could potentially enable real-time performance.
+We believe our work marks a significant advancement in video generation and opens up new possibilities for applications in robotic learning~\cite{escontrela2024video,wuunleashing}, game rendering~\cite{valevski2024diffusion,che2024gamegen}, streaming video editing~\cite{chen2024streaming}, and other scenarios that require real-time and long-horizon video generation.

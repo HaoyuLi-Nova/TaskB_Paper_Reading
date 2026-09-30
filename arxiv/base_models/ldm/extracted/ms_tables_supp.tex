@@ -1,0 +1,416 @@
+%
+
+
+\newcommand{\firststagetablecomplete}{
+\begin{table}[thbp]
+    \begin{center}
+	\begin{footnotesize}
+%
+  \begin{adjustbox}{max width=0.9\textwidth}
+      \begin{tabular}{c c c c c c c c}
+        \toprule
+$f$ & $\vert \mathcal{Z} \vert $ & $\clatent$ & \textbf{R-FID}  & \textbf{R-IS} $\uparrow$ & \textbf{PSNR} $\uparrow$ & \textbf{PSIM}  & \textbf{SSIM} $\uparrow$\\
+        \midrule 
+16 \emph{VQGAN}~\cite{DBLP:journals/corr/abs-2012-09841} & 16384 & 256 & 4.98 & -- & 19.9 \tiny{$\pm3.4$} & 1.83 \tiny{$\pm0.42$} & 0.51 \tiny{$\pm0.18$}\\
+16 \emph{VQGAN}~\cite{DBLP:journals/corr/abs-2012-09841} & 1024 & 256 & 7.94 &  -- & 19.4 \tiny{$\pm3.3$} & 1.98 \tiny{$\pm0.43$} & 0.50 \tiny{$\pm0.18$} \\
+8 \emph{DALL-E}~\cite{DBLP:journals/corr/abs-2102-12092} & 8192 & - & 32.01 & -- & 22.8 \tiny{$\pm2.1$} & 1.95 \tiny{$\pm0.51$} & 0.73 \tiny{$\pm0.13$}\\
+\midrule 
+%
+ 32 & 16384 & 16 & 31.83 & 40.40 \tiny{$\pm1.07$} & 17.45 \tiny{$\pm2.90$} & 2.58 \tiny{$\pm0.48$} & 0.41 \tiny{$\pm0.18$} \\
+ 16 & 16384 & 8 & 5.15 & 144.55 \tiny{$\pm3.74$} & 20.83 \tiny{$\pm3.61$} & 1.73 \tiny{$\pm0.43$} & 0.54 \tiny{$\pm0.18$} \\
+ 8 & 16384 & 4 & 1.14 & 201.92 \tiny{$\pm3.97$} & 23.07 \tiny{$\pm3.99$} & 1.17 \tiny{$\pm0.36$} & 0.65 \tiny{$\pm0.16$} \\
+ 8 & 256 & 4 & 1.49 & 194.20 \tiny{$\pm3.87$} & 22.35 \tiny{$\pm3.81$} & 1.26 \tiny{$\pm0.37$} & 0.62 \tiny{$\pm0.16$} \\
+ 4 & 8192 & 3 & 0.58 & 224.78 \tiny{$\pm5.35$} & 27.43 \tiny{$\pm4.26$} & 0.53 \tiny{$\pm0.21$} & 0.82 \tiny{$\pm0.10$} \\
+
+ 4$^\dagger$ & 8192 & 3 & 1.06 & 221.94 \tiny{$\pm4.58$} & 25.21 \tiny{$\pm4.17$} & 0.72 \tiny{$\pm0.26$} & 0.76 \tiny{$\pm0.12$} \\
+%
+
+%
+%
+%
+%
+ 4 & 256 & 3 & 0.47 & 223.81 \tiny{$\pm4.58$} & 26.43 \tiny{$\pm4.22$} & 0.62 \tiny{$\pm0.24$} & 0.80 \tiny{$\pm0.11$} \\
+2 & 2048 & 2 & 0.16 & 232.75 \tiny{$\pm5.09$} & 30.85 \tiny{$\pm4.12$} & 0.27 \tiny{$\pm0.12$} & 0.91 \tiny{$\pm0.05$} \\
+2 & 64 & 2 & 0.40 & 226.62 \tiny{$\pm4.83$} & 29.13 \tiny{$\pm3.46$} & 0.38 \tiny{$\pm0.13$} & 0.90 \tiny{$\pm0.05$} \\
+\midrule
+32 & KL & 64 & 2.04 & 189.53 \tiny{$\pm3.68$} & 22.27 \tiny{$\pm3.93$} & 1.41 \tiny{$\pm0.40$} & 0.61 \tiny{$\pm0.17$} \\
+32 & KL & 16 & 7.3 & 132.75 \tiny{$\pm2.71$} & 20.38 \tiny{$\pm3.56$} & 1.88 \tiny{$\pm0.45$} & 0.53 \tiny{$\pm0.18$} \\
+16 & KL & 16 & 0.87 & 210.31 \tiny{$\pm3.97$} & 24.08 \tiny{$\pm4.22$} & 1.07 \tiny{$\pm0.36$} & 0.68 \tiny{$\pm0.15$} \\
+16 & KL & 8 & 2.63 & 178.68 \tiny{$\pm4.08$} & 21.94 \tiny{$\pm3.92$} & 1.49 \tiny{$\pm0.42$} & 0.59 \tiny{$\pm0.17$} \\
+8  & KL & 4 & 0.90 & 209.90 \tiny{$\pm4.92$} & 24.19 \tiny{$\pm4.19$} & 1.02 \tiny{$\pm0.35$} & 0.69 \tiny{$\pm0.15$} \\
+4  & KL & 3 & 0.27 & 227.57 \tiny{$\pm4.89$} & 27.53 \tiny{$\pm4.54$} & 0.55 \tiny{$\pm0.24$} & 0.82 \tiny{$\pm0.11$} \\
+2  & KL & 2 & 0.086 & 232.66 \tiny{$\pm5.16$} & 32.47 \tiny{$\pm4.19$} & 0.20 \tiny{$\pm0.09$} & 0.93 \tiny{$\pm0.04$} \\
+        \bottomrule 
+%
+      \end{tabular}  
+      \end{adjustbox}
+            \caption{\label{tab:firststagetablecomplete} Complete autoencoder zoo trained on OpenImages, evaluated on ImageNet-Val. $\dagger$ denotes an attention-free autoencoder. \vspace{-1em}}
+      	\end{footnotesize}
+    \end{center}
+  \end{table}
+}
+
+
+\newcommand{\srsuppptable}{
+  \begin{table*}[pbth]
+  \centering
+\begin{footnotesize}
+  \begin{adjustbox}{max width=\linewidth}
+  \begin{tabular}{l c c c c}
+  	\toprule
+  	\textbf{Method} & FID  & IS $\uparrow$ & PSNR  $\uparrow$  & SSIM  $\uparrow$  \\
+  	\midrule
+  	Image Regression \cite{DBLP:journals/corr/abs-2104-07636} & 15.2 & 121.1 & \textbf{27.9} & \textbf{0.801} \\
+  	SR3 \cite{DBLP:journals/corr/abs-2104-07636} & 5.2 & \textbf{180.1} & 26.4 & 0.762 \\
+  	\midrule
+	%
+  	\emph{LDM-4} (ours, 100 steps) & \textbf{2.8}$^\dagger$/\textbf{4.8}$^\ddagger$ & 166.3 & 24.4\tiny{$\pm $3.8} & 0.69\tiny{$\pm $0.14} \\
+  	\emph{LDM-4} (ours, 50 steps, guiding) & 4.4$^\dagger$/6.4$^\ddagger$ & 153.7 & 25.8\tiny{$\pm $3.7} & 0.74\tiny{$\pm $0.12} \\
+  	%
+  	\emph{LDM-4} (ours, 100 steps, guiding) & 4.4$^\dagger$/6.4$^\ddagger$ & 154.1 & 25.7\tiny{$\pm $3.7} & 0.73\tiny{$\pm $0.12} \\
+  	\midrule
+	%
+  	\emph{LDM-4} (ours, 100 steps, +15 ep.) & \textbf{2.6}$^\dagger$ / \textbf{4.6}$^\ddagger$ & 169.76\tiny{$\pm $5.03} & 24.4\tiny{$\pm $3.8} & 0.69\tiny{$\pm $0.14} \\
+  	Pixel-DM (100 steps, +15 ep.) & 5.1$^\dagger$ / 7.1$^\ddagger$ & 163.06\tiny{$\pm $4.67} & 24.1\tiny{$\pm $3.3} & 0.59\tiny{$\pm $0.12}  \\
+  	\bottomrule
+
+  \end{tabular}
+  \end{adjustbox}
+\end{footnotesize}\vspace{-0.85em}
+  \caption{\label{tab:srsupptable}  $\times 4$ upscaling results on ImageNet-Val. ($256^2$); $^\dagger$: FID features computed on validation split, $^\ddagger$: FID features computed on train split. We also include a pixel-space baseline that receives the same amount of compute as \emph{LDM-4}. The last two rows received 15 epochs of additional training compared to the former results. }
+\end{table*}
+}
+
+\newcommand{\computevsfid}{
+\begin{table}[thbp]
+\begin{center}
+\begin{adjustbox}{max width=.95\textwidth}
+
+\begin{tabular}{lccccccccc}
+\toprule
+\textbf{Method} & Generator  & Classifier & Overall & Inference & $N_{\text{params}}$ & FID  & IS$\uparrow$ & Precision$\uparrow$ & Recall$\uparrow$\\
+&Compute&Compute&Compute& Throughput$^*$ &&&&& \\
+\toprule
+&&&&&&&&&\\
+\textbf{LSUN Churches $256^{2}$} & & & &&& &&&\\
+\midrule
+StyleGAN2~\cite{DBLP:journals/corr/abs-1912-04958}$^\dagger$& 64 & - & 64 & - & 59M  & 3.86& - & - & - \\
+\emph{LDM-8} (ours, 100 steps, 410K)& 18 & - & 18 & 6.80  & 256M & 4.02& - & 0.64 & 0.52\\
+&&&&&&&&&\\
+\textbf{LSUN Bedrooms $256^{2}$} &  &  &&& & &&&\\
+\midrule
+ADM~\cite{DBLP:journals/corr/abs-2105-05233}$^\dagger$ (1000 steps)& 232 & - & 232 & 0.03 & 552M & 1.9 & - & 0.66 & 0.51 \\
+\emph{LDM-4} (ours, 200 steps, 1.9M)& 60 & - & 55 & 1.07 & 274M & 2.95& - & 0.66 & 0.48 \\
+&&&&&&&&&\\
+\textbf{CelebA-HQ $256^{2}$} &&&&&& &&&\\
+\midrule
+%
+\emph{LDM-4} (ours, 500 steps, 410K)& 14.4 & - & 14.4 & 0.43 & 274M & 5.11& - & 0.72 & 0.49 \\
+&&&&&&&&&\\
+\textbf{FFHQ $256^{2}$} &&&&&& &&&\\
+\midrule
+
+StyleGAN2~\cite{DBLP:journals/corr/abs-1912-04958}& 32.13$^\ddagger$ & - & 32.13$^\dagger$  & - &  59M & 3.8 & - & - & - \\
+\emph{LDM-4} (ours, 200 steps, 635K)& 26 & - & 26 & 1.07 & 274M & 4.98& - & 0.73 & 0.50 \\
+&&&&&&&&&\\
+\textbf{ImageNet $256^{2}$} &&&&&&&&& \\
+\midrule
+VQGAN-f-4 (ours, first stage)& 29 & - & 29 & - & 55M & 0.58$^{\dagger\dagger}$& - & - & - \\
+VQGAN-f-8 (ours, first stage) & 66 & - & 66 & - & 68M & 1.14$^{\dagger\dagger}$& - & - & - \\
+\midrule
+BigGAN-deep~\cite{bigganbrock}$^\dagger$& 128-256 & & 128-256 & - & 340M & 6.95 & 203.6\tiny$\pm\text{2.6}$ & 0.87 & 0.28\\
+ADM~\cite{DBLP:journals/corr/abs-2105-05233} (250 steps) $^\dagger$& 916 & - & 916 & 0.12 & 554M & 10.94& 100.98 & 0.69 & 0.63 \\
+ADM-G~\cite{DBLP:journals/corr/abs-2105-05233} (25 steps) $^\dagger$& 916 & 46 & 962 & 0.7 & 608M & 5.58 & - & 0.81  & 0.49 \\
+ADM-G~\cite{DBLP:journals/corr/abs-2105-05233} (250 steps)$^\dagger$& 916 & 46 & 962 & 0.07 & 608M & 4.59 & 186.7 & 0.82 & 0.52 \\
+ADM-G,ADM-U~\cite{DBLP:journals/corr/abs-2105-05233} (250 steps)$^\dagger$& 329 & 30 & 349 & n/a & n/a & 3.85  & 221.72 & 0.84 & 0.53 \\
+%
+%
+%
+%
+\emph{LDM-8-G} (ours, 100, 2.9M)& 79 & 12 & 91 & 1.93 & 506M & 8.11 & 190.4\tiny$\pm\text{2.6}$  & 0.83 & 0.36 \\
+%
+%
+\emph{LDM-8} (ours, 200 ddim steps 2.9M, batch size 64)& 79 & - & 79 & 1.9 & 395M & 17.41 & 72.92 & 0.65 & 0.62 \\
+\emph{LDM-4} (ours, 250 ddim steps 178K, batch size 1200)& 271 & - & 271 & 0.7 & 400M & 10.56 & 103.49\tiny$\pm\text{1.24}$  & 0.71  & 0.62 \\
+\emph{LDM-4-G} (ours, 250 ddim steps 178K, batch size 1200, classifier-free guidance~\cite{ho2021classifier} scale 1.25)& 271 & - & 271 & 0.4 & 400M & 3.95 & 178.22\tiny$\pm\text{2.43}$  & 0.81  & 0.55 \\
+\emph{LDM-4-G} (ours, 250 ddim steps 178K, batch size 1200, classifier-free guidance~\cite{ho2021classifier} scale 1.5)& 271 & - & 271 & 0.4 & 400M & 3.60 & 247.67\tiny$\pm\text{5.59}$  & 0.87  & 0.48 \\
+
+
+%
+%
+\bottomrule
+\end{tabular}
+
+
+\end{adjustbox}
+\end{center}
+\caption{\label{tab:compute_vs_fid} Comparing compute requirements during training and inference throughput with state-of-the-art generative models. Compute during training in V100-days, numbers of competing methods taken from~\cite{DBLP:journals/corr/abs-2105-05233} unless stated differently;$^*$: Throughput measured in samples/sec on a single NVIDIA A100;$^\dagger$: Numbers taken from~\cite{DBLP:journals/corr/abs-2105-05233} ;$^\ddagger$: Assumed to be trained on 25M train examples; $^{\dagger\dagger}$: R-FID vs. ImageNet validation set}
+\end{table}
+
+}
+
+
+\newcommand{\cinhyperparams}{
+\begin{table}[thbp]
+\begin{center}
+\begin{adjustbox}{max width=.8\textwidth}
+
+\begin{tabular}{lcccccc}
+\toprule
+& \emph{LDM-1}& \emph{LDM-2} & \emph{LDM-4} & \emph{LDM-8}& \emph{LDM-16} & \emph{LDM-32} \\
+\midrule
+$z$-shape & $256 \times 256 \times 3$ &$128  \times 128 \times 2$ &$64 \times 64 \times 3$ & $32 \times 32 \times 4$&$16 \times 16 \times 8$ & $88 \times 8 \times 32$\\
+$\vert \mathcal{Z} \vert$ & - & 2048 & 8192 & 16384 & 16384 & 16384 \\
+Diffusion steps &1000 & 1000 &1000&1000&1000&1000 \\
+Noise Schedule & linear&linear&linear&linear&linear&linear \\
+Model Size &396M&391M&391M&395M&395M&395M \\
+Channels & 192 & 192 & 192 & 256 & 256 & 256\\
+Depth &2& 2&2&2&2& 2\\
+Channel Multiplier & 1,1,2,2,4,4 & 1,2,2,4,4 & 1,2,3,5 & 1,2,4 & 1,2,4 & 1,2,4 \\
+%
+Number of Heads & 1 & 1 & 1 & 1 & 1 & 1 \\
+Batch Size &7& 9 & 40 & 64 & 112 & 112 \\
+Iterations &2M& 2M & 2M & 2M & 2M & 2M\\
+Learning Rate& $\text{4.9e-5}$ & $\text{6.3e-5}$ & $\text{8e-5}$ & $\text{6.4e-5}$ & $\text{4.5e-5}$ & $\text{4.5e-5}$ \\
+\midrule
+Conditioning & CA & CA &CA &CA&CA& CA\\
+CA-resolutions& 32, 16, 8 & 32, 16, 8 & 32, 16, 8 & 32, 16, 8 & 16, 8, 4 & 8, 4, 2\\
+Embedding Dimension &  512&512&512&512&512&512 \\
+Transformers Depth & 1 & 1&1&1&1&1 \\
+\bottomrule
+\end{tabular}
+
+
+\end{adjustbox}
+\end{center}
+\caption{\label{tab:cin_hyperparams} Hyperparameters for the conditional \emph{LDMs} trained on the ImageNet dataset for the analysis in Sec.~\ref{subsec:reduced_compute}. All models trained on a single NVIDIA A100.}
+\end{table}
+}
+
+\newcommand{\transformertable}{
+\begin{table}[thbp]
+\begin{center}
+\begin{footnotesize}
+\begin{adjustbox}{max width=.45\textwidth}
+\begin{tabular}{l c}
+\toprule
+\textbf{input} & $\R^{h \times w \times c}$ \\
+\midrule
+LayerNorm  & $\R^{h \times w \times c}$ \\
+Conv1x1  & $\R^{h \times w \times d\cdot n_h}$ \\
+Reshape & $ \R^{h\cdot w \times d\cdot n_h}$ \\
+%
+\multirow{3}{*}{ $\times T \begin{cases*} \text{SelfAttention} \\ \text{MLP} \\ \text{CrossAttention} \end{cases*}$} & $\R^{h\cdot w \times d \cdot n_h}$ \\
+ & $\R^{h \cdot w \times d\cdot n_h}$ \\
+ & $\R^{h \cdot w \times d\cdot n_h}$ \vspace{0.5em} \\
+Reshape & $\R^{h \times w \times d\cdot n_h}$ \\
+Conv1x1  & $\R^{h \times w \times c}$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{footnotesize}
+\end{center}
+\caption{\label{tab:transformertable} Architecture of a transformer block as described in Sec.~\ref{suppsubsubsec:transformer}, 
+replacing the self-attention layer of the standard ``ablated UNet'' architecture~\cite{DBLP:journals/corr/abs-2105-05233}. 
+Here, $n_h$ denotes the number of attention heads
+and $d$ the dimensionality per head.}
+\end{table}
+}
+
+
+\newcommand{\transformerhyperparams}{
+\begin{table}[thbp]
+\begin{center}
+\begin{adjustbox}{max width=.8\textwidth}
+
+\begin{tabular}{lcc}
+\toprule
+& \textbf{Text-to-Image} &  \textbf{Layout-to-Image}\\
+\midrule
+seq-length & 77 & 92\\
+depth $N$ & 32 & 16\\
+dim & 1280 & 512\\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\caption{\label{tab:transformerhyperparams} Hyperparameters for the experiments with transformer encoders in Sec.~\ref{subsec:conditionallatentdiffusion}.}
+\end{table}
+}
+
+
+\newcommand{\celebahyperparams}{
+\begin{table}[thbp]
+\begin{center}
+\begin{adjustbox}{max width=.8\textwidth}
+
+\begin{tabular}{lcccccc}
+\toprule
+& \emph{LDM-1}& \emph{LDM-2} & \emph{LDM-4} & \emph{LDM-8}& \emph{LDM-16} & \emph{LDM-32} \\
+\midrule
+$z$-shape & $256 \times 256 \times 3$ &$128  \times 128 \times 2$ &$64 \times 64 \times 3$ & $32 \times 32 \times 4$&$16 \times 16 \times 8$ & $88 \times 8 \times 32$\\
+$\vert \mathcal{Z} \vert$ & - & 2048 & 8192 & 16384 & 16384 & 16384 \\
+Diffusion steps &1000 & 1000 &1000&1000&1000&1000 \\
+Noise Schedule & linear&linear&linear&linear&linear&linear \\
+Model Size &270M&265M&274M&258M&260M&258M \\
+Channels & 192 & 192 & 224 & 256 & 256 & 256\\
+Depth &2& 2&2&2&2& 2\\
+Channel Multiplier & 1,1,2,2,4,4 & 1,2,2,4,4 & 1,2,3,4 & 1,2,4 & 1,2,4 & 1,2,4 \\
+Attention resolutions& 32, 16, 8 & 32, 16, 8 & 32, 16, 8 & 32, 16, 8 & 16, 8, 4 & 8, 4, 2\\
+Head Channels & 32 & 32 & 32 & 32 & 32 & 32 \\
+Batch Size &9& 11 & 48 & 96 & 128 & 128\\
+Iterations$^*$ & 500k & 500k & 500k& 500k & 500k & 500k\\
+Learning Rate& $\text{9e-5}$ & $\text{1.1e-4}$ & $\text{9.6e-5}$ & $\text{9.6e-5}$ & $\text{1.3e-4}$ & $\text{1.3e-4}$ \\
+\bottomrule
+\end{tabular}
+
+
+\end{adjustbox}
+\end{center}
+\caption{\label{tab:celeba_hyperparams} Hyperparameters for the unconditional \emph{LDMs} trained on the CelebA dataset for the analysis in Fig.~\ref{fig:speedplot}. All models trained on a single NVIDIA A100. $^*$: All models are trained for 500k iterations. If converging earlier, we used the best checkpoint for assessing the provided FID scores.}
+\end{table}
+}
+
+
+\newcommand{\uncondhyperparams}{
+\begin{table}[thbp]
+\begin{center}
+\begin{adjustbox}{max width=.8\textwidth}
+
+\begin{tabular}{lcccc}
+\toprule
+& CelebA-HQ $256 \times 256$ & FFHQ $256 \times 256$ & LSUN-Churches $256 \times 256$ & LSUN-Bedrooms $256 \times 256$  \\
+\midrule
+$f$ & 4 & 4 & 8 & 4 \\
+$z$-shape & $64 \times 64 \times 3$ & $64 \times 64 \times 3$ &  - & $64 \times 64 \times 3$\\
+$\vert \mathcal{Z} \vert$ & 8192 & 8192 & - & 8192  \\
+Diffusion steps &1000 & 1000 &1000&1000 \\
+Noise Schedule & linear&linear&linear&linear \\
+$N_{\text{params}}$ & 274M & 274M & 294M & 274M \\
+Channels & 224 & 224 & 192 & 224 \\
+Depth &2& 2&2&2 \\
+Channel Multiplier & 1,2,3,4 & 1,2,3,4 & 1,2,2,4,4 & 1,2,3,4 \\
+Attention resolutions & 32, 16, 8 & 32, 16, 8 & 32, 16, 8, 4 & 32, 16, 8 \\
+Head Channels & 32 & 32 & 24 & 32 \\
+Batch Size & 48 & 42 & 96 & 48 \\
+Iterations$^*$ & 410k & 635k & 500k & 1.9M \\
+Learning Rate& $\text{9.6e-5}$ & $\text{8.4e-5}$ & $\text{5.e-5}$ & $\text{9.6e-5}$\\
+\bottomrule
+\end{tabular}
+
+
+\end{adjustbox}
+\end{center}
+\caption{\label{tab:uncond_hyperparams} Hyperparameters for the unconditional \emph{LDMs} producing the numbers shown in Tab.~\ref{tab:fids}. All models trained on a single NVIDIA A100.}
+\end{table}
+}
+
+\newcommand{\condhyperparams}{
+\begin{table}[thbp]
+\begin{center}
+\begin{adjustbox}{max width=.95\textwidth}
+
+\begin{tabular}{lccccccc}
+\toprule
+\textbf{Task}& Text-to-Image & \multicolumn{2}{c}{Layout-to-Image} & Class-Label-to-Image &  Super Resolution & Inpainting & Semantic-Map-to-Image\\
+\midrule
+\textbf{Dataset} & LAION & OpenImages & COCO & ImageNet & ImageNet & Places  & Landscapes\\
+\midrule
+$f$ & 8 & 4 & 8 & 4 & 4 & 4 & 8\\
+$z$-shape & $32 \times 32 \times 4$ &$64 \times 64 \times 3$ & $32 \times 32 \times 4$ & $64 \times 64\times 3$&$64 \times 64 \times 3$ & $64 \times 64 \times 3$ & $32 \times 32 \times 4$ \\
+$\vert \mathcal{Z} \vert$ & - & 8192 & 16384 & 8192 & 8192 & 8192 & 16384 \\
+Diffusion steps &1000 & 1000 &1000&1000&1000&1000 &1000 \\
+Noise Schedule & linear&linear&linear&linear&linear&linear&linear \\
+Model Size & 1.45B & 306M & 345M &395M& 169M & 215M & 215M \\
+Channels & 320 & 128 & 192 & 192 & 160 & 128 & 128 \\
+Depth &2& 2&2&2&2& 2& 2\\
+Channel Multiplier & 1,2,4,4 & 1,2,3,4 & 1,2,4 & 1,2,3,5 & 1,2,2,4 & 1,4,8 & 1,4,8\\
+%
+Number of Heads & 8 & 1 & 1 & 1 & 1 & 1 & 1 \\
+Dropout & - & -  & 0.1  & - & - & - & - \\
+Batch Size & 680 & 24 & 48 & 1200 & 64 & 128 & 48 \\
+Iterations & 390K & 4.4M & 170K & 178K & 860K & 360K & 360K \\
+Learning Rate& $\text{1.0e-4}$ & $\text{4.8e-5}$  & $\text{4.8e-5}$ & $\text{1.0e-4}$ & $\text{6.4e-5}$ &$\text{1.0e-6}$ &$\text{4.8e-5}$ \\
+\midrule
+Conditioning & CA & CA & CA & CA & concat & concat & concat\\
+(C)A-resolutions& 32, 16, 8 & 32, 16, 8 & 32, 16, 8 & 32, 16, 8 & - & - & - \\
+Embedding Dimension & 1280 & 512 & 512 & 512 & - & - & - \\
+Transformer Depth & 1 & 3 & 2 & 1 & - & - & - \\
+\bottomrule
+\end{tabular}
+
+
+\end{adjustbox}
+\end{center}
+\caption{\label{tab:cond_hyperparams} Hyperparameters for the conditional
+  \emph{LDMs} from Sec.~\ref{sec:experiments}. All models trained on a single NVIDIA A100
+  except for the inpainting model which was trained on eight V100.}
+\end{table}
+}
+
+
+\newcommand{\cinmetrics}{
+\begin{table}[htbp]
+\centering
+\begin{adjustbox}{max width=\textwidth}
+\footnotesize
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} & FID & IS$\uparrow$ & Precision$\uparrow$ & Recall$\uparrow$ & $N_{\text{params}}$ & \\
+\midrule
+%
+SR3~\cite{DBLP:journals/corr/abs-2104-07636} & 11.30 & - & - & - & 625M & - \\
+ImageBART~\cite{DBLP:journals/corr/abs-2108-08827}& 21.19 & -& - & -  & 3.5B & - \\
+ImageBART~\cite{DBLP:journals/corr/abs-2108-08827}& 7.44 & - & - & - & 3.5B & 0.05 acc. rate$^*$ \\
+VQGAN+T~\cite{DBLP:journals/corr/abs-2012-09841}& 17.04 & 70.6\tiny$\pm\text{1.8}$& - & -  & 1.3B & - \\
+VQGAN+T~\cite{DBLP:journals/corr/abs-2012-09841}& 5.88 & \textbf{304.8}\tiny$\pm\text{3.6}$& - & -  & 1.3B & 0.05 acc. rate$^*$ \\
+BigGan-deep~\cite{bigganbrock}& 6.95 & 203.6\tiny$\pm\text{2.6}$& \textbf{0.87} & 0.28  & 340M & - \\
+ADM~\cite{DBLP:journals/corr/abs-2105-05233} & 10.94 & 100.98& 0.69 & \textbf{0.63}  & 554M & 250 DDIM steps\\
+ADM-G~\cite{DBLP:journals/corr/abs-2105-05233} & 4.59  & 186.7& 0.82 & 0.52 & 608M & 250 DDIM steps \\
+%
+ADM-G,ADM-U~\cite{DBLP:journals/corr/abs-2105-05233} & \underline{3.85}  & 221.72 & 0.84 & 0.53 & n/a & 2 $\times$ 250 DDIM steps \\
+CDM~\cite{DBLP:journals/corr/abs-2106-15282}& 4.88 & 158.71\tiny$\pm\text{2.26}$ & - & - & n/a & 2 $\times$ 100 DDIM steps \\
+\midrule
+\emph{LDM-8} (ours) & 17.41 & 72.92\tiny$\pm\text{2.6}$& 0.65 & \underline{0.62}  & 395M & 200 DDIM steps, 2.9M train steps, batch size 64 \\
+\emph{LDM-8-G} (ours) & 8.11 & 190.43\tiny$\pm\text{2.60}$& 0.83  & 0.36 & 506M& 200 DDIM steps, classifier scale 10, 2.9M train steps, batch size 64  \\
+\emph{LDM-8} (ours) & 15.51 & 79.03\tiny$\pm\text{1.03}$& 0.65 & \textbf{0.63}  & 395M & 200 DDIM steps, 4.8M train steps, batch size 64 \\
+%
+\emph{LDM-8-G} (ours) & 7.76 & 209.52\tiny$\pm\text{4.24}$& \underline{0.84} & 0.35 & 506M& 200 DDIM steps, classifier scale 10, 4.8M train steps, batch size 64 \\
+\emph{LDM-4} (ours) & 10.56 & 103.49\tiny$\pm\text{1.24}$   & 0.71  & \underline{0.62} & 400M & 250 DDIM steps, 178K train steps, batch size 1200 \\
+\emph{LDM-4-G} (ours) & 3.95 & 178.22\tiny$\pm\text{2.43}$  & 0.81  & 0.55 & 400M& 250 DDIM steps, unconditional guidance~\cite{ho2021classifier} scale 1.25, 178K train steps, batch size 1200 \\
+\emph{LDM-4-G} (ours) & \textbf{3.60} & \underline{247.67\tiny$\pm\text{5.59}$}  & \textbf{0.87}  & 0.48 & 400M & 250 DDIM steps, unconditional guidance~\cite{ho2021classifier} scale 1.5, 178K train steps, batch size 1200 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\caption{\label{tab:imagenet_numbers} Comparison of a class-conditional ImageNet \emph{LDM} with recent state-of-the-art methods for class-conditional image generation on the ImageNet~\cite{DBLP:conf/cvpr/DengDSLL009} dataset.$^*$: Classifier rejection sampling with the given rejection rate as proposed in~\cite{DBLP:conf/nips/RazaviOV19}.}
+
+\end{table}
+}
+
+\newcommand{\layouttoimagefids}{
+\begin{table}[htbp]
+\centering
+\begin{adjustbox}{max width=.7\textwidth}
+\footnotesize
+\begin{tabular}{lccc}
+\toprule
+  & COCO$256 \times 256$  & OpenImages $256 \times 256$ & OpenImages $512\times 512$\\
+  \cmidrule{2-4}
+\textbf{Method} & FID & FID & FID \\
+\midrule
+LostGAN-V2~\cite{DBLP:journals/corr/abs-2003-11571}& 42.55 & - & - \\
+OC-GAN~\cite{DBLP:conf/aaai/SylvainZBH021}& 41.65 & - & - \\
+SPADE~\cite{Park_2019_CVPR}& \underline{41.11} & -& -  \\
+VQGAN+T~\cite{DBLP:journals/corr/abs-2105-06458}& 56.58 & \underline{45.33} & \underline{48.11} \\
+\midrule
+\emph{LDM-8} (100 steps, ours) & 42.06$^\dagger$ & -& - \\
+\emph{LDM-4} (200 steps, ours) & \textbf{40.91}$^*$ & \textbf{32.02}& \textbf{35.80} \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\caption{\label{tab:layout2img} Quantitative comparison of our layout-to-image models on the COCO~\cite{DBLP:conf/cvpr/CaesarUF18} and OpenImages~\cite{DBLP:journals/corr/abs-1811-00982} datasets. $^\dagger$: Training from scratch on COCO; $^*$: Finetuning from OpenImages.}
+
+\end{table}
+}

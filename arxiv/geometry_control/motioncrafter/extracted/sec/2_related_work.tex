@@ -1,0 +1,65 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{4D Scene Reconstruction}
+Early 4D reconstruction works mainly focus on optimization-based approaches~\cite{newcombe2015dynamicfusion,pumarola2021d,li2021neural,du2021neural,tretschk2021non,park2021nerfies,fridovich2023k,cao2023hexplane,li2023dynibar,Wu_2024_CVPR,yang2024deformable,yang2024real,som2024,wang2025freetimegs},
+which iteratively fits a 4D representation to monocular or multi-view videos.
+With the development of neural radiance fields (NeRFs)~\cite{mildenhall2020nerf},
+many time-dependent NeRFs~\cite{park2021nerfies,du2021neural,li2021neural,pumarola2021d,fridovich2023k,cao2023hexplane,li2023dynibar}
+fit deformable 3D representations to dynamic scenes.
+However, these approaches suffer from expensive volumetric rendering,
+making them less practical for real-world applications.
+3D Gaussian Splatting (3D-GS)~\cite{kerbl20233d} avoids expensive sampling using a rasterization-based rendering pipeline.
+Several works~\cite{Wu_2024_CVPR,yang2024deformable,yang2024real,som2024,zhu2024motiongs,lu2024dn,wang2025freetimegs}
+extend it to dynamic scene reconstruction,
+which significantly reduces the rendering time.
+Besides,
+some methods~\cite{Zhang2022StructureAM,li2025_megasam,lu2025trackingworld} achieve accurate and robust 4D reconstruction by leveraging depth priors~\cite{hu2024-DepthCrafter,ke2024repurposing,piccinelli2024unidepth,yang2024depth,lihe24DAV2}.
+However, they still require per-scene optimization.
+
+Some recent works~\cite{zhang24monst3r,jin2024stereo4d,wang2025continuous,sucar2025dynamic,st4rtrack2025,jiang2025geo4d,xu20254dgt,AETHER,chen2025back,liang2024feed} have explored feed-forward 4D scene reconstruction from monocular videos.
+Among them,
+MonST3R~\cite{zhang24monst3r} adapts the notable \emph{static} 3D reconstructor DUSt3R~\cite{wang2024dust3r} to dynamic scenes.
+The follow-ups~\cite{jin2024stereo4d,wang2025continuous,sucar2025dynamic,st4rtrack2025,AETHER,lu2025align3r}
+took a similar path, explicitly predicting the point correspondences.
+However, due to DUSt3R's limitations, they process pairs of frames at a time.
+To handle long monocular videos,
+$\pi^3$~\cite{wang2025pi} builds a permutation-equivariant architecture on top of VGGT~\cite{wang2025vggt} for static and dynamic 3D reconstruction.
+Geo4D~\cite{jiang2025geo4d} leverages video generators~\cite{xing2024dynamicrafter} to directly infer 4D point maps from monocular videos.
+4DGT~\cite{xu20254dgt} and BTimer~\cite{liang2024feed} utilize transformer-based architectures to predict dynamic 3D Gaussian representations~\cite{kerbl20233d}.
+However, they do not explicitly model dense point correspondences over time.
+
+\paragraph{Scene Flow Estimation}
+Early works define point correspondences as optical flow estimation in pixel space~\cite{horn1981determining,brox2004high,bruhn2005lucas,ilg2017flownet,teed2020raft}.
+One popular pipeline is to directly estimate dense pixel-wise correspondences in a coarse-to-fine manner~\cite{dosovitskiy2015flownet,ilg2017flownet,sun2018pwc,teed2020raft}.
+However, such a coarse-to-fine strategy may fail in the presence of large motions or occlusions~\cite{revaud2015epicflow}.
+More recently,
+GMFlow~\cite{Xu_2022_CVPR,xu2023unifying} proposes to reformulate optical flow estimation as a global matching problem rather than local regression.
+The follow-ups~\cite{huang2022flowformer,shi2023flowformer++} also use transformer-based neural networks to model the global correlations.
+% As for the long-range point tracking~\cite{rubinstein2012towards,sand2008particle},
+% recent works~\cite{doersch2022tap,karaev2024cotracker,karaev2025cotracker3} explore to learn robust point trackers from large-scale video datasets.
+However, these methods still deal with 2D point correspondences in image space.
+In contrast,
+we address 3D scene flow estimation in world space.
+Some researchers have also explored estimating 3D \emph{scene flow} directly from image pairs,
+including RAFT-3D~\cite{teed2021raft}, SpatialTracker~\cite{SpatialTracker}, SceneTracker~\cite{wang2025scenetracker}, and TAPVid-3D~\cite{koppula2024tapvid}.
+More closely related to our work,
+several recent works~\cite{sucar2025dynamic,st4rtrack2025,jin2024stereo4d} explore reconstructing dynamic 3D geometry,
+along with 3D scene flow estimation in world space.
+However, they process only two images at a time and require post-processing to refine the results.
+
+\paragraph{Geometric Diffusion Model}
+Like our approach,
+many recent works have leveraged pre-trained off-the-shelf diffusion models~\cite{rombach2022high,ho2022video,wang2023modelscope,singer2023makeavideo,blattmann2023align,ge2023preserve,wang2023videocomposer,guo2024animatediff,blattmann2023stable,zhang2024show,huang2024blue,xing2024dynamicrafter,kong2024hunyuanvideo,liang2025diffusion,garcia2025fine}
+to tackle 3D tasks~\cite{gao2024cat3d,sargent2024zeronvs,chen2024mvsplat360,yu2024viewcrafter,szymanowicz2025bolt3d,li2025dso,wu2025amodal3r,ke2024repurposing,ye2024stablenormal,xu2024matters,song2025depthmaster,liu2023zero,shi2024mvdream,zheng2024free3d,voleti2025sv3d}, thanks to rich priors learned from large-scale image or video datasets.
+When it comes to 4D reconstruction, a straightforward solution is to generate multi-view videos,
+and then fit a 4D representation via per-scene optimization~\cite{xie2024sv4d,zeng2024stag4d,wu2025cat4d}.
+Inspired by score distillation sampling (SDS)~\cite{pooledreamfusion},
+another line of works~\cite{jiang2024consistentd,zhang20244diffusion,dreamscene4d,ren2023dreamgaussian4d,li2024dreammesh4d}
+directly distill 4D priors from pre-trained video generators.
+However, these approaches still rely on iterative per-scene optimization,
+which is expensive when dealing with in-the-wild videos.
+The most related work is Geo4D~\cite{jiang2025geo4d} that fine-tunes a pre-trained video diffusion model to directly infer dynamic 3D point maps, depths, and camera poses from monocular videos.
+Our method differs from Geo4D in two aspects:
+(1) we \emph{simultaneously} reconstruct \emph{dynamic 3D geometry} and estimate \emph{dense point correspondences} in a unified 4D VAE framework; and
+(2) we show that it is \emph{not} necessary to align the data and latent spaces when fine-tuning a diffusion model.

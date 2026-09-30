@@ -1,0 +1,458 @@
+\section{Experiments}\label{sec:exp}
+
+\subsection{Large-scale Real-world Benchmark}
+We conduct a large-scale empirical evaluation of \method designed to rigorously assess multi-embodiment generalization and real-world robustness. Our experimental framework comprises three core components: (1) 25 physical robots spanning 4 distinct commercial platforms, (2) GM-100~\cite{gm100} benchmark featuring 100 diverse manipulation tasks with 39,000 expert demonstrations 
+% (130 episodes per task $\times$ 100 tasks $\times$ 3 platforms),
+and (3) a controlled evaluation protocol generating 22,500 trials 
+% (15 trials per task-model-platform configuration $\times$ 100 tasks $\times$ 5 models $\times$ 3 platforms) 
+comparing \method against three state-of-the-art baselines under identical training and testing conditions.
+% This section details our hardware infrastructure, data collection methodology, quality assurance pipeline, rigorous benchmarking protocols, evaluation metrics designed and results analysis.
+
+\subsubsection{Hardware Platforms}
+We conduct experiments across 4 distinct robotic platforms: AgileX, Agibot G1 Galaxea R1Pro and Leju KUAVO 4 Pro. 
+All three embodiments feature a dual-arm configuration equipped with parallel-jaw grippers.
+To ensure robust perception, each robot is outfitted with multiple cameras: two wrist-mounted cameras and a head-mounted camera to capture an egocentric, human-eye perspective. 
+All tasks are tabletop-based, with the embodiment's chassis and waist securely fixed in place.
+
+% To assess performance comprehensively, we deploy the \textbf{GM-100 benchmark}—a suite of 100 diverse manipulation tasks spanning categories including contact-rich manipulation, tool use, dexterous object handling, and multi-step sequential operations. Tasks are distributed evenly across available robots to ensure balanced hardware utilization and broad coverage of manufacturing variations within each platform type.
+
+\subsubsection{Data Collection and Processing}
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/data/trainset.pdf}
+        \subcaption{}
+        \label{fig:train_data_action}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/data/testset.pdf}
+        \subcaption{}
+        \label{fig:benchmark_data_action}
+    \end{minipage}
+    \caption{
+    \textbf{Word cloud of atomic actions} in (a) Pre-training datasets and (b) Benchmark.}
+\end{figure}
+
+% \begin{figure}[t]
+%     \centering
+%     \begin{minipage}{0.49\linewidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{figures/data/trainset.pdf}
+%         \caption{Word cloud of atomic actions in pre-training datasets.}
+%         \label{fig:train_data_action}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.49\linewidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{figures/data/testset.pdf}
+%         \caption{Word cloud of atomic actions in benchmark.}
+%         \label{fig:benchmark_data_action}
+%     \end{minipage}
+% \end{figure}
+
+For each GM-100 task~\cite{gm100}, we collect expert demonstrations via teleoperation following a standardized protocol designed to ensure high data quality and environmental diversity.
+\textit{Trajectory Volume:}
+150 raw trajectories are collected per task across three platforms. The top 130, ranked by execution quality (task completion, motion smoothness, and protocol adherence), are retained for training. All trajectories strictly follow GM-100 task specifications.
+% We collect 150 raw trajectories per task across all three platforms. The top 130 trajectories ranked by execution quality (assessed through task completion, motion smoothness, and protocol adherence) are retained for training. Each trajectory strictly follows the task specification defined in the GM-100 requirements.
+\textit{Standardized Objects:}
+task objects are standardized and sourced according to GM-100 material specifications to ensure reproducibility across sites.
+ % To ensure cross-site reproducibility, all task objects are standardized and procured according to GM-100 material specifications.
+\textit{Environmental Diversity:}
+object poses (positions and orientations) are randomized within the workspace for each trajectory to prevent overfitting to specific spatial configurations and encourage learning of task-relevant invariances.
+% \textit{ }During data collection, object initial poses (positions and orientations) are randomized within the workspace for each trajectory. This randomization prevents the model from overfitting to specific spatial configurations and encourages learning of task-relevant invariances rather than coordinate memorization.
+\textit{Teleoperation Guidelines:}
+% Operators follow protocols to ensure data quality and hardware safety, including:
+(1) maintaining clearance between the end-effector and workspace surfaces to avoid collisions,
+(2) reducing velocity during object contact phases for smooth manipulation, and
+(3) ensuring distinct image observations at episode start and termination for reliable policy training.
+% Operators adhere to several additional protocols to ensure data quality and hardware longevity: (1) maintaining sufficient clearance between the end-effector and workspace surfaces to prevent hard collisions that could cause cumulative mechanical damage during policy deployment, (2) reducing velocity during object contact phases to produce smooth, gentle manipulation demonstrations, and (3) ensuring visually distinct image observations at episode start and termination to enable the learned policy to reliably differentiate between initial and completed states.
+% Raw teleoperation data are converted to the LeRobot v2.1 format and undergo a rigorous two-stage quality assurance pipeline.
+\textit{Automated Filtering:} an algorithmic screening procedure automatically excludes episodes exhibiting technical anomalies.
+% including:
+% (1) Abnormal joint immobility (high proportion of static frames indicating frozen data);
+% (2) Robot constraint violations (joint limits or end-effector boundaries);
+% (3) Excessive motion jitter or trajectory discontinuities;
+% (4) Temporal desynchronization errors across sensory modalities.
+% \begin{itemize}
+% \item Abnormal joint immobility (high proportion of static frames indicating frozen data)
+% \item Robot constraint violations (joint limits or end-effector boundaries)
+% \item Excessive motion jitter or trajectory discontinuities
+% \item Temporal desynchronization errors across sensory modalities
+% \end{itemize}
+\textit{Manual Review:} 
+human reviewers validate the filtered dataset using synchronized multi-view video streams. Episodes are removed if they include extraneous objects or deviate from task protocols.
+% Human reviewers validate the algorithmically filtered dataset by inspecting synchronized multi-view video streams (head-mounted, left wrist, and right wrist cameras). Episodes are removed if they contain extraneous objects not specified in the task protocol or if the teleoperator deviates from the designed task execution sequence.
+
+% This two-stage pipeline ensures that only high-quality, task-compliant demonstrations are used for model training.
+
+To analyze the semantic distribution and diversity of action categories, we visualized the most prevalent atomic actions in the training and testing sets using word clouds, as shown in~\cref{fig:train_data_action,fig:benchmark_data_action}. Quantitative analysis reveals that approximately 50\% of the atomic actions in the test set are absent from the top 100 most frequent training actions. This significant discrepancy underscores the diversity of our test set and ensures a rigorous assessment of the model's generalization capabilities.
+
+
+\subsubsection{Benchmarking and Evaluation Protocol}
+We systematically compare \method with three state-of-the-art VLA models: $\pi_{0.5}$, GR00T N1.6, and WALL-OSS, under strict experimental controls to isolate architectural performance.
+% We perform a systematic comparison of LingBot-VLA against four state-of-the-art vision-language-action models: $\pi_{0.5}$, GR00T N1.6, and WALL-OSS. To ensure that performance differences reflect architectural capabilities rather than training variance or hardware bias, we implement strict experimental controls:
+\textit{Standardized Training:} 
+All models are fine-tuned from publicly available pre-trained checkpoints using the same post-training pipeline. The verified dataset (130 filtered trajectories per task) and consistent hyperparameters (\textit{i.e.}, batch sizes=256, epochs=20) are applied to ensure fair comparisons.
+% To isolate the impact of model architecture, all evaluations were performed by fine-tuning publicly available pre-trained checkpoints through a comparable post-training pipeline. We employ the exact same verified dataset (130 filtered trajectories per task across all platforms) and maintain consistent hyperparameters across all models, including learning rates, batch sizes, optimizer setup, and training epochs.
+\textit{Strict Machine-Task Pairing:} 
+To eliminate hardware-induced variance, evaluations are conducted on the exact robot units used during data collection. All models are tested sequentially on the same hardware-task pair in randomized order. For example, in the ``Stack Bowls'' task, all models are evaluated on the same unit across AgileX, Agibot G1, and Galaxea R1pro platforms.
+% We eliminate hardware-induced variance through strict machine-task pairing. For each task, the exact physical robot unit used during data collection is used for evaluation. All five models are evaluated sequentially on this identical hardware-task configuration in randomized order to prevent temporal biases. For example, for the ``Stack Bowls'' task, all 5 models are tested on the same Agilex Cobot Magic unit, then the same AgibotG1 unit, and finally the same GalaxeaR1pro unit, ensuring that friction characteristics, calibration parameters, or actuator differences do not systematically favor any model.
+\textit{Controlled Evaluation Setup:} 
+Testing conditions follow standardized protocols, mirroring data collection procedures with randomized object positions and orientations while maintaining consistent task specifications. This ensures evaluation of generalization rather than memorization.
+% We implement rigorous environmental controls to ensure fair and reproducible testing conditions. Test operators follow standardized protocols for each benchmark task, mirroring the data collection procedures by randomizing object initial positions and orientations while maintaining consistent task prop specifications. This systematic variation in initial conditions ensures that models are evaluated on their generalization capabilities rather than memorization of specific configurations.
+\textit{Inference and Recording:} 
+Each model undergoes 15 trials per task-robot pair for statistical robustness. Evaluation environments are kept constant, and comprehensive data (\textit{e.g.}, third-person views, robot states, and model predictions) are recorded in rosbag format for transparency. These recordings will be open-sourced to establish verifiable benchmarks.
+% We conducted 15 evaluation trials for each model on each task-robot pair to ensure statistical robustness. The inference environment (background and robot positions) is kept constant for each robot unit across all models. To promote transparency and enable post-hoc analysis, we record comprehensive evaluation data for every trial, including third-person external views and complete internal robot state (head/wrist video streams, proprioceptive joint and end-effector states, and model-predicted actions) stored in rosbag format. We will open-source these recordings to establish a verifiable ground truth for our benchmark results.
+
+\subsubsection{Evaluation Metrics}
+
+% We evaluate model performance using two complementary metrics that capture both complete task execution and partial progress:
+We evaluate model performance using two metrics capturing both task completion and partial progress.
+\textit{Success Rate (SR):} 
+the proportion of trials where the model completes all task steps within a 3-minute time limit.
+% measures the proportion of trials where the model successfully completes all task steps:
+% \begin{equation}
+%     \text{SR} = \frac{\text{Number of successful trials}}{15}
+% \end{equation}
+This primary metric reflects the model's real-world deployment viability.
+% A trial is considered successful only when all task requirements are satisfied within a 3-minute time limit. The success rate serves as our primary metric for model comparison, directly reflecting the viability of real-world deployment.
+\textit{Progress Score (PS):} 
+measures partial task completion by tracking progress through sequential subtask checkpoints:
+% quantifies partial task completion by tracking progress through sequential subtask checkpoints. Each GM-100 task is decomposed into atomic steps, and the progress score is computed as follows:
+% \begin{equation}
+%     \text{PS} = \frac{1}{15} \sum_{i=1}^{15} \frac{\text{Steps completed in trial } i}{\text{Total steps in task}}
+% \end{equation}
+For example, in a 6-step ``Stack Bowls'' task, completing steps 1–4 but failing at step 5 results in a score of $\frac{4}{6} \approx 0.67$. This diagnostic metric highlights failure modes and rewards partial success.
+% For example, the "Stack Bowls" task comprises 6 sequential steps: (1) grasp the first bowl, (2) transport it to the stacking location, (3) grasp the second bowl, (4) place it concentrically inside the first bowl, (5) grasp the third bowl, and (6) place it concentrically inside the second bowl. If a model successfully executes steps 1–4 but fails at step 5, it receives a progress score of  for that trial. The average across all 15 trials yields the task-level progress score. This metric provides diagnostic granularity for identifying specific failure modes and rewards partial task completion.
+\textit{Termination Criteria:}
+A trial ends if: (1) three consecutive subtask failures occur, or (2) safety-critical events (\textit{e.g.}, collisions) arise. Progress is scored based on subtasks completed before termination.
+We report overall SR and PS across 100 tasks, and per-platform metrics stratified by robot type to assess cross-embodiment generalization.
+% A trial is terminated under the following conditions: (1) three consecutive failed attempts at the same subtask, or (2) occurrence of safety-critical events such as end-effector collision with the workspace surface or inter-arm collision. Upon termination, the trial is scored based on the number of subtasks successfully completed prior to the termination event.
+% For comprehensive model comparison, we report: (1) \textbf{Overall Success Rate} and \textbf{Overall Progress Score} averaged across all 100 tasks, and (2) \textbf{Per-Platform Performance} metrics stratified by robot types (\textit{i.e.,} AgilexCobotMagic, AgibotG1, and GalaxeaR1pro) to quantitatively assess cross-embodiment generalization capability.
+
+% \subsubsection{Results Analysis}
+\subsection{Comparison on Real-world Benchmark}~\label{sec:real}
+As shown in~\cref{tab:real-world-evaluation}, we compare our two \method variants with three strong baselines across three platforms. On all platforms, \method \textit{w/o} depth significantly outperforms WALL-OSS and GR00T N1.6 in both SR and PS metrics. By incorporating depth-based spatial information, \method\textit{w/} depth achieves an average SR improvement of $4.28\%$ and a PS increase of $7.76\%$ over $\pi_{0.5}$ across the three embodiments.
+Notably, GR00T N1.6 performs average on the Agibot G1, AgileX and Leju KUAVO 4 Pro embodiment but achieves SR and PS comparable to $\pi_{0.5}$ on the Galaxea R1Pro platform. This is due to the extensive inclusion of Galaxea R1Pro data during its pre-training, indicating that pre-training can significantly enhance performance on downstream tasks with high structural similarity.
+The complete and detailed test results can be found in the Appendix~\cref{tab:exp_AgilexCobotMagic_1}-~\ref{tab:exp_LejuKUAVO_2}.
+
+
+% \begin{table}[t]
+%   \centering
+%   \caption{\textbf{Experiment results of real-world evaluation} on GM-100~\cite{gm100} benchmark. `SR' refers to success rate, and `PS' refers to progress score.}
+%   \resizebox{0.99\linewidth}{!}{
+% \begin{tabular}{ccccccccc}
+% \toprule
+%               \multicolumn{1}{c}{\multirow{2}[2]{*}{\textbf{Platform}}} & \multicolumn{2}{c}{$\pi_{0.5}$} & \multicolumn{2}{c}{Ours \textit{w/o} depth} & \multicolumn{2}{c}{Ours \textit{w/} depth} \\
+%                       & \textbf{SR}          & \textbf{PS}         & \textbf{SR}               & \textbf{PS}              & \textbf{SR}          & \textbf{PS}         \\
+%               \midrule
+% Agibot G1         & 7.77\%      & 21.98\%    & \textbf{12.82\%}          & 30.04\%         & 11.98\%     & \textbf{30.47\%}    \\
+% AgileX           & 17.20\%     & 34.82\%    & 15.50\%          & 36.31\%         & \textbf{18.93\%}     & \textbf{40.36\%}    \\
+% Galaxea R1Pro    & 14.10\%     & 26.14\%    & 18.89\%          & 34.71\%         & \textbf{20.98\%}     & \textbf{35.40\%}    \\
+% \midrule
+% \textbf{Average}       & 13.02\%     & 27.65\%    & 15.74\%          & 33.69\%         & \textbf{17.30}\%     & \textbf{35.41}\%   \\
+% \bottomrule
+% \end{tabular}}
+% \label{tab:real-world-evaluation}
+% \end{table}
+
+
+
+\begin{table}[t]
+  \centering
+  \caption{\textbf{Experiment results of real-world evaluation} on GM-100~\cite{gm100} benchmark. `SR' refers to success rate, and `PS' refers to progress score.}
+  \vspace{-3pt}
+  \resizebox{0.99\linewidth}{!}{
+\begin{tabular}{ccccccccccc}
+\toprule
+              \multicolumn{1}{c}{\multirow{2}[2]{*}{\textbf{Platform}}} & \multicolumn{2}{c}{WALL-OSS} & \multicolumn{2}{c}{GR00T N1.6} & \multicolumn{2}{c}{$\pi_{0.5}$} & \multicolumn{2}{c}{Ours \textit{w/o} depth} & \multicolumn{2}{c}{Ours \textit{w/} depth} \\
+              & \textbf{SR}           & \textbf{PS}            & \textbf{SR}          & \textbf{PS}          & \textbf{SR}          & \textbf{PS}         & \textbf{SR}               & \textbf{PS}              & \textbf{SR}          & \textbf{PS}         \\
+              \midrule
+Agibot G1 (Wheeled)      & 2.99\%       & 8.75\%        & 5.23\%      & 12.63\%     & 7.77\%      & 21.98\%    & \textbf{12.82\%}          & 30.04\%         & 11.98\%     & \textbf{30.47\%}    \\
+AgileX  (Wheeled)      & 2.26\%       & 8.16\%        & 3.26\%      & 10.52\%     & 17.20\%     & 34.82\%    & 15.50\%          & 36.31\%         & \textbf{18.93\%}     & \textbf{40.36\%}    \\
+Galaxea R1Pro (Wheeled) & 6.89\%       & 14.13\%       & 14.29\%     & 24.83\%     & 14.10\%     & 26.14\%    & 18.89\%          & 34.71\%         & \textbf{20.98\%}     & \textbf{35.40\%}    \\
+Leju KUAVO 4 Pro (Bipedal) & 3.26\%       & 11.75\%       & 6.45\%     & 18.66\%     & 12.91\%     & 26.35\%    & \textbf{17.59\%}          &  \textbf{36.22\%}         & 15.60\%     & 34.40\%    \\
+\midrule
+% \textbf{Average}       & 4.05\%       & 10.35\%       & 7.59\%      & 15.99\%     & 13.02\%     & 27.65\%    & 15.74\%          & 33.69\%         & \textbf{17.30}\%     & \textbf{35.41}\%   \\
+\textbf{Average} & 3.85\% & 10.70\%  & 7.31\% & 16.66\% & 13.00\% & 27.32\% & 16.20\% & 34.32\% & \textbf{16.87}\% & \textbf{35.16}\%   \\
+\bottomrule
+\end{tabular}}
+\label{tab:real-world-evaluation}
+\end{table}
+
+% % Table generated by Excel2LaTeX from sheet 'Sheet1'
+% \begin{table}[htbp]
+%   \centering
+%   \caption{Evaluation on RoboTwin 2.0 Simulation (Clean and Randomized)}
+%   \resizebox{0.72\linewidth}{!}{
+%     \begin{tabular}{ccccccc}
+%     \toprule
+%     \multicolumn{1}{c}{\multirow{2}[2]{*}{\textbf{Simulation Tasks}}} & \multicolumn{2}{c}{\textbf{$\pi_{0.5}$}} & \multicolumn{2}{c}{Ours \textit{w/o} depth} & \multicolumn{2}{c}{Ours \textit{w/} depth} \\
+%           & \textbf{Clean} & \textbf{Rand.} & \textbf{Clean} & \textbf{Rand.} & \textbf{Clean} & \textbf{Rand.} \\
+%     \midrule
+%     \textbf{Average} & 82.74\% & 76.76\% & {86.5\%} & {85.34\%} & \textbf{88.56\%} & \textbf{86.68\%} \\
+%     \bottomrule
+%     \end{tabular}
+%     }%
+%   \label{tab:robotwin_avg}%
+% \end{table}%
+
+\begin{table}[t]
+    \centering
+    \caption{\textbf{Experiment results of simulation evaluation} on RoboTwin 2.0~\cite{robotwin2} benchmark.}
+    \vspace{-3pt}
+    \begin{minipage}{0.49\linewidth}
+    %\captionof{table}{Clean Scenes}
+        \centering
+    \subcaption{Clean Scenes}
+    \vspace{0.3em}
+    \resizebox{\linewidth}{!}{
+        \begin{tabular}{cccc}
+        \toprule
+         & {\textbf{$\pi_{0.5}$}} & {Ours \textit{w/o} depth} & {Ours \textit{w/} depth} \\
+        \midrule
+        \textbf{Average SR} & 82.74\%  & {86.50\%} & \textbf{88.56\%} \\
+        \bottomrule
+        \end{tabular}
+    }
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\linewidth}
+        \centering
+        \subcaption{Randomized Scenes}
+        %{\small (b) {}} \\ 
+        \vspace{0.3em}
+        \resizebox{\linewidth}{!}{
+                \begin{tabular}{cccc}
+        \toprule
+         & {\textbf{$\pi_{0.5}$}} & {Ours \textit{w/o} depth} & {Ours \textit{w/} depth} \\
+        \midrule
+        \textbf{Average SR} & 76.76\%  & {85.34\%} & \textbf{86.68\%} \\
+        \bottomrule
+        \end{tabular}
+        }
+    \end{minipage}
+    \label{tab:robotwin_avg}%
+\end{table}
+
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.48\linewidth]{figures/experiment/Real_World_Evaluation_SOTA/Dual_Axis_Comparison.png}
+%     \caption{Real-world evaluation results}
+%     \label{fig:real_world_eval}
+% \end{figure}
+
+
+
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.48\linewidth]{figures/experiment/Simulation_Evaluation_SOTA/Final_Scaling_Comparison.png}
+%     \caption{Simulation evaluation results}
+%     \label{fig:robotwin}
+% \end{figure}
+
+% \begin{figure}[htbp]
+%     \centering
+%     \begin{minipage}{0.48\linewidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{figures/experiment/Real_World_Evaluation_SOTA/Dual_Axis_Comparison.png}
+%         \caption{Real-world evaluation results}
+%         \label{fig:real_world_eval}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.48\linewidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{figures/experiment/Simulation_Evaluation_SOTA/Final_Scaling_Comparison.png}
+%         \caption{Simulation evaluation results}
+%         \label{fig:robotwin}
+%     \end{minipage}
+% \end{figure}
+
+
+\subsection{Comparison on Simulation Benchmark}~\label{sec:sim}
+\noindent In~\cref{tab:robotwin_avg}, we evaluate simulation performance across $50$ representative manipulation tasks within the RoboTwin 2.0 suite. Starting from pretrained checkpoints, each model was further finetuned on the RoboTwin dataset. To assess multi-task generalization, we train all models on $2,500$ demonstrations from clean scenes (50 per task) and $25,000$ from highly randomized scenes (500 per task). Randomization factors encompass varied backgrounds, table-top clutter, table-height perturbations, and diverse lighting conditions. Compared to the $\pi_{0.5}$ baseline, \method demonstrates marked advancements in RoboTwin 2.0 multi-task settings. Specifically, \method \textit{w/o} depth yields absolute success rate increases of over $3.76\%$ in clean environments and $8.58\%$ in randomized scenarios.
+By employing learnable query-based alignment, the integration of depth information enables \method to effectively extract rich spatial priors from LingBot-Depth model. The approach surpasses the baseline model by absolute margins of $5.82\%$ and $9.92\%$ in clean and randomized configurations, respectively. Please refer to~\cref{tab:robotwin} of Appendix for detailed results. 
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/experiment/infra_scaling/QwenPI.pdf}
+        \subcaption{Qwen2.5-VL-3B-$\pi$ model}
+        \label{fig1:tp_qwenvl}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/experiment/infra_scaling/PaliGemmaPI.pdf}
+        \subcaption{PaliGemma-3B-pt-224-$\pi$ model}
+        \label{fig2:tp_paligemma}
+    \end{minipage}
+    \caption{
+    \textbf{Training throughput analysis} of the (a) Qwen2.5-VL-3B-$\pi$ and (b) PaliGemma-3B-pt-224-$\pi$ models.}
+\end{figure}
+
+\subsection{Training Throughput Analysis}
+To comprehensively evaluate the training efficiency of VLA models across different frameworks, we selected three open-source codebases (\textit{i.e.,} StarVLA, Dexbotic, and OpenPI) as the baselines for comparison. 
+To ensure a fair comparison, all experiments were conducted on the Libero dataset using a standardized $\pi$-like model architecture.
+
+Given the variations in the VLM implementations across different codebases, we reproduced both Qwen2.5-VL-3B-$\pi$ and PaliGemma-3B-pt-224-$\pi$ models within our own codebase to facilitate a direct alignment and comparison with the baselines. Regarding the training configuration, the local batch size was standardized to 32 for all experiments.
+
+It is worth noting that while StarVLA and Dexbotic default to ZeRO for distributed training, our codebase employs the comparable FSDP2 strategy. In contrast, OpenPI utilizes DDP, which inherently incurs lower communication overhead. We adopted sample throughput (samples/s) as the primary evaluation metric.
+
+\Cref{fig1:tp_qwenvl,fig2:tp_paligemma} illustrate the training efficiency comparison between our codebase and the baselines for the Qwen2.5-VL-3B-$\pi$ and PaliGemma-3B-pt-224-$\pi$ models, respectively. The results demonstrate that our codebase achieved the fastest training speeds in both model settings. Furthermore, the figures detail the training throughput across configurations of 8, 16, 32, 128, and 256 GPUs, alongside the theoretical linear scaling limit. The data indicates that our solution not only delivers superior throughput but also exhibits excellent scaling efficiency that closely follows the theoretical limit as the number of GPUs increases.
+% \begin{figure}[htbp]
+%     \centering
+%     \begin{minipage}{0.48\linewidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{figures/experiment/infra_scaling/QwenPI.pdf}
+%         \caption{Training throughput analysis of the Qwen2.5-VL-3B-$\pi$ model.}
+%         \label{fig1:tp_qwenvl}
+%     \end{minipage}
+%     \hfill
+%     \begin{minipage}{0.48\linewidth}
+%         \centering
+%         \includegraphics[width=\linewidth]{figures/experiment/infra_scaling/PaliGemmaPI.pdf}
+%         \caption{Training throughput analysis of the PaliGemma-3B-pt-224-$\pi$ model.}
+%         \label{fig2:tp_paligemma}
+%     \end{minipage}
+% \end{figure}
+
+
+% Training throughput analysis
+
+
+
+
+
+
+\subsection{Ablation Studies}
+\subsubsection{Scaling Experiments}
+% In this section, we demonstrate that the success rate and progress rate of \method on downstream tasks across three embodiments exhibit a consistent upward trend, scaling proportionally with the volume of pre-training data.
+To assess the scaling laws of pre-training data, we conduct experiments on a subset of 25 representative tasks drawn from the benchmark.
+As shown in~\cref{fig1:Progress_Rate_(PS),fig2:scaling_law_sr}, both the progress rate and success rate demonstrate a consistent upward trend as the pre-training data duration increases from 3,000 to 20,000 hours.
+This indicates that scaling up real-world pre-training data contributes to improved generalization and performance across diverse downstream tasks and embodiments.
+Furthermore, the individual trends of the three embodiments (\textit{i.e.,} Agibot G1, AgileX, and Galaxea R1Pro) generally align with the aggregated performance, suggesting the observed scaling law is robust and not specific to a single platform. These results validate the effectiveness of our scaling approach in enhancing the capabilities of the generalist policy.
+
+
+
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/experiment/pre_training_data_scaling_law/Aggregated_Progress_Rate.png}
+        \subcaption{Progress Rate (PS)}
+        \label{fig1:Progress_Rate_(PS)}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/experiment/pre_training_data_scaling_law/Aggregated_Success_Rate.png}
+        \subcaption{Success Rate (SR)}
+        \label{fig2:scaling_law_sr}
+    \end{minipage}
+    \caption{\textbf{Scaling behavior across dataset size.} With increased data scale, our model exhibits scaling laws in terms of success rate and progress rate.}
+    \label{fig:scaling_law}
+\end{figure}
+
+
+\subsubsection{Data-efficient Analysis}
+
+\begin{wrapfigure}{r}{0.48\linewidth} 
+    \centering
+    % 2. 图片宽度设为环境的 100%（即 0.6\textwidth 的全部）
+    \vspace{-31pt}
+    \includegraphics[width=0.85\linewidth]{figures/experiment/post_training_data_scaling_law/Dual_Axis_Success_Progress.png}
+    \caption{\textbf{Data efficiency} of \method post-training.}
+    \label{fig:data_efficient_post_training}
+\end{wrapfigure}
+Following the large-scale real-world benchmarking protocols, we selected eight representative tasks from GM-100 dataset to conduct data-efficient post-training experiments on the Agibot G1 platform. As illustrated in~\cref{fig:data_efficient_post_training}, with a limited budget of only 80 demonstrations per task, \method outperforms $\pi_{0.5}$ using the full 130-demonstration set in both Progress Rate and Success Rate. Notably, the performance margin between \method and $\pi_{0.5}$ widens significantly as the volume of post-training data increases, demonstrating superior data efficiency and scalability.
+
+
+% \begin{figure}[h!]
+%     \centering
+%     \includegraphics[width=0.6\linewidth]{figures/experiment/post_training_data_scaling_law/Dual_Axis_Success_Progress.png}
+%     \caption{Analysis of the data efficiency of \method post-training.}
+%     \label{fig:data_efficient_post_training}
+% \end{figure}
+
+
+
+
+
+
+
+% \begin{table}[htbp]
+%   \centering
+%   \caption{Evaluation on RoboTwin 2.0 Simulation (Clean vs Randomized)}
+%   \resizebox{0.7\linewidth}{!}{
+%     %\setlength{\tabcolsep}{5.8mm}{
+%     \begin{tabular}{ccccccccc}
+%     \toprule
+%     \multicolumn{1}{c}{\multirow{2}[2]{*}{\textbf{Simulation Task}}} & \multicolumn{2}{c}{\textbf{$\pi_0$}} & \multicolumn{2}{c}{\textbf{$\pi_{0.5}$}} & \multicolumn{2}{c}{Ours \textit{w/o} depth} & \multicolumn{2}{c}{Ours \textit{w} depth} \\
+%           & \textbf{Clean} & \textbf{Rand.} & \textbf{Clean} & \textbf{Rand.} & \textbf{Clean} & \textbf{Rand.} & \textbf{Clean} & \textbf{Rand.} \\
+%     \midrule
+%         \textit{Adjust Bottle} & 99\%    & 95\%    & 100\%   & 99\%    & 100\%   & 100\%   & 100\%   & 100\% \\
+%     \textit{Beat Block Hammer} & 79\%    & 84\%    & 96\%    & 93\%    & 87\%    & 91\%    & 92\%    & 89\% \\
+%     \textit{Blocks Ranking Rgb} & 80\%    & 63\%    & 92\%    & 85\%    & 92\%    & 91\%    & 92\%    & 91\% \\
+%     \textit{Blocks Ranking Size} & 14\%    & 5\%     & 49\%    & 26\%    & 66\%    & 73\%    & 76\%    & 70\% \\
+%     \textit{Click Alarmclock} & 77\%    & 68\%    & 98\%    & 89\%    & 93\%    & 26\%    & 97\%    & 43\% \\
+%     \textit{Click Bell} & 71\%    & 48\%    & 99\%    & 66\%    & 32\%    & 19\%    & 43\%    & 36\% \\
+%     \textit{Dump Bin Bigbin} & 88\%    & 83\%    & 92\%    & 97\%    & 97\%    & 92\%    & 97\%    & 97\% \\
+%     \textit{Grab Roller} & 98\%    & 94\%    & 100\%   & 100\%   & 100\%   & 99\%    & 100\%   & 100\% \\
+%     \textit{Handover Block} & 47\%    & 31\%    & 66\%    & 57\%    & 80\%    & 83\%    & 83\%    & 95\% \\
+%     \textit{Handover Mic} & 97\%    & 97\%    & 98\%    & 97\%    & 94\%    & 98\%    & 94\%    & 99\% \\
+%     \textit{Hanging Mug} & 14\%    & 11\%    & 18\%    & 17\%    & 32\%    & 27\%    & 34\%    & 53\% \\
+%     \textit{Lift Pot} & 80\%    & 72\%    & 96\%    & 85\%    & 100\%   & 99\%    & 100\%   & 100\% \\
+%     \textit{Move Can Pot} & 68\%    & 48\%    & 51\%    & 55\%    & 79\%    & 84\%    & 89\%    & 87\% \\
+%     \textit{Move Pillbottle Pad} & 67\%    & 46\%    & 84\%    & 61\%    & 93\%    & 94\%    & 92\%    & 90\% \\
+%     \textit{Move Playingcard Away} & 74\%    & 65\%    & 96\%    & 84\%    & 96\%    & 99\%    & 98\%    & 100\% \\
+%     \textit{Move Stapler Pad} & 41\%    & 24\%    & 56\%    & 42\%    & 74\%    & 49\%    & 74\%    & 48\% \\
+%     \textit{Open Laptop} & 71\%    & 81\%    & 90\%    & 96\%    & 96\%    & 96\%    & 98\%    & 96\% \\
+%     \textit{Open Microwave} & 4\%     & 32\%    & 34\%    & 77\%    & 91\%    & 75\%    & 91\%    & 92\% \\
+%     \textit{Pick Diverse Bottles} & 69\%    & 31\%    & 81\%    & 71\%    & 79\%    & 86\%    & 88\%    & 85\% \\
+%     \textit{Pick Dual Bottles} & 59\%    & 37\%    & 93\%    & 63\%    & 82\%    & 95\%    & 99\%    & 90\% \\
+%     \textit{Place A2b Left} & 43\%    & 47\%    & 87\%    & 82\%    & 86\%    & 83\%    & 89\%    & 85\% \\
+%     \textit{Place A2b Right} & 39\%    & 34\%    & 87\%    & 84\%    & 74\%    & 77\%    & 80\%    & 80\% \\
+%     \textit{Place Bread Basket} & 62\%    & 46\%    & 77\%    & 64\%    & 92\%    & 93\%    & 95\%    & 93\% \\
+%     \textit{Place Bread Skillet} & 66\%    & 49\%    & 85\%    & 66\%    & 90\%    & 89\%    & 90\%    & 92\% \\
+%     \textit{Place Burger Fries} & 81\%    & 76\%    & 94\%    & 87\%    & 95\%    & 96\%    & 98\%    & 94\% \\
+%     \textit{Place Can Basket} & 55\%    & 46\%    & 62\%    & 62\%    & 68\%    & 78\%    & 75\%    & 72\% \\
+%     \textit{Place Cans Plasticbox} & 63\%    & 45\%    & 94\%    & 84\%    & 97\%    & 100\%   & 100\%   & 98\% \\
+%     \textit{Place Container Plate} & 97\%    & 92\%    & 99\%    & 95\%    & 99\%    & 99\%    & 99\%    & 100\% \\
+%     \textit{Place Dual Shoes} & 59\%    & 51\%    & 75\%    & 75\%    & 80\%    & 83\%    & 87\%    & 86\% \\
+%     \textit{Place Empty Cup} & 91\%    & 85\%    & 100\%   & 99\%    & 100\%   & 100\%   & 100\%   & 100\% \\
+%     \textit{Place Fan} & 66\%    & 71\%    & 87\%    & 85\%    & 91\%    & 79\%    & 92\%    & 87\% \\
+%     \textit{Place Mouse Pad} & 20\%    & 20\%    & 60\%    & 39\%    & 82\%    & 78\%    & 86\%    & 79\% \\
+%     \textit{Place Object Basket} & 67\%    & 70\%    & 80\%    & 76\%    & 90\%    & 91\%    & 90\%    & 88\% \\
+%     \textit{Place Object Scale} & 57\%    & 52\%    & 86\%    & 80\%    & 84\%    & 90\%    & 90\%    & 88\% \\
+%     \textit{Place Object Stand} & 82\%    & 68\%    & 91\%    & 85\%    & 97\%    & 93\%    & 93\%    & 88\% \\
+%     \textit{Place Phone Stand} & 49\%    & 53\%    & 81\%    & 81\%    & 92\%    & 93\%    & 90\%    & 87\% \\
+%     \textit{Place Shoe} & 76\%    & 76\%    & 92\%    & 93\%    & 99\%    & 94\%    & 99\%    & 99\% \\
+%     \textit{Press Stapler} & 44\%    & 37\%    & 87\%    & 83\%    & 90\%    & 88\%    & 86\%    & 93\% \\
+%     \textit{Put Bottles Dustbin} & 65\%    & 56\%    & 84\%    & 79\%    & 88\%    & 92\%    & 92\%    & 93\% \\
+%     \textit{Put Object Cabinet} & 73\%    & 60\%    & 80\%    & 79\%    & 92\%    & 86\%    & 85\%    & 88\% \\
+%     \textit{Rotate Qrcode} & 74\%    & 70\%    & 89\%    & 87\%    & 93\%    & 84\%    & 86\%    & 82\% \\
+%     \textit{Scan Object} & 55\%    & 42\%    & 72\%    & 65\%    & 91\%    & 97\%    & 92\%    & 96\% \\
+%     \textit{Shake Bottle Horizontally} & 98\%    & 92\%    & 99\%    & 99\%    & 100\%   & 100\%   & 99\%    & 98\% \\
+%     \textit{Shake Bottle} & 94\%    & 91\%    & 99\%    & 97\%    & 99\%    & 100\%   & 100\%   & 99\% \\
+%     \textit{Stack Blocks Three} & 72\%    & 52\%    & 91\%    & 76\%    & 92\%    & 99\%    & 96\%    & 95\% \\
+%     \textit{Stack Blocks Two} & 93\%    & 79\%    & 97\%    & 100\%   & 100\%   & 100\%   & 100\%   & 99\% \\
+%     \textit{Stack Bowls Three} & 77\%    & 75\%    & 77\%    & 71\%    & 72\%    & 83\%    & 71\%    & 77\% \\
+%     \textit{Stack Bowls Two} & 94\%    & 95\%    & 95\%    & 96\%    & 92\%    & 95\%    & 90\%    & 97\% \\
+%     \textit{Stamp Seal} & 46\%    & 33\%    & 79\%    & 55\%    & 76\%    & 86\%    & 74\%    & 77\% \\
+%     \textit{Turn Switch} & 41\%    & 42\%    & 62\%    & 54\%    & 61\%    & 65\%    & 67\%    & 63\% \\
+%     \midrule
+%     \textbf{Average (\%)} & 65.92 & 58.4  & 82.74 & 76.76 & 86.50 & 85.34 & \textbf{88.56} & \textbf{86.68} \\
+%     \bottomrule
+%     \end{tabular}}%}%
+%   \label{tab:robotwin}%
+% \end{table}%
+
+
+

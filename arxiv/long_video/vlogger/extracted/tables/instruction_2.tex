@@ -1,0 +1,23 @@
+\begin{table*}[h!]\centering
+    \begin{minipage}{0.98\linewidth}\vspace{0mm}    
+    \centering
+    \begin{tcolorbox} 
+        \centering
+        % \hspace{-6mm}
+        \begin{tabular}{p{0.99\linewidth}}
+        % \hspace{1mm}
+        \begin{minipage}{0.99\linewidth}
+User: I want to make a vlog, the following is the original story enclosed in three single quotes ```\{\textcolor[RGB]{243, 156, 18}{Story}\}''' and this is my vlog production script in the following three single quotes ```\{\textcolor{cyan}{Rough Script}\}''', a paragraph in the script corresponds to a clip of the vlog, but the description of some video clips is too complicated, please help me analyze and rewrite a video script, split each description into several short descriptions and as more as possible. For example, if there is one paragraph in the script I gave you, then you should split it into fifteen paragraphs. Provide me the answer in JSON format(do not answer anything else) with the following keys: video fragment id, video fragment description. You must answer like the content in the following three single quotes: ```[\{``video fragment id": 1, ``video fragment description": ``(the description)",\}, \{``video fragment id": 2, ``video fragment description": ``(the description)",\}, \{``video fragment id": 3, ``video fragment description": ``(the description)",\}]'''. Remember to make sure that the description of each video clip is not long, no more than ten words, but there can be so many video clips. As many fragments as possible, as detailed as possible! Ensure that all description statements are as natural and syntactically correct as possible. Very important!!!: Try to have only one character in the description and avoid complex actions in the video fragment description, such as loaded in, fight, etc.
+
+GPT-4: \textcolor{cyan}{[\{``video fragment id": 1, ``video fragment description": ``One day, Teddy was planning his trip on paper."\}, \{``video fragment id": 2, ``video fragment description": ``Backpack is in an airport."\}, \{``video fragment id": 3, ``video fragment description": ``People rush around the airport."\}, \{``video fragment id": 4, ``video fragment description": ``Teddy peeks out from backpack."\}, \{``video fragment id": 5, ``video fragment description": ``Eiffel Tower comes into view."\}, \{``video fragment id": 6, ``video fragment description": ``Teddy sits on a blanket."\}, \{``video fragment id": 7, ``video fragment description": ``Croissant crumbs lie nearby."\}, \{``video fragment id": 8, ``video fragment description": ``Scene shifts to Great Wall."\}, \{``video fragment id": 9, ``video fragment description": ``Teddy is at the wall's top."\}, \{``video fragment id": 10, ``video fragment description": ``Wide shot of surrounding landscape."\}, \{``video fragment id": 11, ``video fragment description": ``Transition to Egyptian pyramids."\}, \{``video fragment id": 12, ``video fragment description": ``Teddy poses near the structures."\}, \{``video fragment id": 13, ``video fragment description": ``A secret treasure is discovered."\}, \{``video fragment id": 14, ``video fragment description": ``Transition to cozy home setting."\}, \{``video fragment id": 15, ``video fragment description": ``Teddy reunites with his owner."\}, \{``video fragment id": 16, ``video fragment description": ``Owner reacts with surprise."\}, \{``video fragment id": 17, ``video fragment description": ``Teddy sits in a comfortable spot."\}, \{``video fragment id": 18, ``video fragment description": ``Teddy dreams of more adventures."\}
+]
+}
+ \end{minipage}
+        \end{tabular}
+    \end{tcolorbox}
+    \vspace{-2mm}
+    \caption{\textbf{The Detail Script planning process of Vlogger.} The \textcolor{cyan}{Detail Script}, \textcolor[RGB]{37, 204, 247}{Rough Script} and \textcolor[RGB]{243, 156, 18}{Story} are marked by \textcolor{cyan}{cyan}, \textcolor[RGB]{37, 204, 247}{spiro disco ball}, and \textcolor[RGB]{243, 156, 18}{orrange} respectively.
+    }
+    \label{tab:instruction_2}
+\end{minipage}
+\end{table*}

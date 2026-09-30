@@ -1,0 +1,43 @@
+\begin{table}[t]
+\centering
+\caption{
+\textbf{Evaluation on world-centric geometric reconstruction.}
+% Lower $\text{Rel}^p$ and higher $\delta^p$ indicate better performance.
+$^\dagger$denotes using post-optimization. 
+Note that,
+our results are reported without any post-optimization.
+}
+\vspace{-0.5em}
+\label{tab:geo_only}
+\begin{adjustbox}{width=\linewidth}
+\begin{tabular}{@{}l cc cc cc c@{}}
+\toprule
+\multirow{2}{*}{\textbf{Method}} &
+\multicolumn{2}{c}{\textbf{Monkaa}~\cite{mayer2016large}} &
+\multicolumn{2}{c}{\textbf{Sintel}~\cite{sintel}} &
+\multicolumn{2}{c}{\textbf{DDAD}~\cite{ddad2020}} &
+\textbf{Avg.}  \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+&
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+\textbf{Rank} $\!\downarrow$
+\\
+\midrule
+\ \underline{Camera-centric} & & & & & & & \\ 
+DepthPro~\cite{bochkovskiy2025depth} & 36.96 & 63.65 & 43.30 & 42.30 & 35.38 & 45.49 & 7.00 \\
+MoGe~\cite{wang2024moge} & 35.21 & 65.95 & 35.28 & 60.97 & 18.63 & 77.07 & 4.33 \\
+GeoCrafter~\cite{xu2025geometrycrafter} & 33.44 & 65.79 & 30.61 & 68.07 & 19.17 & 76.39 & 3.33 \\
+\midrule
+\ \underline{World-centric} & & & & & & & \\
+MonST3R~\cite{zhang24monst3r}$^\dagger$ & 41.41 & 31.46 & 37.65 & 51.41 & 31.56 & 55.30 & 6.33 \\
+VGGT~\cite{wang2025vggt} & 34.54 & 56.65 & \textbf{26.83} & \textbf{67.91} & 15.98 & 84.06 & \textbf{2.33} \\
+Geo4D~\cite{jiang2025geo4d}$^\dagger$ & 28.04 & 69.52 & 34.61 & 59.54 & \textbf{14.58} & \textbf{83.68} & \textbf{2.33} \\
+St4RTrack~\cite{st4rtrack2025} & 47.04 & 45.46 & 40.59 & 51.54 & 39.59 & 32.47 & 7.67 \\
+\textbf{Ours} & \textbf{25.88} & \textbf{74.01} & 32.46 & 63.14 & 21.27 & 72.82 & 2.67 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\vspace{-1em}
+\end{table}

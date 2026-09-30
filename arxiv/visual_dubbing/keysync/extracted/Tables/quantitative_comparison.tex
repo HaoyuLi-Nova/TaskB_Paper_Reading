@@ -1,0 +1,29 @@
+\begin{table*}[ht]
+\centering
+\begin{tabular}{llccccccc}
+\toprule
+                                          & \multirow{2}{*}{Method}      & \multirow{2}{*}{\makecell{CMMD }} & \multirow{2}{*}{\makecell{TOPIQ $\uparrow$}} & \multirow{2}{*}{\makecell{VL $\uparrow$}} & \multirow{2}{*}{\makecell{FVD }} & \multirow{2}{*}{\makecell{LipScore $\uparrow$}} 
+                                          & \multirow{2}{*}{\makecell{LipLeak }} & \multirow{2}{*}{\makecell{Elo $\uparrow$}} \\ \\ \midrule
+\multirow{6}{*}{\STAB{\rotatebox[origin=c]{90}{Reconstruction}}}    & DiffDub~\cite{DiffDub}     &  0.403  &       0.44    & 37.12 &429.07   &   0.34    & -  &   1014  \\         
+& IP\_ LAP~\cite{Zhong_2023_CVPR}     & \underline{0.091}   &  \underline{0.49}   &  37.77 &\underline{282.02}    &  0.36    &   -    &  1007     \\
+& Diff2Lip~\cite{diff2lip}   &   0.225     &   0.48    & 35.84 & 555.08   &   0.49    &  -   &  886    \\
+                                          & TalkLip~\cite{talklip}   & 0.230   &  0.39     & 29.07  &608.92   & \textbf{0.58}   &    -   & 920       \\ 
+                                          & LatentSync~\cite{latentsync}   & 0.319   &  0.41     & \underline{45.23}  &343.90   & \underline{0.52}   &    -   &    \underline{1052}    \\ 
+                                          & \cellcolor{cvprblue!40}KeySync &  \cellcolor{cvprblue!40}\textbf{0.064} &  \cellcolor{cvprblue!40}\textbf{0.58}  &  \cellcolor{cvprblue!40}\textbf{70.32} & \cellcolor{cvprblue!40}\textbf{191.21}  &  \cellcolor{cvprblue!40}0.46    & \cellcolor{cvprblue!40}- & \cellcolor{cvprblue!40}\textbf{1120} \\ \hline
+\multicolumn{1}{c}{\multirow{6}{*}{\STAB{\rotatebox[origin=c]{90}{Cross-sync}}}} 
+
+& DiffDub~\cite{DiffDub}         &  0.408  &    0.44   & 37.05 &420.66     & \underline{0.34}    & 0.56     &  947       \\
+\multicolumn{1}{c}{}                      & IP\_\ LAP~\cite{Zhong_2023_CVPR}    &  \underline{0.093}  &   0.49  & 35.32 &\underline{294.66}   &  0.17    &  0.28     &     1031      \\
+\multicolumn{1}{c}{}                      & Diff2Lip~\cite{diff2lip}   & 0.231  & \underline{0.48}   &33.97 &601.68  &  0.16    & \underline{0.25}    &       878        \\
+
+\multicolumn{1}{c}{}                      & TalkLip~\cite{talklip}    & 0.201  &  0.42  & 24.80  &704.93   &  0.30  &  0.66      &    911    \\
+& LatentSync~\cite{latentsync}   & 0.325  &  0.41     & \underline{45.95}  &361.57   & 0.14   &    0.33   &   \underline{1086}    \\ 
+\multicolumn{1}{c}{}                      & \cellcolor{cvprblue!40}KeySync &  \cellcolor{cvprblue!40}\textbf{0.070}
+ &  \cellcolor{cvprblue!40}\textbf{0.58}  &  \cellcolor{cvprblue!40}\textbf{73.04} & \cellcolor{cvprblue!40}\textbf{206.32}  &  \cellcolor{cvprblue!40}\textbf{0.48}    & \cellcolor{cvprblue!40}\textbf{0.16}   & \cellcolor{cvprblue!40}\textbf{1145}  \\ 
+                                         \bottomrule
+\end{tabular}
+
+\caption{\textbf{Quantitative comparison with other works} on reconstruction and cross-synchronization performance. The best results are highlighted in \textbf{bold}, while the second-best results are \underline{underlined}. All metrics are described in Section~\ref{sec:metrics}.
+}
+\label{tab:metrics_comparison}
+\end{table*}

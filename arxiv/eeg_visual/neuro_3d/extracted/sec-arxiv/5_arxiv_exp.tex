@@ -1,0 +1,171 @@
+\section{Experiments}
+
+
+
+\subsection{Experimental Setup}
+
+\textbf{Implementation Details.} We utilize the AdamW optimizer \cite{kingma2014adam} with $\beta=(0.95,0.999)$ and an initial learning rate of $1\times 10^{-3}$. The loss coefficients $\alpha$ and $\gamma$ in Eq.~\eqref{alpha} and Eq.~\eqref{gamma} are set to 0.01 and 0.1, respectively. The dimension of the extracted features ($f_\mathrm{g}$ and $f_\mathrm{a}$) is $1024$. The point cloud consists of $N=8192$ points, and each video sequence is downsampled to $n=4$ frames for feature extraction to facilitate alignment with EEG features. Our method is implemented in PyTorch on a single A100 GPU.  In colored point cloud decoder, Point-Voxel Network (PVN)~\cite{liu2019point} is used as the denoising function of shape diffusion model and single-step color prediction model.
+
+\textbf{Evaluation Benchmarks.} To thoroughly evaluate the 3D decoding performance on EEG-3D, we construct two evaluation benchmarks: 3D visual classification benchmark for evaluating the EEG encoder, and 3D object reconstruction benchmark for assessing the 3D reconstruction pipeline.
+(1) \textbf{3D visual classification benchmark.} To assess the high-level visual semantic decoding performance on EEG signals,
+we evaluate on two classification tasks: object classification (72 categories) and color type classification (6 categories).
+We select top-K accuracies as the evaluation metric for these tasks. 
+(2) \textbf{3D object reconstruction benchmark.} 
+Following 2D visual decoding methods~\cite{li2024visual,chen2024cinematic,chen2023seeing}, we adopt N-way top-K accuracy to assess the semantic fidelity of generated 3D objects.
+Specifically, we train an additional classifier to predict objects categories of point clouds, with training data derived from the Objaverse dataset \cite{deitke2023objaverse, xu2023pointllm}.
+The evaluation metrics include 2-way top-1 and 10-way top-3 accuracies, calculated from the average across five generation results as well as the best-performing result in each case. 
+Furthermore, we calculate 3D point cloud-based geometric metrics (Chamfer Distance ($\times 10^{-2}$) and F1 score ($\%$)) to assess depth-related information.
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=0.80\textwidth]{figure/picture_result_v1.pdf} 
+	\caption{The qualitative results reconstructed by Neuro-3D with two different samplings trials, and the corresponding ground truth.}
+	\label{fig-results}
+	\vspace{-0.2cm}
+\end{figure*}
+
+
+
+\subsection{Classification Task}
+
+We assess the performance of the proposed dynamic-static EEG-fusion encoder on the classification tasks. 
+
+\vspace{-0.2cm}
+
+\subsubsection{Comparison with Related Methods}
+
+
+
+We re-implement several state-of-the-art EEG encoders~\cite{schirrmeister2017deep,lawhern2018eegnet,song2022eeg,song2023decoding} for comparative analysis by training separate object and color classifiers. 
+Tab. \ref{tab-classify} presents the overall accuracy of various EEG classifiers. All methods exceed chance-level performance by a significant margin, suggesting that the collected EEG signals successfully capture the visual perception processed in the brain. Notably, our proposed EEG-fusion encoder outperforms all baseline methods across all metrics, demonstrating its superior ability in extracting semantically meaningful and discriminative neural representations related with high-level visual perception.
+
+\begin{table}[t]
+	\centering
+	\renewcommand\arraystretch{1.0}
+	\footnotesize
+	\begin{tabular}{ c c  c  c  c}
+		\Xhline{2\arrayrulewidth}
+		
+		\multirow{2}*[-3pt]{\textbf{Method}} 
+		\rule{0pt}{2pt} & \multicolumn{2}{c}{\multirow{1}{*}[-1pt]{\textbf{\textbf{Object Type}}}}
+		& \multicolumn{2}{c}{\multirow{1}{*}[-1pt]{\textbf{\textbf{Color Type}}}} \\ [-1.5pt]
+		\cmidrule(l{5pt}r{5pt}){2-3}\cmidrule(l{5pt}r{5pt}){4-5}
+		& \multirow{1}{*}[0.8pt]{\textbf{top-1}} & \multirow{1}{*}[0.8pt]{\textbf{top-5}}  & \multirow{1}{*}[0.8pt]{\textbf{top-1}} 
+		& \multirow{1}{*}[0.8pt]{\textbf{top-2}}\\
+		\hline
+		\multirow{1}{*}{Chance level} 
+		& 1.39  & 6.94 & 16.67 & 33.33 \\
+		\hline
+		\multirow{1}{*}{DeepNet (2017) \cite{schirrmeister2017deep}} 
+		& 3.70  & 9.90 & 20.95 & 49.71 \\
+		\multirow{1}{*}{EEGNet (2018) \cite{lawhern2018eegnet}} 
+		& 3.82  & 9.72 & 18.35 & 46.47 \\
+		\multirow{1}{*}{Conformer (2023) \cite{song2022eeg}} 
+		& 4.05  & 10.30 & 18.27 & 35.81 \\
+		\multirow{1}{*}{TSConv (2024) \cite{song2023decoding}} 
+		& 4.05  & 10.13 & 31.13 & 59.49 \\ \hline
+		\multirow{1}{*}{\textbf{Neuro-3D}} 
+		& \textbf{5.91} & \textbf{16.30} & \textbf{39.93} & \textbf{61.40}\\
+		\Xhline{2\arrayrulewidth}
+	\end{tabular}
+	\caption{Comparison results on two classification tasks.}
+	\label{tab-classify}
+	\vspace{-0.3cm}
+\end{table}
+
+\begin{table}[b]
+	\centering
+	\renewcommand\arraystretch{1.0}
+	\footnotesize
+	\begin{tabular}{ c c c c c  c  c }
+		\Xhline{2\arrayrulewidth}
+		
+		\multirow{2}*[-3pt]{\textbf{St.}} & \multirow{2}*[-3pt]{\textbf{Dy.}} & \multirow{2}*[-3pt]{\textbf{Agg.}} \rule{0pt}{2pt} & \multicolumn{2}{c}{\multirow{1}{*}[-1pt]{\textbf{\textbf{Object Type}}}}
+		& \multicolumn{2}{c}{\multirow{1}{*}[-1pt]{\textbf{\textbf{Color Type}}}} \\ [-1.5pt]
+		\cmidrule(l{5pt}r{5pt}){4-5}\cmidrule(l{5pt}r{5pt}){6-7}
+		& & & \multirow{1}{*}[0.8pt]{\textbf{top-1}} & \multirow{1}{*}[0.8pt]{\textbf{top-5}}  & \multirow{1}{*}[0.8pt]{\textbf{top-1}} 
+		& \multirow{1}{*}[0.8pt]{\textbf{top-2}}\\
+		\hline
+		\textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}} & \textcolor{red}{\ding{55}}  & 5.10   & 15.62 & 37.50 & 57.64 \\
+		\textcolor{red}{\ding{55}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}}  & 4.75 & 13.89 & 35.65 & 55.61 \\ 
+		\textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{red}{\ding{55}}  & 5.44& 15.86 & 39.12 & 58.85 \\
+		\textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}} & \textcolor{green}{\ding{51}}  & \textbf{5.91} & \textbf{16.30} & \textbf{39.93} & \textbf{61.40}\\
+		\Xhline{2\arrayrulewidth}
+	\end{tabular}
+	\caption{Ablation experiment results on classification tasks. The table presents the results obtained using static signals (St.), dynamic signals (Dy.), as well as the outcomes from the concatenation of the two signal types without feature aggregation (Agg.).}
+	\label{tab-ablation}
+\end{table}
+
+\subsubsection{Ablation Study}
+
+We conduct an ablation study to assess the impact of using different EEG signals and modules, as shown in Tab. \ref{tab-ablation}. Compared to using only dynamic features, the performance improves when static features are incorporated. This enhancement may be attributed to the longer duration of the video stimulus, during which factors such as blinking and distraction introduce noise into the dynamic signal, thereby reducing its effectiveness. When the static and dynamic features are simply concatenated, the performance improves compared to using either signal alone, suggesting complementary information between the two signals. Further performance gains are achieved through our attention-based neural aggregator, which adaptively integrates the dynamic and static features. This demonstrates that our method can leverage the information from both EEG features while mitigating the challenges posed by the low signal-to-noise ratio inherent in EEG, thereby enhancing model robustness. 
+
+\begin{table}[]
+	\centering
+	\renewcommand\arraystretch{1.0}
+	\footnotesize
+	\begin{tabular}{ c c c  c  c  c  c}
+		\Xhline{2\arrayrulewidth}
+		
+		\multirow{2}*[-3pt]{\textbf{Method}} \rule{0pt}{2pt} & \multicolumn{2}{c}{\multirow{1}{*}[-1pt]{\textbf{\textbf{Average}}}}
+		& \multicolumn{4}{c}{\multirow{1}{*}[-1pt]{\textbf{\textbf{Top-1 of 5 samples}}}}  \\ [-1.5pt]
+		\cmidrule(l{5pt}r{5pt}){2-3}\cmidrule(l{5pt}r{5pt}){4-7}
+		& \multirow{1}{*}[0.8pt]{\textbf{(2, 1)}} & \multirow{1}{*}[0.8pt]{\textbf{(10, 3)}}  & \multirow{1}{*}[0.8pt]{\textbf{(2, 1)}} 
+		& \multirow{1}{*}[0.8pt]{\textbf{(10, 3)}} & \multirow{1}{*}[0.8pt]{\textbf{CD}} & \multirow{1}{*}[0.8pt]{\textbf{F1}}\\
+		\hline
+		\textbf{Static} & 51.64 & 32.39 & 68.75  & 55.14 & 6.75 & 67.61 \\
+		\textbf{Dynamic} & 50.86 & 31.50 & 71.25 & 54.30 & 6.40 & 69.42 \\
+		\textbf{Concat} & 53.22 & 34.11 & 69.72 & 56.53 & 5.84 & 73.47 \\
+		\textbf{w/o De.} & 53.94  & 34.42 & 65.00 & 48.54 & 5.81 & 73.36 \\
+		\textbf{Full} & \textbf{55.81}  & \textbf{35.89} & \textbf{72.08} & \textbf{57.64} & \textbf{5.35} & \textbf{77.01} \\
+		\Xhline{2\arrayrulewidth}
+	\end{tabular}
+	\caption{Quantitative results of 3D reconstruction, where (N, t) indicates (N-way top-K) result of reconstructed samples.}
+	\label{tab-recon}
+	\vspace{-0.2cm}
+\end{table}
+
+
+\subsection{3D Reconstruction Task}
+
+\subsubsection{Quantitative Results}
+
+Quantitative results of various baseline models and our proposed Neuro-3D model are presented in Tab.~\ref{tab-recon}. The generation performance is notably reduced when employing static or dynamic EEG features in isolation.  
+Moreover, dynamic information leads to improved performance in geometric metrics compared to static information alone, suggesting that dynamic stimuli provide richer depth and geometric information in EEG signals.
+Static EEG features offer stability yet lack sufficient 3D details, whereas dynamic video features provide a more comprehensive 3D representation but suffer from a lower signal-to-noise ratio. 
+Integrating static and dynamic features leads to more comprehensive and stable neural representation, thereby enhancing the generation performance.
+Furthermore, compared to direct feature concatenation, our proposed neural aggregator effectively merges static and dynamic information, reducing noise interference and further improving reconstruction performance. The decoupling of shape and color features minimizes cross-feature interference, yielding significant advancements in 3D generation quality. Additionally, comparisons between Tab.~\ref{tab-recon} and Tab.~\ref{tab-ablation} reveal a positive correlation between generation quality and classification accuracy, confirming that 
+enriching features with high-level semantics enhances visual reconstruction performance.
+
+\subsubsection{Reconstructed Examples}
+
+Fig.~\ref{fig-results} presents the generated results produced by Neuro-3D and the corresponding ground truth objects. The results demonstrate that Neuro-3D not only successfully reconstructs simpler objects such as kegs and potteries but also performs well with more complex structures (such as elephants and horses), underscoring the model’s robust shape perception capabilities. In terms of color generation, while the low spatial resolution of EEG signals poses challenges for detailed texture synthesis, our method effectively captures color styles that closely resemble actual objects. 
+
+\begin{figure}[t]
+	\centering
+	\begin{subfigure}{0.85\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{figure/all_hot.pdf} 
+		\caption{EEG Electrode Channel Analysis}
+		\label{fig_areas1}
+	\end{subfigure}
+	
+	
+	\begin{subfigure}{0.85\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{figure/areas_v2.pdf}
+		\caption{Brain Region Analysis}
+		\label{fig_areas2}
+	\end{subfigure}
+	\caption{Analysis of brain areas. (a) displays the top-1 and top-5 accuracies of 3 subjects on object classification task by removing individual EEG electrode channels. (b) illustrates the top-5 classification results after selectively removing electrodes from different brain regions, under varying signal conditions.}
+	\label{fig_areas}
+	\vspace{-0.2cm}
+\end{figure}
+
+\subsection{Analysis of Brain Regions}
+\label{analysis-brain}
+
+
+To examine the contribution of different brain regions to 3D visual perception, we generated saliency maps for 3 subjects by sequentially removing each of the 64 electrode channels, as illustrated in Fig. \ref{fig_areas}~(a). Notably, the removal of occipital electrodes presents the most significant effect on performance, as this region is strongly linked to the brain's visual processing pathways. This finding aligns with the previous neuroscience discoveries regarding the brain's visual processing mechanisms~\cite{grill2001lateral,song2023decoding,li2024visual}. Moreover, previous studies have identified the inferior temporal cortex in the temporal lobe as crucial for high-level semantic processing and object recognition~\cite{dicarlo2007untangling,bao2020map}. Consistent with this, the results shown in Fig.~\ref{fig_areas}~(a) suggest a potential correlation between visual decoding performance and this brain region. A comparative analysis of classification results across different subjects reveals substantial variability in EEG signals between individuals. 
+
+We further assess the visual decoding performance by sequentially removing electrodes from five distinct brain regions. As shown in Fig.~\ref{fig_areas}~(b), removal of electrodes from the occipital or temporal regions led to a marked decrease in performance, which is consistent with our expectations. Additionally, removing electrodes from the temporal or parietal regions results in a more pronounced performance decline for dynamic stimuli, compared to static stimuli. This effect is likely attributed to the involvement of the dorsal visual pathway, which is responsible for motion perception and runs from middle temporal visual area, medial superior temporal area and ventral intraparietal cortex in the parietal lobe \cite{salzman1992microstimulation,gu2012causal,chen2011representation}.

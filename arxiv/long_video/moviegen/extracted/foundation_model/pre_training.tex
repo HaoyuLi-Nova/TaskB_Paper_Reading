@@ -1,0 +1,185 @@
+
+\subsection{\Pretraining}%
+\subsubsection{\Pretraining Data}
+\label{sec:pt-data} %
+
+Our \pretraining dataset consists of \videoDataSize
+video-text pairs and \imageDataSize image-text pairs.
+We follow the \pretraining data curation strategy similar to~\citep{dai2023emu} for image-text data curation and focus on video data curation in this section.
+
+Our original pool of data consists of videos that are 4 seconds to 2 minutes long, spanning concepts from different domains such as humans, nature, animals, and objects.
+Our data curation pipeline yields our final \pretraining set of clip-prompt pairs, where each clip is 4s -- 16s long, with single-shot camera and non-trivial motion.
+Our data curation pipeline is illustrated in~\cref{img:t2v_pt_data}.
+It consists of three filtering stages: 1) visual filtering, 2) motion filtering, and 3) content filtering, and one captioning stage. The filtered clips are annotated with detailed generated captions containing 100 words on average. We describe each stage in detail below.
+
+\begin{figure}[b!]
+    \centering
+    \includegraphics[width=\linewidth]{figures/foundation_model/t2v_pre-training_data.pdf}
+    \caption{\textbf{\OursVideo \pretraining data curation pipeline.}
+    We filter a large pool of videos through multiple stages to produce a small set of high-quality training clips with associated prompts.}
+    \label{img:t2v_pt_data}
+\end{figure}
+
+\textbf{Visual filtering.}
+We apply a series of 6 filters to remove videos with low visual quality. We remove videos of size smaller than a minimum width or height of 720 px.
+We filter on aspect ratio to achieve a mix of 60\% landscape and 40\% portrait videos.
+We prefer landscape videos over portrait videos due to their longer duration, better aesthetics, and stable motion.
+We use a video OCR model to remove videos with excessive text. We also perform scene boundary detection using FFmpeg~\citep{ffmpeg} to extract 4 to 16 second long clips from these videos.
+We then train simple visual models to obtain prediction signals for filtering based on frame-level visual aesthetic, visual quality, large borders, and visual effects.
+Following Panda-70M~\citep{chen2024panda70m}, we remove the first few seconds of clips whose start coincides with the beginning of a video, as the beginning of a video usually contains unstable camera movement or transition effects.
+
+\textbf{Motion filtering.}
+We follow prior work~\citep{emuvideo2023} to automatically filter out low motion videos.
+First, we used an internal static video detection model to remove videos with no motion.
+Next, we identified videos with `reasonable' motion based on their VMAF motion scores and motion vectors~\citep{ffmpeg}.
+To remove videos with frequent jittery camera movements, we used Shot Boundary Detection from the PySceneDetect~\citep{pyscenedetect} library.
+Finally, we removed videos with special motion effects, \eg, slideshow videos.
+
+\textbf{Content filtering.}
+To ensure diversity in our \pretraining set, we remove perceptually duplicate clips in our \pretraining set using similarity in a copy-detection embedding~\citep{pizzi2022self} space.
+We also reduce the prevalence of dominant concepts by resampling to create our training set.
+We cluster semantic embeddings from a video-text joint embedding model
+to identify fine grained concept clusters.
+Next, we merge duplicate clusters and sample clips from each merged cluster according to the inverse square root of the cluster size~\citep{mahajan2018exploring}.
+
+
+\textbf{Captioning.}
+We create accurate and detailed text prompts for the video clips by using the \llamaVideo~\citep{llama3} model.
+We finetune the 8B and 70B variants of the model for the video captioning task and use these models to caption the entire training set of video clips.
+Our training set consists of 70\% 8B captions and 30\% 70B captions.
+To enable cinematic camera motion control, we train a camera motion classifier which predicts one of 16 classes of camera motion \eg, zoom-out, pan-left, \etc (see~\Cref{appendix:data_camera_motion} for more details).
+We prefix high-confidence camera motion predictions to the previously generated text captions.
+At inference, this allows a user to specify explicit camera control for video generation.
+
+
+
+
+
+
+
+
+\textbf{Multi-stage data curation.}
+We curate 3 subsets of \pretraining data with progressively stricter visual, motion, and content thresholds to meet the needs of different stages of \pretraining.
+First, we curated a set of video clips with a minimum width and height of 720 px for low-resolution training.
+Next, we filtered the set to provide videos with a minimum width and height of 768 px for high-resolution training.
+Finally, we curated new videos augmenting our high-resolution training set.
+Our high resolution set has 80\% landscape and 20\% portrait videos, with at least 60\% of them containing humans. During curation, we established a taxonomy of 600 human verbs and expressions and performed zero-shot text-to-video retrieval using the taxonomy to select videos with humans in them.
+We preserved the frequency of these human videos during content resampling. See~\Cref{appendix:data_curation_thresholds} for details on thresholds for curation of these videos.
+
+\begin{table}[!t]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{cccc}
+        \toprule
+        Duration & FPS & \#video frames & \#latent frames \\
+        \midrule
+        10.67s & 24 & 256 & 32 \\
+        16s & 16 & 256 & 32 \\
+        12s - 16s & 21 - 16 & 256 & 32 \\
+        8s - 12s & 24 - 16 & 192 & 24 \\
+        4s - 8s & 32 - 16 & 128 & 16 \\
+        \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Duration buckets for the \textToVShort pre-training datasets.}
+    We split our training videos into five buckets based on their duration and FPS.
+    Videos in each bucket have the same number of latent frames which allows for easy batching of training data.
+    The buckets for the last three rows are based on the original duration of the video clips.
+    The buckets for the first two rows are created based on middle clips sampled from videos of $10.67$-$12$ seconds and $\geq$ 16 seconds respectively.
+    }
+    \label{tab:t2v_pt_bucket}
+\end{table}
+
+\noindent \textbf{Bucketization for variable duration and size.}
+To accommodate diverse video lengths and aspect ratios, we bucketize the training data according to aspect ratio and length.
+The videos in each bucket lead to the exact same latent shape which allows for easy batching of training data.
+We use five aspect ratio buckets for both image and video datasets.
+Thus, our model can generate images and videos of different aspect ratios, \eg, $1024 \times 576$ for landscape and $576 \times 1024$ for portrait.
+We define five duration buckets (4s -- 16s) and adjust the number of latent frames according to video length (see~\cref{tab:t2v_pt_bucket}).
+As described in~\cref{sec:t2v_text_encoder}, we introduce FPS control by adding an FPS token to the text caption, allowing us to sample videos at different frame rates (16 -- 32 FPS).
+
+\subsubsection{Training}
+We describe the training details for our 30B parameter model.
+To improve training efficiency and model scalability, we employ a multi-stage training procedure, similar to~\citep{emuvideo2023}.
+This procedure consists of three main steps:
+\begin{itemize}
+    \item Initial training on the \textToI (\textToIShort) task, followed by joint training on both \textToI and \textToV (\textToVShort) tasks;
+    \item Progressive resolution scaling from low-resolution $256$ px data to high-resolution $768$ px data;
+    \item Continuous training using improved datasets and optimized training recipes while working with compute and time restrictions.
+\end{itemize}
+The training recipe is summarized in~\cref{tab:t2v_pt_recipe}.
+We maintain a validation set of unseen videos and monitored the validation loss throughout training.
+We observed that the validation loss for our model correlated well with visual quality judged by human evaluations.
+
+\noindent \textbf{\TextToI Warm-up Training}.
+Jointly training \textToIVShort models is significantly slower and more memory-intensive than training T2I models alone, primarily due to the substantially longer latent token length (\eg, 32$\times$).
+Furthermore, we observed that directly training \textToIVShort models from scratch results in a slower convergence speed than initializing them from a \textToIShort model.
+For instance, after training for the same number of GPU hours, we noticed significantly worse visual and temporal quality for both \textToIShort and T2V tasks compared to our proposed multi-stage training approach.
+To address this, we begin with a T2I-only warm-up training stage.
+Rather than training at the target 768 px resolution, we train this stage at a lower resolution (256 px) which allows us to train with a larger batch size and on more training data for the same training compute.
+
+
+
+
+
+
+
+
+\begin{table}[!t]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{lcccccccrr}
+        \toprule
+        Training stage & Dataset & TP & CP & bs/node & \#GPUs & global bs & learning rate & \#iters & \#seen samples \\
+        \midrule
+        256 px T2I & \imageDataSize images & 1 & 1 & 48 & 1536 & 9216 & 1e-4 &
+        210k & 1.94B \\
+        \bottomrule
+        \toprule
+        \multirow{3}{*}{256 px T2I/V} & \multirow{2}{*}{\videoDataSize clips} & 4 & 1 & 4 & 3072 & 1536 & 6e-5 &
+        123k & 173.6M \\
+        & & 4 & 1 & 4 & 6144 & 3072 & 6e-5 & 72k & 221.2M \\
+        \cmidrule{2-10}
+        & {\bf Total} & & & & & & & {\bf 185k} & {\bf 394.8M} \\
+        \bottomrule
+        \toprule
+        \multirow{6}{*}{768 px T2I/V} & \multirow{4}{*}{\shortstack{\videoDataSize clips}} & 4 & 1 & 2 & 6144 & 1536 & 6e-5 & 19.6k & 30.1M \\
+        & & 4 & 1 & 2 & 6144 & 1536 & 3e-5 & 11k & 16.9M \\
+        & & 4 & 2 & 1 & 6144 & 768 & 2e-5 & 15.9k & 12.2M \\
+        & & 4 & 2 & 1 & 4096 & 512 & 1e-5 & 28k & 14.6M \\
+
+
+        \cmidrule{2-10}
+        & {\bf Total} & & & & & & & {\bf 74.5k} & {\bf 73.8M} \\
+        \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Progressive recipe and datasets for T2I/V pre-training.} Note that: (1) besides the listed video datasets, the same image dataset used for T2I training is also used in T2I/V training with a ratio of 1:10 over video data, and (2) the video datasets of difference sources are sampled with ratios respecting to the volume of the dataset
+    }
+    \label{tab:t2v_pt_recipe}
+\end{table}
+
+
+\noindent \textbf{T2I/V Joint Training}.
+After the \textToIShort warmup training, we train the model jointly for \textToI and \textToV.
+To enable the joint training, we double the spatial positional embedding (PE) layers to accommodate various aspect ratios,
+add new temporal PE layers to support up to 32 latent frames,
+and initialize spatial PE layers from the \textToIShort model with $2\times$ expansion.
+We first use 256 px resolution images and videos for the \textToIVShort joint training.
+For the 768 px stage, we expand the spatial PE layers by $3\times$.
+\cref{tab:t2v_pt_recipe} summarizes the training recipe.
+\begin{itemize}
+    \item \textbf{256 px T2I/V stage.}
+    We use a large batch size of 1536 samples and a larger learning rate $6e^{-5}$ that results in stable training.
+    After 123k iterations, we double the number of GPUs, yielding the $2 \times$ bigger global batch size and a significant drop in the validation loss.
+    We stop the training at 185k iterations after 395M (4+ epochs) video samples.
+    \item \textbf{768 px T2I/V stage.}
+    We observe that the validation loss decreases quickly in the first 10k iterations and then fluctuates, see~\cref{fig:t2v_pt_eval_losses_and_eval}.
+    We reduce the learning rate by half at 19.6k iterations which further reduces the loss.
+    We continue to train the model and decrease the learning rate whenever the validation loss plateaus.
+\end{itemize}
+
+
+
+
+
+
+

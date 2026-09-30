@@ -1,0 +1,253 @@
+
+\renewcommand{\thetable}{R\arabic{table}}
+\renewcommand\thefigure{S\arabic{figure}}
+
+\appendix
+\section*{Appendix}
+
+\section{Internal Video Diffusion Model for Research Purpose} \label{subsec:videobackbone}
+
+Our model is a transformer-based latent diffusion model, as illustrated in the~\figref{fig:dit_backbone}. Initially, we employ a 3D VAE to transform videos from the pixel level to a latent space, upon which we construct a transformer-based video diffusion model~\citep{peebles2023scalable}. Previous models, which rely on UNets~\citep{blattmann2023stable,chen2023videocrafter1,guo2023animatediff} or transformers~\citep{ma2024latte}, typically incorporate an additional 1D temporal attention module for video generation, and such spatial-temporally separated designs do not yield optimal results. Instead, we replace the 1D temporal attention with 3D self-attention~\citep{gupta2023photorealistic}, enabling the model to more effectively perceive and process spatiotemporal tokens, thereby achieving a high-quality and coherent video generation model. Specifically, we map the timestep to a scale, thereby applying RMSNorm to the spatiotemporal tokens before each attention or feed-forward network (FFN) module.
+
+\begin{figure*}[ht]
+\centering
+\includegraphics[width=.9\linewidth]{figs/supp/DiT_backbone.pdf}
+\caption{\textbf{Our Video Latent Diffusion Model Backbone}}
+\label{fig:dit_backbone}
+\end{figure*}
+
+
+\section{Additional Related Work}
+
+\noindent \textbf{Injecting Control into Video Foundation Models.} \textit{(1) Learning-based}: The control signals are typically projected into latent embeddings via an extra encoder (\eg, learnable convolutional/linear/attention/LoRA layers, or frozen pre-trained feature encoder), which are then integrated into the base model architecture through concatenation, addition, or insertion. VideoComposer[1] employs a unified STC-encoder and CLIP model to feed multi-modal input conditions (textual, spatial, and temporal) into the base T2V model. MotionCtrl~\citep{wang2024motionctrl} introduces camera motion by fine-tuning specific layers of the base U-Net, and object motion via additional convolutional layers. CameraCtrl~\citep{he2024cameractrl} enhances this approach by incorporating ControlNet~\citep{zhang2023adding}'s philosophy, using an attention-based pose encoder to fuse camera signals in the form of Plücker embeddings while keeping the base model frozen. Similarly, SparseCtrl~\citep{guo2023sparsectrl} learns an add-on encoder to integrate control signals (RGB, sketch, depth) into the base model. Tora~\citep{zhang2024tora} employs a trajectory encoder and plug-and-play motion fuser to merge 2D trajectories with the base video model. MotionDirector[7] leverages spatial and temporal LoRA layers to learn desired motion patterns from reference videos.
+\textit{(2) Training-free}: These methods modify attention layers or video latents to adjust control signals in a computationally efficient manner. However, training-free methods often suffer from poor generalization and require extensive trial-and-error. Direct-a-video~\citep{yang2024direct} amplifies or suppresses attention in spatial cross-attention layers to inject box guidance, while FreeTraj~\citep{qiu2024freetraj} embeds target trajectories into the low-frequency components and redesigns reweighting strategies across attention layers. MOFT~\citep{xiao2024video} extracts motion priors by removing content correlation and applying motion channel filtering, and then alters the sampling process using the reference MOFT. 
+
+\section{Additional Applications}
+
+We outline our potential applications in various areas as follows.
+
+1) \textbf{Film:} Reproduce the character's classic moves. We can extract the human poses from a given video and apply them to different entities and backgrounds using the capabilities of our model.
+
+2) \textbf{Autonomous Driving:}  Simulate dangerous safety accidents, such as two cars colliding and a car hitting a person.
+
+3) \textbf{Embodied AI:} Generate a vast number of videos with diverse entity and trajectory inputs to train a general 4D pose estimator, especially for non-rigid objects.
+
+4) \textbf{Game:} Train a character ID, such as Black Myth Wukong, through LoRA, and then drive the character movement with different trajectories.
+
+\section{Clarification of the Limited Entity Number ($\leq$3)} 
+
+Currently, our method is limited to generating up to 3 entities, as outlined in the `Limitation' section of the paper. This constraint is primarily due to the capabilities of the video foundation model rather than the training data. While it is relatively easy to generate $\gg$2 entities of the same category (e.g., ``a group of people/cars/animals") in the video, it becomes much more challenging to generate $\gg$2 entities, each differing greatly from the others, through the text input as T5 text encoder tends to mix the textual features of different entities. Thus it becomes hard to associate specific trajectories with their corresponding text entities. Based on empirical studies with video foundation models, we chose to limit the number of entities to 3 in our work. Regarding data construction, it is easy to include more entities with their paired trajectories in our procedure UE platform pipeline. However, the key limitation is that the video foundation model struggles to generate such a diverse set of entities simultaneously. Furthermore, many prior works, such as Tora, MotionCtrl, and Direct-a-video also focus on a limited number of entities.
+
+\section{Dataset Illustration} 
+
+\subsection{360$^{\circ}$-Motion Dataset Data.} \label{subsec:360motiondataset}
+We show a sample in~\figref{fig:supp_dataset} captured with 12 evenly-surrounded cameras. Each camera shoots a clip of 100 frames at 384$\times$672 resolutions. During training, we discard the initial 10 frames to eliminate potential blurring and noise caused by 3D model initialization in the UE platform.
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figs/supp/supp_dataset.pdf}
+\caption{\textbf{A Sample from our \textit{360$^{\circ}$-Motion} Captured with 12 Evenly-Surrounded Cameras.}}
+\label{fig:supp_dataset}
+\end{figure*}
+
+\subsection{Unbalanced Entity Distribution in Common Video Datasets} \label{subsec:unbalanceddataset}
+
+In high-quality video datasets like Artgrid, Pixabay, and Pexels\footnote{Artgrid: https://artgrid.io/, Pixabay: https://www.videvo.net/, Pexels: https://www.pexels.com/}, the issue of category imbalance is highly pronounced and poses significant challenges. We analyze the aforementioned three datasets by first captioning the videos using QWen-VL~\citep{Qwen-VL}. Subsequently, we employ the spaCy\footnote{spaCy: https://spacy.io/} library to extract noun chunks from the video captions, which serve as entity words. We predefine over 60 classes as keywords for entity filtering. As illustrated in the~\figref{fig:entity_distribution}, certain categories (\eg, humans) constitute a disproportionately large share of the entity objects, thereby constraining the model's ability to generalize to other categories that appear less frequently.
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figs/supp/dataset_distribution.png}
+\caption{\textbf{Entity Distribution Over 60 Classes in Artgrid, Pixabay, and Pexels.}}
+\label{fig:entity_distribution}
+\end{figure*}
+
+\subsection{GPT-Generated Evaluation Prompts} \label{subsec:evaluateprompt}
+
+The human prompts, non-human (animal, car, robot) prompts, and location prompts for evaluation are provided in~\tabref{tab:human_prompts}, ~\tabref{tab:nonhuman_prompts_1}\&\tabref{tab:nonhuman_prompts_2}, and~\tabref{tab:location_prompts} respectively.
+
+\input{tab/supp_gptprompt_human}
+\input{tab/supp_gptprompt_nonhuman_1}
+\input{tab/supp_gptprompt_nonhuman_2}
+\input{tab/supp_gptprompt_location}
+
+\section{More Experiments}
+
+\subsection{Fine-grained Entity Prompt Input}
+
+We provide additional samples in~\figref{fig:supp_diffhuman} to demonstrate that 3DTrajMaster supports fine-grained entity customization. The description of the man can be flexibly modified by adjusting attributes such as hair, gender, physique, clothing, and accessories.
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figs/supp/supp_diffhuman.pdf}
+\caption{\textbf{Flexible Entity Editing in Input Text Prompts.} The other entity, \textit{``a swift falcon with blue-gray feathers, sharp talons, and keen yellow eyes focused on its prey below"} remains fixed while varying the human entity descriptions.}
+\label{fig:supp_diffhuman}
+\end{figure*}
+
+\subsection{Ablation Study}
+
+\subsubsection{Optimal Hyperparameters} \label{subsec:optimialhyper}
+
+In the main paper, we propose a video domain adaptor and an annealed sampling strategy to mitigate video domain shifts from our constructed UE datasets. However, completely removing the LoRA adaptor (as the learned motion and domain bias are coupled to some extent) or the inserted motion guidance will result in a decline in 3D trajectory accuracy. Thus, applying video enhancement techniques with appropriate dropping is crucial. To this end, we begin with a randomly initialized parameter group: $T_{c}=10, \alpha=0.2, TS=72,000$. We perform ablation experiments on our evaluation subset. As shown in~\tabref{tab:ablation_annealed_tc},~\tabref{tab:ablation_lora_alpha}, and~\tabref{tab:ablation_ts}, the video quality exhibits a monotonically decreasing trend as these hyperparameters increase. In contrast, 3D trajectory accuracy initially drops sharply but stabilizes in the later stages. To balance the degradation of visual quality with maintaining pose accuracy, we select an optimal parameter group: $T_{c}=25, \alpha=0.4, TS=36,000$ as our default inference setting.
+
+
+\input{tab/ablation_annealed_tc}
+\input{tab/ablation_lora_alpha}
+\input{tab/ablation_training_step}
+
+\subsubsection{Negative Pose Condition as Static Motions} \label{subsec:negpose}
+
+We find that setting negative pose sequences as static motions $\{(\hat{\mathbf{P}}_n)_{n=1}^N|\hat{\mathbf{P}}_n=\mathbf{P}_0,\forall n\}$ rather than positive motion sequences $\{(\mathbf{P}_n)_{n=1}^N\}$ can further improve pose accuracy, as shown in~\tabref{tab:ablation_neg_pose}. We infer that the model captures underlying 3D motion representations from the randomly generated 3D trajectories. However, we do not adopt this approach due to the decline in video quality.
+
+\input{tab/ablation_negative_pose}
+
+\subsubsection{Qualitative Feedback from Human Users}
+
+We conducted a questionnaire survey and collected 53 samples to form user preference comparisons. Each participant received a reward of 0.80 USD and spent approximately 5 minutes completing the questionnaire, which assessed four dimensions: (1) video quality, (2) trajectory accuracy, (3) entity diversity, and (4) background diversity. In~\tabref{tab:user_study}, we report the proportion of users who preferred our model over the baselines.
+
+\begin{table}[!ht]
+
+\caption{User Preference Comparisons.}
+\label{tab:user_study}
+
+\centering
+\begin{threeparttable}
+\resizebox{.57\textwidth}{!} 
+{
+\begin{tabular}{c|c|c|c}
+\toprule
+Method & MotionCtrl & Direct-a-Video &  Tora \\
+\midrule 3DTrajMaster & $47.2 \%$ & $56.6 \%$ & $81.1 \%$ \\
+\bottomrule
+\end{tabular}
+}
+
+\end{threeparttable}
+\end{table}
+
+
+
+\subsubsection{Generalizable Entity Prompts\&3D Trajectories} \label{subsec:generalizableresults}
+
+We provide more generalizable results with novel entity prompts generated by GPT and 3D trajectories, as shown in~\figref{fig:sub_generalizable_start} to~\figref{fig:sub_generalizable_end}. Each text prompt consists of one to three entities. \textcolor{red}{\textit{(We kindly urge readers to check the visual results in the our website)}}.
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.94\linewidth]{figs/supp/single_entity_1.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (1/20)}}
+\label{fig:sub_generalizable_start}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/single_entity_2.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (2/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/single_entity_3.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (3/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/single_entity_4.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (4/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_1.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (5/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_2.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (6/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_3.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (7/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_4.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (8/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_5.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (9/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_6.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (10/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_7.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (11/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_8.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (12/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_9.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (13/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_10.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (14/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/two_entity_11.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (15/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/three_entity_1.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (16/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/three_entity_2.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (17/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/three_entity_3.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (18/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/three_entity_4.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (19/20)}}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=.93\linewidth]{figs/supp/three_entity_5.pdf}
+\caption{\textbf{Generalizable Results with Novel 3D Trajectories \& Entity Prompts (20/20)}}
+\label{fig:sub_generalizable_end}
+\end{figure*}

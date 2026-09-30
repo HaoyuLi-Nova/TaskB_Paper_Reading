@@ -1,0 +1,304 @@
+%%%%%%%% ICML 2024 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
+
+\documentclass{article}
+
+
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2024} with \usepackage[nohyperref]{icml2024} above.
+\usepackage{hyperref}
+
+% Style file modified!  To fix, comment line 117 and uncomment 
+% lines 118-121 in icml2024.sty
+\usepackage[accepted]{icml2024}
+
+
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{makecell}
+%\usepackage[dvipsnames]{xcolor}
+\usepackage{enumitem}
+\usepackage{centernot}
+\usepackage{amsfonts}
+% \usepackage{algorithm}
+% \usepackage{algpseudocode}
+\usepackage[normalem]{ulem}
+\usepackage{dsfont}
+\usepackage{multirow}
+\usepackage{cuted}
+\usepackage{capt-of}
+\usepackage{bbm}
+\usepackage{balance}
+% \usepackage{minted}
+% \usepackage{multicol}
+\usepackage{subcaption}
+% \captionsetup{compatibility=false}
+
+%\usepackage[accsupp]{axessibility}
+\usepackage{xspace}
+\usepackage{float}
+
+% \newcommand{\theHalgorithm}{\arabic{algorithm}}
+%\input{math_commands}
+\graphicspath{{figures/}}
+
+% if you use cleveref..
+\usepackage[capitalize,noabbrev]{cleveref}
+\usepackage[textsize=tiny]{todonotes}
+
+
+\newcommand{\modelname}{VideoPoet}
+
+\newcommand{\lu}[1]{{\color{blue}{(Lu\@: #1)}}}
+\newcommand{\lijun}[1]{{\color{cyan}{(Lijun\@: #1)}}}
+\newcommand{\dan}[1]{{\color{red}{(Dan\@: #1)}}}
+\newcommand{\irfan}[1]{{\color{purple}{(Irfan\@: #1)}}}
+\newcommand{\jon}[1]{{\color{green}{(Jon\@: #1)}}}
+\newcommand{\vig}[1]{{\color{green}{(Vig\@: #1)}}}
+\newcommand{\bryan}[1]{{\color{ForestGreen}{(Bryan\@: #1)}}}
+\newcommand{\rachel}[1]{{\color{blue}{(Rachel\@: #1)}}}
+\newcommand{\ming}[1]{{\color{blue}{(Ming-Chang\@: #1)}}}
+\newcommand{\videoframe}[1]{
+\includegraphics[width=0.23\textwidth]{#1}}
+
+
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\cf{\emph{cf}\onedot} \def\Cf{\emph{Cf}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\iid{i.i.d\onedot} \def\wolog{w.l.o.g\onedot}
+\def\etal{\emph{et al}\onedot}
+\makeatother
+
+
+\crefname{figure}{Fig.}{Figs.}
+\Crefname{figure}{Fig.}{Figs.}
+
+\newcommand{\videoframecloser}[1]{
+\includegraphics[width=0.24\textwidth]{#1}} %Any closer than 0.23 leads to line overflow
+
+
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\icmltitlerunning{\modelname{}: A Large Language Model for Zero-Shot Video Generation}
+
+
+%%%%%%%%% AUTHORS - PLEASE UPDATE
+
+
+\begin{document}
+
+% \begin{strip}
+% \vspace{-2mm}
+% \setlength{\abovecaptionskip}{5pt plus 3pt minus 2pt}
+% \centering
+% \includegraphics[width=\textwidth,trim={0 0.6cm 0 0},clip]{VideoPoetPaper_Dual_Figure3.png}
+% \captionof{figure}{We propose \textbf{\modelname{}}, a versatile video generator that conditions on multiple types of inputs and performs a variety of 
+% video generation tasks. To see video and audio output from the model.}
+% \label{fig:info_graphic}
+% \end{strip}
+
+
+\twocolumn[
+\icmltitle{\modelname{}: A Large Language Model for Zero-Shot Video Generation}
+
+% It is OKAY to include author information, even for blind
+% submissions: the style file will automatically remove it for you
+% unless you've provided the [accepted] option to the icml2024
+% package.
+
+% List of affiliations: The first argument should be a (short)
+% identifier you will use later to specify author affiliations
+% Academic affiliations should list Department, University, City, Region, Country
+% Industry affiliations should list Company, City, Region, Country
+
+% You can specify symbols, otherwise they are numbered in order.
+% Ideally, you should not use this facility. Affiliations will be numbered
+% in order of appearance and this is the preferred way.
+\icmlsetsymbol{equal}{*}
+
+% \author{
+% % \centering
+% Dan Kondratyuk\footnotemark[1]
+% \and Lijun Yu\footnotemark[1]
+% \and Xiuye Gu\footnotemark[1]
+% \and José Lezama\footnotemark[1]
+% \and Jonathan Huang\footnotemark[1]
+% \and Grant Schindler
+% \and Rachel Hornung
+% \and Vighnesh Birodkar
+% \and Jimmy Yan
+% \and Ming-Chang Chiu
+% \and Krishna Somandepalli
+% \and Hassan Akbari
+% \and Yair Alon
+% \and Yong Cheng\footnotemark[2]
+% \and Josh Dillon
+% \and Agrim Gupta
+% \and Meera Hahn
+% \and Anja Hauth
+% \and David Hendon
+% \and Alonso Martinez
+% \and David Minnen
+% \and Mikhail Sirotenko
+% \and Kihyuk Sohn
+% \and Xuan Yang
+% \and Hartwig Adam
+% \and Ming-Hsuan Yang
+% \and Irfan Essa
+% \and Huisheng Wang
+% \and David A. Ross
+% \and Bryan Seybold\footnotemark[1]
+% \and Lu Jiang\footnotemark[1]\\[.4em]
+% % {\tt \{\}}\\
+% {\hspace{-9em}\sc Google Research}\\
+% }
+\begin{icmlauthorlist}
+\icmlauthor{Dan Kondratyuk}{equal,goog} \hfill
+\icmlauthor{Lijun Yu}{equal,goog,cmu} \hfill
+\icmlauthor{Xiuye Gu}{equal,goog} \hfill
+\icmlauthor{José Lezama}{equal,goog} \hfill
+\icmlauthor{Jonathan Huang}{equal,goog} \hfill
+\icmlauthor{Grant Schindler}{goog} \hfill
+\icmlauthor{Rachel Hornung}{goog} \hfill
+\icmlauthor{Vighnesh Birodkar}{goog} \hfill
+\icmlauthor{Jimmy Yan}{goog} \hfill
+\icmlauthor{Ming-Chang Chiu}{goog} \hfill
+\icmlauthor{Krishna Somandepalli}{goog} \hfill
+\icmlauthor{Hassan Akbari}{goog} \hfill
+\icmlauthor{Yair Alon}{goog} \hfill
+\icmlauthor{Yong Cheng}{goog} \hfill
+\icmlauthor{Josh Dillon}{goog} \hfill
+\icmlauthor{Agrim Gupta}{goog} \hfill
+\icmlauthor{Meera Hahn}{goog} \hfill
+\icmlauthor{Anja Hauth}{goog} \hfill
+\icmlauthor{David Hendon}{goog} \hfill
+\icmlauthor{Alonso Martinez}{goog} \hfill
+\icmlauthor{David Minnen}{goog} \hfill
+\icmlauthor{Mikhail Sirotenko}{goog} \hfill
+\icmlauthor{Kihyuk Sohn}{goog} \hfill
+\icmlauthor{Xuan Yang}{goog} \hfill
+\icmlauthor{Hartwig Adam}{goog} \hfill
+\icmlauthor{Ming-Hsuan Yang}{goog} \hfill
+\icmlauthor{Irfan Essa}{goog} \hfill
+\icmlauthor{Huisheng Wang}{goog} \hfill
+\icmlauthor{David A. Ross}{goog} \hfill
+\icmlauthor{Bryan Seybold}{equal,goog} \hfill
+\icmlauthor{Lu Jiang}{equal,goog,cmu}
+%\icmlauthor{}{sch}
+%\icmlauthor{}{sch}
+\end{icmlauthorlist}
+
+% \icmlaffiliation{yyy}{Department of XXX, University of YYY, Location, Country}
+\icmlaffiliation{goog}{Google}
+% \icmlaffiliation{gdm}{Google DeepMind}
+\icmlaffiliation{cmu}{Carnegie Mellon University}
+% \icmlaffiliation{sch}{School of ZZZ, Institute of WWW, Location, Country}
+
+%\icmlcorrespondingauthor{Dan Kondratyuk}{dankondratyuk@google.com}
+\icmlcorrespondingauthor{Lijun Yu}{lijuny@google.com}
+\icmlcorrespondingauthor{Jonathan Huang}{jonathanhuang@google.com}
+\icmlcorrespondingauthor{David Ross}{dross@google.com}
+\icmlcorrespondingauthor{Bryan Seybold}{seybold@google.com}
+\icmlcorrespondingauthor{Lu Jiang}{roadjiang@gmail.com}
+
+
+
+% You may provide any keywords that you
+% find helpful for describing your paper; these are used to populate
+% the "keywords" metadata in the PDF but will not be shown in the document
+\icmlkeywords{Video Generation}
+
+\vskip 0.3in
+]
+
+% this must go after the closing bracket ] following \twocolumn[ ...
+
+% This command actually creates the footnote in the first column
+% listing the affiliations and the copyright notice.
+% The command takes one argument, which is text to display at the start of the footnote.
+% The \icmlEqualContribution command is standard text for equal contribution.
+% Remove it (just {}) if you do not need this facility.
+
+%\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
+\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+% \printAffiliationsAndNoticeReview{\icmlEqualContribution}
+
+\input{sections/0_abstract}
+
+
+
+% \twocolumn[{% 
+% \renewcommand\twocolumn[1][]{#1}%
+% \maketitle
+%     \centering
+%     \captionsetup{type=figure}
+% % original
+% % \includegraphics[width=1\textwidth]{figures/videopoet_infog.pdf}
+% % many T2V column
+% % \includegraphics[width=1\textwidth]{VideoPoetPaper_Dual_Figure2.png}
+% % 3 T2V column
+% \vspace{-10mm}
+% \includegraphics[width=\textwidth]{VideoPoetPaper_Dual_Figure3.png}
+% % 4 T2V column
+% % \includegraphics[width=1\textwidth]{VideoPoetPaper_Dual_Figure2.png}
+% % No T2V column
+% % \includegraphics[width=1\textwidth]{videopoet_infog_16x9.png}
+%     \captionof{figure}{
+% We propose \textbf{\modelname{}}, a versatile video generator that conditions on multiple types of inputs and performs a variety of 
+% video generation tasks. To see video and audio output from the model, please see \url{http://sites.research.google/videopoet/}. 
+% }
+%     \label{fig:info_graphic}
+% }]
+
+% \makeatletter{\renewcommand*{\@makefnmark}{}
+% \footnotetext{$^*$
+% Equal technical contribution.}
+% \footnotetext{$\dagger$ Google DeepMind}
+% \makeatother}
+
+\input{sections/1_introduction}
+\input{sections/2_related_work}
+\input{sections/3_method}
+\input{sections/4_result}
+\input{sections/5_capabilities}
+\input{sections/6_conclusion}
+
+% \clearpage
+
+
+\section*{Acknowledgements}
+We give special thanks to Alex Siegman, Victor Gomes, and Brendan Jou for managing computing resources.
+We also give thanks to Aren Jansen, Marco Tagliasacchi, Neil Zeghidour, John Hershey for audio tokenization and processing, Angad Singh for storyboarding in ``Rookie the Raccoon'', Cordelia Schmid for research discussions, David Salesin, Tomas Izo, and Rahul Sukthankar for their support, and Jay Yagnik for the initial concept.
+
+\section*{Impact Statement}
+This paper introduces research aimed at advancing the field of video generation and introduces a new tool to enhance human creativity. In considering the societal impact of our video generation model, VideoPoet, several concerns emerge, including the potential for misuse and ethical considerations. Misuse may entail the creation of deceptive or harmful content, such as misinformation or deepfakes. Ethical considerations encompass ensuring that generated content adheres to ethical standards, avoids perpetuating harmful stereotypes, and respects cultural sensitivities. To mitigate these risks, we adhere to evolving strategies developed within our community. This includes using digital watermarking in generated videos to enable traceability and accountability, and maintain transparency in our model design to foster trust.
+
+{
+    \small
+    \bibliographystyle{icml2024}
+    \bibliography{main}
+}
+
+%\clearpage
+\newpage
+\appendix
+\onecolumn
+\input{sections/7_appendix}
+
+% WARNING: do not forget to delete the supplementary pages from your submission 
+% \input{sec/X_suppl}
+
+%\include{figures/camera_movement}
+
+\end{document}

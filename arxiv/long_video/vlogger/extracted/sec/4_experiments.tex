@@ -1,0 +1,228 @@
+\section{Experiments}
+\label{sec:exper}
+
+
+\textbf{Datasets}.
+To make state-of-the-art comparison,
+We conduct zero-shot evaluation on the popular video benchmarks,
+\textit{i.e.},
+UCF-101 \cite{Soomro2012UCF101AD}, 
+Kinetics-400 \cite{Kay2017TheKH}, 
+and 
+MSR-VTT \cite{Chen2021TheMT}.
+UCF-101 contains videos of 101 action categories.
+Following \cite{unterthiner2019accurate},
+we use FVD to evaluate the distance between the generated video and the real video.
+Kinetics-400 is a dataset comprising videos of 400 action categories. 
+Following \cite{li2017video, balaji2019Conditional, wu2022nwa, villegas2023phenaki},
+we use FID \cite{heusel2017gans} to assess the performance of video generation.
+MSR-VTT is a video dataset with open-vocabulary captions,  
+wherein CLIPSIM \cite{Wu2021GODIVAGO} and CLIP-FID \cite{parmar2022aliased} are commonly employed for evaluating the T2V generation.
+Moreover,
+since these existing benchmarks either have a small number of testing videos or contain only action labels without complex descriptions,
+we propose to collect an evaluation benchmark for ablation studies.
+It is called as Vimeo11k,
+where we collect 11,293 open-world videos along with their captions from 10 mainstream categories in Vimeo.
+To our best knowledge,
+it is the largest testing benchmark for zero-shot video generation. 
+More details and experiments can be found in the supplementary doc.
+
+
+
+
+
+
+\noindent\textbf{Implementation Details}. %% 你得有个逻辑，不能想到哪写到哪
+\textbf{(1) Director \& Script \& Actor \& Voicer. }
+We choose GPT-4 \cite{OpenAI2023GPT4TR} as our LLM director to generate script.
+The specific instructions can be found in the supplementary doc.
+Then we employ Stable Diffusion XL \cite{Podell2023SDXLIL} and Bark \cite{sunoai2023bark} as our designer and voicer to generate reference actor images and convert scripts into speech.
+\textbf{(2) ShowMaker. }
+We choose SD-1.4 \cite{rombach2022highResolution} as our base model, 
+and follow \cite{singer2023makeavideo} to add temporal self attention.
+Then,
+we add our temporal text cross attention on top of each temporal self attention.
+We expand the input channel of the conv-in layer of U-Net from 4 to 9, 
+so that model can take the concatenated feature in Eq. (\ref{eq:ms3}) as input.
+We use zero initialization for newly added channels.
+We use CLIP ViT-L/14 \cite{radford2021learning} as text encoder $\varepsilon_{T}$,
+VQVAE \cite{Esser2020TamingTF} as autoencoder consisting of $\varepsilon$ and $\mathcal{D}$.
+Besides,
+we use OpenCLIP ViT-H/14 \cite{ilharco2021openclip} as image encoder $\varepsilon_{I}$,
+and add spatial image cross attention in the STEB block.
+The diffusion step $T$ is set to 1000 as \cite{rombach2022highResolution}.
+For training, 
+we set the parameter of mode selection as $\alpha=0.6$ and $m=6$ in Eq. (\ref{eq:alpham}),
+and $\beta$ is set to 1.
+Following \cite{Ho2022ImagenVH, Wang2023LAVIEHV, Ho2022VideoDM, Dandi2019JointlyTI, villegas2023phenaki},
+we employ publicly available image dataset (\textit{i.e.}, Laion400M \cite{Schuhmann2021LAION400MOD}) and video dataset (\textit{i.e.}, WebVid10M \cite{bain2021frozen}) for joint training.
+More training details can be found in the supplementary doc.
+
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.9\linewidth
+    ]{figs/ucf_1024.pdf}
+   \vspace{-0.25cm}
+    \caption{
+    \textbf{Long video generation.}
+    Comparison on UCF-101 (1000 frames). 
+    The lower FVD, the better generation performance.
+    }
+    \label{fig:ucf_1024}
+    \vspace{-0.3cm}
+\end{figure}
+
+
+\input{tables/Framework_ablation}
+
+
+
+\subsection{Comparison with state-of-the-art}
+
+
+%\textbf{UCF-101}.
+Tab. \ref{tab:ucf} shows that,
+no matter whether the input text is the class label or hand-crafted prompt, 
+our method achieves the best FVD performance of zero-shot video generation on UCF-101.
+%\textbf{Kinetics-400}.
+Tab. \ref{tab:k400} shows that,
+compared to Phenaki \cite{villegas2023phenaki},
+our method achieves a better FID performance of zero-shot setting on Kinetics-400, 
+but only using 66.7\% training videos.
+Furthermore, our generated videos have a resolution of $320$$\times$$512$, which is higher than Phenaki's $256$$\times$$256$.
+%\textbf{MSR-VTT}.
+Tab. \ref{tab:msrvtt} shows that,
+our method achieves remarkably competitive FID and CLIPSIM performance on MSR-VTT.
+Furthermore, 
+Fig. \ref{fig:ucf_1024} illustrates that,
+we significantly surpass TATS \cite{ge2022long} (\textit{i.e.}, the only open-source long video generation model within our knowledge),
+for generating 1000-frame videos on UCF-101.
+Moreover,
+our method does not encounter the issue of TATS,
+where the video quality continuously declines as the number of frames increases.
+It is noteworthy that,
+our method achieves this performance by zero-shot generation,
+without any finetuning on UCF-101.
+
+
+
+\subsection{Ablation Study}
+
+\textbf{Vlog Generation Process}.
+Tab. \ref{tab:framework_ablation} presents a comparison between different generation processes. 
+For a fair comparison, 
+we use the same scripts and employ our ShowMaker as videographer. 
+We compare three approaches including
+no autoregression at all as MovieFactory \cite{Zhu2023MovieFactoryAM}, 
+fully autoregressive processes in one go as Phenaki \cite{villegas2023phenaki}, 
+and 
+the generation process of our Vlogger.
+% \textcolor{red}{
+Specifically,
+We use GPT-4 to generate five stories and go through the Vlogger’s planning process to get five vlog scripts.
+We set 20 different random seeds,
+so that each of the above generation processes generates 20 different vlogs for each script.
+We use CLIP-I, CLIP-T \cite{Ye2023IPAdapterTC} and video duration to evaluate the quality of the generated vlogs. 
+The results demonstrate that,
+even using the same script and videographer, 
+our Vlogger outshines other existing frameworks for preferable vlog generation. 
+More details can be found in the supplementary doc.
+
+\begin{figure}[t]
+    \centering
+    % \vspace{-0.3cm}
+    \includegraphics[width=0.9\linewidth
+    ]{figs/ip_scale.pdf}
+   \vspace{-0.25cm}
+    \caption{
+    \textbf{Ablation for spatial image cross attention.} 
+    The values around a point on the curve correspond to the $\beta$.
+    While $\beta$$=$$0$ means the original network without spatial image cross attention.
+    }
+    \label{fig:ica}
+    \vspace{-0.3cm}
+\end{figure}
+
+
+
+
+
+
+\begin{figure*}[t]
+    \centering
+    % \vspace{-0.3cm}
+    \includegraphics[width=1\textwidth]{figs/movie_case.pdf}
+%   \vspace{-0.6cm}
+    \caption{
+    \textbf{Qualitative comparison with the state-of-the-art methods on long video generation.}
+    The story and long video of Phenaki \cite{villegas2023phenaki} are available at
+    \href{https://phenaki.github.io/}{phenaki.github.io}. 
+    The scene diversity and picture quality generated by Vlogger are significantly better than Phenaki.
+    }
+    \label{fig:movie_case}
+%   \vspace{-0.3cm}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    % \vspace{-0.3cm}
+    \includegraphics[width=1\textwidth]{figs/short_case.pdf}
+%   \vspace{-0.6cm}
+    \caption{
+    \textbf{Qualitative ablation for STEB and training paradigm.}
+     ``TTCA'' and ``MTP'' refer to temporal the text cross attention and mixed training paradigm respectively. The sample without a visual prompt corresponds to the model without spatial image cross attention.
+     }
+    \label{fig:short_case}
+    \vspace{-0.2cm}
+\end{figure*}
+
+\input{tables/Vimeo11K}
+
+
+
+\noindent\textbf{Spatial-Temporal Enhanced Block}.
+Fig. \ref{fig:ica} and Tab. \ref{tab:vimeo} evaluate two important operations in our STEB block,
+\textit{i.e.}, 
+spatial image cross attention and temporal text cross attention.
+With spatial image cross attention in Fig. \ref{fig:ica}, 
+the CLIP-I is significantly improved as $\beta$ increased, 
+while the CLIP-T reached its maximum at $\beta$$=$$0.5$ on COCO2017 \cite{Lin2014MicrosoftCC}.
+With temporal text cross attention (TTCA) in Tab. \ref{tab:vimeo}, 
+both T2V generation (0/16) and prediction (1/15, 3/13 and 5/11) show a significant improvement on Vimeo11k. 
+
+
+\noindent\textbf{Mixed Training Paradigm}.
+Tab. \ref{tab:vimeo} also presents a model comparison by incorporating our mixed training paradigm or the random mask training method in \cite{chen2023seine, voleti2022mcvd, Hoppe2022DiffusionMF, Fu2022TellMW, Yu2022MAGVITMG, Chang2022MaskGITMG}. 
+The results show that the mixed training paradigm is effective in enhancing the model's T2V generation and prediction capabilities.
+More details in the supplementary doc.
+
+
+
+
+\subsection{Visualization}
+
+First,
+we visualize long video generation,
+by comparison with the well-known Phenaki \cite{villegas2023phenaki}.
+Note that,
+since Phenaki does not have the open-sourced codes,
+we alternatively use the demo shown in its official website.
+Specifically,
+we feed the same story description into our Vlogger.
+As shown in Fig. \ref{fig:movie_case}, 
+our Vlogger shows superior and more diverse video content,
+compared to Phenaki.
+Moreover,
+our Vlogger sufficiently exhibits the story with a much longer duration (\textit{i.e.}, 7min59s),
+according to our LLM-created script.
+
+
+We further visualize the ablation of T2V video generation and prediction by ShowMaker.
+As depicted in Fig. \ref{fig:short_case}, 
+ShowMaker had significant improvements in generation and prediction performance,
+by incorporating our ShowMaker designs.
+Additionally, 
+it can leverage visual prompts in the spatial actor cross attention,
+for distinguishing the ``Teddy'' concept within text prompts.

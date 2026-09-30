@@ -1,0 +1,132 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\iccvfinalcopy 
+
+\ificcvfinal\pagestyle{empty}\fi
+
+\title{
+\Large
+\noindent\textbf{Appendix}
+}
+
+
+
+
+
+
+
+
+
+\section{Denoising Diffusion Implicit Models (DDIM)}
+In DDIM formulation~\cite{ddim}, the posterior is defined such that one can control its variance schedule $\{\sigma_t\in \mathbb{R}_{\geq0}\}^T_{t=1}$. Hence, in the reverse diffusion process, $x_{t-1}$ can be sampled from $x_t$ using:
+ \begin{equation}
+\label{eq:ddim}
+x_{t-1}=\sqrt{\Bar{\alpha}_{t-1}}x_0 + \sqrt{1-\Bar{\alpha}_{t-1} - \sigma_t^2}\left(\frac{x_t-\sqrt{\Bar{\alpha}_{t}}x_0}{\sqrt{1-\Bar{\alpha}_{t}}} \right) \\
++ \sigma_t\xi
+\end{equation}
+for $\xi\in \mathcal{N}(0, \textbf{I})$. If for all $t$, $\sigma_t=\sqrt{(1-\Bar{\alpha}_{t-1})/(1-\Bar{\alpha}_{t})}\sqrt{1-\Bar{\alpha}_{t}/\Bar{\alpha}_{t-1}}$, this formulation becomes the same as standard DDPM~\cite{ddpm}. On the other hand, if for all $t$, $\sigma_t=0$, then the reverse diffusion process sampling becomes deterministic and simplifies to Eq. (4) from the main text. Further, in this formulation, one can use strided timesteps to make inference faster without training the model again. For example, instead of $t=1,2,3,...,1000$, if one uses $t=40, 80, 120, ... , 1000$, the inference can be done in 25 steps instead of 1000 steps.  
+
+\section{Qualitative Results}
+\subsection{More Qualitative Figures}
+Similar to Fig.~\ref{fig:qualitative-zoomed} in the main paper, we show more visual comparisons in Fig. \ref{fig:qualitative-zoomed1}. Here we compare our approach with Wav2Lip~\cite{wav2lip} and PC-AVS~\cite{pcavs}. It can be seen in the zoomed-in lip regions that \ours~outperforms other methods both in image quality and identity preservation. Further, we show more examples of reconstruction setting in Fig. \ref{fig:qualitative-recon1}, \ref{fig:qualitative-recon2}, \ref{fig:qualitative-recon3}, and \ref{fig:qualitative-recon4} similar to Fig.~\ref{fig:qualitative-recon} in main paper. Here we can observe that our method produces the correct lip shape corresponding to the audio, which can be seen when compared with the original video (top row). Finally, Fig. \ref{fig:qualitative-cross1},  \ref{fig:qualitative-cross2},  \ref{fig:qualitative-cross3} show more results on cross generation setting similar to Fig.~\ref{fig:qualitative-cross} of the main paper. 
+
+\subsection{Video Results}
+Please find more video results at our \href{https://soumik-kanad.github.io/diff2lip}{project page}. 
+We provide multiple pages of video result comparisons with other methods as well as the original video. The website also contains an interactive demo to see the intermediate stages of the diffusion process. We also show in the wild results using clips from movies dubbed in foreign languages. This along with the cross generations shows the generalizability of the proposed approach to unseen audios and identities. It also supports our motivation and vision to extend videos to different languages beyond simple dubbing which does not have synchronised lip movements. Our method is able to generate realistic lip-movements aligned with the words corresponding to new audio thus making the viewing experience better.
+
+\section{Additional details}
+
+We provide the filelists for the subsets of VoxCeleb2~\cite{voxceleb2} videos on which we have evaluated for both reconstruction and cross generation settings in our \href{https://github.com/soumik-kanad/diff2lip}{codebase}. Each line contains the relative path to the audio and the video separated by a space. For the case of reconstruction, both the audio and video paths are the same in a line. 
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.95\linewidth]{figures/supp/zoom1.pdf}
+    \includegraphics[width=0.95\linewidth]{figures/supp/zoom2.pdf}
+    \caption{\textbf{Qualitative Visual-quality Comparison}. }
+    \label{fig:qualitative-zoomed1}
+    \vspace{-0.1in}
+\end{figure*}
+
+
+\begin{figure*}[!t]
+    \centering
+    \label{fig:qual_recon}
+    \includegraphics[width=0.8\linewidth]{figures/supp/qual_recon_1.pdf}
+    \includegraphics[width=0.8\linewidth]{figures/supp/qual_recon_2.pdf}
+    \caption{\textbf{Qualitative results of Reconstruction on VoxCeleb2~\cite{voxceleb2}}.}
+    \label{fig:qualitative-recon1}
+\end{figure*}
+\begin{figure*}[!t]
+    \centering
+    \label{fig:qual_recon}
+    \includegraphics[width=0.8\linewidth]{figures/supp/qual_recon_3.pdf}
+    \includegraphics[width=0.8\linewidth]{figures/supp/qual_recon_4.pdf}
+    \caption{\textbf{Qualitative results of Reconstruction on VoxCeleb2~\cite{voxceleb2}}.}
+    \label{fig:qualitative-recon2}
+\end{figure*}
+\begin{figure*}[!t]
+    \centering
+    \label{fig:qual_recon}
+    \includegraphics[width=0.8\linewidth]{figures/supp/qual_recon_5.pdf}
+    \includegraphics[width=0.8\linewidth]{figures/supp/qual_recon_6.pdf}
+    \caption{\textbf{Qualitative results of Reconstruction on VoxCeleb2~\cite{voxceleb2}}.}
+    \label{fig:qualitative-recon3}
+\end{figure*}
+\begin{figure*}[!t]
+    \centering
+    \label{fig:qual_recon}
+    \includegraphics[width=0.8\linewidth]{figures/supp/qual_recon_7.pdf}
+    \caption{\textbf{Qualitative results of Reconstruction on VoxCeleb2~\cite{voxceleb2}}.}
+    \label{fig:qualitative-recon4}
+\end{figure*}
+
+
+\begin{figure*}[!h]
+    \centering
+    \label{fig:qual_cross}
+    \includegraphics[width=0.6\linewidth]{figures/supp/qual_cross_1.pdf}
+    \\\noindent\makebox[\linewidth]{\rule{0.5\paperwidth}{0.4pt}}\\
+    \includegraphics[width=0.6\linewidth]{figures/supp/qual_cross_2.pdf}
+    \caption{\textbf{Qualitative results of Cross generation on VoxCeleb2~\cite{voxceleb2}}.}
+    \label{fig:qualitative-cross1}
+    \vspace{-0.1in}
+\end{figure*}
+
+\begin{figure*}[!h]
+    \centering
+    \label{fig:qual_cross}
+    \includegraphics[width=0.6\linewidth]{figures/supp/qual_cross_3.pdf}
+    \\\noindent\makebox[\linewidth]{\rule{0.5\paperwidth}{0.4pt}}\\
+    \includegraphics[width=0.6\linewidth]{figures/supp/qual_cross_4.pdf}
+    \caption{\textbf{Qualitative results of Cross generation on VoxCeleb2~\cite{voxceleb2}}.}
+    \label{fig:qualitative-cross2}
+    \vspace{-0.1in}
+\end{figure*}
+
+\begin{figure*}[!h]
+    \centering
+    \label{fig:qual_cross}
+    \includegraphics[width=0.6\linewidth]{figures/supp/qual_cross_5.pdf}
+    \\\noindent\makebox[\linewidth]{\rule{0.5\paperwidth}{0.4pt}}\\
+    \includegraphics[width=0.6\linewidth]{figures/supp/qual_cross_6.pdf}
+    \caption{\textbf{Qualitative results of Cross generation on VoxCeleb2~\cite{voxceleb2}}.}
+    \label{fig:qualitative-cross3}
+    \vspace{-0.1in}
+\end{figure*}
+
+
+
+\end{document}

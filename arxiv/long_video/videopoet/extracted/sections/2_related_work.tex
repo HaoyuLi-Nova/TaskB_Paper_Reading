@@ -1,0 +1,79 @@
+
+\begin{figure*}[tp]
+\centering
+\includegraphics[width=\textwidth]{figures/vffm_schematic.pdf}
+\caption{
+    \textbf{Sequence layout for \modelname{}}. We encode all modalities into the discrete token space, so that we can directly use large language model architectures for video generation.
+    We denote special tokens in $<>$ (see Table~\ref{tab:special_tokens} for definitions).
+    The modality agnostic tokens are in darker red; the text related components are in blue; the vision related components are in yellow; the audio related components are in green.
+    The left portion of the layout on light yellow represents the bidirectional prefix inputs.
+    The right portion on darker red represents the autoregressively generated outputs with causal attention.
+}
+\label{fig:vffm_schematic}
+\vspace{-4mm}
+\end{figure*}
+
+\vspace{-2mm}
+\section{Related Work} 
+\label{sec:related_work}
+% \vspace{-1mm}
+
+\paragraph{Video diffusion models.}
+Recently, numerous video generation methods use diffusion-based methods for text-to-video~\cite{ho2022imagen,blattmann2023align,zhang2023show,blattmann2023stable,he2023latent,zhou2022magicvideo,wang2023modelscope,ge2023preserve,wang2023internvid,wang2023videofactory,singer2022make,zhang2023show,zeng2023make} and video-to-video editing~\cite{liew2023magicedit,feng2023ccedit,esser2023structure,chen2023control}. 
+%
+As video diffusion models are usually derived from text-to-image diffusion models~\cite{ramesh2021zero,saharia2022photorealistic}, additional tasks and modalities are added via inference tricks~\cite{meng2021sdedit}, architectural changes~\cite{esser2023structure,liew2023magicedit} and adapter layers~\cite{zhang2023adding,guo2023animatediff}. 
+%
+Although these models are composable after training, they are not trained end-to-end in a unified framework.
+%
+Our multitask pretraining strategy in a single model improves performance and provides zero-shot video generation capabilities.
+
+\vspace{-4mm}
+\paragraph{Language models for video and image generation.}
+Video language models are typically 
+ derived from the general family of transformer-based language models~\cite{vaswani2017attention,raffel2020exploring} that easily combine multiple tasks in pretraining and demonstrate powerful zero-shot capabilities.
+%
+Image generation language models can generate images autoregressively~\cite{yu2022scaling} or via masked prediction~\cite{chang2022maskgit,chang2023muse}.
+%
+Both families have been extended to text-to-video~\cite{hong2022cogvideo,villegas2022phenaki,hu2023gaia,yan2021videogpt} using paired data.
+%
+While other text-to-video work with transformers only leverages video-text pairs for training, we also leverage unpaired videos (without text) and the same video for different tasks.
+%
+Since video language models can flexibly incorporate numerous tasks~\cite{yu2023magvit,nash2022transframer}, including video-to-video, we extend this family of work to text- and multimodal-conditioned tasks in this work with a synergistic pretraining strategy across various tasks.
+
+% %Parti~\cite{yu2022scaling} is a language model that autoregressively predicts image tokens.
+% In contrast to this approach, however, we find that analogously pretraining on video-text pairs aloneise not sufficient forhigh-qualityy synthesis, sowe  devise a multitask pretraining strategy to improve results.
+%we alsoe show that these tasks provide powerful zero-shot video editing capabilities.
+
+% Studies of non-autoregressive language models called masked LM include MaskGIT~\cite{chang2022maskgit}-style training for image~\cite{chang2023muse} and video generation~\cite{villegas2022phenaki}.
+
+% % "Generating Images with Multimodal Language Models"
+% Gaia-1 model by Hu et al\cite{hu2023gaia} take a language model approach to video generation but is constrained to autonomous driving scenarios.
+
+%  ~\cite{esser2020taming},
+
+% \paragraph{Video Generation} %Text-to-Video}
+% The rise of text-to-image models~\cite{ramesh2021zero,saharia2022photorealistic,ramesh2022hierarchical,yu2022scaling} enabled text-to-video models. 
+
+% There are two distinct families of models: diffusion models~\cite{ho2022imagen,blattmann2023align,zhang2023show,tang2023any} and language models~\cite{hong2022cogvideo,villegas2022phenaki}.
+
+
+% codi-gen~\cite{tang2023any}
+
+%-------------------------------------------------------------------------
+
+
+
+\vspace{-4mm}
+\paragraph{Pretraining task design in LLMs.}
+
+As language models can easily incorporate multiple training tasks, task selection is an important area of research. 
+%
+GPT-3~\cite{brown2020language} and PaLM~\cite{chowdhery2022palm} demonstrate that training LLMs on diverse tasks leads to positive scaling effects on zero- and few-shot tasks.
+%
+Other approaches show that masking approaches are a valuable learning target~\cite{hoffmann2022training,yu2023magvit,yu2023language}. 
+%
+As the model size grows, training data must grow as well~\cite{hoffmann2022training} to maintain similar performance. 
+%
+Our pretraining strategy enables using the same video for multiple training tasks even without paired text. 
+%
+This design facilitates training on a large quantity of video-only examples, thereby decreasing the demand for video-text pairs.

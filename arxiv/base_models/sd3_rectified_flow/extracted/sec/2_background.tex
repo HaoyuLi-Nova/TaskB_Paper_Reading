@@ -1,0 +1,55 @@
+\section{Background}
+\label{sec:background}
+
+\paragraph{Diffusion Models}\citep{SohlDickstein2015DeepUL,Song2020ScoreBasedGM,ho2020denoising} generate data by approximating the reverse ODE to a stochastic forward process which transforms data to noise. They have become the standard approach for generative modeling of  images~\cite{dhariwal2021diffusion,ramesh2022hierarchical,saharia2022photorealistic,Rombach_2022,balaji2022ediffi} and videos~\citep{singer2022makeavideo,ho2022imagen,esser2023structure, blattmann2023align,gupta2023photorealistic}. Since these models can be derived both via a variational lower bound on the negative likelihood~\citep{SohlDickstein2015DeepUL} and score matching~\citep{Hyvrinen2005EstimationON,Vincent2011ACB,song2020generative}, 
+%
+various formulations of forward- and reverse processes~\citep{Song2020ScoreBasedGM,dockhorn2021score}, model parameterizations~\citep{ho2020denoising,ho2022classifierfree,Karras2022ElucidatingTD}, loss weightings~\citep{ho2020denoising, Karras2022ElucidatingTD} and ODE 
+solvers~\citep{song2022denoising,lu2023dpmsolver, dockhorn2022genie} have led to a large number of different training objectives and sampling procedures. More recently, the seminal works of \citet{Kingma2023UnderstandingDO} and \citet{Karras2022ElucidatingTD} have proposed unified formulations and introduced new theoretical and practical insights for training~\cite{Karras2022ElucidatingTD,Kingma2023UnderstandingDO} and inference~\cite{Karras2022ElucidatingTD}. However, despite these improvements, the trajectories of common ODEs involve partly significant amounts of curvature~\citep{Karras2022ElucidatingTD,liu2022flow}, which requires increased amounts of solver steps and, thus, renders fast inference difficult. To overcome this, we adopt rectified flow models whose formulation allows for learning straight ODE trajectories.  
+
+\paragraph{Rectified Flow Models}
+\cite{liu2022flow,albergo2022building,lipman2023flow} approach generative modeling by
+constructing a transport map between two distributions through an ordinary
+differential equation (ODE). This approach has close connections to continuous
+normalizing flows (CNF) \cite{Chen2018NeuralOD} as well as diffusion models.
+Compared to CNFs, Rectified Flows and Stochastic Interpolants have the
+advantage that they do not require simulation of the ODE during training.
+Compared to diffusion models, they can result in ODEs that are faster to
+simulate than the probability flow ODE \cite{Song2020ScoreBasedGM} associated
+with diffusion models. Nevertheless, they do not result in optimal transport
+solutions, and multiple works aim to minimize the trajectory curvature further
+\cite{lee2023minimizing,alex2023improving,aramalex2023multisample}.
+\cite{dao2023flow,ma2024sit} demonstrate the feasibility of rectified flow
+formulations for class-conditional image synthesis, \cite{fischer2023boosting} for
+latent-space upsampling, and \cite{liu2023instaflow}
+apply the reflow procedure of \cite{liu2022flow} to distill a pretrained
+text-to-image model \cite{Rombach_2022}. Here, we are interested in rectified
+flows as the foundation for text-to-image synthesis with fewer sampling steps.
+We perform an extensive comparison between different formulations and loss
+weightings and propose a new timestep schedule for training of
+rectified flows with improved performance.
+
+
+
+\paragraph{Scaling Diffusion Models}
+The transformer architecture~ \cite{vaswani2017attention} is well known for its scaling properties in NLP~\cite{kaplan2020scaling} and computer vision tasks~\cite{dosovitskiy2020image,zhai2022scaling}. For diffusion models, U-Net architectures~\cite{Ronneberger_2015} have been the  dominant choice~\cite{ho2020denoising,Rombach_2022,balaji2022ediffi}.
+While some recent works explore diffusion transformer backbones~\cite{Peebles_2023,chen2023pixart,ma2024sit}, scaling laws for text-to-image diffusion models remain unexplored.
+
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+

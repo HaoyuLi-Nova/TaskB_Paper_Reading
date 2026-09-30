@@ -1,0 +1,151 @@
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_fulll_mask/attn-fwd_with_full_mask/flops_report.pdf}
+        \caption{Forward pass for full mask.}
+        \label{fig:ffa_fwd_perf_report_full}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_fulll_mask/attn-bwd_with_full_mask/flops_report.pdf}
+        \caption{Backward pass for full mask.}
+        \label{fig:ffa_bwd_perf_report_full}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \caption{Benchmarking FFA's performance and flexibility against other leading attention kernels for full mask scenarios.}
+    \label{fig:ffa_perf_report_full}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_causal_mask/attn-fwd_with_causal_mask/flops_report.pdf}
+        \caption{Forward pass for causal mask.}
+        \label{fig:ffa_fwd_perf_report_causal}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_causal_mask/attn-bwd_with_causal_mask/flops_report.pdf}
+        \caption{Backward pass for causal mask.}
+        \label{fig:ffa_bwd_perf_report_causal}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \caption{Benchmarking FFA's performance and flexibility against other leading attention kernels for causal mask scenarios.}
+    \label{fig:ffa_perf_report_causal}
+\end{figure}
+
+
+
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_varlen_full_mask/attn-fwd_with_varlen_full_mask/flops_report.pdf}
+        \caption{Forward pass for varlen full mask.}
+        \label{fig:ffa_fwd_perf_report_varlen_full}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_varlen_full_mask/attn-bwd_with_varlen_full_mask/flops_report.pdf}
+        \caption{Backward pass for varlen full mask.}
+        \label{fig:ffa_bwd_perf_report_varlen_full}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \caption{Benchmarking FFA's performance and flexibility against other leading attention kernels for varlen full mask scenarios.  (Note that: the $\mathbf{E}$ symbol indicates the corresponding distributed attention implementation raises \textit{Cuda Out of Memory} error in that specific configuration.)}
+    \label{fig:ffa_perf_report_varlen_full}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_varlen_causal_mask/attn-fwd_with_varlen_causal_mask/flops_report.pdf}
+        \caption{Forward pass for varlen causal mask}
+        \label{fig:ffa_fwd_perf_report_varlen_causal}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_varlen_causal_mask/attn-bwd_with_varlen_causal_mask/flops_report.pdf}
+        \caption{Backward pass for varlen causal mask}
+        \label{fig:ffa_bwd_perf_report_varlen_causal}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \caption{Benchmarking FFA's performance and flexibility against other leading attention kernels for varlen causal mask scenarios.  (Note that: the $\mathbf{E}$ symbol indicates the corresponding distributed attention implementation raises \textit{Cuda Out of Memory} error in that specific configuration.)}
+    \label{fig:ffa_perf_report_varlen_causal}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_sw_causal_mask/attn-fwd_with_sliding_window_causal_mask/flops_report.pdf}
+        \caption{Forward pass for sliding-window causal mask.}
+        \label{fig:ffa_fwd_perf_report_sw_causal}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/ffa/attn_with_sw_causal_mask/attn-bwd_with_sliding_window_causal_mask/flops_report.pdf}
+        \caption{Backward pass for sliding-window causal mask.}
+        \label{fig:ffa_bwd_perf_report_sw_causal}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \caption{Benchmarking FFA's performance and flexibility against other leading attention kernels for sliding-window causal mask scenarios.  (Note that: the $\mathbf{E}$ symbol indicates the corresponding distributed attention implementation raises \textit{Cuda Out of Memory} error in that specific configuration.)}
+    \label{fig:ffa_perf_report_sw_causal}
+\end{figure}

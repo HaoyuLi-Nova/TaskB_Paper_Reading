@@ -1,0 +1,388 @@
+\clearpage
+% \setcounter{page}{1}
+\setcounter{section}{0}
+\maketitlesupplementary
+
+\renewcommand{\thesection}{\Alph{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
+% \renewcommand{\thefigure}{S\arabic{figure}}
+% \renewcommand{\thetable}{S\arabic{table}}
+
+In the \textbf{supplementary video}, we provide additional visual results.
+In this \textbf{supplementary document}, we present further details and analyses to complement the main paper.
+
+
+\section{Data Processing}
+\label{sec:preprocess}
+
+For each video sequence,
+we preprocess the corresponding point maps and scene flow into a unified [world]-coordinate system,
+referenced by the first camera pose.
+The processing pipeline consists of three steps:
+(1) camera-pose normalization,
+(2) transformation of point maps and scene flow into the world coordinate frame, and
+(3) global normalization of world-space geometry and motion. Below, we detail each component.
+
+% ---------------------------
+\subsection{Camera Pose Normalization}
+
+Monocular reconstruction systems often produce camera poses that contain arbitrary global rotation and translation.
+To eliminate this ambiguity,
+following DUSt3R~\cite{wang2024dust3r},
+we align all poses to a canonical coordinate frame defined by the first camera.
+In particular,
+given a sequence of camera poses 
+$\{\bm{P}_i\}_{i=1}^N$,
+where each $\bm{P}_i \in \mathbb{R}^{4 \times 4}$, 
+we decompose the first pose as
+\begin{equation}
+\bm{R}_0 = \bm{P}_0[:3,:3], \qquad \bm{t}_0 = \bm{P}_0[:3,3].
+\end{equation}
+Each pose is then normalized by
+\begin{equation}
+\tilde{\bm{R}}_i = \bm{R}_0^\top \bm{R}_i, \qquad
+\tilde{\bm{t}}_i = \bm{R}_0^\top (\bm{t}_i - \bm{t}_0),
+\end{equation}
+which preserves the relative motion within the sequence while removing global rotation and translation.
+
+% ---------------------------
+\subsection{Point Map Transformation}
+
+Given a point map $\bm{X}_i^C \in \mathbb{R}^3$ expressed in the camera coordinate system of frame $i$, we transform it into the first-frame coordinate system using the normalized camera poses:
+\begin{equation}
+\bm{X}_i = \tilde{\bm{R}}_i \bm{X}_i^C + \tilde{\bm{t}}_i .
+\end{equation}
+This transformation is applied to all valid pixels, while invalid pixels (as indicated by the validity mask) are set to zero. 
+For these invalid points, we use pyramid padding~\cite{zhang2024layerdiffuse} to fill them in.
+Note that,
+we do not supervise these invalid points; filling them in is solely to prevent the VAE from being affected by missing values during feature extraction.
+
+% ---------------------------
+\subsection{Scene Flow Transformation}
+
+The original scene flow $ \bm{V}_i^C$ is defined in the camera coordinates of frame $i$. To obtain the first-frame (world) space scene flow, we first compute the deformed points:
+\begin{equation}
+\bm{X}_{i \rightarrow i+1}^{C} = \bm{X}_i^C + \bm{V}_i^C,
+\end{equation}
+and transform them using the camera pose of the next frame:
+\begin{equation}
+\bm{X}_{i \rightarrow i+1} = 
+\tilde{\bm{R}}_{i+1} \bm{X}_{i \rightarrow i+1}^{C} + \tilde{\bm{t}}_{i+1}.
+\end{equation}
+The world-space scene flow is computed as
+\begin{equation}
+\bm{V}_i = \bm{X}_{i \rightarrow i+1} - \bm{X}_i .
+\end{equation}
+If a deformability mask is available, we apply it to zero out scene flow in non-dynamic regions.
+
+
+% ---------------------------
+\subsection{Global World-Coordinate Normalization}
+
+To ensure consistent training across scenes with different scales,
+the global normalization is applied in the [world]-space geometry.
+
+\paragraph{Centering}
+We first compute the centroid of all valid points:
+\begin{equation}
+\bm{\mu} = \frac{1}{| \mathcal{D}|} \sum_{d \in \mathcal{D}} \bm{X}_d.
+\end{equation}
+
+\paragraph{Isotropic Rescaling}
+Instead of scaling by the maximum radius, we compute the mean scale of valid points to the centroid:
+\begin{equation}
+S = \frac{1}{\mathcal{D}} \sum_{d \in \mathcal{D}} \lVert \bm{X}_d -\bm{\mu} \rVert_2.
+\end{equation}
+Then we uniformly normalize the point map, camera pose, and scene flow with the affine transformation:
+\begin{equation}
+\bm{X}_i \leftarrow \frac{\bm{X}_i - \bm{\mu}}{S}, \qquad
+\tilde{\bm{t}}_i \leftarrow \frac{\tilde{\bm{t}}_i - \bm{\mu}}{S}, \qquad
+\bm{V}_i \leftarrow \frac{\bm{V}_i}{S}.
+\end{equation}
+This isotropic scaling preserves the geometric structure while normalizing the absolute scale across datasets.
+The normalization parameters $(\bm{\mu}, S)$ are stored for optional recovery of the original metric scale.
+
+
+\section{Additional Ablations}
+\label{sec:more_ablations}
+% 
+
+
+\input{tables/more_ablations}
+
+\subsection{Ablation on the Multimodal Supervision}
+
+\paragraph{Motivation}
+While methods such as Geo4D~\cite{jiang2025geo4d} rely on multi-modality outputs 
+(e.g., depth, point maps, and normals) together with a post-optimization fusion stage 
+to obtain the final reconstruction,
+our main goal is to achieve 
+\emph{fully feed-forward} 4D geometry and motion reconstruction.
+Therefore, we intentionally avoid introducing any auxiliary outputs or post-refinement during inference.
+% 
+Interestingly, although multimodal outputs are not used at test time,
+we find that multimodal \emph{supervision} during VAE training can still benefit the reconstruction quality of the 4D latent.
+In particular, we leverage depth as an additional supervision signal derived from the world-coordinate point maps.
+
+\paragraph{Depth supervision}
+Given the reconstructed world-coordinate point map $\hat{\mathbf{X}}$ and the ground-truth point map $\mathbf{X}$,
+we project both into the depth domain using the normalized camera pose $\tilde{\mathbf{P}}$:
+\begin{equation}
+    \hat{\bm{D}} = \Pi(\hat{\bm{X}}, \tilde{\bm{P}}), \qquad 
+    \bm{D} = \Pi(\bm{X}, \tilde{\bm{P}}),
+\end{equation}
+where $\Pi(\cdot)$ denotes standard projection into the depth map.
+We apply two complementary losses:
+
+\begin{itemize}
+    \item \textbf{Per-pixel L1 depth loss}.  
+    This loss encourages accurate depth prediction and is masked by the depth validity map:
+    \begin{equation}
+        \mathcal{L}_{\text{L1-D}} = 
+        \left\|
+        \, (\hat{\mathbf{D}} - \mathbf{D}) \odot \mathbf{W}
+        \right\|_{1},
+    \end{equation}
+    where $\mathbf{W}$ is the binary valid-mask.
+
+    \item \textbf{Multi-scale patch depth loss}.  
+    To improve geometric consistency across different spatial scales, we compute an L1 loss over patches defined by the scale factors $\{4,16,64\}$.
+    For each scale, the depth maps are divided into non-overlapping patches; within each patch,  
+    the mean depth (computed with masked averaging) is subtracted to remove global bias:
+    \begin{equation}
+        \mathcal{L}_{\text{Patch-D}} 
+        = 
+        \sum_{s \in \{4,16,64\}}
+        \left\|
+        \, \left( \hat{\mathbf{D}}^{(s)} - \mathbf{D}^{(s)} \right)
+        \odot \mathbf{W}^{(s)}
+        \right\|_{1}.
+    \end{equation}
+    This term encourages consistent local geometric structure and suppresses depth-shift artifacts.
+\end{itemize}
+
+The total multimodal depth supervision is:
+\begin{equation}
+    \mathcal{L}_{\text{depth}} 
+    = 
+    \lambda_{\text{L1-D}} \mathcal{L}_{\text{L1-D}}
+    +
+    \lambda_{\text{Patch-D}} \mathcal{L}_{\text{Patch-D}}.
+\end{equation}  
+
+\paragraph{Results}
+As shown in~\cref{tab:more_ablation_vae}, introducing depth-based multimodal supervision 
+significantly improves the reconstruction quality of the world-coordinate point maps (with 13.55\% improvement in point map and 16.41\% in depth map).
+Notably, this improvement is achieved \emph{without} modifying the inference pipeline or introducing any extra modalities at test time.
+This ablation demonstrates that multimodal supervision is an effective strategy for enhancing the 4D latent representation learned by our VAE.
+
+
+
+\subsection{Ablation on the Decoder Loss}
+
+\paragraph{Motivation}
+In the deterministic setting, the denoising process in conventional diffusion models can be viewed as collapsing from a multi-step procedure into a single step. 
+Therefore, in addition to supervising the denoised latent representation, we introduce a \emph{decoder loss} that directly supervises the VAE decoder's output. 
+Compared to latent regression, this supervision is more direct and provides stronger training signals to the UNet.
+
+\paragraph{Implementation}
+During training, we do not update the VAE decoder's weights. 
+However, we still compute its gradients so that the loss can be back-propagated through the decoder to update the UNet parameters. 
+To reduce memory consumption, we apply gradient checkpointing to the VAE decoder during this process.
+
+\paragraph{Results}
+As shown in~\cref{tab:more_ablation_unet}, incorporating the decoder loss consistently improves the UNet training. 
+Across four unseen datasets, it yields an average improvement of {15.01\%}, with particularly notable gains on the outdoor dataset DDAD, where the performance improves by {36.80\%}.
+
+\subsection{Ablation on the training paradigm}
+
+\paragraph{Motivation}
+Following prior works~\cite{hu2024-DepthCrafter,xu2025geometrycrafter} in employing EDM~\cite{karras2022elucidating} pre-conditioning, our framework supports both the \textit{deterministic} and \textit{denoising} diffusion paradigms, on top of the pretrained SVD model.
+Since 4D Reconstruction is a deterministic task, we use a deterministic paradigm by default, which has been widely explored and shown to be effective in previous dense prediction frameworks~\cite{xu2024matters, song2025depthmaster, xu2025geometrycrafter}.
+However, we also want to know exactly how different these two training paradigms are in our framework, especially for 4D latents that incorporate both geometry and motion information. Therefore, we conduct ablation experiments to verify this.
+
+\paragraph{Implementation}
+As described in~\Cref{sec:method_training}, we have already introduced the loss functions for two training paradigms. For a fair comparison, we do not use decoder loss in the deterministic paradigm. Specifically, we directly feed video latents into the U-Net to predict 4D latents. For the denoising paradigm, we first add noise to the 4D latents and channel-wise concatenate the video latents, then use the U-Net's multi-step denoising to predict the 4D latents. All U-Net weights are initialized from the original SVD, with channel dimensions adjusted only at the first layer to accommodate different training paradigms.
+
+\paragraph{Results}
+As shown in~\cref{tab:diffusion_vs_determ},  the deterministic paradigm reduces $\text{Rel}^{p}$ by about 12.4\% and improves $\delta^{p}$ by approximately 12.7\% compared to the diffusion paradigms averaged across datasets. 
+This result strongly demonstrates the effectiveness of the deterministic paradigm in dense prediction tasks. Also, this shows that prior knowledge of SVD can be inherited by the model without relying on a denoising mechanism.
+
+\input{tables/training_paradigm}
+
+\section{Implementation Details}
+\label{sec:more_details}
+
+\subsection{Hyperparameter}
+
+We list the loss weights used for training the 4D VAE. 
+\begin{itemize}
+    \item {Point Map Reconstruction Loss:} 
+    $\lambda_{\text{point}} = 1.0$
+    \item {Per-pixel L1 Depth loss:} 
+    $\lambda_{\text{L1-D}} = 1.0$
+    \item {Multi-Scale Depth Supervision:} 
+    $\lambda_{\text{Patch-D}} = 1.0$
+    \item {Normal Consistency Loss:}
+    $\lambda_{\text{normal}} = 0.2$    
+    \item {Scene Flow Reconstruction Loss:} 
+    $\lambda_{\text{sceneflow}} = 1.0$
+    \item {Scene Flow Regulation Loss:} 
+    $\lambda_{\text{reg}} = 0.01$
+\end{itemize}
+% 
+The pretrained video diffusion UNet is optimized with the following latent regression loss and decoder loss (optional):
+
+\begin{itemize}
+    \item {Latent Regression Loss:} 
+    $\lambda_{\text{latent}} = 1.0$
+    \item {Point Map Decoder Loss:} 
+    $\lambda_{G} = 1.0$
+    \item {Scene Flow Decoder Loss:} 
+    $\lambda_{M} = 1.0$    
+\end{itemize}
+
+
+\subsection{Used Training Set}
+We list the used training datasets in~\cref{tab:train_dataset}, and provide some visual samples in~\cref{fig:trainingset}.
+\input{tables/training_set}
+
+
+\subsection{Model Information}
+
+Our system adopts the VAE and video UNet backbone from the 
+stable video diffusion (SVD)~\cite{blattmann2023stable} model.
+The pipeline consists of three major components: 
+(1) a video VAE encoder for encoding per-frame latent representations,
+(2) a 4D VAE decoder for reconstructing geometry and motion fields from latent space,
+and (3) a 3D spatiotemporal UNet for latent denoising.
+We report the parameter counts of each component below:
+\begin{itemize}
+    \item \textbf{Video UNet:} 1524.62M parameters.  
+    This large spatiotemporal UNet is responsible for denoising the latent
+    representations over both space and time, enabling the modeling of dynamic
+    geometry and motion.
+
+    \item \textbf{Video VAE Encoder:} 34.16M parameters.  
+    This module processes each input frame independently and encodes it into
+    a latent space with a spatial downsampling factor of $8\times$.
+
+    \item \textbf{4D VAE Decoder:} 99.00M parameters.  
+    This decoder reconstructs 4D point maps and scene flow from the latent
+    representation.
+
+    \item \textbf{Total Parameters:} 1657.79M parameters.
+\end{itemize}
+
+\paragraph{Inference Timing}
+All timings are measured on a single GPU with 40 GB of memory.
+For a video clip of {25 frames} at resolution \textbf{$320\times640$}, the average processing time per frame is as follows: 
+52.0 ms for VAE encoding, 13.4 ms for latent denoising, and 73.5 ms for VAE
+decoding, resulting in a total of 138.9 ms per frame.
+% 
+These measurements reflect the end-to-end processing required for a full forward
+pass of our geometry–motion reconstruction pipeline.
+
+\subsection{Evaluation Metrics}
+
+We provide detailed definitions of the evaluation metrics used for geometry and motion reconstruction.
+
+\paragraph{Geometry Alignment}
+Since monocular reconstruction is defined up to scale ambiguity, 
+the predicted world-space point map $\hat{\mathbf{X}}_i$ is aligned to the ground truth $\mathbf{X}_i$ 
+using a per-sequence scale $s$ and shift $\mathbf{t}$:
+% 
+\begin{equation}
+\tilde{\mathbf{X}}_i = s \hat{\mathbf{X}}_i + \mathbf{t},
+\end{equation}
+% 
+where $s$ and $\mathbf{t}$ are optimized by minimizing:
+% 
+\begin{equation}
+\min_{s,\mathbf{t}} \sum_i 
+\left\| s\hat{\mathbf{X}}_i + \mathbf{t} - \mathbf{X}_i \right\|_2^2.
+\end{equation}
+
+\paragraph{Relative Point Error ($\mathrm{Rel}^p$)}
+We measure the relative geometry error as:
+% 
+\begin{equation}
+\mathrm{Rel}^p =
+\frac{1}{N}
+\sum_i
+\frac{
+\left\|\tilde{\mathbf{X}}_i - \mathbf{X}_i\right\|_2
+}{
+\left\|\mathbf{X}_i\right\|_2
+}.
+\end{equation}
+
+\paragraph{Inlier Ratio ($\delta^p$)}
+We compute the percentage of points whose relative error is below a threshold $\tau$ (0.25 in our experiments):
+% 
+\begin{equation}
+\delta^p =
+\frac{1}{N}
+\sum_i
+\mathbf{1}
+\left(
+\frac{
+\left\|\tilde{\mathbf{X}}_i - \mathbf{X}_i\right\|_2
+}{
+\left\|\mathbf{X}_i\right\|_2
+}
+< \tau
+\right).
+\end{equation}
+
+\paragraph{Scene Flow Alignment}
+The predicted scene flow $\hat{\mathbf{V}}_i$ is scaled using the same geometry scale $s$:
+% 
+\begin{equation}
+\tilde{\mathbf{V}}_i = s \hat{\mathbf{V}}_i.
+\end{equation}
+
+\paragraph{End-Point Error (EPE)}
+We compute the average endpoint error between predicted and ground-truth scene flow:
+% 
+\begin{equation}
+\mathrm{EPE} =
+\frac{1}{N}
+\sum_i
+\left\|
+\tilde{\mathbf{V}}_i - \mathbf{V}_i
+\right\|_2.
+\end{equation}
+
+\paragraph{Average Percent of Points within Delta (APD)}
+APD measures the percentage of scene flow vectors whose error is below a threshold $\gamma$:
+% 
+\begin{equation}
+\mathrm{APD}_\gamma =
+\frac{1}{N}
+\sum_i
+\mathbf{1}
+\left(
+\left\|
+\tilde{\mathbf{V}}_i - \mathbf{V}_i
+\right\|_2 < \gamma
+\right).
+\end{equation}
+
+\section{More Visualization Results}
+\label{sec:more_vis}
+% 
+
+We select some in-the-wild videos from the Davis~\cite{Perazzi2016davis} dataset as samples for zero-shot testing, and the results are shown in~\cref{fig:zeroshot_davis}.
+A more intuitive visualization is provided in the attached video demo.
+We also provide more qualitative comparisons with other methods, as shown in~\cref{fig:motion_compare,fig:geo_compare,fig:vis_multiview}.
+The comparisons are for two different tasks: 1) joint geometry and motion estimation, and 2) geometry reconstruction only.
+
+\clearpage
+
+\input{figs/trainingset}
+\input{figs/zeroshot}
+\input{figs/results_compare}
+\input{figs/geo_compare}
+\input{figs/multiview_geometry_compare}

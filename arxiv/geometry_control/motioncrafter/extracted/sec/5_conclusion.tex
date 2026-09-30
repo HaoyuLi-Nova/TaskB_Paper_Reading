@@ -1,0 +1,25 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We introduce \method,
+a framework that is capable of jointly reconstructing dense geometry and motion from a monocular video.
+By defining both in a unified world coordinate system
+and designing a novel 4D VAE that encodes them into a shared latent space,
+we achieve state-of-the-art performance even without any post-processing. 
+Notably,
+we show that it is not necessary to strictly align the 4D latent distribution with the original SVD latent distribution.
+In fact,
+our relaxed alignment and VAE retraining strategy not only preserves but also improves the diffusion model's generalization,
+offering broader insight into adapting diffusion priors to new modalities.
+
+\paragraph{Limitations}
+Currently,
+we focus solely on dense geometry and motion reconstruction,
+but prior work has shown that incorporating multiple geometric modalities can substantially improve the prediction of 3D attributes, including camera parameters, point maps, depth maps, point tracks, and novel views.
+Thus, exploring multimodal integration is a promising direction for future work.
+
+\section*{Acknowledgments}
+% Ruijie Zhu completed this work during his internship at Tencent ARC Lab. We thank Tian-Xing Xu for providing the codebase of GeometryCrafter.
+Xiaoguang Han is supported by Guangdong Provincial Outstanding Youth Fund with No. 2023B1515020055.
+Chuanxia Zheng is supported by NTU SUG-NAP and the National Research Foundation, Singapore, under its NRF Fellowship Award NRF-NRFF17-2025-0009.
+\\

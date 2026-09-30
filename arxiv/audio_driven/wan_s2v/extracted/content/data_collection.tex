@@ -1,0 +1,29 @@
+\section{Data Processing Pipeline}
+
+\textbf{Data Collection.} Human-driven narratives constitute the core element of video content. Our objective is to identify videos featuring one or more human characters engaged in specific activities. Specifically, we adopted a two-pronged strategy:
+
+\textit{Automated screening of large-scale datasets.} We collected videos from open source video datasets such as \cite{OpenHumanVid} and \cite{koala36m}, followed by an initial coarse filtering process that detected the presence of human-related descriptions in video captions. It is worth noting that the captions provided by these datasets are inherently coarse-grained and often fail to capture the nuanced, dynamic activities performed by characters (e.g., complex gestures, interactions, or context-specific behaviors). To address this limitation, we developed a specialized captioning pipeline designed to focus on human motion patterns, which will be elaborated in subsequent subsections.
+
+\textit{Manual curation of high-quality samples.} Complementing the above approach, we manually selected videos containing intentional and complex human activities (e.g. speaking, singing, dancing) from public accessible sources. This dual methodology yielded an initial video pool comprising millions of human-centric video samples, forming the foundation for our dataset. 
+\begin{figure*}[tb]
+  \centering
+  \includegraphics[width=1.0\textwidth]{content/pic/sankey_hfm_data.png}
+  \caption{Overview of our hierarchical human-centric video filtering pipeline.
+  }
+  \label{fig:data_filtering_pipeline}
+\end{figure*}
+
+
+\textbf{Pose Tracking and Fine-grained Filtering.}  From the initial human-centric video pool, the 2D pose of each character is tracked via VitPose \cite{vitpose} and converted to DWPose \cite{dwpose}. This pose information serves two critical functions: (1) As a multi-modal control signal: The tracked pose is integrated as an optional multi-modal control signals for our human-centric video generation model, enabling precise temporal alignment with human actions. (2) For dataset refinement: The pose data is further leveraged to implement a fine-grained screening process. Specifically, we filtered out videos where characters occupy only a negligible portion in either temporal or spatial dimensions. Additionally, to ensure the model can learn audio-driven facial expressions from the given audio signals, we retained only videos containing consistent and visible human faces throughout the sequence.
+Complementing the pose-based screening, we employed pre-trained video quality assessment models to evaluate motion extent, aesthetic appeal, and visual clarity. Videos were subsequently filtered based on these quantitative metrics to maintain high data quality. Furthermore, to address audio-visual alignment challenges, we utilized Light-ASD \cite{light-asd} to detect and exclude videos where (1) the audio is not synchronized with the active speaker, or (2) no active speaker exists in the scene.
+
+\textbf{Video Quality.} To comprehensively evaluate video quality from multiple perspectives, we employ the following five metrics: (1) Clarity Assessment: We utilize the Dover metric \cite{dover} to quantify video clarity, which measures the perceptual sharpness of visual content. (2) Motion Stability Analysis: To evaluate temporal coherence, we predict optical flow using the UniMatch framework \cite{unimatch} and calculate a motion score. This helps identify and filter videos with excessive subject/background movement that could compromise visual quality. (3) Facial/Hand Sharpness Verification: A Laplacian operator is applied specifically to human faces and hands within the video frames. This technique enables the detection and exclusion of videos containing blurred facial features or hand regions. (4) Aesthetic Quality Evaluation: We incorporate an improved aesthetic predictor \cite{improved-aesthetic-predictor} to assess visual appeal based on human aesthetic preferences, ensuring the output meets subjective quality standards. (5) Subtitle Occlusion Detection: An OCR-based detector is applied to identify and exclude cases where subtitles might occlude faces or hands in video.
+
+\textbf{Dense Video Caption.} A detailed and accurate video caption facilitates the alignment of the generation model with the input prompt. We used QwenVL2.5-72B \cite{Qwen2.5-VL} to generate captions for the videos, instructing the model to describe the following key aspects in details: (1) Camera angles, such as straight-on, overhead, low-angle, wide shot, medium shot, and close-up; (2) Physical appearance features (e.g., clothing and accessories) and actions, broken down into specific movements of the subject; (3) Main features of the background environment, including architectural style, color schemes, and greenery, among others.
+At the same time, we required the model to avoid subjective evaluations and emotional interpretations, which are often trivial to generating the expected video content
+ 
+ 
+
+
+
+

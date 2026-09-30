@@ -1,0 +1,43 @@
+% \begin{figure}[t!]
+
+\begin{wrapfigure}{r}{0.48\textwidth}
+\vspace{-2em}
+\begin{minipage}[t]{0.48\textwidth}
+  \begin{algorithm}[H]
+    \caption{Rolling Forcing Inference}
+    \small
+    \begin{algorithmic}[1]
+      \Require Denoise timesteps $\{t_0, t_1, \dots, t_T\}$
+      \Require Number of video frames $N$
+      \Require AR diffusion model $G_\theta$ (returns KV embeddings via $G_\theta^{\mathrm{KV}}$)
+
+        \State Initialize model output $\mathbf{X}_{\theta} \gets []$
+        \State Initialize KV cache $\mathbf{KV} \gets []$
+        \State Initialize $x^{1:T-1}_{t_{1:T-1}}$ with $G_\theta$
+        \For{$i = 1, \dots, N$}
+          \State Sample $x_{t_T}^{i+T-1} \sim \mathcal{N}(0, I)$
+          \State Set $x^{i:i+T-1}_{t_{1:T}} \gets x^{i:i+T-2}_{t_{1:T-1}} \,\|\, x_{t_T}^{i+T-1}  $
+          \State Select and apply RoPE to $\mathbf{KV}$ (\cref{sec:kvcache})
+
+
+          \State $\hat{x}^{i:i+T-1}_0 \gets G_\theta(x^{i:i+T-1}_{t_{1:T}}, t_{1:T},  \mathbf{KV})$
+          \State $\mathbf{X}_{\theta}{\texttt{.append}}( \hat{x}^{i}_0)$
+
+          
+          \State $\mathbf{KV}{\texttt{.append}}( G_\theta^\text{KV}(\hat{x}^i_{0}, t_0, \mathbf{KV}))$
+          \State $x^{i+1:i+T-1}_{t_{1:T-1}} \gets \Psi(\hat{x}^{i+1:i+T-1}_0, t_{1:T-1}) $
+        \EndFor
+
+
+    \end{algorithmic}
+    \label{alg:inference}
+  \end{algorithm}
+\end{minipage}
+\vspace{-2em}
+\end{wrapfigure}
+
+% \end{figure}
+
+
+
+

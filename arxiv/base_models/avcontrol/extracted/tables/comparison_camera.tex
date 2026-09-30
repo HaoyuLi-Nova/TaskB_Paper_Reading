@@ -1,0 +1,18 @@
+\begin{table}[t]
+\centering
+\caption{Camera control on the ReCamMaster Benchmark (200 videos). Baselines from~\protect\cite{bai2025recammaster}. $^\dagger$COLMAP Structure-from-Motion (SfM) fails on 27\% of our videos; SpatialTrackerV2~\protect\cite{xiao2025spatialtracker} (all videos) yields 3.55$^\circ$.}
+\label{tab:camera_comparison}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lcc}
+\toprule
+Method & CLIP-F (\%) $\uparrow$ & RotErr ($^\circ$)  \\
+\midrule
+GCD~\cite{van2024gcd} & 95.66 & 2.27 \\
+Traj-Attn~\cite{xiao2025trajattn} & 96.52 & 2.18 \\
+DaS~\cite{cheng2025das} & 98.32 & 1.45 \\
+ReCamMaster~\cite{bai2025recammaster} & 98.74 & \textbf{1.22} \\
+\midrule
+\textbf{Ours} & \textbf{99.13} & 6.00$^\dagger$ \\
+\bottomrule
+\end{tabular}
+\end{table}

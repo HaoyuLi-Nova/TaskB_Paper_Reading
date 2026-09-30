@@ -1,0 +1,144 @@
+\appendix
+\label{sec:appendix}
+\renewcommand\thetable{\Alph{section}\arabic{table}}   
+\renewcommand\thefigure{\Alph{section}\arabic{figure}}  
+
+% \section{}
+
+% \xiaodong{PIRENDERER? in HDTF?}
+
+% \xiaodong{Table: Evaluating more dataset? VoxCeleb? LRW?}
+
+% \xiaodong{writings: Details of loss functions of each sub-network.}
+
+% \xiaodong{Table: Evaluating crossid settings on HDTF?~(pcavs can use new pose)}
+
+
+
+
+\section{Additional Experiments}
+\label{sec:A}
+
+
+\subsection{PIRenderer \emph{v.s} Our FaceRender for Face Reenactment}
+We compare our FaceRender and PIRenderer~\cite{ren2021pirenderer} on the task of video-driven face reenactment. We have already shown the visual comparisons in Fig~\ref{fig:render_ablation} of the main paper, here, we give the numerical comparison results on the HDTF dataset. We evaluate these two methods using cross-identity settings and the results are conducted over 354 videos. As shown in Tab~\ref{tab:pirender}, the proposed method shows a much better visual quality in terms of FID and CSIM, which demonstrate the advantage of the proposed methods for audio-driven talking-head generation. For more differences between the proposed method and PIRenderer for this task, we also discuss the influence of the face alignment coefficient in Sec.~\ref{supp:align}.
+
+\input{tables/ablation_facerender}
+
+% \xiaodong{Table: Evaluation face render with pirenderer?}
+
+% \subsection{Pose Style Evaluation}
+% \label{sec:pose}
+% \xiaodong{Figure: T-SNE of pose ID in CVAE}
+
+\subsection{Cross-ID Settings and More Test Datasets}
+\label{sec:datasets}
+We conduct the \textit{same-identity} experiment in the main paper, where the first frame of the test video is regarded as the reference image and the corresponding audio is regarded as the driving signal, generating a video that has the synchronized expression but diverse head poses. Differently, in the cross-identity experiment, the driving audio comes from another video. This kind of setting is also widely used in the comparison of the video-driven face reenactment~\cite{fomm}. In the cross-identity experiment, the reference pose of PC-AVS comes from the audio's corresponding video.
+
+To this end, besides the HDTF~\cite{hdtf} dataset in the main paper~(we evaluate the results under the same-identity experiment), we also evaluate our method on HDTF and VoxCeleb2~\cite{voxceleb} datasets in \textbf{\textit{cross-identity setting}} as in Table~\ref{tab:hdtf_crossid} and Table~\ref{tab:vox_crossid}. VoxCeleb2 contains over 1 million utterances of 6112 speakers, of which there are 36k utterances of 118 speakers in the test set. We randomly select 3 videos for each speaker, obtaining 354 videos as for evaluation. The evaluation metrics are the same as those the same-identity experiment on the HDTF dataset. We directly evaluate the pretrained model of all the models on this dataset. We crop the videos in the same way used in~\cite{fomm} and resize the frames to 256$\times$256. As shown in the Tables, the proposed method shows 
+ better lip synchronization in this kind of setting on both datasets in most metrics. The same trend is also observed in the head motion and visual quality of the final videos.
+
+% \subsection{Metrics}
+% \label{sec:metrics}
+
+
+\input{tables/hdtf_crossid_compare}
+
+\input{tables/vox2_crossid_compare}
+
+
+\section{More Implementation Details}
+We provide the detailed audio pre-processing, network structures, loss function, the discussion on alignment coefficients in Sec.~\ref{supp:audio}, Sec.~\ref{supp:network}, Sec.~\ref{supp:loss} and Sec.~\ref{supp:align}. 
+
+
+\subsection{Audio Pre-processing Details}
+\label{supp:audio}
+We follow Wav2Lip~\cite{wav2lip} to pre-process the audio. Specifically, we pre-process all the audio to 16k Hz. Then, we convert it to
+the mel-spectrograms with FFT window size 800, hop length
+200 and 80 Mel filter banks. Thus, for each frame, we have 0.2s mel-spectrogram feature with the shape of 16$\times$80.
+
+\subsection{Network Structure Details}
+\label{supp:network}
+
+\input{figs/architecture}
+
+\paragraph{ExpNet} Our ExpNet is built via an audio encoder $\Phi_{A}$ and a linear layer $\Phi_{M}$. We use the parameters from the pre-trained Wav2Lip to initialize the audio encoder. As discussed in the main paper, we first encode the audio feature into an audio embedding. And then, we generate the expression coefficients $\beta^g_{\{1,...,t\}}$ with additional coefficients of the first frame $\beta_0$ and blink control signal~$z_{blink}$. As shown in Fig.~\ref{fig:architecture}~(c), the audio encoder $\Phi_{A}$ is built via a four stages ResBlock-C as in Fig.~\ref{fig:architecture}~(a). we only use a single linear layer $\Phi_{M}$ as in Fig.~\ref{fig:architecture}~(b).
+
+\paragraph{PoseVAE} As shown in Fig.~\ref{fig:architecture}~(e), both the encoder and decoder of our PoseVAE contain several linear layers. For the conditions, the encoder $\mu$ and $\sum$ is mapped through the concatenation of the $\Delta \rho_{\{1:T\}}$, the 46 dimensional one-hot vector $Z_{style}$~(our training dataset contains 46 identities) and the encoded features from audio encoder $\Phi_{A}$. As for the decoder, we first add the re-parameterized feature and the style embedding. Then, we concatenate the audio feature similar to the encoder.
+
+\paragraph{FaceRender} As discussed in the main paper of Fig.~\ref{fig:render}, our face render is inspired by the motion transfer method face-vid2vid~\cite{facevid2vid}. We introduce a mappingNet to remap the learned 3DMM motion coefficients to the space of unsupervised 3D keypoints. As shown in Figure~\ref{fig:architecture}~(d), the mapping network contains the $t$-frames~($[t-2:t+2]$) motion coefficients of pose $\rho_{[t-2:t+2]}$ and expression $\beta_{[t-2:t+2]}$ to generate the motions representation of face-vid2vid~\cite{facevid2vid}~( $\texttt{yaw}$, $\texttt{pitch}$, $\texttt{roll}$, $\texttt{tr}$, and $\delta$) in frame $t$. Other networks in our FaceRender have the same structures in \cite{facevid2vid}. Please refer to face-vid2vid~\cite{facevid2vid} for more network details on the FaceRender.
+
+
+\subsection{Loss Function Details}
+\label{supp:loss}
+
+\paragraph{ExpNet} As described in the main paper, we use the expression coefficients which are generated from the pre-trained wav2lip~\cite{wav2lip} and then perform 3D face capture~\cite{deng2019accurate} as guidance~(lip-only expression coefficients for short). Basically, we calculate $\mathcal{L}_{distill}$ through the Mean-Squared loss between lip-only expression coefficients and the generated expression coefficients in training. Formally, a $T$-frames $\mathcal{L}_{distill}$ can be written as:
+\begin{equation}
+\mathcal{L}_{distill}=\frac{1}{T} \sum_{t=1}^{T}\left({\beta}_{t}^g - {\beta}_{t}^{lip}\right)^{2}
+\end{equation}
+Where ${\beta}_{t}^{lip} $ and  ${\beta}_{t}^g$ are the lip only and the generated expression coefficients, respectively.
+
+We also calculate the loss function on the projected 2D landmarks of the rendered 3D face. In detail, as shown in Fig.~\ref{fig:lms}, the height and width of the eye area in the $t$-th frame are defined as follows:
+\begin{align}
+{E}^{w}_{t}=\frac{\left\|P^{39}_t-P^{36}_t \right\|_{2} + \left\|P^{45}_t-P^{42}_t \right\|_{2} }{2} \\
+{E}^{h}_{t}=\frac{\left\|P^{37}_t+P^{38}_t-P^{40}_t-P^{41}_t \right\|_{2}}{2} \\ + 
+\frac{\left\|P^{43}_t+P^{44}_t-P^{46}_t-P^{47}_t \right\|_{2} }{2}.
+\end{align}
+Where ${E^{w}_{t}}$ is the width of the eye area in frame ${t}$, ${E}^{h}_{t}$ is the width of the eye area in frame ${t}$, $P^{i}_t$ is the ${i}$-th landmark in frame ${t}$. we define ${R_t} = \frac{{E}^{h}_{t}}{{E}^{w}_{t}}$ as the predicted and calculate eye loss as follows:
+\begin{equation}
+\mathcal{L}_{eye}=\sum_{t=1}^{T} \left\|{R_t}-Z^{blink}_{t} \right\|_{1},
+\end{equation}
+where $Z^{blink}_{t}$ is the eye blinking control signal the of ${t}$-th frame which is generated uniformly and randomly. To eliminate the effects of $\mathcal{L}_{eye}$ on other facial expression, we also constrain the minimal modification in the other landmarks. Thus, 
+\begin{equation}
+    \mathcal{L}_{lks}= \lambda_{eye} \mathcal{L}_{eye} + \frac{1}{T} \frac{1}{N}  \sum_{t=1}^{T} \sum_{i=1}^{M} \left\|P^{i}_t-P^{i\prime}_{t}\right\|^{2}_{2},
+\end{equation}
+where $\lambda_{eye}$ is set to 200, $P^{i\prime}_{t}$ is the landmarks predicted by the lip-only expression coefficients, $\mathcal{M}$ is a set of landmarks other than the eye areas.
+
+\input{figs/lms}
+\input{figs/mouth}
+
+Besides, we use pretrained lip-reading models proposed in \cite{ma2022training} to calculate lip reading loss $\mathcal{L}_{read}$ inspired by \cite{spectre}. We use the pretrained video-based lip-reading model where the input is a sequence~(5 frames in our case) of the cropped interesting region around the mouth~(as shown in Fig~\ref{fig:mouth}) and the target is a series of the character sequence. So we employ a differentiable 3D face render~\cite{deng2019accurate} in ExpNet to render the images through the generated expression coefficients, then, we crop the mouth area of the rendered images using the bounding box of the mouth landmarks, obtaining the logit of the character sequences $\mathbf{C_p}$. As for the supervision, we generate the logit of the character sequences $\mathbf{C_{gt}}$ from the ground truth audio using the audio-driven lip-reading model. Thus, our goal is to minimize the difference between $\mathbf{C_p}$ and $\mathbf{C_{gt}}$. In other words,  
+\begin{equation}
+    \mathcal{L}_{read}= \text{CrossEntrory}(\mathbf{C_{gt}}, \mathbf{C_p})
+\end{equation}
+Overall, the final loss of ExpNet is given by :
+\begin{equation}
+    \mathcal{L}_{exp}=\lambda_{distill} \mathcal{L}_{distill}+\lambda_{read} \mathcal{L}_{read} + \lambda_{lks} \mathcal{L}_{lks}
+\end{equation}
+Where $\lambda_{distill}$, $\lambda_{read}$, $\lambda_{lks}$ are set to $2$, $0.01$, and $0.01$, respectively.
+
+ 
+
+\paragraph{PoseVAE} We first calculate the reconstruction loss by applying Mean-Squared loss between the generated $\Delta \rho^\prime_{\{1 \ldots T\}}$ and the original $\Delta \rho_{\{1 \ldots T\}}$: 
+\begin{equation}
+\mathcal{L}_{MSE} = \frac{1}{T} \sum_{t=1}^{T}\left(\Delta \rho^{\prime}_t - \Delta \rho_t \right)^{2}
+\end{equation}
+Meanwhile, we encourage the similarity of the latent space distribution  and the Gaussian distribution with the mean vector ${\mu}$ and covariance matrix ${\sum}$. So we define $\mathcal{L}_{KL}$ as the Kullback–Leibler~(KL) divergence between the latent space distribution and the Gaussian distribution.
+We also employ a discriminator $D$ based on the PatchGAN~\cite{pix2pix} to perform 1D convolution on the head motion sequence as Speech2Gesture~\cite{speech2gesture}. We define the adversarial loss $\mathcal{L}_{GAN}$:
+\begin{equation}
+\mathcal{L}_{GAN} = \arg \min _{G} \max _{D}\left(G, D\right)
+\end{equation}
+Where $G$ is proposed PoseVAE. The total loss of PoseVAE can be summarized as follows. 
+\begin{equation}
+\mathcal{L}_{pose} = \lambda_{MSE} \mathcal{L}_{MSE}+\lambda_{KL} \mathcal{L}_{KL} + \lambda_{GAN} \mathcal{L}_{GAN}
+\end{equation}
+where $\lambda_{MSE}$, $\lambda_{KL}$ and $\mathcal{L}_{GAN}$ are set to 1, 1, and 0.7, respectively.
+
+
+\paragraph{FaceRender}
+We add a MappingNet to map the explicit 3DMM coefficients to the space of the face-vid2vid~\cite{facevid2vid}, to training, apart from the loss functions used in face-vi2vid~\cite{facevid2vid}, we add $L_1$ regularization on the domain of unsupervised keypoints:
+\begin{equation}
+\mathcal{L}_{1} = \frac{1}{N} \sum_{n=1}^{N}||K^{\prime}_n - K_n ||_{1},
+\end{equation}
+where $K^{\prime}_n$ and $K_n $ are the $n$-th keypoint generated by our MappingNet and the motion generator of the original face-vid2vid, respectively. The weight of $\mathcal{L}_{1}$ is set to 20, and the weights of the other loss functions keep the same as in face-vid2vid and they are calculated on the final generated image. Please refer to face-vid2vid~\cite{facevid2vid}
+for more details.
+
+
+\subsection{More Details about the Alignment Coefficients.}
+\label{supp:align}
+In the main paper, we show the effect of the alignment coefficients in Fig~\ref{fig:render_ablation}. Here, we give more details about the alignment coefficients. Generally, the alignment coefficients are the transformation parameters~(translation and scaling) to transform and crop the arbitrary video to the aligned face video for deep 3D face reconstruction~\cite{deng2019accurate}. The implicit modulation of PIRenderer~\cite{ren2021pirenderer} contains 73 dimensional motion coefficients, including the expression~(64), head pose~(6) and the alignment coefficients~(3). Since their method focuses on video driving animation, the alignment coefficients are known in testing. However, it is hard to \textit{learn} from the audio since there is no relationship between the alignment and the audio. We also try to learn and use the alignment coefficients of the first frame in our method~(as shown in Fig.~\ref{fig:render_ablation} and the supp. video), however, the produced head motion is aligned and unnatural. We discard it to obtain more natural video results. Thus, our motion coefficients~(70) only contains the expression~(64) and head pose~(6).
+
+\section{Supplementary Video}
+We provide a supplementary video to include all the video results of our method and other related methods as comparisons, the ablation study of each component, and more results of our method in different languages.
+
+    

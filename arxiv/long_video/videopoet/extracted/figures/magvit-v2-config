@@ -1,0 +1,328 @@
+video:
+{
+  "config": {
+    "base_lr": 0.0001,
+    "batch_size": "256",
+    "data_dtype_str": "float32",
+    "dataset_configs": {
+      "base_dir": "/readahead/128M",
+      "crop_size": "128",
+      "dataset_name": "umt_plus_m3",
+      "examples_per_subset": {
+        "test": "20000",
+        "train": "500000000",
+        "validation": "20000"
+      },
+      "frame_rate": "25",
+      "label_dir": "/cns/lu-d/home/lijuny/videogvt/datasets",
+      "min_resize": "128",
+      "num_classes": "0",
+      "num_frames": "17",
+      "num_test_clips": "1",
+      "one_hot_label": false,
+      "prefetch_to_device": "2",
+      "stride": "1",
+      "tables": {
+        "test": "/cns/oa-d/home/umt-video-data-access/datasets/umt/25k/raw/e=1:kid=73859:mkey=learning_canon_prod_colossus:mdb=umt-video-data-access/ttl=30d/latest/umt_25k_tokens@100",
+        "train": [
+          "/cns/vq-d/home/video-first-data-access/canon/umt500m_rgb_noshot_classfiltered/e=1:kid=73859:mkey=learning_canon_prod_colossus:mdb=video-first-data-access/ttl=60d/latest/umt500m_rgb_noshot_classfiltered@20000",
+          "/placer/prod/home/viva-video-generation/shutterstock/sstk_ml/e=1:kid=73859:mkey=learning_canon_prod_colossus:mdb=viva-video-generation/latest/sst@99991",
+          "/cns/px-d/home/viva-miner/video_miner/faces/rs=6.3/M3/1M/gen/e=1:kid=73859:mkey=learning_canon_prod_colossus:mdb=viva-miner-faces/ttl=30d/latest/viva_miner_faces_m3_1M_train_gen@80000"
+        ],
+        "validation": "/cns/oa-d/home/umt-video-data-access/datasets/umt/25k/raw/e=1:kid=73859:mkey=learning_canon_prod_colossus:mdb=umt-video-data-access/ttl=30d/latest/umt_25k_tokens@100"
+      },
+      "train_sample_weights": [
+        0.7,
+        0.2,
+        0.1
+      ],
+      "train_stride_overrides": [
+        "1",
+        "1",
+        "3"
+      ],
+      "zero_centering": false
+    },
+    "dataset_name": "video_sstable_dataset_multitable",
+    "discriminator": {
+      "channel_multipliers": [
+        "2",
+        "4",
+        "4",
+        "4",
+        "4"
+      ],
+      "downsample": "blur",
+      "filters": "128",
+      "num_remat_blocks": "2"
+    },
+    "dtype": "float32",
+    "eval": {
+      "data_splits": "train,test",
+      "enable_frechet_distance": true,
+      "enable_inception_score": true,
+      "enable_lpips": true,
+      "enable_ssim_psnr": true,
+      "enable_utilization": true,
+      "final_num_repeats": "1",
+      "num_examples": "20000"
+    },
+    "eval_batch_size": "64",
+    "eval_from": {
+      "checkpoint_path": null,
+      "step": null,
+      "xm": null
+    },
+    "experiment_name": "UCF101_VQGAN/3D",
+    "image_size": "128",
+    "init_from": {
+      "inflate_discriminator": false,
+      "inflation": "2d->3d/last",
+      "xm": [
+        "64438688",
+        "1"
+      ]
+    },
+    "lax_precision": "default",
+    "lecam_weight": 0.001,
+    "logging": {
+      "checkpoint_kept": "5",
+      "checkpoint_steps": "1000",
+      "enable_checkpoint": true,
+      "log_metric_steps": "200",
+      "log_sample_size": "2"
+    },
+    "lr_configs": {
+      "base_learning_rate": 0.0001,
+      "factors": "constant * cosine_decay * linear_warmup",
+      "learning_rate_schedule": "compound",
+      "steps_per_cycle": "1000000",
+      "warmup_steps": "5000"
+    },
+    "model_class": "VQGAN",
+    "num_training_steps": "1000000",
+    "optimizer": {
+      "beta1": 0,
+      "beta2": 0.99,
+      "d_lr": 0.0001,
+      "g_lr": 0.0001,
+      "lr": 0.0001
+    },
+    "perceptual_loss_on_logit": true,
+    "perceptual_loss_weight": 0.1,
+    "polyak_decay": 0.999,
+    "pretrained_image_model": true,
+    "rng_seed": "0",
+    "sq": {
+      "bound_method": "sine",
+      "dim_widths": [
+        "8",
+        "8",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4"
+      ],
+      "quantize_method": "ste"
+    },
+    "vqgan": {
+      "finetune_decoder": false,
+      "finetune_path": "",
+      "g_adversarial_loss_weight": 0.1,
+      "grad_penalty_cost": 10,
+      "gradient_penalty": "r1",
+      "loss_type": "non-saturating",
+      "model_type": "3D"
+    },
+    "vqvae": {
+      "activation_fn": "swish",
+      "architecture": "3dcnn",
+      "channel_multipliers": [
+        "1",
+        "2",
+        "2",
+        "4"
+      ],
+      "codebook_size": "262144",
+      "commitment_cost": 0.25,
+      "conv_downsample": true,
+      "custom_conv_padding": "causal_custom",
+      "decoder_deep_condition": true,
+      "deconv_upsample": false,
+      "embedding_dim": "8",
+      "entropy_loss_ratio": 0.1,
+      "entropy_loss_type": "softmax",
+      "entropy_temperature": 0.01,
+      "filters": "128",
+      "norm_type": "GN_spatial",
+      "num_dec_remat_blocks": "2",
+      "num_dec_res_blocks": "4",
+      "num_enc_remat_blocks": "2",
+      "num_enc_res_blocks": "4",
+      "reconstruction_loss_weight": 5,
+      "temporal_downsample": [
+        false,
+        true,
+        true
+      ],
+      "upsample": "depth_to_space",
+      "vector_quantizer_class": "ScalarQuantizer"
+    }
+  },
+  "eval_while_training": "ACTX__MERGE_VALUE_CONFLICT (go/xm-parameters#work-unit-parameters-and-configurations)",
+  "logger_levels": null
+}
+image:
+{
+  "config": {
+    "base_lr": 0.0001,
+    "batch_size": "2048",
+    "data_dtype_str": "float32",
+    "dataset_configs": {
+      "dataset": "imagenet2012",
+      "gldm_configs": {
+        "alt_text_relevance_high_threshold": 0.7,
+        "alt_text_relevance_low_threshold": 0.52,
+        "drop_dups": true,
+        "drop_empty_text": true,
+        "ica_labels_score_threshold": 0.95,
+        "ica_labels_to_drop_by": null,
+        "ignore_errors": true,
+        "max_ica_labels": "3",
+        "prefer_alt_text_prob": 1,
+        "prepend_ica_labels_prob": 1,
+        "random_pali_caption": true,
+        "use_proxy": false
+      },
+      "gldm_ds_names": {
+        "train": "webli_v3_tigg_data_v1"
+      },
+      "image_size": "128",
+      "num_classes": "0",
+      "pp_eval": "decode|resize_small(128)|central_crop(128)|value_range(0, 1)|copy(\"label\", \"labels\")|keep(\"image\", \"labels\")",
+      "pp_train": "keep(\"image\")",
+      "prefetch_to_device": "2",
+      "shuffle_buffer_size": "10000",
+      "text_encoder_name": "dummy",
+      "train_split": "train",
+      "val_split": "validation"
+    },
+    "dataset_name": "webli",
+    "dataset_type": "image",
+    "discriminator": {
+      "blur_resample": true,
+      "channel_multipliers": [
+        "2",
+        "4",
+        "4",
+        "4",
+        "4"
+      ],
+      "filters": "128"
+    },
+    "dtype": "float32",
+    "eval": {
+      "data_splits": "train,validation",
+      "enable_frechet_distance": false,
+      "enable_frechet_image_distance": true,
+      "enable_inception_score": false,
+      "enable_lpips": true,
+      "enable_ssim_psnr": true,
+      "enable_utilization": true,
+      "final_num_example_multiplier": "5",
+      "num_examples": "10000"
+    },
+    "eval_batch_size": "64",
+    "eval_dataset_name": "bit",
+    "eval_from": {
+      "checkpoint_path": null,
+      "step": null,
+      "xm": null
+    },
+    "experiment_name": "ImageNet_VQGAN/2D",
+    "image_size": "128",
+    "lax_precision": "default",
+    "lecam_weight": 0.001,
+    "logging": {
+      "checkpoint_kept": "5",
+      "checkpoint_steps": "10000",
+      "enable_checkpoint": true,
+      "log_metric_steps": "200",
+      "log_sample_size": "8"
+    },
+    "lr_configs": {
+      "base_learning_rate": 0.0001,
+      "factors": "constant * cosine_decay * linear_warmup",
+      "learning_rate_schedule": "compound",
+      "steps_per_cycle": "1000000",
+      "warmup_steps": "10000"
+    },
+    "model_class": "VQGAN",
+    "num_training_steps": "1000000",
+    "optimizer": {
+      "beta1": 0,
+      "beta2": 0.99,
+      "d_lr": 0.0001,
+      "g_lr": 0.0001,
+      "lr": 0.0001
+    },
+    "perceptual_loss_on_logit": true,
+    "perceptual_loss_weight": 0.1,
+    "polyak_decay": 0.999,
+    "pretrained_image_model": true,
+    "rng_seed": "0",
+    "sq": {
+      "bound_method": "sine",
+      "dim_widths": [
+        "8",
+        "8",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4",
+        "4"
+      ],
+      "quantize_method": "ste"
+    },
+    "vqgan": {
+      "g_adversarial_loss_weight": 0.1,
+      "grad_penalty_cost": 10,
+      "gradient_penalty": "r1",
+      "loss_type": "non-saturating",
+      "model_type": "2D"
+    },
+    "vqvae": {
+      "activation_fn": "swish",
+      "architecture": "2dcnn",
+      "channel_multipliers": [
+        "1",
+        "2",
+        "2",
+        "4"
+      ],
+      "codebook_size": "262144",
+      "commitment_cost": 0.25,
+      "conv_downsample": true,
+      "decoder_deep_condition": true,
+      "deconv_upsample": false,
+      "embedding_dim": "8",
+      "entropy_loss_ratio": 0.1,
+      "entropy_loss_type": "softmax",
+      "entropy_temperature": 0.01,
+      "filters": "128",
+      "norm_type": "GN",
+      "num_attn_heads": "8",
+      "num_dec_res_blocks": "4",
+      "num_enc_res_blocks": "4",
+      "reconstruction_loss_weight": 5,
+      "upsample": "depth_to_space",
+      "use_attn": false,
+      "vector_quantizer_class": "ScalarQuantizer"
+    }
+  },
+  "eval_while_training": "ACTX__MERGE_VALUE_CONFLICT (go/xm-parameters#work-unit-parameters-and-configurations)",
+  "logger_levels": null
+}

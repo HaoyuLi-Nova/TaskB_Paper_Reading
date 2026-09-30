@@ -1,0 +1,61 @@
+{
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "paper.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "ablation_study/add_noise_to_context_ema_extracted_frames/drone/frame_004.jpg"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "ablation_study/local_attn_12_train_21_ema_extracted_frames/drone/frame_004.jpg"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "ablation_study/local_attn_15_train_21_ema_extracted_frames/drone/frame_004.jpg"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "ablation_study/local_attn_9_train_21_ema_extracted_frames/drone/frame_004.jpg"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "logo/bytedance-logo-old.png"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "logo/bytedance-logo.png"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "main.bib"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "seed.cls"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "seed/ByteSans-Bold.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "seed/ByteSans-Medium.ttf"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "seed/bytesans.tfm"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "seed/bytesansmedium.tfm"
+      }
+   ],
+   "spec_version" : 1,
+   "texlive_version" : "2025",
+   "process" : {
+      "compiler" : "pdflatex"
+   }
+}

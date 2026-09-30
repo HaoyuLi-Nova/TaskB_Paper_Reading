@@ -1,0 +1,55 @@
+\section{Experiments}
+\label{sec:exp}
+\input{pictures/comparison}
+
+\subsection{Experiment Settings}
+
+\noindent \textbf{Implementation details.}
+We use SVD~\cite{SVD} as our base model. During training, we sample 16 consecutive frames from videos at a spatial resolution of $288$×$512$. Specifically, we center-crop the video to an aspect ratio of $288/512$, then resize the video frames to the resolution of $288$×$512$.
+Our \method is trained for 200K iterations using the AdamW optimizer with a learning rate of 1e-5. All training is conducted on 16 NVIDIA A100 GPUs with a total batch size equal to 16.
+
+\noindent \textbf{Datasets.}
+For training, we utilize the high-quality Video Object Segmentation (VOS) dataset Segment Anything Video (SA-V)~\cite{SAM2}, which consists of 51K diverse videos and 643K high-quality spatio-temporal segmentation masks. We conduct an evaluation on the DAVIS~\cite{davis} dataset and split videos into clips with 16 frames for testing. Inspired by DragAnything~\cite{DragAnything}, we apply K-means to the mask of each object in the start frame to select K points in each mask area as control points. Then, we employ Co-Tracker~\cite{co-tracker} to track these control points to generate corresponding point trajectories as the ground truth.
+
+\noindent \textbf{Metrics.}
+Following ~\cite{DragAnything, Motionctrl}, we adopt Frechet Video Distance~\cite{FVD} (FVD) to measure video quality and assess image quality using Frechet Inception Distance~\cite{FID} (FID). For motion controllability evaluation,
+we leverage ObjMC~\cite{Motionctrl}, which computes the Euclidean distance between the generated and pre-defined trajectories. Trajectories of generated videos are extracted using Co-Tracker.
+
+\subsection{Comparison with Other Approaches}
+
+We compare our methods with DragNUWA~\cite{DragNUWA} and DragAnything~\cite{DragAnything}, which enable motion control on given images and have publicly available code. We conduct both qualitative and quantitative comparisons.
+
+\noindent \textbf{Qualitative comparison.}
+For qualitative analysis, we focus on verifying the crucial role of introducing 3D trajectories into video generation, which includes the following three aspects: 1) The control of mutual occlusion between objects; 2) Better control for forward and backward object movements in relation to the lens; 3) The implementation of complex motions (such as orbiting). 
+
+Qualitative comparison results are shown in \cref{fig:comp}, where we input the same 2D control trajectory to all models. The top two rows of images show the verification results of occlusion control. In this case, we provide our \method with different depth variations: the depth in the first row changes from far to near, while the depth in the second row only moves closer without being closer to the camera than the buildings on street side. The generated results perfectly meet our requirements, with the tornadoes progressing from far to near and gradually getting larger. Meanwhile, tornado in the first row sweeps across the front of the building, while in the second row it just passes behind the building. In contrast, the other two methods can only control the generation through 2D trajectories. It can be observed that DragAnything misinterprets the movement of the tornado as a forward movement of the camera, resulting in a blurry output. On the other hand, DragNUWA correctly understands that the tornado needs to be moved. However, since it lacks consideration of changes in depth, the size of the tornado hardly changes after the movement, which does not comply with perspective projection rules.
+
+Evaluation results on control for forward and backward object movements in relation to the lens are shown as the left-bottom images in \cref{fig:comp}. It is clear that 2D trajectory cannot provide depth information, so DragAnything and DragNUWA can only simulate planets motion that conforms to that trajectory, resulting in blurry videos. In contrast, \method can generate accurate and clear movements of two planets based on user-specified inputs meanwhile conforming to perspective projection rules.
+
+Based on the information input by users, we can derive 3D trajectories to control the movement of objects, which represent users' desired object occlusions and size changes. Furthermore, we can simulate more complex motions, such as object orbiting. The right-bottom images in \cref{fig:comp} shows an example and our model is able to accurately simulate the situation of a black bowl rotating around a vase and correctly handle the occlusion relationships. Instead, DragAnything cannot directly interpret the 2D trajectory to achieve our desired swirling effect. It only generates a video where the bowl moves from right to left and then back. During this movement, the bowl also undergoes distortion and blurring. DragNUWA treats this 2D input as a camera trajectory, resulting in a video that shows a stationary table and bowl filmed from different angles.
+
+The qualitative comparison results demonstrate that by introducing 3D trajectory control which allows for easy input by users, our \method can better manage the proximity changes of objects. It can also produce video results that cannot be generated with only 2D trajectories, such as controlling object occlusion and executing complex movements like orbiting. Additionally, since our pipeline includes all object masks automatically extracted by SAM~\cite{SAM}, \method ensures that only objects selected by users can be moved. This prevents interpreting object movement as camera movement. And camera movement can be implemented by moving the mask of the selected background (as shown in \cref{fig:ablation1}).
+
+\input{tables/comparison}
+
+\noindent \textbf{Quantitative comparison.}
+We evaluate the quantitative results with two input settings: Single-Point and Multi-Points. The setting of Single-Point is consistent with previous work~\cite{DragAnything}, which means that only one point trajectory is selected for each mask as video generation condition.
+For Multi-Points setting, we select at most 8 points in each mask and use their trajectories as condition. \cref{tab:comparison} shows the quantitative comparison results of \method with baselines on DAVIS. Using the same SVD as base model, our method achieves a significant advantage in both FID and FVD metrics, thanks to the consideration of 3D trajectory and training on high-quality SA-V dataset. Besides, increasing the number of control trajectories can effectively benefit DragNUWA and \method. This indicates that considering object size changes over time and occlusion is effective. DragAnything is trained using a single trajectory with object mask semantic information in first frame, thus increasing the number of trajectories doesn't match the training and improvement is limited. \method performs worse than DragNUWA on the ObjMC metric, which we attribute to the fact that we do not use tracking methods to obtain complete point trajectories and require the generated video to perfectly match these trajectories.
+
+
+\input{pictures/ablation1}
+
+\subsection{Ablation Studies}
+We conduct ablations to study how depth points, instance information and the number of control points for inference affect our synthesis results with the Multi-Points setting.
+
+\noindent \textbf{Depth and instance information.}
+\cref{tab:ablations} shows the results of training \method without depth or object instance input, which suggest that both depth and instance information are helpful to our model learning. Compared to depth information, object instance is more important because it represents the objects corresponding to different control points. Without this information, model can easily confuse the control points of different objects, leading to blurred and unrealistic results. Depth information of objects is to some extent implicit in the degree of clustering of points, so its impact is relatively small. We also present a qualitative ablation result in \cref{fig:ablation1}, which suggests that without instance or depth information, the model can easily confuse occlusion relationship between objects, resulting in blurry and unrealistic generation results.
+
+
+\input{pictures/ablation2}
+
+\input{tables/ablations}
+
+\noindent \textbf{Number of control points for inference.}
+During inference, our model can choose different number of control points to strike a balance between motion amplitude and generation quality. \cref{fig:ablation2} illustrates an example, where we multiply the initial number of control points by a scale to evaluate the impact of different numbers of control points on generation results. It can be seen that when there are few control points, the generated result exhibits significant movement amplitude, but the object may experience some deformation or blurring during the motion. 
+However, too many control points can get close to the object's mask. Although taking these points as control ensures the reasonableness of the object's shape, it prevents the model from generating the result of its movement. As shown in the last row of \cref{fig:ablation2}, the puppy will translate directly from back to front. Users can therefore adjust the number of control points according to their needs to achieve the desired generation results.

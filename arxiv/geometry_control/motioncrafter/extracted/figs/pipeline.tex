@@ -1,0 +1,15 @@
+\begin{figure*}
+    \centering
+    \includegraphics[width=\linewidth]{figs/pipeline_figure.pdf}
+    \caption{\textbf{Overview of \method}.
+    % We define both scene geometry and motion within a shared world coordinate system. 
+    We first train a novel \emph{4D VAE} (bottom-right), consisting of a \emph{Geometry VAE} and a \emph{Motion VAE}. 
+    These two components jointly encode the point map and scene flow into a unified 4D latent representation. 
+    Within the Diffusion Unet, we leverage the pretrained VAE from SVD (Stable Video Diffusion) to encode video latents as conditional inputs, 
+    which are then channel-wise concatenated with our 4D latent to guide the denoising process. We only add noise to the 4D latents during model training for the Diffusion version.
+    Note that we do not enforce the 4D latent distribution to strictly align with the original SVD VAE latent distribution.  
+    And we find that this relaxed training strategy consistently improves the generalization performance of both the VAE and the Diffusion Unet.
+    }
+    \label{fig:overview}
+    \vspace{-1em}
+\end{figure*}

@@ -1,0 +1,48 @@
+\begin{table*}[!t]
+  \centering
+  \resizebox{1.0\linewidth}{!}
+  {
+
+    \begin{tabular}{c|cccc|ccc|cccc}
+    \hline
+    % Setting & & \multicolumn{6}{c|}{Dub 1.0} & \multicolumn{3}{c}{Dub 2.0} \\ 
+    % \hline
+    
+    Benchmark & \multicolumn{4}{c|}{Chem2V2C} & \multicolumn{3}{c|}{Chem2GRID} & \multicolumn{4}{c}{GRID2Chem} \\
+    \midrule
+    Methods 
+    & DD  
+    & \small{EMO-SIM} (\%) $\uparrow$
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$   
+    & DD  
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$   
+    & DD  
+    & \small{EMO-SIM} (\%) $\uparrow$
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$     \\
+    \midrule
+    GT  & 0.0000 & 100.00 & 25.55 & 2.26  & 0.0000 & 22.41 & 3.94 & 0.0000 & 100.00 & 3.85 & 4.18 \\
+    % GT Mel + Vocoder & 100.00 & 25.55  & 2.26 & 99.96 & 0.00 & 0.00 & 100.00 & 22.55 & 2.26\\
+    \midrule
+    Speak2Dub & 0.5873 & 59.72 & 23.78 & 2.74 & \underline{0.3123} & 55.08 & 3.00 & 0.5832 & 35.14 & 60.47 & 2.58 \\
+    StyleDubber & \underline{0.5627} & 58.54 & 25.43 & 1.95 & 0.3139 & 67.46 & 2.10 & 0.5095 & 41.35 & 68.91 & 2.05 \\
+    DeepDubber* & 0.5756 & 56.42 & 35.88 & 2.03 & 0.3995 & 51.16 & 2.31 & \underline{0.5041} & 52.37 & \underline{25.51} & 2.53 \\
+    ProDubber & 0.5650 & \underline{65.98} & \underline{14.33} & \underline{2.91} & 0.3209 & \underline{47.42} & \underline{3.73} & 0.5781 & \underline{54.87} & 30.17 & \underline{2.72} \\
+    \midrule
+    Ours & \textbf{0.5583} & \textbf{66.57} & \textbf{12.60} & \textbf{3.07} & \textbf{0.3042} & \textbf{38.53} & \textbf{3.84} & \textbf{0.4849} & \textbf{58.91} & \textbf{20.73} & \textbf{2.94} \\
+    \bottomrule
+    \end{tabular}
+    }
+    % \vspace{-0.2cm}
+    \caption{
+  % \color{blue}
+  Results on zero-shot movie dubbing across three major benchmarks with same zero-shot setting as Table~\ref{cross_1}.
+  }
+  
+  % $\uparrow(\downarrow)$ denotes the higher (lower) value is better.
+  % We follow the official code of pre-train HiFi-GAN and the extraction method of mel-spectrogram.
+  \label{cross_2}%
+  % \vspace{-0.4cm}
+\end{table*}%

@@ -1,0 +1,180 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\noindent$\bullet$
+\textbf{Implementation Details.} The proposed \methodname is based on AnimateDiff V3~\cite{AnimateDiff}, trained with 16-length $256 \times 384$ videos, Adam optimizer with a learning rate of $1e^{-4}$. Domain Adapter is trained with 8K iterations in a batch size of 128. \camctrlname and  \objctrlname are trained with 50K iterations with a batch size of 8. $\lambda_c$ and $\lambda_o$ are set to 0.6 and 0.3. In experiments, we find that 26K data samples suffice for our method to learn 3D-aware motion control.
+
+
+\noindent$\bullet$
+\textbf{Evaluation Metrics.} Following \cite{AnimateDiff,MotionCtrl}, we use FID~\cite{FID} to evaluate visual quality, FVD~\cite{FVD} for temporal coherence, and CLIPSIM~\cite{CLIP} to measure semantic similarity with text. For camera motion, we follow~\cite{CameraCtrl} to use CamTransErr and CamRotErr. 
+For object motion, ObjTransErr and ObjRotErr are introduced. We first use depth estimation model~\cite{DepthAnythingV2} to obtain the depth at object centroid and determine its global position based on camera pose, then fit a trajectory curve to find tangent and normal vectors at each time step, allowing for rotation derivation. Given scale information, we apply appropriate scaling to the translation error calculation. 
+
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.999\linewidth]{indep_comparison_compressed.pdf}
+    \vspace{-7.6mm}
+    \caption{Independent controls over camera and object motions. Results in (a) reveal that all methods~\cite{CameraCtrl,MotionCtrl} effectively reflect the camera conditions. For object motion, the compared methods~\cite{MotionCtrl,Direct-A-Video} fail to maintain a stationary camera as shown in green boxes from (b) (\eg, movement of flower in row 5). Furthermore, they also present low fidelity of object orientation (3D axes in conditions).}
+    \label{fig:indep_comparison}
+    \vspace{-3.06mm}
+\end{figure*}
+
+
+
+\subsection{Comparisons with State-of-the-Art Methods} 
+
+ We first compare independent controls over camera motion and object motion with previous methods \cite{MotionCtrl,CameraCtrl}. Then, we demonstrate \methodname’s superior performance in simultaneous control. Finally, we showcase additional examples across different scenes to validate the effectiveness of \datasetname and \methodname. For fairness, we compare with U-Net based methods. More examples are in supplementary. 
+
+
+\noindent$\bullet$
+\textbf{Independent~Control~of~Camera~Motion.} MotionCtrl \cite{MotionCtrl} and CameraCtrl \cite{CameraCtrl} are selected for this comparison as they accept explicit camera information. In \cref{fig:indep_comparison}(a), we simulate two camera motions and scale the translation to fit the input range required by these methods.~\methodname and the compared methods effectively reflect the input conditions. The CamTransErr~\&~CamRotErr in \cref{tab:performance_metrics} also show that \methodname achieves comparable results in controlling camera.
+
+
+
+\begin{table}[t]
+\centering
+\caption{Quantitative comparison of our proposed method \methodname with AnimateDiff \cite{AnimateDiff}, CameraCtrl \cite{CameraCtrl}, and MotionCtrl \cite{MotionCtrl}.}
+\label{tab:performance_metrics}
+\vspace{-3mm}
+\footnotesize
+\setlength{\tabcolsep}{0.916mm}
+\begin{tabular}{l|c|c|c|c}
+\specialrule{.1em}{.05em}{.05em} 
+\rowcolor{mygray!50}Method & AnimateDiff & CameraCtrl & MotionCtrl & \textbf{\methodname (ours)} \\
+\hline\hline
+\textbf{FID}  & 149.61 & 137.96 & \textbf{125.52} & \underline{133.42} \\
+\rowcolor{mygray2!36}\textbf{FVD}  & 868.97 & \textbf{805.25} & 952.31 & \underline{846.51} \\
+\textbf{CLIPSIM} $\uparrow$ & \ \ 29.33 & \ \  29.21 & \ \ 26.83 & \ \ \textbf{31.01} \\
+\rowcolor{mygray2!36}\textbf{CamTransErr} & - & \ \  18.16 & \ \  \textbf{17.84} & \ \ \underline{18.12} \\
+\textbf{CamRotErr}  & -& \ \  \ \ \textbf{0.94} & \ \ \ \ 1.11 & \ \ \ \ \underline{1.03} \\
+\rowcolor{mygray2!36}\textbf{ObjTransErr}  & -& - & \ \  80.66 & \ \ \textbf{42.25} \\
+\textbf{ObjRotErr}  & -& - & \ \ \ \  1.77 &\ \ \ \ \textbf{0.96} \\
+\specialrule{.1em}{.05em}{.05em} 
+\end{tabular}
+\vspace{-6mm}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.999\linewidth]{simul_comparison_compressed.pdf}
+    \vspace{-7.8mm}
+    \caption{Simultaneous control over camera and object motions. MotionCtrl \cite{MotionCtrl} struggles to generate realistic object dynamics, causing objects to disappear from view, whereas our \methodname achieves high-quality simultaneous control.}
+    \label{fig:simul_comparison}
+    \vspace{-5.6mm}
+\end{figure}
+
+
+\noindent$\bullet$
+\textbf{Independent~Control~of~Object~Motion.} For object control, we compare with MotionCtrl~\cite{MotionCtrl} and Direct-a-Video \cite{Direct-A-Video}.~For these methods, we project the global trajectory into image space using camera and object pose information. As shown in \cref{fig:indep_comparison}(b), 
+the compared methods fail to maintain a stationary camera (showing dynamic movement in the background),
+indicating that image space trajectories entangle the object and camera motions. For example, the 2nd example of \cref{fig:indep_comparison}(b), Direct-a-Video~\cite{Direct-A-Video} shows the change of flower location caused by dynamic camera. Our method effectively alleviates this issue by incorporating static camera poses as constraints. {Furthermore, since \objctrlname receives 6D pose of objects, \methodname can achieve high fidelity of object orientation with input condition.}
+
+
+\begin{table}[t]
+\vspace{-2mm}
+\centering
+\caption{User study in quality, text similarity, and motion fidelity.}
+\label{tab:user_study}
+\vspace{-3mm}
+\footnotesize
+\setlength{\tabcolsep}{0.96mm}
+\resizebox{0.476\textwidth}{!}{
+\begin{tabular}{l|c|c|c}
+\specialrule{.1em}{.05em}{.05em} 
+\rowcolor{mygray!50}Method & CameraCtrl~\cite{CameraCtrl} & MotionCtrl~\cite{MotionCtrl}  & \textbf{\methodname (ours)} \\
+\hline\hline
+\textbf{Quality Score} & 0.88 & \underline{0.89} & \textbf{0.91} \\
+\rowcolor{mygray2!36}\textbf{Text Similarity Score} & \underline{0.84} & 0.81 & \textbf{0.95} \\
+\textbf{Camera Motion Score} & \textbf{0.95} & \underline{0.93} & \textbf{0.95} \\
+\rowcolor{mygray2!36}\textbf{Object Motion Score}& - & 0.53 &  \textbf{0.98} \\
+\specialrule{.1em}{.05em}{.05em} 
+\end{tabular}
+}
+\vspace{-3mm}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Quantitative results in ablation study.}
+\label{tab:ablation_quantitative}
+\vspace{-3mm}
+\footnotesize
+\setlength{\tabcolsep}{0.6mm}
+\resizebox{0.47\textwidth}{!}{
+\begin{tabular}{l|c|c|c|c}
+\specialrule{.1em}{.05em}{.05em} 
+\rowcolor{mygray!50}Metrics & CamTransErr & CamRotErr & ObjTransErr & ObjRotErr \\
+\hline\hline
+MotionCtrl (\textit{w/o} $\mathcal{C}_{RT}$)  & 18.24 & 1.08 & 78.82 & 1.65\\
+\rowcolor{mygray2!36} MotionCtrl (\textit{w/} $\mathcal{C}_{RT}$) & 18.24 & 1.08 & 55.33 & 1.26 \\
+\textbf{FMC} (\textit{w/o} $L_{cam}$) & 20.35 &1.19 & - & - \\
+\rowcolor{mygray2!36}\textbf{FMC} (\textit{w/o} $L_{obj}$)  & \textbf{18.12}&  \textbf{1.03} & 46.62 & 1.15 \\
+\textbf{FMC}  & \textbf{18.12}&  \textbf{1.03} &\textbf{42.25} & \textbf{0.96} \\
+\specialrule{.1em}{.05em}{.05em} 
+\end{tabular}
+}
+\vspace{-7mm}
+\end{table}
+
+
+\vspace{-.5mm}
+\noindent$\bullet$
+\textbf{Simultaneous Control of Camera and Object Motions.} We explore the combination of both camera and object control signals. Since Direct-a-Video~\cite{Direct-A-Video} supports only basic camera motion, we choose MotionCtrl~\cite{MotionCtrl} as the comparison method. We randomly simulate movements for both the object and the camera, resulting in varied trajectories. As shown in \cref{fig:simul_comparison}, videos generated by \methodname more faithfully align with the specified conditions. While MotionCtrl captures the camera’s motion, it struggles to generate realistic object dynamics. 
+These results demonstrate the effectiveness of \methodname in achieving simultaneous control of camera and object motions. The object error metrics in \cref{tab:performance_metrics} show that our method achieves better results in object motion control. Additionally, \methodname achieves higher scores in user study as shown in \cref{tab:user_study}, outperforming previous methods in quality and motion fidelity.
+
+
+\cref{fig:simul} shows video generation results across 4 different cases: \textit{static single-object}, \textit{dynamic single-object}, \textit{static multi-object}, and \textit{dynamic multi-object}. Thanks to the diversity of motion patterns in \datasetname, \methodname effectively learns a range of diverse, advanced, and complex shots. In the {2nd} row of \cref{fig:simul}, for example, the camera initially captures the person from the front and then follows from behind. The last two rows demonstrate the performance in multi-object scenarios, where the relative motion between objects and the camera conforms closely to the input conditions. 
+
+
+\subsection{Ablation Study}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.999\linewidth]{simul_compressed.pdf}
+    
+    \vspace{-3.96mm}
+    \caption{Simultaneous control results of \methodname in different cases. The complicated case in row 2 shows that our method learns complex shot, where the camera first captures a skier from the front and then follows him from behind. }
+    \label{fig:simul}
+    \vspace{-2.6mm}
+\end{figure}
+
+
+
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.999\linewidth]{ablation1_compressed.pdf}
+    \vspace{-7.6mm}
+    \caption{Simultaneous control results of MotionCtrl~\cite{MotionCtrl} trained on \datasetname without and with camera pose during training.}
+    \label{fig:ablation_1}
+    \vspace{-4.6mm}
+\end{figure}
+
+\noindent$\bullet$ 
+\textbf{\datasetname Dataset.}~To validate the effectiveness of complete camera and object pose annotations in \datasetname and evaluate the dataset generalization, we train MotionCtrl~\cite{MotionCtrl} on it, adapting the annotations to its input format. We first train the camera module, then optimize the object module in two ways: without camera poses, as in \cite{MotionCtrl}, and with camera poses, as our \methodname. As shown in \cref{fig:ablation_1}, incorporating known camera poses when optimizing object module allows the object to follow the input trajectory more accurately, reducing the risk of it leaving the field of view. Object motion errors in \cref{tab:ablation_quantitative} further highlight the benefits of using complete camera and object pose annotations.
+
+
+\noindent$\bullet$
+\textbf{OMC.}~{As shown in the first 2 rows of \cref{fig:ablation_2} and object motion errors in \cref{tab:ablation_quantitative}, \methodname outperforms MotionCtrl~\cite{MotionCtrl} trained on \datasetname in motion accuracy. This improvement is brought by \objctrlname's ability to process 6D poses, generating more realistic object appearances based on orientation and object's distance from the camera, reflected by the size of coarse masks.~\cite{MotionCtrl}'s object motion control module can only handle 2D image-space trajectories without pose and distance information, limiting alignment accuracy with input.}
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.999\linewidth]{ablation2_compressed.pdf}
+    \vspace{-7.6mm}
+    \caption{{Results of different settings in the ablation study. The first row is MotionCtrl~\cite{MotionCtrl} trained on \datasetname.}}
+    \label{fig:ablation_2}
+    \vspace{-4.6mm}
+\end{figure}
+
+
+\noindent$\bullet$
+\textbf{Training Objectives.} We conduct two experiments to assess the impact of $L_{cam}$ in \cref{eq:cam-ddpm-loss} and $L_{obj}$ in \cref{eq:obj-ddpm-loss}. First, we train \camctrlname using only the standard diffusion loss~\cite{Diffusion,SDE}. As shown in the 3rd row of \cref{fig:ablation_2}, model without $L_{cam}$ tends to shift foreground objects to achieve similar relative motion, which does not accurately match the input pose. The camera motion error in \cref{tab:ablation_quantitative} underscores the effectiveness of $L_{cam}$. Besides, training \objctrlname without $L_{obj}$ leads to undesired object appearances, as shown in the 5th row of \cref{fig:ablation_2}, with object motion error in \cref{tab:ablation_quantitative} confirming the benefit of $L_{obj}$.
+
+\noindent$\bullet$
+\textbf{Adaptability with Different T2I Personalized models.} As shown in \cref{fig:personalized}, \methodname can be adapted to various personalized backbones~\cite{Toonyou,RealisticVision,StableDiffusion}, showing that our proposed dataset \datasetname and corresponding training strategy do not impair the model's original generative capabilities.
+

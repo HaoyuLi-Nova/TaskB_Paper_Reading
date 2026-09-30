@@ -1,0 +1,41 @@
+\begin{table}[t]
+\centering
+\caption{\textbf{User study results} with 95\% confidence intervals.}
+\label{tab:user_study}
+\resizebox{\linewidth}{!}{%
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method         & Realism $\uparrow$ & Lip Sync $\uparrow$ & Identity $\uparrow$ & Overall $\uparrow$ \\ \midrule
+Wav2Lip         & 2.56$\pm$0.11                                             & 2.80$\pm$0.13                                             & 3.07$\pm$0.14                                             & 2.35$\pm$0.10                                             \\
+VideoReTalking  & \cellcolor[HTML]{FFFFC7}3.00$\pm$0.09                     & \cellcolor[HTML]{FFFFC7}3.09$\pm$0.11                     & 3.58$\pm$0.09                                             & 3.22$\pm$0.11                                             \\
+TalkLip         & 2.59$\pm$0.13                                             & 2.08$\pm$0.11                                             & 3.06$\pm$0.11                                             & 2.73$\pm$0.11                                             \\
+IP-LAP          & 2.74$\pm$0.09                                             & 2.49$\pm$0.11                                             & 3.62$\pm$0.11                                             & 3.09$\pm$0.11                                             \\
+Diff2Lip        & 2.63$\pm$0.11                                             & 2.91$\pm$0.13                                             & 3.22$\pm$0.13                                             & 2.62$\pm$0.12                                             \\
+MuseTalk        & 2.45$\pm$0.10                                             & 2.35$\pm$0.11                                             & 2.98$\pm$0.14                                             & 2.49$\pm$0.11                                             \\
+LatentSync      & 2.91$\pm$0.11                                             & 2.81$\pm$0.12                                             & \cellcolor[HTML]{FFFFC7}3.62$\pm$0.11                     & \cellcolor[HTML]{FFFFC7}3.16$\pm$0.13                     \\ \hline
+Ours-$\Gmask^*$ & \multicolumn{1}{c}{\cellcolor[HTML]{FFDA8F}4.28$\pm$0.07} & \multicolumn{1}{c}{\cellcolor[HTML]{FFDA8F}3.87$\pm$0.09} & \multicolumn{1}{c}{\cellcolor[HTML]{FFDA8F}4.02$\pm$0.12} & \cellcolor[HTML]{FFDA8F}4.48$\pm$0.08 \\
+\textbf{Ours-$\Gfree$}     & \cellcolor[HTML]{FE996B}4.40$\pm$0.06                     & \cellcolor[HTML]{FE996B}4.50$\pm$0.06                     & \cellcolor[HTML]{FE996B}4.40$\pm$0.07                     & \cellcolor[HTML]{FE996B}4.66$\pm$0.05                     \\ \hline
+\end{tabular}
+}
+\end{table}
+
+
+
+
+
+\begin{table}[t]
+\centering
+\caption{\textbf{Ablation results} on HDTF dataset.}
+\label{tab:ablation}
+\resizebox{.85\linewidth}{!}{%
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Method                                    & FID              & Sync-C $\uparrow$            & LPIPS             & CSIM $\uparrow$               \\ \midrule
+\textbf{Ours-$\Gfree$ (full)} & \cellcolor[HTML]{FFDA8F}7.03 & \cellcolor[HTML]{FE996B}8.56 & \cellcolor[HTML]{FFDA8F}0.014 & \cellcolor[HTML]{FE996B}0.883 \\
+w/ channel concat                         & 6.89                         & 7.49                         & 0.014                         & 0.873                         \\
+w/ uniform $t$                            & 18.52                        & 3.85                         & 0.125                         & 0.592                         \\
+w/o lip tuning                            & \cellcolor[HTML]{FE996B}7.00 & 7.68                         & \cellcolor[HTML]{FE996B}0.013 & \cellcolor[HTML]{FFCE93}0.875 \\
+w/o texture tuning                        & 8.26                         & \cellcolor[HTML]{FFDA8F}8.56 & 0.018                         & 0.847                         \\ \bottomrule
+\end{tabular}
+}
+\end{table}

@@ -1,0 +1,71 @@
+\section{Method}
+\label{sec:method}
+
+In this section, we describe our proposed two-stage lip-sync approach, which builds upon KeyFace's facial animation framework~\cite{keyface}. Additionally, we discuss our masking strategy in Section~\ref{sec:masking} and present a new method for handling occlusions in Section~\ref{sec:occlusions}.
+
+\subsection{Latent diffusion}
+
+Diffusion models~\cite{ho2020ddpm, dhariwal2021diffusionmodelsbeatgans} progressively transform random noise into structured data by iteratively removing noise through a learned denoising process. Latent diffusion)~\cite{rombach2022highresolutionimagesynthesislatent} applies this denoising operation in a compressed, lower-dimensional latent space rather than in the high-dimensional pixel space, improving computational efficiency. Furthemore, the EDM framework~\cite{karras2022elucidatingdesignspacediffusionbased} defines the denoising operation of the denoiser $D_{\theta}$ as:
+\begin{equation}
+D_\theta(\mathbf{x}; \sigma) = c_{\text{skip}}(\sigma) \mathbf{x} + c_{\text{out}}(\sigma) F_\theta(c_{\text{in}}(\sigma) \mathbf{x}; c_{\text{noise}}(\sigma)),
+\end{equation}
+where $F_\theta$ denotes the trainable neural network and $\mathbf{x}$ represents the input. The terms $c_{\text{noise}}(\sigma)$, $c_{\text{out}}(\sigma)$, $c_{\text{skip}}(\sigma)$, and $c_{\text{in}}(\sigma)$ are scaling factors dependent on the noise level $\sigma$. These scaling factors dynamically adjust the magnitude and influence of noise at different stages of the denoising process, thereby improving the network's efficiency and robustness during diffusion.
+
+\subsection{Leakage-proof masking} \label{sec:masking}
+
+We frame the lip-sync task as a video inpainting problem~\cite{QuanCLYW24, SahariaCCLHSF022} in the latent space. The critical objective is to ensure the newly generated lip region does not reuse (or “leak”) cues from the original mouth shape that contradict the new audio. Specifically, we create a mask $M$ by computing facial landmarks~\cite{facealign} and isolating the lower facial region, extending slightly above the nose to cover any upper cheek movements that could otherwise convey information about lip movements, while still preserving overall facial identity. The mask also extends to the lower edge of the image, preventing any leakage from jaw movements. We find that this mask strikes an appropriate balance between the two types of masks presented in prior works, namely:
+\begin{itemize}
+    \item \textbf{Full lower-face masks}~\cite{stylepres, DiffTalk, diff2lip, SyncTalkFace}, which can obscure too much context, risking issues with identity and natural facial continuity;
+    \item \textbf{Mouth-only masks}~\cite{DINet, DiffDub, StyleLipSync, VideoReTalking}, which can inadvertently leak lower face expressions because residual mouth movements or shading remain visible to the model.
+\end{itemize}
+
+\subsection{Two-stage video generation}
+\label{sec:pipeline}
+Our approach is illustrated in Figure~\ref{fig:architecture}. We follow KeyFace's two-stage procedure~\cite{keyface} to generate lip-synced animations from a masked input video and a driving audio clip. We feed the video frames $\{x_t\}_{t=1}^T$ and their corresponding noised versions $\{x^n_t\}_{t=1}^T$, into our VAE encoder~\cite{blattmann2023stablevideodiffusionscaling} $\mathcal{V}$ to obtain latent representations $\{z_t\}_{t=1}^T$ and $\{z^n_t\}_{t=1}^T$, respectively. Then, using the predefined mask M, we define the input to the U-Net as:
+\begin{equation}
+    z_t^m = M \odot z^n_t + (1 - M) \odot z_t,
+\end{equation}
+where $\odot$ denotes element-wise multiplication.
+Given the corresponding audio segments $\{a_t\}_{t=1}^T$, our goal is to generate a new set of frames $\{\hat{x}_t\}_{t=1}^T$ in which the lip movements are fully synchronized with the audio.
+Unlike previous approaches that either generate all frames end-to-end~\cite{StyleLipSync, talklip, latentsync} or explicitly disentangle motion and appearance~\cite{DiffDub, stylepres, maketalk}, we propose a two-stage strategy for lip synchronization.
+
+\paragraph{Keyframe Generation}
+We first generate a sparse set of keyframes capturing the essential lip movements for the entire audio sequence. These serve as anchor points, ensuring that each keyframe accurately reflects the phonetic content of the audio while preserving the user’s identity (through an identity frame $\mathbf{x}_{id}$). We build on Stable Video Diffusion (SVD)~\cite{blattmann2023stablevideodiffusionscaling}, a latent diffusion model that operates on batches of frames with a 2D U-Net and additional 1D temporal layers. Specifically, we produce $T$ keyframes, each spaced $S$ frames apart,
+$\{\hat{x}_{t_k}\}_{k=1}^T$, where $t_k = k \cdot S$.
+
+\paragraph{Interpolation}
+Next, we interpolate between successive keyframes to achieve smooth, temporally coherent motion. Using the same diffusion backbone, we condition on keyframe pairs ($\hat{z}{t_i}$, $\hat{z}{t_{i+1}}$) to generate the intermediate frames. Specifically, we construct the sequence:
+\begin{equation}
+    s = \{z_{t_i}, \underbrace{z_m, \dots, z_m}_{\text{repeat} \ S \ \text{times}}, z_{t_{i+1}} \},
+\end{equation}
+where $z_m$ is a learnable embedding that represents the missing frames. This approach enables us to model the temporal dynamics of the video directly, without requiring additional synchronization losses~\cite{diff2lip}, temporal perceptual models~\cite{latentsync}, or motion-specific frames~\cite{michaldub}. \\
+
+Throughout both steps, we rely on the audio encoder  $A$, HuBERT~\cite{hubert}, to transform raw audio into a learned representation. This audio embedding is integrated into the model via audio attention blocks, where the embeddings are fed into the U-Net's cross-attention layers, and also via the timestep embeddings, where the audio features are passed through an MLP and added to the diffusion timestep embeddings $\mathbf{t}_s \in \mathbb{R}^{C_s}$, resulting in $ \mathbf{t}^{\prime}_s = \mathbf{t}_s + \text{MLP}(a)$. This dual mechanism enhances alignment between video and audio frames, leading to improved lip synchronization.
+
+\subsection{Losses}
+
+We adopt the loss formulation from \cite{karras2022elucidatingdesignspacediffusionbased}, defined as:
+\begin{equation}
+    \mathcal{L}_{latent} = \mathbb{E}_{x, c, t, \sigma} \left[w_t \left\|F_{\theta}(z^m_t; c, \sigma_t) - z_t\right\|_2^2\right],
+\end{equation}
+where $w_t$ is a predefined weighting function, $F_{\theta}$ represents the model to be trained, $\sigma_t$ denotes the noise level, and $c$ the conditioning inputs to the model.
+We find that this loss alone is sufficient to achieve good lip synchronization and high-quality video generation. However, working solely in the compressed latent space can make it difficult for the model to retain fine semantic details \cite{show1}, which are critical for real-world lip synchronization tasks where preserving the nuances of the mouth region is essential. To address this, we introduce an additional $L_2$  loss in the RGB space. This requires decoding the generated latent sequence using the VAE decoder $\mathcal{V}$, resulting in:
+\begin{equation}
+    \mathcal{L}_{rgb} = \mathbb{E}_{x, c, t, \sigma} \left[w_t \left\|\mathcal{V}(F_{\theta}(z^m_t; c, \sigma_t)) - x_t\right\|_2^2\right].
+\end{equation}
+To optimize memory efficiency, we apply $\mathcal{L}_{rgb}$ to a randomly selected frame from the sequence, which we found to be sufficient for maintaining perceptual quality.
+The final loss function is then:
+\begin{equation}
+    \mathcal{L}_{total} = M \cdot \lambda(t)(\mathcal{L}_{latent}(\hat{z},z) + \lambda_2 \mathcal{L}_{rgb}(\hat{x},x)),
+\end{equation} 
+where $\lambda(t)$ is a weighting factor dependent on the diffusion timestep  $t$, as defined in \cite{karras2022elucidatingdesignspacediffusionbased}. Importantly, we ensure that only the generated region contributes to the loss computation by masking the region of interest.
+
+\subsection{Handling occlusions}
+\label{sec:occlusions}
+
+Occlusions are a critical yet often overlooked challenge in lip synchronization. Even advanced models can produce unnatural results if occlusions in the original video, such as a hand or microphone covering the mouth, are not properly accounted for. A common issue arises when an occlusion overlaps with the mouth region during masking, often causing the model to incorrectly generate the mouth over the occluding object, resulting in unnatural boundary artifacts.
+
+To address this, we propose an inference-time solution capable of handling any type of occlusion without additional training. Explicitly training a model for occlusion handling is impractical due to the vast range of possible occlusions and their inherent misalignment with speech, making them hard for the model to learn. Instead, we introduce a preprocessing pipeline that first segments the occluding object using a state-of-the-art zero-shot video segmentation model~\cite{sam2}, generating a mask  $M_{obj}$  of the occlusion. We then refine the original mask  M  by excluding the occlusion:
+\begin{equation}
+M = M \cap \neg M_{obj},
+\end{equation} where $\cap$ denotes intersection and $\neg$ denotes logical negation. Since our model supports free-form masks, as in \cite{repaint}, it can seamlessly reconstruct the mouth region while preserving the occluding object, ensuring visually coherence.

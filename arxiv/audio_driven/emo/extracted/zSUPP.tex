@@ -1,0 +1,217 @@
+\documentclass[runningheads]{llncs}
+
+% ---------------------------------------------------------------
+% Include basic ECCV package
+ 
+% TODO REVIEW: Insert your submission number below by replacing '*****'
+% TODO FINAL: Comment out the following line for the camera-ready version
+% \usepackage[review,year=2024,ID=11028]{eccv}
+% TODO FINAL: Un-comment the following line for the camera-ready version
+\usepackage{eccv}
+
+% OPTIONAL: Un-comment the following line for a version which is easier to read
+% on small portrait-orientation screens (e.g., mobile phones, or beside other windows)
+%\usepackage[mobile]{eccv}
+
+
+% ---------------------------------------------------------------
+% Other packages
+
+\usepackage{tabularx}
+
+% Commonly used abbreviations (\eg, \ie, \etc, \cf, \etal, etc.)
+\usepackage{eccvabbrv}
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+% The "axessiblity" package can be found at: https://ctan.org/pkg/axessibility?lang=en
+\usepackage[accsupp]{axessibility}  % Improves PDF readability for those with disabilities.
+
+
+% ---------------------------------------------------------------
+% Hyperref package
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% Please disable hyperref *only* if you encounter grave issues.
+% hyperref with option pagebackref eases the reviewers' job, but should be disabled for the final version.
+%
+% If you comment hyperref and then uncomment it, you should delete
+% main.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you
+%  should be clear).
+
+% TODO FINAL: Comment out the following line for the camera-ready version
+\usepackage[pagebackref,breaklinks,colorlinks]{hyperref}
+% TODO FINAL: Un-comment the following line for the camera-ready version
+%\usepackage{hyperref}
+
+% Support for ORCID icon
+\usepackage{orcidlink}
+
+% \usepackage{times}
+% \usepackage{epsfig}
+% \usepackage{graphicx}
+% \usepackage{amsmath}
+% \usepackage{amssymb}
+% \usepackage{booktabs}
+% \usepackage{bbding}
+% \usepackage{enumitem}
+% \usepackage{tablefootnote}
+% \usepackage{enumitem}
+
+\renewcommand\thesection{\Alph{section}}
+
+\begin{document}
+
+% ---------------------------------------------------------------
+% TODO REVIEW: Replace with your title
+% \title{EMO: High-fedelity and Expressive Head Video Generation driven by Audio} 
+% \title{Talking Anyone: Transforming Still Photos into Expressive Audio-Driven Videos with Diffusion Models}
+\title{EMO: Emote Portrait Alive - Generating Expressive Portrait Videos with Audio2Video Diffusion Model under Weak Conditions (\textit{Supplementary Material})}
+
+% TODO REVIEW: If the paper title is too long for the running head, you can set
+% an abbreviated paper title here. If not, comment out.
+\titlerunning{EMO-Emote Portrait Alive}
+
+% TODO FINAL: Replace with your author list. 
+% Include the authors' OCRID for the camera-ready version, if at all possible.
+\author{Linrui Tian\orcidlink{0000-0003-1202-6040} \and
+Qi Wang \and
+Bang Zhang \and
+Liefeng Bo}
+
+% TODO FINAL: Replace with an abbreviated list of authors.
+\authorrunning{L. Tian, Q. Wang, B. Zhang, and L. Bo}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+
+% TODO FINAL: Replace with your institution list.
+\institute{Institute for Intelligent Computing, Alibaba Group\\
+\email{\{tianlinrui.tlr, wilson.wq, zhangbang.zb, liefeng.bo\}@alibaba-inc.com}\\
+\url{https://humanaigc.github.io/emote-portrait-alive/}}
+% \institute{Princeton University,
+% \email{\{abc,lncs\}@uni-heidelberg.de}}
+\maketitle
+
+% This supplementary material contains additional information that could not be included in the main manuscript due to space limitations. We will begin by providing more results about the method. Following that, we will discuss the limitations of our methods.
+This supplementary material contains additional information that could not be included in the main manuscript due to space limitations. It includes a wider exploration of our method's results, and we discuss about our training dataset. Following that, we provided a candid discussion on the limitations of EMO, and a preview of future research directions.
+
+\section{More results}
+
+\subsection{User study}
+
+\begin{table}[htbp]
+  \centering
+  \caption{User study.}
+  \label{tab:user_study}
+  \begin{tabularx}{0.75\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+    \toprule
+      & lip sync & vividness \\
+    \midrule
+    Wav2Lip\cite{wav2lip} & 3.90 & 1.66 \\
+    SadTalker\cite{sadtalker} & 3.38 & 2.34 \\
+    DreamTalk\cite{dreamtalk} & 4.05 & 3.22\\
+    MakeItTalk\cite{MakeItTalk} & 1.66 & 2.66 \\
+    Ours & \textbf{4.17} & \textbf{4.38} \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+
+We also carried out a user study using the generated outputs, involving 20 participants, evenly split between 10 males and 10 females, ranging in age from 20 to 60, and with diverse levels of computer technical expertise. For every volunteer, We will show them the results of all methods on the same image and audio simultaneously in each round. The volunteers are asked to rate each video between 1 and 5 (higher is better), in terms of lip synchronization and vividness. The results are shown in the Table \ref{tab:user_study} and our method significantly outperforms other methods, especially on the vividness.
+
+% \subsection{Speed layers and face regions.}
+
+% In the primary manuscript, we explored the weak control effect of the speed layers and face locator. Here we provide additional video results to illustrate the role of these two weak conditions\footnote{Available in the folders "SpeedLayers" and "FaceLocator".}. 
+% It could be seen that the face locator is capable of defining the allowable region for facial movements, while the speed layers contribute to enhancing the stability and temporal coherence of the head movements, ensuring a smoother and more consistent animation experience.
+
+\subsection{Motion frames}
+Our method employs motion frames to bolster consistency across clips generated in sequence.
+Some other video generation techniques\cite{animate_anyone} may employ 'frame replacing'-substituting the initial $m$ frames with the final $m$ frames from the preceding clip at each denoising step and using temporal modules for frame-to-frame coherence.
+% Some other video generation methods\cite{animate_anyone} might use "frame replacing", a trick where the first $m$ frames are substituted with the last $m$ frames from the previously generated clip at each denoising step, and temporal modules are applied to achieve frame-to-frame coherence. 
+Our approach does not utilize strong control signals, such as pose sequence, to guide the sequential generation process of video clips. Thus, along with a sensitivity to 'jump cuts' highlighted in Sec \ref{sec::data}, our method might experience frame discontinuity during clip transitions. 
+% We compared "motion frames" with the "frame replacing", and as shown in the demo \footnote{In the folder "MotionFrames"}, our method effectively eliminates the discontinuity between successive clips.
+% However, since there is no strong control signals in our framework, and our method is also sensitive to the "jump cut" which is mentioned in Sec \ref{sec::data}, it still have inconsistencies in frame continuity during clip transitions.
+% Consequently, "frame replacing" is deemed inappropriate for our approach, example is provided in the demo\footnote{In the folder "MotionFrames".}. 
+
+\subsection{Inference steps}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.75\textwidth]{images/supp_inference_steps.png}
+  \caption{The generated results under different denoising steps.
+  }
+  \label{fig:steps}
+\end{figure}
+
+% In our experiments, the denoising steps during the inference have significant impacts on the generated results. As shown in Figure \ref{fig:steps}. Few steps (<20) would lead to inconsistencies between frames, and there would be a lot of artifacts. The generated characters under no enough steps (20-35) tend to have jitter and instablity. Based on our experiments, steps > 35 would get more stable and consistent results.
+
+In our experiments, we observed that the number of denoising steps during inference critically influences the quality of the generated output. As depicted in the Figure \ref{fig:steps}, a suboptimal number of steps (fewer than 20) results in temporal inconsistencies across frames, as well as a prevalence of visual artifacts within the sequences. When the number of denoising steps is marginally increased (within the range of 20–35), the artifacts are somewhat ameliorated, however, the generated characters might exhibit noticeable jitter and instability. Our experiments indicate that employing more than 35 denoising steps enhances stability and temporal coherence, leading to more reliable results in the synthesized sequences.
+
+\section{Dataset}
+
+\subsection{Data overview}
+
+Our training dataset mainly contains 1) HDTF\cite{hdtf}, encompassing 15.8 hours of high-fidelity talking head videos, featuring approximately 362 unique character identities with a majority being anchors and spokesmen; 2) VFHQ\cite{vfhq}, which contains 16k high-resolution talking video clips without audio; 3) A diverse collection of speech and singing data aggregating to 250 hours, sourced from online platforms. 
+The videos are publicly accessible, and the collectors are also instructed to carefully review the content to exclude any personally identifiable information, thus ensuring adherence to privacy standards and the terms of use of the platforms. 
+Our dataset features over 10,000 unique character identities, with a focus on English and Chinese languages. We ensured that the character's position, camera angle, and background in the collected data remained relatively unchanged, with each frame capturing a single individual. Unlike some talking head methods that rely on Voxceleb\cite{Voxceleb,sun2023vividtalk, dreamtalk}, we opted not to use it due to its frequent centering on facial centroids, leading to unstable camera movements. 
+
+However, as indicated in Table 1 of the main manuscript, our method still exhibits exceptional performance in the absence of our self-collected dataset. Our model yields satisfactory results when trained solely on publicly available datasets. The extensive dataset we compiled primarily enhances facial expressions and video content dynamics.
+
+% This dataset boasts in excess of 10k distinct character identities, predominantly in English and Chinese. We strive to ensure that in the collected data, the position of the character, as well as the camera and background, remain relatively static, and that there is a single individual in the frame. We did not utilize Voxceleb\cite{Voxceleb}, which is widely used in some other talking head methods\cite{sun2023vividtalk, dreamtalk}, because the video centers are routinely anchored to the facial centroids, i.e. unstable cameras.
+
+\subsection{Preprocessing and labeling}
+
+\subsubsection{Preprocessing the orginal videos.}
+\label{sec::data}
+Discontinuities in training data, such as inconsistencies in character appearance and camera switches, pose significant challenges for model training, often resulting in the generation of unstable videos. To mitigate these effects, our approach involves segmenting videos into shorter clips that maintain both temporal coherence and scene consistency, similar to the method described in SVD\cite{svd}. By employing PySceneDetect for scene transition identification, we ensure that each clip, ranging from 3 to 12 seconds, contributes to a more reliable and stable dataset for training our generative models. Furthermore, 'jump cuts', prevalent in speech videos for maintaining narrative continuity, present additional detection challenges due to their subtle nature. Our solution incorporates 'speed layers' to address the abrupt velocity changes associated with 'jump cuts', thereby enhancing the fluidity and consistency of the generated video content.
+% Generative video models are sensitive to character inconsistencies, including those introduced by montage sequences and camera switches, as highlighted in SVD\cite{svd}. Consequently, models trained on datasets containing such discontinuities will inherently learn to replicate these cuts in generated video outputs. Similar to SVD\cite{svd}, we employed PySceneDetect to identify scene transitions within the original videos, segmenting the videos into discrete clips characterized by both temporal coherence and scene consistency. These segmented video clips range in duration from approximately 3 to 12 seconds, providing a more stable and consistent dataset for training generative models. It should be noted that, "jump cuts" are very common in speech videos\footnote{See the samples in the supplementary materials folder "DatasetSamples".}, where self-media content creators frequently employ strategic frame splicing to ensure the subject retains a uniform posture and position across consecutive shots. This technique is intended to cultivate a fluid narrative progression. However, the minimal variation in frames, such as changes in optical flow, renders these cuts particularly challenging to detect. Our observations indicate that models trained on such data tend to reproduce these "jump cuts," resulting in generated videos that exhibit inconsistencies and discontinuities. The solution to mitigate such challenge is the implementation of speed layers, Adjacent frames around jump cuts often exhibit a pronounced numerical discontinuity in the characters' head poses, resulting in anomalously high velocity measurements relative to other frames. During inference, coherent speed input can effectively avoid generating "jump cuts".
+
+\subsubsection{Labeling the data.}
+We performed cropping on the video clips based on the expanded facial bounding boxes of the characters within the clips, and converted each clips to 30 FPS. And we label the cropped clips with 1) deploying MediaPipe\cite{mediapipe} to ascertain the facial bounding box in all frames, thereby delineating the facial regions; 2) extracting audio embeddings using the pre-trained Wav2Vec model\cite{wav2vec}; and 3) determining the character's 6-DoF (six degrees of freedom) head pose to calculate frame-by-frame velocities. 
+% Notably, given the uniform frame rate, we compute the velocity for each frame by measuring the minimum angular distance between successive head rotation matrices, thus obtaining the velocity value for that frame.
+
+
+\section{Limitations and future work}
+% As introduced in the main paper, we do not use any explicit control signals to control the character’s motion, the model might tend to inadvertently generate some body parts in the frames, especially when the emotions in the input audio are relatively strong. This is because in the training data, characters with strong emotions tend to have more hand and body movements. Since we focus on the head regions, our dataset lack the data about the other parts of the body, only about 3\% frames contains hands. In such accidental situations, it is hard to generate the correct body parts, causing artifacts in the video. 
+
+% Meanwhile, the model might generate some captions-like patterns in some situations, this is caused by some training data collected from the internet, in which some media might add subtitles to the videos, leading to the artifact in the generated frames. We have observed this phenomenon, which often occurs in the results of T2I as well.  
+
+% To solve these challenges, a solution is deploying control signals for body parts and subtitles, specifically, utilizing mask input like face region.
+
+% One another limitation is that EMO treats audio as the main control signal, EMO learns the mapping of tonal features in audio to facial expressions in characters from the training data. However, it could be random for the expressions of the driven characters, that it is not very controllable for the user to get the desire video results. Enabling the emotion definable might be more convenient for users.
+
+% Despite these challenges, EMO marks a significant stride in the realm of high-quality, expressive talking head generation, setting a foundation for further innovations.
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=0.75\textwidth]{images/supp_artifact.png}
+  \caption{Exhibition of Artifacts: This includes the manifestation of subtitle-like patterns and inaccurately rendered body parts. Notably, in certain instances, the generated frames may self-correct in subsequent sequences.
+  }
+  \label{fig:artifact}
+\end{figure}
+
+
+As introduced in the main manuscript, our model does not employ explicit control signals to control the character's motion. As shown in the Figure \ref{fig:artifact}, there is a propensity for the model to inadvertently generate body parts into frames, particularly when the audio input features prominently expressive emotions. This tendency arises from the nature of our training dataset, where characters exhibiting pronounced emotional states are frequently associated with more dynamic hand and body movements. Given that our primary focus lies on the head region, the dataset is deficient in data pertaining to other body parts, with a mere 3\% of frames featuring hands. In instances where the model attempts to render these body parts unintentionally, the result is often the generation of incorrect body parts, leading to artifacts.
+
+Additionally, the model may produce caption-like patterns under some circumstances. This issue stems from a subset of the training data sourced from the internet that includes videos with embedded subtitles, hence introducing unwanted textual artifacts into the generated frames. This phenomenon has been observed and is not exclusive to our model; it is also prevalent in the output of Text-to-Image (T2I) models.
+
+To address these issues, one potential solution involves the introduction of control signals for body parts and subtitles. More specifically, utilizing mask-like input, similar to face regions.
+
+Another limitation of our model, EMO, is its reliance on audio as the principal control signal. EMO has been trained to learn the correlation between tonal features in the audio and facial expressions in characters. However, this association can result in expressions for the driven characters that may not always align with user expectations, limiting the ability to produce desired video outcomes in a controlled manner. Introducing a mechanism to define emotions could enhance user convenience by providing more predictable results.
+
+Compared to the other diffusion-free talking head generation methods, EMO is more time-consuming, it generates 12 frames (one clip) per 18 seconds (under 40 denoising steps) on A100 GPU.
+
+% In spite of facing these challenges, EMO constitutes a notable advancement in creating high expressive video generation model, establishing a groundwork for ongoing innovation in this domain.
+Despite these challenges, EMO represents a significant leap forward in the development of highly expressive video generation models, laying a foundation for future innovation in this field. We leave these issues as open questions for subsequent research.
+
+
+
+
+%%%%%%%%% REFERENCES
+\bibliographystyle{splncs04}
+\bibliography{egbib}
+
+\end{document}

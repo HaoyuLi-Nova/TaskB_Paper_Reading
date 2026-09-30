@@ -1,0 +1,27 @@
+name: SADMPan
+dataset_name: 'WV3'
+model_name: 'FD-SSFN'
+step: 'S3_model'
+
+# Spatial resolution ratio (PAN / MS)
+spatial_ratio: 4
+# Data normalization range
+data_range: 2047.0
+bit_depth: 11
+num_layers: 4
+
+epoch_num: 20
+batch_size: 32
+base_lr: 3e-4
+weight_decay: 1e-6
+hid_channels: 64
+lms_channels: 8
+
+train_data_path: '/home/vm1/Proj/pansharpening_data/training_wv3/train_wv3.h5'
+valid_data_path: '/home/vm1/Proj/pansharpening_data/training_wv3/valid_wv3.h5'
+
+test_mode: 'full'
+test_data_path: '/home/vm1/Proj/pansharpening_data/training_wv3/test_wv3_multiExm1.h5'
+
+weights_path: 'weights'
+results_path: 'results'

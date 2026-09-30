@@ -1,0 +1,35 @@
+\begin{table}
+    \small
+    % \vspace{-0.5cm}
+    \setlength{\tabcolsep}{2pt}
+    \begin{minipage}{.3\linewidth}
+        \caption{\small Text to video comparisons on Kinetics-400~\cite{Kinetics400}.}
+        \label{table:t2v_comp}
+        \centering
+        \begin{tabular}{lrr}
+        Method  & \begin{tabular}[x]{@{}c@{}}FID\\Image\end{tabular}  & \begin{tabular}[x]{@{}c@{}}FID\\Video\end{tabular}  \\
+        \hline
+        T2V \cite{vidgenfromtext}     & 82.13 & 14.65 \\
+        SC \cite{tfgan}                 & 33.51 & 7.34 \\
+        TFGAN \cite{tfgan}                   & 31.76 & 7.19 \\
+        NUWA                      & 28.46 & 7.05 \\
+        \hline
+        Phenaki [0-Shot]            & 37.74 & 3.84 \\
+        \end{tabular}
+    \end{minipage}\hspace{1.5cm}%
+    \begin{minipage}{.6\linewidth}
+        \caption{\small Text to video and text to image results highlighting the importance of image datasets in video models. Text-to-image evaluation is done on ${\sim}40$K images of LAION-400M~\cite{schuhmann2021laion}.
+        %\rubville{cfg=6, temp=4, iterations=24, over 4096 videos from lms}
+        }
+        \label{tab:video_image}
+        \centering
+        \begin{tabular}{c|lll|ll}
+        Data Split & \multicolumn{3}{c|}{Text to Video} & \multicolumn{2}{c}{Text to Image} \\\hline\hline
+        Vid\% / Img\% & CLIP $\uparrow$ & FID  & FVD  & CLIP $\uparrow$ & FID  \\\hline
+        100\% / 0\% & 0.298 & 19.2 & 168.9 & 0.240 & 53.9\\
+        80\% / 20\% & 0.303 & 21.4 & 198.4 & 0.289 & 29.4\\
+        50\% / 50\%& 0.302 & 21.4 & 239.7 & 0.287 & 30.5\\             
+        \end{tabular}
+    \end{minipage}
+    
+\end{table}

@@ -1,0 +1,7 @@
+\begin{abstract}
+
+The synthesis of synchronized audio-visual content is a key challenge in generative AI, with open-source models facing challenges in robust audio-video alignment. 
+Our analysis reveals that this issue is rooted in three fundamental challenges of the joint diffusion process: (1) \textbf{Correspondence Drift}, where concurrently evolving noisy latents impede stable learning of alignment; (2) inefficient global attention mechanisms that fail to capture fine-grained temporal cues; and (3) the intra-modal bias of conventional Classifier-Free Guidance (CFG), which enhances conditionality but not cross-modal synchronization.
+To overcome these challenges, we introduce \textbf{Harmony}, a novel framework that mechanistically enforces audio-visual synchronization. We first propose a \textbf{Cross-Task Synergy} training paradigm to mitigate drift by leveraging strong supervisory signals from audio-driven video and video-driven audio generation tasks. Then, we design a \textbf{Global-Local Decoupled Interaction Module} for efficient and precise temporal-style alignment. Finally, we present a novel \textbf{Synchronization-Enhanced CFG (SyncCFG)} that explicitly isolates and amplifies the alignment signal during inference. Extensive experiments demonstrate that Harmony establishes a new state-of-the-art, significantly outperforming existing methods in both generation fidelity and, critically, in achieving fine-grained audio-visual synchronization.
+
+\end{abstract}

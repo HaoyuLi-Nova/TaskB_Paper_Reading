@@ -1,0 +1,13 @@
+
+\begin{abstract}
+Real-time video dubbing that preserves identity consistency while achieving accurate lip synchronization remains a critical challenge. 
+Existing approaches face a trilemma: diffusion-based methods achieve high visual fidelity but suffer from prohibitive computational costs, while GAN-based solutions sacrifice lip-sync accuracy or dental details for real-time performance. We present MuseTalk, a novel two-stage training framework that resolves this trade-off through latent space optimization and spatio-temporal data sampling strategy. 
+Our key innovations include:
+(1) During the Facial Abstract Pretraining stage, we propose Informative Frame Sampling to temporally align reference-source pose pairs, eliminating redundant feature interference while preserving identity cues.
+(2) In the Lip-Sync Adversarial Finetuning stage, we employ Dynamic Margin Sampling to spatially select the most suitable lip-movement-promoting regions, balancing audio-visual synchronization and dental clarity.
+(3) MuseTalk establishes an effective audio-visual feature fusion framework in the latent space, delivering 30 FPS output at 256×256 resolution on an NVIDIA V100 GPU.
+Extensive experiments demonstrate that MuseTalk outperforms state-of-the-art methods in visual fidelity while achieving comparable lip-sync accuracy. 
+%The codes and models will be made publicly available upon acceptance.
+The code is made available at \href{https://github.com/TMElyralab/MuseTalk}{https://github.com/TMElyralab/MuseTalk}
+\end{abstract}
+

@@ -1,0 +1,46 @@
+\section{Introduction}
+\label{sec:intro}
+
+\begin{figure}[tbp]
+  \centering
+   \includegraphics[width=\linewidth]{image/fig_1.pdf}
+   \caption{The difference between the talking head generation and the video dubbing. 
+   Zoom in to see the differences in the lip area.
+   MuseTalk can efficiently generate video frames in one step for video dubbing task.
+   % The former can generate free expressions and head movements, while the latter aims to maximize the retention of these attributes of the actors.
+   }
+   \label{fig:fig_1}
+\end{figure}
+
+Virtual human generation~\cite{jia2024human,xing2024survey, xu2024mambatalk, tian2024emo, hu2024animate, guo2024liveportrait} is an important research field in computer vision. One significant application is generating lip movements that match the pronunciation of the target language for multilingual films or animations~\cite{prajwal2020lip}.It removes the mismatch between lip movements and speech in traditional dubbing, enhancing audience immersion without reshooting actors.
+
+Recently, Image-to-Video (I2V) talking face generation methods~\cite{zhen2023human} have shown significant potential in creating virtual actors by generating highly realistic avatars for specific identities. 
+One-shot talking face generation methods based on diffusion models~\cite{ho2020denoising, rombach2022high}, such as EMO~\cite{tian2024emo}, EchoMimic~\cite{chen2024echomimic}, and LOOPY~\cite{jiang2024loopy}, have gained popularity.
+These methods allow users to create a video with good audio-visual consistency by uploading just a single image and an audio clip. 
+However, their reliance on iterative denoising processes restricts their suitability for real-time applications. 
+In the generated videos, the model autonomously adjusts characters' head and eye movements based on the audio, as illustrated in~\cref{fig:fig_1}.
+
+In this paper, we investigate one-shot video-dubbing, a Video-to-Video (V2V) technique that focuses on preserving the original actor's head and eye movements while selectively modifying only the lip movements, without requiring additional model retraining.
+Existing one-shot video-dubbing methods can be broadly categorized into two main paradigms: diffusion-based approaches \cite{li2024latentsync, ma2025sayanything} and GAN-based techniques \cite{zhang2023dinet, cheng2022videoretalking, prajwal2020lip, wang2023seeing}. 
+While diffusion models have demonstrated remarkable capabilities for video-dubbing tasks, their reliance on extensive training data and multi-step inference processes makes them computationally expensive and impractical for local deployment by media professionals and AI artists.
+
+Existing GAN-based methods~\cite{zhang2023dinet, cheng2022videoretalking, prajwal2020lip, wang2023seeing} often fall short in video quality, frequently producing blurry or distorted regions that negatively impact visual fidelity.
+Additionally, these methods often fail to preserve the original actor's identity accurately, leading to noticeable changes in facial appearance during the dubbing process. 
+Such issues significantly limit their practical applications. 
+Despite well-known training instabilities in GANs~\cite{goodfellow2014generative, mescheder2018training}, their ability to generate outputs in a single step provides a promising solution to real-time application.
+Driven by the computational efficiency and cost-effectiveness of GANs, we investigate novel one-shot lip-sync generation methods that achieve high-quality results while maintaining efficiency.
+
+This paper introduces MuseTalk, a GAN-based real-time one-shot video-dubbing framework. 
+Specifically, to reduce user costs, we design a one-step face generator in the VAE~\cite{kingma2013auto} latent space. 
+MuseTalk addresses key training challenges in GAN-based video-dubbing through a carefully designed two-stage training process. 
+A novel spatio-temporal sampling strategy is proposed to improve identity consistency and lip movement accuracy.
+We first implement mild pretraining using latent space inpainting to enhance the model's ability for facial abstract prediction. 
+During this stage, we introduce Informative Frame Sampling to select key frames.
+Subsequently, we incorporate audio-visual synchornize loss and GAN loss, with the latter focusing on optimizing the mouth region. 
+Here, Dynamic Margin Sampling is employed to spatially select critical facial regions that promote better lip movement learning.
+
+In summary, our contributions are three-fold: 
+(i) We propose MuseTalk, a GAN-based video-dubbing framework based on latent space inpainting, which enables real-time generation of high-fidelity lip-synced videos; 
+(ii) We introduce a comprehensive two-stage training framework that resolves the conflict between GAN loss and audio-visual synchornize loss, achieving a balance between lip movement accuracy and teeth clarity; 
+(iii) We propose a novel spatio-temporal sampling strategy. Specifically, we design Informative Frame Sampling at the frame level to bridge the gap between training and inference, and Dynamic Margin Sampling at the region level to promote lip movement learning in adversarial training. 
+Extensive experimental results demonstrate the efficacy of MuseTalk, even compared to diffusion-based methods.

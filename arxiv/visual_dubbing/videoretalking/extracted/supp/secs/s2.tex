@@ -1,0 +1,11 @@
+\section{Analysis of the Trade-off Between Identity Preservation and Expression Animation}
+
+Our method utilizes the information leaks between models for expression editing. Interestingly,
+% $D$-Net is specially designed to prevent information leaks. However, the generated videotiny lip animation may still appear since there are unlimited expressions in the source video, resulting in imperfect prediction. 
+we find there is a trade-off between the identity preservation and expression editing when using $D$-Net. In detail, the expression normalization can be done in both one-shot face reenactment and video to video settings for better expression animation and identity preservation, respectively. 
+In one-shot setting, the reenacted video is reconstructed by warping the first frame of the whole video using the original pose coefficients and template expression coefficients. In this setting, $D$-Net can generate more stable lip animation, yet a better lip-sync performance. However, since $D$-Net uses the dense flow for warping, there is a little identity modification.
+% To modify the pose from the first frame to the current frame, the pose coefficients are extracted from the current frame and the expression coefficients are extracted from the expression template.
+In video-to-video setting, we do not fix the reference frame to be warped, allowing $D$-Net to change the expression of each frame, which helps identity preservation but cause a little unstable on lip movement. We choose this setting as the default choice in our method.
+
+% For better identity preservation, we choose the many-shot setting in our method.
+

@@ -1,0 +1,109 @@
+
+\section{\MOCA}
+\label{sec-3-method}
+
+Our method animates still images into short videos, reflecting user's motion design intentions. As Fig.~\ref{fig:overall-pipeline} illustrates, 
+%the proposed approach 
+\MOCA comprises three main components: (1) the motion design module to capture diverse scene-aware motion intentions, (2) the translation module to convert these intentions into screen-space motion signals, and (3) the motion-conditioned video generation model. 
+
+
+\subsection{Motion Design Module -- Capturing User Intents}
+\label{sec-3.1-motion-design}
+We leverage the input image as the canvas for motion design, establishing a starting scene on which the motion designs are grounded. This setting enables 3D-scene awareness in the motion design,
+%process, 
+capturing spatial relationships between objects, the camera, and the scene. Our unified interface facilitates individual control over camera motion, object global and local motion, and their timing.
+
+
+\textbf{Camera Motion Control with 3D Camera Paths.}
+We define camera motion using standard pinhole camera parameters, specifying a 3D camera path as a sequence of extrinsic $E_l$ and intrinsic $K_l$ parameters for each frame $l$: $(E_l, K_l)_{l=1}^{L}$, where $E_l\in \mathbb{R}^{3\times4}$ and $K_l \in \mathbb{R}^{3\times 3}$.
+To design the camera path, users can specify the camera poses (\ie, the translation vector and rotation angles with respect to the initial view) at key moments. The full camera path can be obtained via interpolation.
+To make the camera path specification process more intuitive for users, our system also lets users specify and mix $M$ base motion patterns (\eg, panning, dolly) along with the corresponding direction and speed. Our method then converts the specified motion patterns into 3D camera paths (see section~\ref{sec:ui} in the supp.). 
+
+
+
+\textbf{Object Global Motion Control with Scene-anchored Bounding-boxes.}
+Controlling where the objects move to within the scene is crucial in designing video shots. 
+We argue that such global object control should be defined in a scene-aware manner, in which object positioning is grounded to positions in the underlying 3D scene.
+To this end, we enable scene-anchored bounding box (bbox) placement by minimally specifying start and end boxes, as well as (optionally) intermediate key boxes, on the input image. 
+By anchoring the bbox placements to the fixed view established by the input image, users can depict the imagined target locations via adjusting not only the position but also the scale and shape of the boxes. This scene-aware bbox placement provides intuitive control over object position, scale, pose, and relative distance to the camera.
+From the provided key positions and intended duration of the output video, we generate smooth box trajectories via Catmull-Rom spline interpolation.
+
+
+
+\textbf{Object Local Motion Control with Point Tracing.}
+While global object motion defines how objects change their position within the scene and is our main focus in the shot design process, local object motion -- depicting in-location movement of objects (\eg, raising arms, a rotating head) -- can also enrich the shot design experience with added details and realism.
+Inspired by the recent success of drag-based editing~\cite{mou2024revideo}, we use sparse point trajectory to depict local motion. As local motion often involves complex geometric relationships and deformations, sparse point trajectories offer a flexible way to define and manipulate such motion.
+
+\textbf{Timing Control}.
+Timing control of object and camera motions enables coordinated design, enhancing narrative flow and visual coherence. Our system naturally supports this by allowing users to assign timelines directly along the motion trajectories.
+
+\subsection{Motion Signal Translation Module}
+
+
+While motion intent is best designed in the 3D-aware scene-centric manner, video generation models are often most effectively trained for motion conditioning with 2D screen-space, frame-centric data that mix all motion types together after view-dependent projections. 
+This discrepancy arises due to the challenging nature of extracting reliable 3D information such as camera motions and 3D object trackings in general videos at large scales~\cite{zhou2018stereo}. 
+To address this challenge, instead of aiming to devise a video generation model that directly handles the scene-space motion information, our key idea is to translate the scene-space motion design obtained from Section~\ref{sec-3.1-motion-design} into spatiotemporally grounded screen-space motion signals that can be reliably extracted from in-the-wild videos. 
+
+\textbf{Camera Movement via Point Tracking.}
+We seek a form of screen-space motion signal that (1) can be robustly extracted from general videos, and (2) encodes detailed information about the camera movement throughout the videos.
+Research on human visual perception~\cite{epstein1995perception, thompson2011perception} offers the important insight that egocentric motion can be reliably recovered by a sparse set of scene point trackings projected onto the image plane. This insight has been widely applied in computer vision for camera pose estimation~\cite{hartley2003vision} and SLAM~\cite{taketomi2017visual}.
+Inspired by this insight, we represent camera movement using point tracking. Note this information can be robustly extracted from real videos~\cite{cho2025local}. 
+
+At inference time, we convert 3D camera paths to 2D point tracks by randomly sampling a set of points on the input image. To focus on points belonging to static background, which better reflect the camera movement, we exclude regions from likely-moving objects estimated from a YOLOv11~\cite{khanam2024yolov11}-generated mask. 
+We then employ an off-the-shelf monocular depth estimator~\cite{wang2024moge} to obtain intrinsic camera parameters and a depth map. Lastly, we warp these points based on the 3D camera path and depth to create corresponding 2D screen-space tracks.
+
+\textbf{Scene-aware Object Motion via Bounding-box Trajectories.}
+User-defined scene-space bbox trajectories reflect motion intent but are distorted by camera movement and perspective when projected onto the screen. 
+We aim to convert such scene-anchored object bboxes to screen space in a way that resembles the object bbox sequence typically extracted from real videos. 
+We first lift the scene-space bbox to 2.5D, using camera pose and depth to continuously reproject it into screen space across frames. The initial bbox's depth is assigned the average depth within its SAM2~\cite{ravi2024sam}-generated semantic mask. Subsequent bboxes use either (1) a reference depth from a point in the scene (e.g., the ground plane) or (2) a depth from perspective consistency (a growing bbox implies movement toward camera).
+Using the assigned depth and camera pose transformations, the 2.5D bboxes $b_\text{scene}^l$ at time $l$ are projected into screen space $b_\text{screen}^l$ with calibrated locations and sizes:
+\begin{equation}
+    b_\text{screen}^l = \mathcal{T}_\text{camera}^l(b_\text{scene}^l),
+\end{equation}
+where $\mathcal{T}_\text{camera}^l(\cdot)$ denotes the camera motion transformation.
+
+
+\textbf{Object Local Motion via Point Trajectory Decomposition.}
+As we aim to utilize the scene-anchored point trajectory to depict object local motion, our focus lies on converting each scene-anchored control point $p_\text{scene}^l$ (obtained by lifting the control point to scene space using the corresponding object-bbox's depth computed previously) into the corresponding screen space $p_\text{screen}^l$. This involves transformations considering both camera and global motion:
+\begin{equation}
+    p_\text{screen}^l = \mathcal{T}_\text{camera}^l(\mathcal{T}_\text{global}^l(p_\text{scene}^l)),
+\end{equation}
+where $\mathcal{T}_\text{global}^l(\cdot)$ represents object global motion transformation. Assuming negligible depth changes during local motion relative to global motion---a reasonable assumption as local motion often occurs within a similar depth plane (\eg, a waving hand)---we assign all local motion points the same depth as their initial positions. This simplifies the transformation based on camera motion. 
+
+
+\subsection{Motion-conditioned Video Generation}
+Video diffusion models have emerged as the dominant paradigm for video generation.
+We build our motion-conditioned video generation model upon a pre-trained Diffusion Transformer (DiT)-based~\cite{peebles2023scalable} I2V model.
+This model is an internally-developed standard adaptation of DiT to video generation, similar to existing open-source adaptions~\cite{opensora,yang2024cogvideox}.
+We adapt the model to our motion-conditioned generation problem by fine-tuning it with the screen-space motion conditions.
+%: point trajectories and bounding-box sequence.
+
+\input{Figures/fig-method-motion-conditioning}
+
+\textbf{Point-Trajectory Conditioning.}
+We represent $N$ point trajectories by encoding each into a compact set of Discrete Cosine Transform (DCT) coefficients. Due to the low temporal frequency nature of point tracking, we can compress long trajectories into $K$ coefficients ($K$=10 in our experiments), with the DC component encoding the initial position, grounding the trajectory's start point explicitly. This compact representation, $C_\text{traj}\in\mathbb{R}^{N\times K \times 2}$, offers two advantages: (1) it simplifies motion data handling, allows flexible handling of varying trajectory densities, and improves efficiency through pre-computation; and (2) it integrates seamlessly into the DiT framework via in-context conditioning. Each trajectory is treated as an individual token, with its embedding derived from the DCT coefficients.
+
+
+\textbf{Bbox-Sequence Conditioning.}
+Bounding boxes convey complex spatial information (position, shape, pose) and are injected separately from trajectories to distinguish between camera and object global motion. 
+We encode bbox sequences as spatiotemporal embeddings by first rasterizing them into unique color-coded masks, forming an RGB sequence $C_\text{bbox}^\text{RGB}\in \mathbb{R}^{L\times H\times W\times 3}$.
+This sequence is then encoded into spatiotemporal embeddings $C_\text{bbox}\in \mathbb{R}^{L'\times H'\times W'\times C}$ using the same pre-trained video autoencoder (3D-VAE) from the base DiT model. These embeddings are patchified into tokens and added to the noisy video latent tokens, as illustrated in Fig.~\ref{fig:motion-conditioning}.
+
+\textbf{Model Training.}
+Since we adopt a latent diffusion model, all RGB-space data are compressed into tokens within the latent space via a 3D-VAE encoder. The motion-conditioned model is optimized using the flow-matching loss~\cite{lipmanflow,liu2023instaflow}. Specifically, denoting the ground-truth video latents as $X^1$ and noise as $X^0\sim\mathcal{N}(0,1)$, the noisy input is produced by linear interpolation $X^t=t X^1+(1-t)X^0$ at timestep $t$. The model $v_{\theta}$ predicts the velocity $V^t=\frac{d}{dt}X^t=X^1-X^0$. The training objective is
+\begin{equation}
+    \min _{\theta} \mathbb{E}_{t,X^0,X^1} \left[\Vert V^t -v_{\theta}(X^t,t \,|\, C_\text{img},C_\text{traj},C_\text{bbox},C_\text{txt})   \Vert_2^2 \right],
+\end{equation}
+where $C_\text{img}$, $C_\text{traj}$, $C_\text{bbox}$, $C_\text{txt}$ denote the input image, point trajectory, bbox, and text prompt, respectively.
+Note we also retain the text conditioning to offer additional flexibility in controlling video content changes. After training, the clean video latent tokens $\hat{X^1}$ can be generated conditioning on the input image, text prompt, and screen-space motion signals, and then decoded back to RGB frames.
+
+\input{Figures/fig-app-shot-design}
+\subsection{Generating Variable-length Videos via Auto-regression}
+
+Generating variable-length videos is beneficial for cinematic storytelling. We achieve this through auto-regressive generation, which is more computationally efficient than modeling long videos directly and reflects the fact that complex video shots are often composed of short, simple shots stitched in a sequence.
+%of together.
+While our image-to-video framework naturally supports training-free long video generation in an auto-regressive manner, we found that this often results in noticeable motion discontinuities, as a single conditional image lacks sufficient temporal motion information.
+To address this, we train MotionCanvas$_\text{AR}$ with an additional conditioning on short video clips, $C_\text{vid}$ (16 frames). This overlapping short-clip strategy conditions each generation step on the previous spatiotemporal context, resulting in natural transitions. During inference, the model generates videos of arbitrary length with independent motion control per generation iteration. 
+To further refine the input motion signals and align them with the training setup, we recompute the screen-space motion signals by combining the user’s intent with back-traced motions.
+This approach ensures smoother and more consistent motion generation (see section~\ref{sec:ar} in the supplement).
+\input{Figures/fig-app-shot-design-longvid}

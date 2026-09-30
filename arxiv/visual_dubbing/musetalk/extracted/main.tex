@@ -1,0 +1,58 @@
+% ICCV 2025 Paper Template
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+% \usepackage{iccv}              % To produce the CAMERA-READY version
+%\usepackage[review]{iccv}      % To produce the REVIEW version
+\usepackage[pagenumbers]{iccv} % To force page numbers, e.g. for an arXiv version
+\usepackage{multirow}
+\usepackage{xcolor} % 加载颜色包
+\usepackage{amssymb} % 加载符号包
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{iccvblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=iccvblue]{hyperref}
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{9236} % *** Enter the Paper ID here
+\def\confName{ICCV}
+\def\confYear{2025}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{MuseTalk: Real-Time High-Fidelity Video Dubbing via Spatio-Temporal Sampling}
+
+%%%%%%%%% AUTHORS - PLEASE UPDATE
+\author{
+Yue Zhang$^{1}$$^{*}$, Zhizhou Zhong$^{1}$$^{*}$, Minhao Liu$^{1}$\thanks{Equal contribution.}, Zhaokang Chen$^{1}$, Bin Wu$^{1}$\thanks{Corresponding author}, \\
+Yubin Zeng$^{1}$, Chao Zhan$^{1,2}$\thanks{Work performed during an internship at Tencent Music Entertainment}, Yingjie He$^{1}$, Junxin Huan$^{1}$, Wenjiang Zhou$^{1}$ \\
+\textsuperscript{1} Lyra Lab, Tencent Music Entertainment \\
+%\textsuperscript{2} Shenzhen Institute for Advanced Study, UESTC, \\
+\textsuperscript{2} The Chinese University of Hong Kong, Shenzhen
+}
+
+\begin{document}
+\maketitle
+\input{sec/0_abstract}    
+\input{sec/1_intro}
+\input{sec/2_related_work}
+\input{sec/3_method}
+\input{sec/4_experiments}
+\input{sec/5_conclusion}
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{ICCV2025-Author-Kit-Feb/main}
+}
+% \setcounter{enumi}{0} % 重置计数器
+%\input{supplement_material}
+
+\end{document}

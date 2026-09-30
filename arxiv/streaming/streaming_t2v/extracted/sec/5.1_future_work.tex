@@ -1,0 +1,22 @@
+% \section{Future Work}
+% Our method can be generalized to the DiT architectures as well, e.g. for OpenSora (OS) \cite{opensora}, we added the CAM module by allowing the last 14 transformer blocks of OS to attend to the previous chunk information via CAM’s attention mechanism. 
+% The APM module is connected to the cross attentions, as in StreamingT2V. 
+% After adding our framework to OS, the visual inspection of the results confirmed the generalization ability of the method (see Fig.\ \ref{rebuttal}) enabling the future research to focus on conducting a detailed analysis of this direction.
+
+% Although the base model architecture in our approach is U-Net, preliminary results suggest that the method can be generalized to the DiT architecture as well. E.g. for OpenSora (OS) \cite{opensora}, we added the CAM module by allowing the last 14 transformer blocks of OS to attend to the previous chunk information via CAM’s attention mechanism. The APM module is connected to the cross attentions, as in StreamingT2V. After adding our framework to OS, the visual inspection of the results confirmed the generalization ability of our StreamingT2V. Exemplary, Fig.\ \ref{rebuttal} shows that we obtain smooth motion and high quality preservation. Future research may focus on conducting a detailed analysis of this direction, exploring the impact of our method on SOTA DiT-based video generators, optimizing its integration, and evaluating its performance across various benchmarks.
+
+\begin{table}
+    \captionsetup{name=Figure}
+        \centering
+        \begin{tabular}{cccc}
+        \includegraphics[width=0.095\textwidth]{figures/rebuttal/0.jpg}
+        & \includegraphics[width=0.095\textwidth]{figures/rebuttal/16.jpg}
+        & \includegraphics[width=0.095\textwidth]{figures/rebuttal/23.jpg}
+        & \includegraphics[width=0.095\textwidth]{figures/rebuttal/31.jpg}
+        \end{tabular}
+        
+    % \vspace{-10pt}
+    \caption{StreamingT2V results using OpenSora as base model.}
+    \label{rebuttal}
+    \vspace{-10pt}
+\end{table}

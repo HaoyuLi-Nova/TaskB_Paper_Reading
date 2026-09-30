@@ -1,0 +1,241 @@
+\section{\magi}
+\input{model/figures/main_algorithm}
+\magi is an autoregressive denoising video generation model operating in latent space. The generation process is illustrated in Fig.~\ref{fig:main_algorithm}. Unlike other bi-directional denoising models (\emph{e.g.,} Sora~\citep{openaisora2024}) that generates the video as a whole, \magi generates the video chunk-by-chunk in a pipeline manner. Specifically, each chunk consists of multiple frames that are denoised holistically. As a chunk is denoised to a certain extent (not necessary completely clean), the next chunk begins generation, conditioned to all preceding chunks. This design allows multiple chunks to be processed concurrently. In our implementation, each chunk contains 24 raw frames (equivalent to one second video clip at 24 FPS), and up to four chunks can be inferred simultaneously.
+
+Compared to fully denoising one chunk before starting subsequent chunks, our method leverages parallelism to better utilize computation, reducing the latency of obtaining subsequent clean chunks and enabling real-time streaming video generation. Moreover, the auto-regressive design naturally supports video continuation without additional specific designs, and extends seamlessly to image-to-video generation. This unified framework enables us to cover text-to-video generation, video continuation, and image-to-video generation within a single pre-training process, eliminating the need for task-specific fine-tuning required by other methods. By maintaining consistency between pre-training and downstream tasks, our approach achieves superior performance in both video continuation and image-to-video generation. 
+
+In this section, we will systematically introduce the training, distillation, and inference of \magi in detail.
+
+
+\subsection{Transformer-based Variational Auto-Encoder}
+To improve the efficiency of both training and inference, \magi employs a variational autoencoder (VAE) to obtain a compressed latent space, over which denoising is performed. While most open-source VAEs are built upon convolutional architectures (\emph{e.g.}, U-Net~\citep{ronneberger2015u}), they are considerably slower than the transformer-based counterparts (\emph{e.g.}, ViT~\citep{dosovitskiy2020image}) of comparable model size on modern GPUs. To address this, we design our VAE architecture based on transformers.
+
+The architecture of our VAE is illustrated in Fig.~\ref{fig:vae_arch}. In the encoder, the input is first processed by an embedding module based on a 3D convolution with a kernel size of $8 \times 8 \times 4$\footnote{The kernel size is specified in the order of height, width, and temporal dimensions.} and a stride of $8 \times 8 \times 4$, producing an output with 1024 channels. Absolute positional embeddings are then added to enrich spatial and temporal representations. Building on this, we stack 24 transformer blocks, where self-attention is stabilized through query, key and value normalization to improve training stability. The output of the final transformer block is normalized by a LayerNorm and then projected via a linear layer to 32 channels: the first 16 channels represent the predicted mean, and the remaining 16 channels represent the predicted log-variance. Compared to the raw video input, the encoded features are downsampled by a factor of 8 in the spatial dimensions and by a factor of 4 in the temporal dimension.
+
+The decoder adopts a symmetric architecture to the encoder. To restore the original spatial and temporal resolution, we first apply a pixel shuffle operation to the output of the final transformer block, followed by a 3D convolution with a kernel size of $3 \times 3 \times 3$ and 3 output channels to generate the final output in pixel space. For image inputs consisting of a single frame, we replicate the frame four times along the temporal dimension, which yields better performance compared to padding with three empty frames.
+
+\input{model/tables/vae_compare}
+
+The training process of the VAE consists of two stages.
+In the first stage, we use a fixed input resolution during training: 16-frame short clips with a spatial resolution of $256\times256$ pixels, to maximize training efficiency by avoiding unnecessary padding. In the second stage, two key modifications are introduced. First, both image data (single frame) and video data (16-frame clip) are jointly used during training. Second, we adopt variable spatial resolutions and aspect ratios by randomly sampling at each training step, enabling the VAE to generalize across different resolutions. Specifically, we constrain the total number of pixels (height $\times$ width) is approximately $256^2$ or $384^2$, while sampling the aspect ratio uniformly from the range [0.25, 4.0].
+In both stages, we apply a combination of L1 loss, KL divergence loss, LPIPS loss, and GAN loss, following common practice.
+
+During inference, we use sliding window approach to support arbitrary resolutions. In the spatial dimension, we adopt a window size of $256\times256$ pixels with a stride of 192 pixels, resulting in a $25\%$ overlap between adjacent patches in spatial. In the temporal dimension, no overlap is applied.
+
+
+Tab.~\ref{tab:vae_compare} shows the comparison with other open-source VAEs. All models were evaluated on a single NVIDIA H800 GPU. To eliminate potential biases from varying slicing strategies at higher resolutions, we report the average processing speed measured across 169 test videos, each containing 25 frames with a spatial resolution of 256$\times$256 pixels. 
+Despite having the largest model size, our transformer-based VAE achieves the fastest average decoding time among all models and significantly outperforms most baselines in encoding speed. In terms of reconstruction quality (measured by PSNR), it remains highly competitive, ranking second overall. 
+
+
+\input{model/figures/vae_architecutre}
+
+\subsection{Auto-Regressive Denoising Model}
+\subsubsection{Training objective}
+\magi employes flow-matching~\citep{albergo2022building,liu2022flow,lipman2022flow} as its training objective. Given a training video clip contains $n$ chunks, we sample independent Gaussian noises for each chunk. The linear interpolation with respect to the denoising timestep $t$ between the sampled noise and the clean latent of the $i$-th chunk is defined as:
+\begin{equation}
+    x_i^t = (1-t) x_i^0 + t x_i^1,
+\end{equation}
+where $x_i^1$ denotes the latent of $i$-th chunk and $x_i^0$ is the corresponding sampled Gaussian noise. The ground-truth velocity for each chunk is given by:
+\begin{equation}
+    v^*(x_i^t) = \frac{d x_i^t}{dt} = x_i^1 - x_i^0.
+\end{equation}
+
+In the auto-regressive model, earlier chunks are cleaner than later ones. For convenience, we define the noise timestep sampled assigned to each chunk as $t_i$, and impose the constraint $t_i < t_j$ whenever $i < j$.\footnote{In completely denoising cases, $t_i=t_j=0$, but we use the strict inequality here for simplicity.} The interpolation of the entire video clip is then defined as: $X_T=\{x_0^{t_0}, x_1^{t_1}, ..., x_n^{t_n}\}$. The model is trained to minimize the following objective:
+\begin{equation}
+\mathbb{E}_{c, X_T}\parallel v(x_i^{t_i} | t_i, c, \{x_{j<i}^{t_j}\}; \theta) - v^*(x_i^{t_i})\parallel^2.
+\end{equation}
+where $v(\cdot; \theta)$ is the denoising model parameterized by $\theta$, and $c$ denotes the conditioning text inputs. Note that the prediction of velocity for $x_i$ explicitly conditioned on all its preceding chunks $x_j$ where $j<i$.
+
+In contrast, typical bi-directional denoising video models do not enforce monotonicity of the noise timestep. Instead, they apply the equality constraint, where all chunks share the same noise timestep. Accordingly, their training objective is formulated as:
+\begin{equation}
+\mathbb{E}_{c, X_T}\parallel v(x_i^{t_i} | t_i, c, X_T; \theta) - v^*(x_i^{t_i})\parallel^2.
+\end{equation}
+where the velocity prediction for $x_i$ is conditioned on all chunks, regardless their temporal order.
+
+\input{model/figures/ar_model_architecutre}
+\subsubsection{Model Architecture}
+\magi is built upon the Diffusion Transformer (DiT) architecture. However, to better meet the requirements of auto-regressive modeling and to improve training efficiency and stability at scale, we introduce several key modifications. As shown in Fig.~\ref{fig:ar_model_architecuture}(a), \magi follows a high-level architecture similar to the standard DiT, consisting of four main components: patch embedding, attention, feed-forward network (FFN), and final stem. We employ T5~\citep{raffel2020exploring} to extract text embeddings, while the timestep information is encoded using sinusoidal positional embeddings.
+Our primary modifications target the attention and FFN modules, which are illustrated in Fig.~\ref{fig:ar_model_architecuture}(b) and Fig.~\ref{fig:ar_model_architecuture}(c), respectively. In the following, we provide a detailed description of these modifications.
+
+\paragraph{Block-Causal Attention}
+\magi employs full attention within each chunk and causal attention across chunks. Spatial and temporal positional information is encoded using a learnable 3D RoPE~\citep{su2024roformer}, in which the base frequency is learnable. However, existing attention implementations~\citep{dao2022flashattention,dao2023flashattention} do not efficiently support block-causal attention, therefore, we implemented a new kernel called Flexible-Flash-Attention on top of FlashAttention-3. Further details can be found in Sec.~\ref{sec:magiattn}.
+ 
+\paragraph{Parallel Attention Block}
+\magi adopts a parallel design for spatial-temporal self-attention and cross-attention with external conditioning input, offering improved computational efficiency over the serial attention architecture. In the serial setup, each attention module independently computes query projections and incurs a separate round of Tensor Parallel (TP) communication. In contrast, the parallel block computes  query projections once and applies them to both attention types concurrently, reducing TP communication from two rounds to one per block. This optimization lowers inter-GPU synchronization overhead and enhances scalability in large-scale models.
+
+\paragraph{QK-Norm and GQA} 
+Earlier studies on vision transformers~\citep{liu2022swin,dehghani2023scaling} have shown that normalizing the queries and keys of attention can significantly improve training stability. Moreover, inspired by recent advances in large language models (LLMs), we replace the standard multi-head attention (MHA) with grouped-query attention (GQA)~\citep{ainslie2023gqa} to reduce memory consumption. Both techniques are applied to the spatial-temporal attention and cross-attention modules in our design. 
+
+\paragraph{Sandwich Normalization in FFN} In practice, we have noticed that the numerical problems are more likely to appears in FFN modules as the model size increase. Therefore, we have added LayerNorm before and after the FFN input and output to alleviate the challenge.
+
+\paragraph{SwiGLU} SwiGLU~\citep{shazeer2020glu} has been widely adopted in large language models and has been shown to consistently improve performance than ReLU. Therefore, we employ SwiGLU in the feed-forward network (FFN) of our 24B model.
+
+\paragraph{Softcap Modulation} The standard DiT incorporates timestep information via \emph{adaLN}, where the denoising timestep is used to compute a scaling factor that modulate both the input and output activations of the attention and FFN. While this design works well for small models, we observed that in large models it tends to amplify activation magnitudes and exacerbate numerical instability. To address this issue, we apply a Softcap to the scaling factor, constraining its values within the range of $[-1,1]$. Furthermore, since we adopt QK-Norm in attention modules, we remove the input modulation of \emph{adaLN}.
+
+\input{model/tables/model_specification}
+\subsubsection{Training Recipes}
+\label{sec:training_recipes}
+\paragraph{Training Configurations}
+We train a 4.5B and 24B \magi models and their configurations is shown in Tab.~\ref{table:model_specification}. The training is organized into three stages. Take the 4.5B model as an example. In the first two stages, the resolution of training data is set to 360p and 480p, respectively, with video length is up to 8 seconds. In the third stage, the resolution is further increased to 720p, and the video length is extended up to 16 seconds. Throughout all three stages, the image and video are trained jointly. At the beginning of training, we apply a learning rate warmup, gradually increasing the learning rate to $1\mathrm{e-}{4}$ in $1000$ steps. Then, we adopt a stepwise learning rate scheduling strategy. In the first two stages, the learning rate remains constant, and the stage is switched when the visual assessment of generated video does not significantly improve. In the third stage, we gradually reduce the learning rate once the validation loss reaches a plateau, eventually reducing to $1\mathrm{e-}{5}$. 
+
+For the 24B model, we reduce the resolution in the first training stage from 360p to 256p, as this stage primarily serves to making the model learn global motion dynamics and semantic concepts. Lowering the resolution allows for more training iterations within the same computational budget, thereby improving training efficiency. In addition, we extend the learning rate warmup phase to 10,000 steps to enhance stability during the early training phase. Furthermore, since larger models typically require longer training to reach performance saturation, we proportionally increase the number of training steps at each stage, guided by empirical visual assessment on the validation set.
+
+\input{model/figures/clean_chunk}
+\paragraph{Multi-Task Training via Data Configurations}
+Bi-directional denoising models typically support only text-to-video generation during pretraining, while tasks such as image-to-video generation often require dedicated architectural designs or additional finetuning. In contrast, within the auto-regressive framework, text-to-video, image-to-video, and video continuation tasks differ solely in the proportion of clean chunks present in the training data. As illustrated in Fig.~\ref{fig:clean_chunk}, the early stage of text-to-video generation corresponds to the case of all chunks are noisy, while the inclusion of some clean chunks represents to video continuation. Image-to-video generation is a special case of video continuation, with only the first frame of the first chunk being clean.
+
+Thanks to this property, our auto-regressive model enables unification of various generation tasks under a single training objective without additional task specific fine-tuning and requiring only adjustment of the proportion of clean chunks in the training data.
+
+Furthermore, unlike bi-directional denoising models — where the text condition must be predefined for the entire video and remains fixed throughout generation — \magi allows for different text conditions to be provided for each chunk, enabling fine-grained, chunk-wise text control. To better support this capability, we design a dedicated auto-regressive captioning strategy (Data details are described in Sec.~\ref{sec:caption}) that adapts training accordingly. Additional examples of this fine-grained control are provided in Sec.~\ref{sec:model_capability_study}.
+
+
+
+\input{model/figures/training_timestep}
+\paragraph{Timestep Sampler in Training}
+Early studies have demonstrated that improving the design of timestep sampler (commonly known as SNR sampler) can facilitate training efficiency by better allocating computations across different noise levels. \citep{esser2024scaling} introduce the Logit-Normal sampling strategy, which provides a flexible framework for controlling the distribution of sampled timestep, the transformed timestep density $\pi(t)$ is:
+\begin{equation}
+\pi(t; m, s) = \frac{1}{s\sqrt{2\pi}}\frac{1}{t(1-t)}\exp(-\frac{(\text{logit}(t)-m)^2}{2s^2}),
+\end{equation}
+where $\text{logit}(t)=\log \frac{t}{1-t}$. In addition, \citep{esser2024scaling} further introduce a timestep shift strategy to handle the resolution increasing:
+\begin{equation}
+\label{eq:t_scale_transform}
+    t' = \frac{wt}{1 - (1-w)t}
+\end{equation}
+
+In \magi, we draw inspiration from these two sampling strategies but make adjustment for video data. Since videos typically contain more redundant information than images, we aim to shift the overall sampling distribution further towards the noise side compared to images. In our preliminary experiments, as shown in Fig.~\ref{fig:stop_t}, we observed that the model is capable of generating reasonably clear video outputs at $t = 0.3$. Based on this observation, we heuristically allocate approximately $70\%$ of the training computation budget to the region where $t < 0.3$. Following this principle, we set the $m = 0$, $s = 0.5$, and $w = 1/3$ for all cases during training.
+
+\input{model/figures/t_related/stop_t}
+
+
+\paragraph{Design Choices for Clean Chunks}
+There are two types of chunks in the training of \magi: noisy chunks and clean chunks, and we adopt three key designs to handle clean chunks:
+
+First, in practical video continuation scenarios, users typically upload an initial video clip and provide follow-up text descriptions or dynamically update the prompt during the continuation process. Considering this usage, we argue that clean chunks should not be conditioned on text inputs.
+
+Second, exposure bias is a well-recognized challenge in training auto-regressive models~\citep{bengio2015scheduled,wiseman2016sequence}. A common mitigation strategy is to inject a small amount of noise into clean data during training. Following this practice, we inject up to $5\%$ noise into clean chunks to alleviate exposure bias.
+
+Finally, since clean chunks are relatively abundant in the pre-training data, they risk dominating the training signal. To address this, we apply the loss function exclusively to noisy chunks. Nevertheless, clean chunks still participate in training through the attention mechanism and continue to receive gradient updates. Empirically, we observe that blocking the gradients of clean chunks leads to a significant degradation in model performance.
+
+\subsection{Distillation Using Shortcut Model}
+Flow-matching formulates the generative process as an ODE that maps noise to data along high-dimensional, curved trajectories. Sampling from such models is computationally intensive, typically requiring dozens of function evaluations with sufficiently small step sizes to incrementally transform noise into data. This inefficiency motivates the development of diffusion distillation methods~\citep{luhman2021knowledge, salimans2022progressive} that can reduce the required number of inference steps without sacrificing sample quality.
+
+This work adopts shortcut model~\citep{frans2024one} as the distillation target. Given a noise-data interpolation defined by $x_i^t = (1 - t)x_i^0 + t x_i^1$, where \( x_i^1 \) is the clean data point at the \( i \)-th chunk and \( x_i^0 \) denotes Gaussian noise, the shortcut model uses a \textit{single} neural network to predict a velocity field \( v(x_i^t \mid t, s) \)\footnote{For clarity, we omit irrelevant variables and denote \( v(x_i^t \mid t, s) \) as a shorthand for the full expression \( v(x_i^{t_i} \mid t_i, s, c, \{x_{j<i}^{t_j}\}; \theta) \).}, conditioned not only on the current timestep \( t \), but also on the \textit{desired step size} \( s \propto \Delta t \).
+Here, \( \Delta t \) denotes the interval between adjacent timesteps, while the reciprocal \( 1/s \in 2^{\mathbb{N}} \) specifies the number of function evaluations required to complete the denoising process\footnote{In practice, note that \( s \) and \( \Delta t \) may differ due to nonlinearities in the denoising schedule.}.
+
+The generation process of the shortcut model closely resembles the flow-matching formulation and can be expressed as $\hat{x}_i^{t + \Delta t} = x_i^t + \Delta t \cdot v(x_i^t, t, s)$, where $\hat{x}_i^{t + \Delta t}$ denotes the model-predicted next point in the denoising trajectory, explicitly indicated by the hat symbol over ${x}_i^{t + \Delta t}$. As $\Delta t \to 0$, this formulation recovers the standard flow-matching scenario, where the shortcut model approximates the instantaneous velocity.
+
+During training, the shortcut model constructs distillation targets using a bootstrap procedure, leveraging the principle that a single shortcut step is equivalent to two consecutive steps of half the step size. Formally, the update rule $\hat{x}_i^{t + \Delta t_1 + \Delta t_2} = x_i^t + (\Delta t_1 + \Delta t_2) \cdot v(x_i^t, t, 2s)$ can also be written as $\hat{x}_i^{t + \Delta t_1 + \Delta t_2} = \hat{x}_i^{t + \Delta t_1} + \Delta t_2 \cdot v(\hat{x}_i^{t + \Delta t_1}, t + \Delta t_1, s) = x_i^t + \Delta t_1 \cdot v(x_i^t, t, s) + \Delta t_2 \cdot v(\hat{x}_i^{t + \Delta t_1}, t + \Delta t_1, s)$, leading to the relationship:
+\begin{equation} 
+v(x_i^t, t, 2s) = \frac{\Delta t_1}{\Delta t_1 + \Delta t_2} v(x_i^t, t, s) + \frac{\Delta t_2}{\Delta t_1 + \Delta t_2} v(\hat{x}_i^{t + \Delta t_1}, t + \Delta t_1, s) 
+\label{eq:shortcut_velocity} 
+\end{equation}
+In practice, the smallest $s$ utilized is $1/64$, corresponding to the standard flow-matching inference setting that requires 64 function evaluations. When training with this minimal step size, we incorporate classifier-free guidance (CFG) distillation~\citep{meng2023distillation} (see Sec.~\ref{CFG Design} for details). The step size $s$ for distillation is cyclically sampled from the set $[1/64] \times 8 \cup [1/32, 1/16, 1/8]$. This sampling strategy enables a single distilled model to perform denoising with different computational budgets (64, 32, 16, or 8 steps), thus providing flexibility to dynamically balance generation quality and inference efficiency at test time.
+
+
+\subsection{Inference Approach}
+\subsubsection{Diffusion Guidance}
+\label{CFG Design}
+\input{model/figures/prev_cfg}
+Classifier-free guidance~\citep{ho2022classifier}, a widely adopted low-temperature sampling technique in diffusion models, offers a principled approach to mediating the inherent trade-off between sample fidelity and diversity in generative modeling. This technique is particularly effective in text-to-video generation, where the objective is to synthesize temporally coherent video frames that conform to given textual prompts.
+
+To improve clarity, we omit irrelevant variables and express the \textit{guided} posterior distribution of the latent variable \( x_t \) given condition \( c \) using Bayes’ rule as \( p_\text{guided}(x_t \mid c) \propto p(x_t) \cdot p(c \mid x_t)^w \), where the exponent \( w \geq 1 \) serves as an inverse temperature parameter. Exponentiating the conditional likelihood \( p(c \mid x_t) \) concentrates the distribution around modes better aligned with the conditioning signal, thereby reducing entropy and improving sample fidelity.
+
+
+In our setting, the generation of the \(i\)-th video chunk \(x_i\) is conditioned not only on the textual prompt \(c_{\text{text}}\), but also on a sequence of preceding chunks \(x_{<i}\), which may include partially denoised or fully noised representations. The guided conditional distribution is thus formulated as:
+\begin{equation}
+p_{\text{guided}}(x_i \mid x_{<i}, c_{\text{text}}) \propto p(x_i) \cdot p(x_{<i} \mid x_i)^{w_{\text{prev}}} \cdot p(c_{\text{text}} \mid x_{<i}, x_i)^{w_{\text{text}}},
+\label{eq:multi-guidance-1}
+\end{equation}
+where \(w_{\text{prev}}\) and \(w_{\text{text}}\) are scalar weights modulating the influence of temporal and semantic signals, respectively.
+Taking the logarithm of both sides of Eq.~\ref{eq:multi-guidance-1}, we obtain the guided score:  
+\(\nabla_{x_i} \log p_{\text{guided}}(x_i \mid x_{<i}, c_{\text{text}}) = \nabla_{x_i} \log p(x_i) + w_{\text{prev}} \cdot \nabla_{x_i} \log p(x_{<i} \mid x_i) + w_{\text{text}} \cdot \nabla_{x_i} \log p(c_{\text{text}} \mid x_{<i}, x_i)\).
+Applying Bayes' rule, we rewrite the gradients as  
+\(\nabla_{x_i} \log p(x_{<i} \mid x_i) = \nabla_{x_i} \log p(x_i \mid x_{<i}) - \nabla_{x_i} \log p(x_i) \),  
+and  
+\(\nabla_{x_i} \log p(c_{\text{text}} \mid x_{<i}, x_i) = \nabla_{x_i} \log p(x_i \mid x_{<i}, c_{\text{text}}) - \nabla_{x_i} \log p(x_i \mid x_{<i}) \).
+Substituting and regrouping, we arrive at the final guided score:
+\begin{equation}
+\begin{aligned}
+\nabla_{x_i} \log p_{\text{guided}}(x_i \mid x_{<i}, c_{\text{text}}) 
+&= \ (1 - w_{\text{prev}}) \cdot \nabla_{x_i} \log p(x_i) \\
+&+\ (w_{\text{prev}} - w_{\text{text}}) \cdot \nabla_{x_i} \log p(x_i \mid x_{<i}) \\
+&+\ w_{\text{text}} \cdot \nabla_{x_i} \log p(x_i \mid x_{<i}, c_{\text{text}}).
+\end{aligned}
+\label{eq:final-score}
+\end{equation}
+This decomposition cleanly separates the contributions of the unconditional prior, temporal context, and prompt conditioning. It enables controllable trade-offs between coherence and semantic fidelity in autoregressive generation.
+
+As a special case, when \( w_{\text{prev}}\) is 1, \emph{i.e.}, the guidance from previous chunks is disabled, the score function in Eq.~\ref{eq:final-score} simplifies to \( \nabla_{x_i} \log p_{\text{guided}}(x_i \mid x_{<i}, c_{\text{text}}) = (1 - w_{\text{text}}) \cdot \nabla_{x_i} \log p(x_i \mid x_{<i}) + w_{\text{text}} \cdot \nabla_{x_i} \log p(x_i \mid x_{<i}, c_{\text{text}}) \). This form recovers the standard classifier-free guidance formulation widely adopted in bidirectional text-to-video diffusion models, which interpolates between unconditional and prompt-conditioned signals.
+
+However, during our chunk-wise generation process, we observed subtle yet perceptible misalignments between adjacent chunks, resulting in temporal artifacts. This observation underscores the necessity of reinforcing temporal guidance to maintain chunk-to-chunk coherence. To this end, we increase \( w_{\text{prev}} \) to 1.5, thereby amplifying the influence of preceding content. As shown in Fig.~\ref{fig:prev_cfg}, this adjustment significantly enhances inter-chunk alignment and mitigates flickering artifacts, resulting in smoother and more temporally consistent video synthesis. Nevertheless, it should be noted that further increasing \( w_{\text{prev}} \) beyond this optimal range may lead to saturation artifacts or even cause the video to become static (\emph{i.e.}, still frames) as playback progresses. We follow standard practice by setting \( w_{\text{text}} \) to 7.5.
+
+\input{model/figures/inference_timestep}
+\subsubsection{Inference Timestep Sampler}
+Previous video generation studies have demonstrated that applying targeted timestep sampling strategies during inference can significantly improve generation quality. In our work, we observed similar behavior in \magi. To enable finer-grained control over the sampling process, we introduce an additional tunable power transformation based on the scaling formula (Eq.~\ref{eq:t_scale_transform}) $t' = \frac{wt^k}{1-(1-w)t^k}$. Through extensive experiments, we found that setting $w = 1/3$ and $k = 2$ yields the best visual quality, and visualization of the sampler is shown in Fig.~\ref{fig:inference_timestep}.
+
+\input{model/figures/fine_grained_control}
+\subsubsection{Fine-Grained Control of Guidance Strength}
+\paragraph{Non-distilled Model.}
+In the case of the non-distilled model, as described in Sec.~\ref{CFG Design}, we set \( w_{\text{prev}} = 1.5 \) and \( w_{\text{text}} = 7.5 \) during generation. In practice, when synthesizing longer videos (typically exceeding 5 seconds), we observe noticeable saturation and checkerboard artifacts progressively emerging during playback. These artifacts are primarily attributed to excessively strong guidance. However, uniformly reducing the strength of \(w_{\text{prev}}\) and \(w_{\text{text}}\) often results in degraded content quality and increased flickering artifacts. This motivates a more fine-grained strategy in which the guidance scales are dynamically adjusted throughout the denoising process, that is, varying \( w_{\text{prev}} \) and \( w_{\text{text}} \) as the denoising timestep \( t \) progresses from 0 to 1.
+
+To investigate when strong guidance is necessary, we analyze the evolution of latent representations throughout the denoising process (Fig.~\ref{fig:stop_t}). As \( t \) approaches 0.3, just before the final denoising stage begins, we observe that the decoded latent representations already exhibit coherent video content, with both structural and semantic elements largely established. The remaining denoising steps, from \( t = 0.3 \) to \( t = 1 \), primarily serve to refine local details, resembling a super-resolution process. Based on this observation, we hypothesize that strong guidance from either the text or previous chunks is no longer necessary during this stage. Accordingly, for \( t > 0.3 \), we reduce the guidance scales to \( w_{\text{prev}} = 1.0 \) and \( w_{\text{text}} = 0.0 \), such that only the \( \nabla_{x_i} \log p(x_i \mid x_{<i}) \) term remains active. As illustrated in Fig.~\ref{fig:fine_grained_control}, this simple yet effective adjustment significantly alleviates temporal artifacts and improves the overall coherence of longer video generations.
+
+\paragraph{Distilled Model.}
+A similar observation holds for the distilled model. Saturation artifacts progressively intensify as the video plays, motivating a comparable mitigation strategy. In the first three stages, we directly use the distilled model's output score, $\nabla_{x_i} \log p_{\text{distilled}}(x_i \mid x_{<i}, c_{\text{text}})$. In the final denoising range, we incorporate additional \textit{guidance} to reduce the influence of the previous chunk, even though the model has already undergone classifier-free guidance distillation. Specifically, we adopt the following guided score in the final stage:
+\begin{equation}
+\begin{aligned}
+\nabla_{x_i} \log p_{\text{guided, distilled}}(x_i \mid c_{\text{text}}, x_{<i}) 
+&= (1 - w_{\text{prev}}) \cdot \nabla_{x_i} \log p_{\text{distilled}}(x_i \mid c_{\text{text}}) \\
+&\quad + w_{\text{prev}} \cdot \nabla_{x_i} \log p_{\text{distilled}}(x_i \mid c_{\text{text}}, x_{<i}) .
+\end{aligned}
+\label{eq:distilled-guidance}
+\end{equation}
+This formulation is derived by switching the positions of $x_{<i}$ and $c_{\text{text}}$ in Eq.~\ref{eq:multi-guidance-1} and Eq.~\ref{eq:final-score}, resulting in the form $\nabla_{x_i} \log p_{\text{guided}}(x_i \mid c_{\text{text}}, x_{<i}) = (1 - w_{\text{text}}) \cdot \nabla_{x_i} \log p(x_i) + (w_{\text{text}} - w_{\text{prev}}) \cdot \nabla_{x_i} \log p(x_i \mid c_{\text{text}}) + w_{\text{prev}} \cdot \nabla_{x_i} \log p(x_i \mid c_{\text{text}}, x_{<i})$. By setting $w_{\text{text}} = 1$, thereby disabling the text guidance term, the first component vanishes and the expression simplifies to Eq.~\ref{eq:distilled-guidance}.
+The rationale behind this modification is that we do not introduce a null text token during distillation, and therefore do not explicitly model $p_{\text{distilled}}(x_i)$ or $p_{\text{distilled}}(x_i \mid x_{<i})$. In our experiments, we set $w_{\text{prev}} = 0.7$, which effectively attenuates the influence of previous chunk guidance in the final denoising stage and helps mitigate temporal saturation artifacts.
+
+
+
+\subsubsection{KV Cache}\label{subsubsec:kv_cache}
+Thanks to its auto-regressive nature, \magi can leverage the KV cache mechanism during inference, which is a widely adopted technique in language models to avoid redundant computations. Specifically, once a chunk has been sufficiently denoised, its features can be cached and reused by subsequent denoising chunks without the need for recomputation.
+
+Furthermore, by constraining the KV range, \magi can easily support long video generation. For example, by setting the KV range to 8 for all chunks, each newly generated chunk depends only on the preceding 8 seconds of video content. This design ensures that the computational cost of generating long videos scales linearly with their duration.
+
+In addition, many KV compression~\citep{hooper2024kvquant,xiao2023efficient,sheng2023flexgen} techniques have recently been developed to reduce the computational overhead of auto-regressive model while preserving the ability to reference the full history as much as possible. \magi is theoretically compatible with these advancements, although we leave their exploration in \magi for future work.
+
+\magi also benefits from the unique characteristics of denoising models: at higher noise levels, the model focuses on capturing global structural information, whereas at lower noise levels, it produces fine details and textures. By dynamically adjusting the KV range at different denoising stages, we can unlock new capabilities that were previously challenging to achieve, such as enabling temporally controllable shot transitions while preserving subject identities, or allowing changes in object identities while maintaining consistent global layouts. More details and experimental results are provided in Sec.~\ref{sec:model_capability_study}.
+
+
+\subsection{Prompt-Enhancement Strategy}
+\magi is trained with highly descriptive captions that follow a specific structure as text conditions. However, in real-world scenarios, user inputs vary widely: ranging from very brief prompts to overly elaborate descriptions. This mismatch between the training distribution and real user inputs often leads to suboptimal inference performance. To address this gap, we propose a Prompt Enhancement (PE) strategy during inference.
+We take the image-to-video (I2V) task as an example to illustrate our PE approach. In this setting, users typically provide an image along with an optional textual prompt. To enhance the user input, we employ a state-of-the-art multi-modal large language model (MLLM) to perform prompt refinement. Our PE pipeline consists of two parallel sub-processes:
+\begin{itemize}
+    \item The first sub-process analyzes and describes the content of the uploaded image.
+    \item The second sub-process predicts the temporal evolution of the scene or objects in the first frame, such as actions, motion trajectories, and object transitions.
+\end{itemize}
+This structured enhancement strategy significantly improves generation quality. However, due to the large size of the state-of-the-art MLLM, it incurs high computational cost and latency, limiting its feasibility in real applications.
+To enable lightweight deployment, we distill the enhanced prompts generated by the large MLLM into a smaller, more efficient model (\textasciitilde7B). We construct a training corpus of approximately 2 million examples, filtering out samples with excessively long target texts to ensure controlled output length. Based on human evaluation, the distilled model achieves comparable video generation quality to its larger counterpart, while greatly reducing inference latency and computational resource usage.
+
+
+\input{model/figures/chunk_control}
+
+\subsection{Model Capability Study}
+\label{sec:model_capability_study}
+\paragraph{Real-time Streaming Video Generation}
+The chunk-by-chunk pipelined inference of \magi offers two key advantages: (1) the time to display the first clear chunk is independent of the total generated video length; and (2) the generation latency between consecutive chunks is significantly reduced. Combined with a high-performance inference infrastructure, \magi enables real-time streaming video generation, unlocking new applications in interactive content and live streaming. More implementation details are in Sec.~\ref{sec:real_time_infra}.
+
+
+\paragraph{Chunk-wise Text Controllability}
+Chunk-wise text controllability is one of the key features of \magi, enabling us to decompose complex actions into simpler, shorter segments and significantly enhancing the model's ability to generate intricate action sequences. Furthermore, when combined with the capability of \magi for long video generation, this makes it possible to create videos with complex narrative structures, as illustrated in Fig.~\ref{fig:chunk_control}
+
+
+\paragraph{Video Continuations}
+\input{benchmark/figures/video_continues_figures}
+Video continuation is a task that \magi natively supports. In the community, an alternative approach to video continuation relies on image-to-video generation (I2V), where the last frame of the given prefix video is used as the starting frame for the extended video. However, this approach often struggles to maintain consistent motion trajectories between the generated continuation and the prefix video, leading to motion discontinuities or generating implausible predictions due to the loss of essential historical information. Fig.~\ref{fig:video_continues_demo} shows such cases. In the pen rotation example, I2V fails to capture the correct rotational velocity because it lacks access to preceding motion dynamics. Similarly, in the occlusion scenario, I2V cannot accurately predict the object's reappearance after occlusion due to missing temporal information. In contrast, conditioning on the full prefix video allows \magi to naturally preserve motion continuity by leveraging historical patterns and temporal dependencies, enabling seamless video continuation.
+
+\paragraph{Controllable Shot Transition}
+Another exciting feature of \magi is its ability to enable diverse and controllable transitions at any designated chunk by adjusting the KV range across different denoising stages. Specifically, by setting the KV range to 1 only at high-noise denoising stages (meaning the model cannot access the preceding video content) while keeping a normal KV range (\emph{e.g.}, 8) at other stages, we can achieve shot transitions while preserve object identities unchanged, as shown in Fig.~\ref{fig:shot_transition_layout}.
+Conversely, by setting the KV range to 1 only at low-noise stages, we can produce transitions where the overall layout of the scene remains consistent, but the fine details of the objects change, as illustrated in Fig.~\ref{fig:shot_transition_finegrain}.
+
+We believe the above capabilities can offer an entirely new level of creative control for video content creation.
+
+\input{model/figures/controlable_shot_transition}

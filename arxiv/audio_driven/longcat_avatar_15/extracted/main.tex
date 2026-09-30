@@ -1,0 +1,105 @@
+\documentclass{article}
+
+\usepackage{longcat_style}
+\usepackage[export]{adjustbox}
+\usepackage[utf8]{inputenc} %
+\usepackage[T1]{fontenc}    %
+\usepackage{newunicodechar}
+\usepackage{hyperref}       %
+\usepackage{xcolor}
+\usepackage[normalem]{ulem} %
+\hypersetup{
+    colorlinks=true,      %
+    linkcolor=blue,      %
+    urlcolor=blue,       %
+    citecolor=blue,      %
+    linkbordercolor=blue, %
+    urlbordercolor=blue,
+    citebordercolor=blue,
+    pdfborderstyle={/S/U/W 1}, %
+}
+
+\usepackage{float}
+\usepackage{url}            %
+\usepackage{booktabs}       %
+\usepackage{amsfonts}       %
+\usepackage{nicefrac}       %
+\usepackage{microtype}      %
+\usepackage{lipsum}		%
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{doi}
+\usepackage{amsmath}
+\usepackage{amssymb} %
+\usepackage{xspace}
+\usepackage{enumitem}
+\usepackage{multirow}
+\usepackage{subcaption} 
+\usepackage{makecell}
+\usepackage{hyperref, cleveref}
+\usepackage{pifont}
+\usepackage[inkscapelatex=false]{svg}
+\usepackage{caption}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{threeparttable}
+\usepackage{overpic}
+
+
+\setlist[itemize]{leftmargin=*}
+\setlist[enumerate]{leftmargin=*}
+\setlist[description]{leftmargin=*}
+
+\newcommand{\longcat}{LongCat-Video\xspace}
+\newcommand{\chip}{accelerators\xspace}
+
+\newcommand{\kmax}{K}
+
+\newcommand{\blue}[1]{\textcolor{blue}{#1}} %
+
+
+\definecolor{midnightgreen}{rgb}{0.0, 0.29, 0.33}
+
+\title{\textnormal{LongCat-Video-Avatar 1.5 Technical Report }}
+
+\author{
+    Meituan LongCat Team
+}
+
+\renewcommand{\headeright}{\raisebox{-0.2\height}{\includegraphics[height=1.8em]{figs/longcat-logo-full.pdf}}}
+\renewcommand{\shorttitle}{LongCat-Video-Avatar 1.5 Technical Report}
+\renewcommand{\arraystretch}{1.5}
+
+\usepackage{amsmath}
+\setlength{\abovedisplayskip}{12pt plus 3pt minus 7pt}
+\setlength{\belowdisplayskip}{12pt plus 3pt minus 7pt}
+\setlength{\abovedisplayshortskip}{6pt plus 3pt minus 7pt}
+\setlength{\belowdisplayshortskip}{6pt plus 3pt minus 7pt}
+
+
+\begin{document}
+\maketitle
+
+\input{sec/0_abstract}
+
+\clearpage
+\tableofcontents
+\clearpage
+
+\input{sec/1_introduction}
+\input{sec/2_dataset}
+\input{sec/3_method}
+\input{sec/4_training}
+\input{sec/5_evaluation}
+\input{sec/6_conclusion}
+\input{sec/7_contributors}
+
+\bibliographystyle{unsrtnat}
+\bibliography{references}  
+
+\clearpage
+\appendix
+
+
+\end{document}

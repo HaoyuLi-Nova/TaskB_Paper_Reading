@@ -1,0 +1,26 @@
+\begin{abstract}
+
+
+The intuitive nature of drag-based interaction has led to its growing adoption for controlling object trajectories in image-to-video synthesis.
+%
+Still, existing methods that perform dragging in the 2D space usually face ambiguity when handling out-of-plane movements.
+%
+In this work, we augment the interaction with a new dimension, \textit{i.e.}, the depth dimension, such that users are allowed to assign a relative depth for each point on the trajectory.
+%
+That way, our new interaction paradigm not only inherits the convenience from 2D dragging, but facilitates trajectory control in the 3D space, broadening the scope of creativity.
+%
+We propose a pioneering method for 3D trajectory control in image-to-video synthesis by abstracting object masks into a few cluster points. 
+%
+These points, accompanied by the depth information and the instance information, are finally fed into a video diffusion model as the control signal.
+%
+Extensive experiments validate the effectiveness of our approach, dubbed \method, in precisely manipulating the object movements when producing photo-realistic videos from static images.
+Our code is available at:
+\textcolor{magenta}{\href{https://github.com/ant-research/LeviTor}{https://github.com/ant-research/LeviTor}}.
+
+
+\iffalse
+Controlling object trajectories in video synthesis is crucial for applications like computer graphics, virtual reality, and film production. Current methods use 2D trajectories for control without considering depth information, making it impossible to control the forward and backward movements of objects in relation to the lens. The lack of 3D trajectory control capability not only results in ambiguous and unrealistic movements, but also fails to meet the demands for complex trajectory control. However, extracting accurate 3D trajectories is challenging and often requires specialized tools, especially in cases with occlusions. In this paper, we propose a novel method (LeviTor) for 3D trajectory control in image-to-video synthesis by fine-tuning a pre-trained video model with a control signal that combines depth information and K-means clustered points from object masks in video. Trained on the SA-V dataset, our approach captures essential 3D attributes without the need for explicit estimation. Additionally, we offer a user-friendly pipeline where users can draw 2D paths and adjust their depths to achieve 3D control. Experiments show that our LeviTor outperforms existing baselines and achieves accurate 3D trajectory control for realistic video generation.
+\fi
+
+
+\end{abstract}

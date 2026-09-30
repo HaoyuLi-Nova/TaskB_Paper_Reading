@@ -1,0 +1,114 @@
+
+% \begin{table*}[ht]
+%     % \begin{adjustbox}{center}
+%         \centering
+%         \begin{tabular}{c|c|ccccc}
+%         \toprule
+%             \multirow{2}{*}{Dataset} & \multirow{2}{*}{Model} & \multicolumn{5}{c}{Metrics} \\
+%             & & FID & FVD  & Sync-C$\uparrow$ & Sync-D$\uparrow$ & CSIM$\uparrow$
+%             \\
+%             \midrule
+%             \multirow{6}{*}{HDTF} 
+%             & MuseTalk          & 35.54 & 206.67 & & & 0.933 \\
+%             & FantacyTalking    & 45.44 & 250.57 & & & 0.856 \\
+%             & Hallo3            & 44.46 & 283.01 & & & 0.736 \\
+%             & OmniAvatar        & 41.93 & 259.62 & & & 0.754 \\
+%             & MultiTalk         & -     & -      & & & - \\
+%             & Ours              & 42.08 & 420.59 & & & 0.775 \\
+%             \midrule
+%             \multirow{6}{*}{CelebV-HQ} 
+%             & MuseTalk          & 38.53 & 222.25 & & & 0.857 \\
+%             & FantacyTalking    & 46.16 & 251.07 & & & 0.786 \\
+%             & Hallo3            & 46.60 & 298.22 & & & 0.655 \\
+%             & OmniAvatar        & 45.21 & 323.00 & & & 0.703 \\
+%             & MultiTalk         & -     & -     & & & - \\
+%             & Ours              & 44.34 & 323.13 & & & 0.726 \\
+%             \midrule
+%             \multirow{6}{*}{EMTD} 
+%             & MuseTalk          & 39.99 & 285.71 & & & 0.826 \\
+%             & FantacyTalking    & 49.96 & 298.24 & & & 0.739 \\
+%             & Hallo3            & 51.48 & 352.39 & & & 0.590 \\
+%             & OmniAvatar        & 43.87 & 314.18 & & & 0.695 \\
+%             & MultiTalk         & 44.63 & 331.42 & & & 0.702 \\
+%             & Ours              & 45.66 & 367.72 & & & 0.679 \\
+%             \bottomrule
+%         \end{tabular}
+%         \caption{
+%         Quantitative comparisons
+%         }
+%         \label{tab:quantitative}
+%         % \vspace{-10pt}
+%     % \end{adjustbox}
+% \end{table*}
+
+\begin{table*}[t]
+    % \begin{adjustbox}{center}
+        \centering
+        \begin{tabular}{c|c|ccccc}
+        \toprule
+            \multirow{2}{*}{Dataset} & \multirow{2}{*}{Model} & \multicolumn{4}{c}{Metrics} \\
+            & & FID & FVD  & Sync-C$\uparrow$ & Sync-D & CSIM$\uparrow$
+            \\
+            \midrule
+            \multirow{3}{*}{HDTF} 
+            & LatentSync        & 16.09 & \textbf{48.45}  & 8.99 & \textbf{6.36} & 0.916 \\
+            & MuseTalk          & \textbf{14.20} & 49.13  & 7.17 & 7.90 & 0.933 \\
+            & Ours              & 26.11 & 131.65 & \textbf{9.35} & 6.67 & 0.775 \\
+            \midrule
+            \multirow{3}{*}{CelebV-HQ} 
+            & LatentSync        & 17.80 & \textbf{67.97}  & 6.90 & 7.33 & 0.869 \\
+            & MuseTalk          & \textbf{17.62} & 72.07  & 4.16 & 9.86 & 0.857 \\
+            & Ours              & 32.29 & 229.67 & \textbf{7.53} & \textbf{7.33} & 0.726 \\
+            \midrule
+            \multirow{3}{*}{EMTD} 
+            & LatentSync        & \textbf{11.43} & 212.60 & 8.10 & \textbf{6.97} & 0.846 \\
+            & MuseTalk          & 14.26 & \textbf{46.07}  & 5.35 & 9.28 & 0.825 \\
+            & Ours              & 32.55 & 312.17 & \textbf{8.60} & 7.16 & 0.713\\
+            \bottomrule
+        \end{tabular}
+        \caption{
+        Quantitative comparisons our methods between the traditional video dubbing models.
+        }
+        \label{tab:quantitative-dub}
+        % \vspace{-10pt}
+    % \end{adjustbox}
+\end{table*}
+
+\begin{table*}[t]
+    % \begin{adjustbox}{center}
+        \centering
+        \begin{tabular}{c|c|ccccc}
+        \toprule
+            \multirow{2}{*}{Dataset} & \multirow{2}{*}{Model} & \multicolumn{4}{c}{Metrics} \\
+            & & FID & FVD  & Sync-C$\uparrow$ & Sync-D & CSIM $\uparrow$
+            \\
+            \midrule
+            \multirow{5}{*}{HDTF} 
+            & FantacyTalking    & 32.06 & \textbf{110.36} & 3.78 & 10.80 & 0.684 \\
+            & Hallo3            & 36.48 & 144.65 & 7.20 & 8.61 & 0.674 \\
+            & OmniAvatar        & 26.63 & 112.49 & 7.06 & 8.63 & 0.752 \\
+            & MultiTalk         & 27.61 & 133.58 & 9.02 & 6.96 & 0.754 \\
+            & Ours              & \textbf{27.14} & 132.54 & \textbf{9.18} & \textbf{6.84} & 0.751 \\
+            \midrule
+            \multirow{5}{*}{CelebV-HQ} 
+            & FantacyTalking    & 37.53 & 237.58 & 2.93 & 10.79 & 0.654 \\
+            & Hallo3            & 42.36 & 258.65 & 5.63 & 9.12 & 0.591 \\
+            & OmniAvatar        & 37.41 & 250.67 & 5.88 & 8.68  & 0.703 \\
+            & MultiTalk         & 34.79 & 230.41 & 7.25 & 7.70 & 0.711 \\
+            & Ours              & \textbf{33.96} & \textbf{230.12} & \textbf{7.41} & \textbf{7.59} & 0.713 \\
+            \midrule
+            \multirow{5}{*}{EMTD} 
+            & FantacyTalking    & 36.66 & \textbf{298.24} & 3.60 & 11.31 & 0.626 \\
+            & Hallo3            & 44.71 & 326.94 & 5.68 & 9.56  & 0.512 \\
+            & OmniAvatar        & \textbf{29.47} & 308.14 & 6.93 & 8.55 & 0.694 \\
+            & MultiTalk         & 33.80 & 315.33 & 8.13 & 7.50 & 0.702 \\
+            & Ours              & 33.27 & 314.68 & \textbf{8.34} & \textbf{7.36} & 0.709 \\
+            \bottomrule
+        \end{tabular}
+        \caption{
+        Quantitative comparisons between our method and audio-driven image-to-video models.
+        }
+        \label{tab:quantitative-i2v}
+        % \vspace{-10pt}
+    % \end{adjustbox}
+\end{table*}

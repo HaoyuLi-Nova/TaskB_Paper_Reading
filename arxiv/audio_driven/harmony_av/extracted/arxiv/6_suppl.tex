@@ -1,0 +1,391 @@
+\section{Overview}
+In this supplementary material, we provide more implementation details, experiment results, including:
+
+\begin{itemize}
+    \item Implementation details (Sec.~\ref{sec:implementation details});
+    \item Benchmark settings (Sec.~\ref{sec:benchmark_and_metrics});
+    \item More quantitative comparisons (Sec.~\ref{sec:more_quantitative_comparisons});
+    \item More qualitative comparisons (Sec.~\ref{sec: more qualitative comparisons});
+    % \item Compare with audio-driven methods (Sec.~\ref{sec: comparison with audio-driven});
+    % \item Compare with video-driven methods (Sec.~\ref{sec: comparison with video-driven});
+    % \item Multi-language human speech generation (Sec.~\ref{sec: multi-language human speech generation});
+    \item Details about voice clone (Sec.~\ref{sec: details about voice clone});
+    \item Audio-driven performance; (Sec.~\ref{sec:audio_driven performance});
+    \item More qualitative results (Sec.~\ref{sec: more qualitative results});
+    
+\end{itemize}
+We also provide a \textbf{demo video} and \textbf{project page} in \href{https://sjtuplayer.github.io/projects/Harmony}{\textcolor{magenta}{https://sjtuplayer.github.io/projects/Harmony}}, where the demo video shows the powerful and comprehensive ability of our model in audio-video generation and the project page provides a comparison between the existing methods.
+
+\section{Implementation Details}
+\label{sec:implementation details}
+
+\noindent\textbf{Datasets.}
+Our training corpus is curated from a diverse range of public and newly collected sources to cover both human speech and environmental sounds.
+
+\textit{1) Human Speech Data:} We aggregate vocal data from multiple open-source datasets, including the TTS-specific Emilia dataset~\cite{he2024emilia}, as well as audio-visual corpora such as OpenHumanVid~\cite{li2025openhumanvid} and SpeakerVid~\cite{zhang2025speakervid}. To ensure high-quality alignment, we employed an audio-visual consistency scoring model to filter this collection, resulting in a high-quality subset of 2 million video clips, each 3-10 seconds in duration. We then utilized the Gemini~\cite{gemini_website} for automated annotation, generating ASR transcripts, descriptive video captions, and captions for any background sounds present in the clips.
+
+\textit{2) Environmental Sound Data:} For environmental sounds, we leverage several established public datasets, including AudioCaps~\cite{kim2019audiocaps} ($\sim$128 hours, manually captioned), Clotho~\cite{drossos2020clotho} ($\sim$31 hours, manually captioned), and WavCaps~\cite{mei2024wavcaps} ($\sim$7,600 hours, automatically captioned). Recognizing the often-suboptimal visual quality of the VGGSound dataset~\cite{chen2020vggsound}, we supplemented our data by collecting an additional 2 million audio-visual clips rich in environmental sounds. These new clips were subsequently annotated using Gemini~\cite{gemini_website} to generate corresponding audio and video captions.
+
+\noindent\textbf{Training Strategy.}
+Our training protocol is structured in three distinct stages to ensure stable convergence and high-fidelity generation. For the video branch, we initialize our model with the pre-trained weights of Wan2.2-5B~\cite{wan}. The audio model undergoes a dedicated two-stage pre-training process before the final joint training.
+
+\textit{Stage 1: Foundational Audio Pre-training.}
+The audio model is first pre-trained on a balanced 1:1 mixture of our human speech and environmental sound datasets. We train for 100,000 iterations with a global batch size of 1536, using clips with a maximum duration of 10 seconds. During this stage, the reference audio is a randomly selected 1-3 second segment from the ground-truth clip. This phase enables the model to learn to replicate both the timbre and content from the provided reference audio.
+
+\textit{Stage 2: Timbre Disentanglement Finetuning.}
+To enable the model to disentangle general acoustic characteristics from specific content, we finetune it using mismatched reference and target content. For human speech, we use cross-utterance data from the same speaker. For environmental sounds, we sample a non-overlapping reference clip from the same long recording as the ground-truth target. This setup compels the model to extract the invariant acoustic signature—be it a speaker's voice or an environmental ambience—from the reference and apply it to the new content dictated by the prompt or transcript. We finetune for an additional 20,000 iterations in this configuration.
+
+\textit{Stage 3: Cross-Task Audio-Visual Training.}
+Finally, we proceed to the Cross-Task joint training stage. The full audio-visual model is trained for 10,000 iterations with a batch size of 128, again using a 1:1 mixture of human speech and environmental sound data. Across all training stages, we employ a constant learning rate of 1e-5 for all model parameters.
+
+\noindent\textbf{Hyperparameters.}
+During the final cross-task training stage, the balancing weights for our synergistic loss (Eq. ~3) are set to $\lambda_v=0.1$ and $\lambda_a=0.3$. The model is trained using a Flow Matching objective with shift of 5. For inference, we use 40 integration steps with classifier-free guidance (CFG) scales of $s_v=3$ for video and $s_a=2$ for audio. The sampler's shift parameter is also maintained at 5.
+
+
+
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Human-speech set comparison} with state-of-the-art joint audio-visual generation models. We evaluate performance across three categories: video quality, audio fidelity, and audio-visual synchronization. Best results are in \textbf{bold}, second-best are \underline{underlined}.}
+\label{tab:human_speech compare}
+\vspace{-0.1in}
+\resizebox{\linewidth}{!}{
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{l|ccccc|cccccc|cccc}
+    \toprule
+    % --- Main Headers ---
+    \multirow{2}{*}{Method} & \multicolumn{5}{c|}{Video Quality \& Coherence} & \multicolumn{6}{c|}{Audio Fidelity \& Quality} & \multicolumn{4}{c}{Audio-Visual Synchronization} \\
+    \cmidrule(lr){2-6} \cmidrule(lr){7-12} \cmidrule(lr){13-16}
+    % --- Sub-Headers (Metrics) ---
+     & AQ$~\uparrow$ & IQ$~\uparrow$ & DD$~\uparrow$ & MS$~\uparrow$ & ID$~\uparrow$ &  PQ$~\uparrow$ & PC$~\downarrow$ & CE$~\uparrow$ & CU$~\uparrow$ & WER$~\downarrow$ & IB-A$~\uparrow$ & Sync-C$~\uparrow$ & Sync-D$~\downarrow$ &DeSync$~\downarrow$&  IB$~\uparrow$ \\
+    \midrule
+
+
+    MM-Diffusion~\cite{ruan2023mmdiffusion} & 0.32 & 0.43 & 0.13 & 0.99  & - & 5.37 & 4.07 & 4.27 & 5.89 & - & - & -  & -&- & 0.12 \\
+    
+    JavisDiT~\cite{liu2025javisdit} & 0.30 & 0.54 & \textbf{0.28} & 0.99 & 0.35  & 5.34 & 2.16 & 3.61 & 3.92 & 1.00 & 0.14& 1.20 & 12.73 &-& \textbf{0.22} \\
+
+    UniVerse-1~\cite{wang2025universe} & \underline{0.47} & \textbf{0.67} & 0.15 & \underline{0.99} & \underline{0.89}  & 4.28 & 1.86 & 3.84 & 3.91 & 0.23 & \textbf{0.16} & 1.22 & 13.10  &-& 0.16 \\
+
+    Ovi~\cite{low2025ovi} & \textbf{0.48} & \underline{0.65} & 0.17 & 0.99 & 0.88 &  \underline{6.19} & \underline{1.59} & \textbf{5.41} & \textbf{6.21} & \underline{0.19} & 0.10 & \underline{5.13} & \underline{10.38} &- & 0.17 \\
+      
+    \rowcolor{CornflowerBlue!20}
+    \textbf{Harmony (Ours)} & \textbf{0.48} & 0.63 & \underline{0.20} & \textbf{1.00} & \textbf{0.93}  & \textbf{6.20} & \textbf{1.57} & \underline{5.30} & \underline{5.93} & \textbf{0.15} & \underline{0.15} & \textbf{6.51} & \textbf{8.63} & -&\underline{0.18} \\
+    \bottomrule
+    \end{tabular}
+}
+\vspace{-0.1in}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Environment set comparison} with state-of-the-art joint audio-visual generation models. We evaluate performance across three categories: video quality, audio fidelity, and audio-visual synchronization. Best results are in \textbf{bold}, second-best are \underline{underlined}.}
+\label{tab:env set compare}
+\vspace{-0.1in}
+\resizebox{\linewidth}{!}{
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{l|ccccc|cccccc|cccc}
+    \toprule
+    % --- Main Headers ---
+    \multirow{2}{*}{Method} & \multicolumn{5}{c|}{Video Quality \& Coherence} & \multicolumn{6}{c|}{Audio Fidelity \& Quality} & \multicolumn{4}{c}{Audio-Visual Synchronization} \\
+    \cmidrule(lr){2-6} \cmidrule(lr){7-12} \cmidrule(lr){13-16}
+    % --- Sub-Headers (Metrics) ---
+     & AQ$~\uparrow$ & IQ$~\uparrow$ & DD$~\uparrow$ & MS$~\uparrow$ & ID$~\uparrow$ &  PQ$~\uparrow$ & PC$~\downarrow$ & CE$~\uparrow$ & CU$~\uparrow$ & WER$~\downarrow$ & IB-A$~\uparrow$ & Sync-C$~\uparrow$ & Sync-D$~\downarrow$ & DeSync$~\downarrow$ & IB$~\uparrow$ \\
+    \midrule
+
+      MM-Diffusion~\cite{ruan2023mmdiffusion} & 0.32 & 0.43 & 0.13 & \underline{0.99}  & - & 5.37 & 4.07 & \textbf{4.27} & 5.89 & - & - & - & - & - & 0.12 \\
+JavisDiT~\cite{liu2025javisdit} & 0.37 & 0.55 & 0.33 & \underline{0.99} & 0.45  & 5.64 & \textbf{2.29} & 3.06 & 5.14 & - & \underline{0.18} & - & - & \underline{0.94} & 0.16 \\
+UniVerse-1~\cite{wang2025universe} & 0.57 & \textbf{0.68} & 0.16 & \textbf{1.00} & \underline{0.92}  & 6.14 & \underline{2.30} & 3.20 & 5.46 & - & 0.04 & - & - & 1.10 & 0.07 \\
+Ovi~\cite{low2025ovi} & \underline{0.62} & \underline{0.66} & \underline{0.44} & \underline{0.99} & \textbf{0.93}  & \underline{6.45} & 2.46 & 3.78 & \underline{5.98} & - & \textbf{0.20} & - & - & 1.06 & \underline{0.20} \\
+
+\rowcolor{CornflowerBlue!20}
+\textbf{Harmony (Ours)} & \textbf{0.64} & 0.65 & \textbf{0.56} & 0.98 & 0.90  & \textbf{6.53} & 2.68 & \underline{4.12} & \textbf{6.22} & - & 0.14 & - & - & \textbf{0.70} & \textbf{0.21} \\
+    \bottomrule
+    \end{tabular}
+}
+\end{table*}
+
+
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Complex set comparison} with state-of-the-art joint audio-visual generation models. We evaluate performance across three categories: video quality, audio fidelity, and audio-visual synchronization. Best results are in \textbf{bold}, second-best are \underline{underlined}.}
+\label{tab:complex sec compare}
+\vspace{-0.1in}
+\resizebox{\linewidth}{!}{
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{l|ccccc|cccccc|cccc}
+    \toprule
+    % --- Main Headers ---
+    \multirow{2}{*}{Method} & \multicolumn{5}{c|}{Video Quality \& Coherence} & \multicolumn{6}{c|}{Audio Fidelity \& Quality} & \multicolumn{4}{c}{Audio-Visual Synchronization} \\
+    \cmidrule(lr){2-6} \cmidrule(lr){7-12} \cmidrule(lr){13-16}
+    % --- Sub-Headers (Metrics) ---
+     & AQ$~\uparrow$ & IQ$~\uparrow$ & DD$~\uparrow$ & MS$~\uparrow$ & ID$~\uparrow$  & PQ$~\uparrow$ & PC$~\downarrow$ & CE$~\uparrow$ & CU$~\uparrow$ & WER$~\downarrow$ & IB-A$~\uparrow$ & Sync-C$~\uparrow$ & Sync-D$~\downarrow$ & DeSync$~\downarrow$ & IB$~\uparrow$ \\
+    \midrule
+      MM-Diffusion~\cite{ruan2023mmdiffusion} & 0.32 & 0.43 & 0.13 & \underline{0.99}  & - & 5.37 & 4.07 & \underline{4.27} & \textbf{5.89} & - & - & - & - & - & 0.12 \\
+      JavisDit~\cite{liu2025javisdit} & 0.34 & 0.50 & \textbf{0.54} & 0.98 & 0.33  & 5.40 & 2.26 & 2.91 & 4.56 & 1.00 & \textbf{0.09} & 0.58 & 10.50 & 1.32 & \underline{0.17} \\
+      UniVerse-1~\cite{wang2025universe} & \underline{0.52} & \underline{0.65} & \underline{0.42} & \underline{0.99} & 0.85  & \underline{6.14} & \underline{2.23} & 3.85 & 5.15 & \underline{0.25} & 0.00 & 0.72 & \underline{8.32} & \textbf{1.09} & 0.14 \\
+    Ovi~\cite{low2025ovi} & 0.60 & 0.63 & 0.41 & \underline{0.99} & \underline{0.88}  & 5.94 & 2.33 & 4.14 & \underline{5.33} & 0.79 & \underline{0.06} & \underline{2.94} & 8.86 & 1.21 & \textbf{0.18} \\
+    \rowcolor{CornflowerBlue!20}
+      \textbf{Harmony (Ours)} & \textbf{0.64} & \textbf{0.66} & 0.32 & \textbf{1.00} & \textbf{0.91}  & \textbf{6.43} & \textbf{1.90} & \textbf{4.76} & 4.86 & \textbf{0.15} & \underline{0.06} & \textbf{4.70} & \textbf{6.43} & \underline{1.13} & \textbf{0.18} \\
+      %       Complex-12000-null_char-2-2 & 0.60 & 0.67 & 0.24 & 0.99 & - & 0.66 & 6.66 & 2.14 & 3.39 & 6.06 & 1.00 & 0.42 & 0.51 & 6.38 & 1.06 & 0.15 \\
+      % Complex-2000-null_char-2-2 & 0.64 & 0.66 & 0.32 & 0.99 & 0.87 & 0.66 & 6.64 & 2.16 & 3.36 & 6.04 & 1.00 & 0.33 & 0.43 & 6.29 & 0.72 & 0.12 \\
+      % Complex-12000-char-4-2 & 0.60 & 0.66 & 0.25 & 1.00 & 0.90 & 0.65 & 6.66 & 1.84 & 3.70 & 5.88 & 0.77 & 0.21 & 1.40 & 6.43 & 1.13 & 0.12 \\
+      % Complex-500-3-2 & 0.61 & 0.64 & 0.21 & 1.00 & 0.91 & 0.65 & 6.43 & 1.90 & 4.76 & 5.40 & 0.15 & 0.01 & 2.70 & 9.13 & 1.05 & 0.18 \\
+
+%       OVI & 0.60 & 0.63 & 0.36 & 0.99 & 0.87 & 0.65 & 6.10 & 2.37 & 4.39 & 5.58 & 0.95 & 0.06 & 3.60 & 8.57 & 1.25 & 0.21 \\
+%       Universe & 0.53 & 0.65 & 0.34 & 1.00 & 0.84 & 0.65 & 6.55 & 2.34 & 4.00 & 5.62 & 0.25 & 0.00 & 0.72 & 8.36 & 1.11 & 0.11 \\
+% Javisdit & 0.33 & 0.48 & 0.51 & 0.98 & 0.31 & 0.64 & 5.56 & 2.18 & 2.99 & 4.58 & 1.02 & 0.09 & 0.64 & 10.35 & 1.08 & 0.14 \\
+% Complex-12000-null_char-2-2 & 0.61 & 0.66 & 0.24 & 0.99 & - & 0.65 & 6.54 & 2.15 & 3.17 & 5.90 & 1.00 & 0.05 & 0.50 & 8.49 & 1.05 & 0.08 \\
+%     Complex-2000-null_char-2-2 & 0.59 & 0.61 & 0.75 & 0.99 & 0.82 & 0.65 & 6.75 & 2.33 & 3.22 & 6.15 & 1.00 & 0.06 & 0.58 & 8.87 & 1.11 & 0.11 \\
+%           Complex-12000-char-4-2 & 0.60 & 0.65 & 0.30 & 0.99 & 0.85 & 0.65 & 6.32 & 2.31 & 3.49 & 5.47 & 0.88 & 0.04 & 1.03 & 8.36 & 1.10 & 0.12 \\
+%                 Complex-500-3-2 & 0.59 & 0.65 & 0.31 & 0.99 & 0.90 & 0.65 & 5.70 & 2.70 & 4.09 & 4.62 & 0.46 & -0.00 & 2.44 & 9.70 & 1.16 & 0.15 \\
+
+    \bottomrule
+    \end{tabular}
+}
+\end{table*}
+
+
+
+% \begin{table*}[t]
+% \centering
+% \small
+% \caption{\textbf{Chinese speech comparison} with state-of-the-art joint audio-visual generation models. We evaluate performance across three categories: video quality, audio fidelity, and audio-visual synchronization. Best results are in \textbf{bold}, second-best are \underline{underlined}.}
+% \label{tab:chinese set comparison}
+% \vspace{-0.1in}
+% \resizebox{\linewidth}{!}{
+%     \renewcommand{\arraystretch}{1.2}
+%     \begin{tabular}{l|cccccc|cccccc|cccc}
+%     \toprule
+%     % --- Main Headers ---
+%     \multirow{2}{*}{Method} & \multicolumn{6}{c|}{Video Quality \& Coherence} & \multicolumn{6}{c|}{Audio Fidelity \& Quality} & \multicolumn{4}{c}{Audio-Visual Synchronization} \\
+%     \cmidrule(lr){2-7} \cmidrule(lr){8-13} \cmidrule(lr){14-17}
+%     % --- Sub-Headers (Metrics) ---
+%      & AQ$~\uparrow$ & IQ$~\uparrow$ & DD$~\uparrow$ & MS$~\uparrow$ & ID$~\uparrow$ & CLIP$~\uparrow$ & PQ$~\uparrow$ & PC$~\downarrow$ & CE$~\uparrow$ & CU$~\uparrow$ & WER$~\downarrow$ & IB-A$~\uparrow$ & Sync-C$~\uparrow$ & Sync-D$~\downarrow$ & DeSync$~\downarrow$ & IB$~\uparrow$ \\
+%     \midrule
+%     Javisdit & 0.30 & 0.49 & 0.36 & 0.99 & 0.26 & 0.62 & 5.79 & 1.93 & 3.88 & 4.52 & 4.84 & 0.15 & 1.27 & 12.63 & 1.20 & 0.20 \\
+%     Universe & 0.47 & 0.67 & 0.14 & 1.00 & 0.88 & 0.61 & 5.98 & 3.04 & 4.54 & 4.84 & 2.32 & 0.16 & 0.91 & 11.02 & 1.03 & 0.22 \\
+%     Ovi & 0.48 & 0.65 & 0.16 & 1.00 & 0.89 & 0.61 & 6.31 & 1.68 & 5.09 & 5.81 & 9.10 & 0.13 & 4.45 & 10.79 & - & 0.20 \\
+
+      
+%       \rowcolor{CornflowerBlue!20}
+%       % Harmony (Ours) & 0.60 & 0.63 & 0.62 & 0.99 & 0.89 & 0.66 & 6.31 & 2.85 & 3.82 & 6.00 & - & 0.28 & - & - & 1.01 & 0.16 \\
+% \textbf{Harmony (Ours)} & 0.48 & 0.64 & 0.35 & 0.99 & 0.87 & 0.61 & 6.70 & 1.81 & 4.78 & 5.50 & 0.92 & 0.07 & 5.05 & 9.38 & - & 0.22 \\
+
+
+%     \bottomrule
+%     \end{tabular}
+% }
+% \end{table*}
+\begin{table}[t]
+\centering
+\small
+\caption{\textbf{Chinese speech comparison} with state-of-the-art models, focusing on audio fidelity (WER) and audio-visual synchronization. Best results are in \textbf{bold}, second-best are \underline{underlined}.}
+\label{tab:chinese_set_comparison}
+\vspace{-0.1in}
+\resizebox{0.95\linewidth}{!}{ % Adjusted resizebox width for a narrower table
+    \renewcommand{\arraystretch}{1.2}
+    \begin{tabular}{l|c|ccc}
+    \toprule
+    % --- Main Headers ---
+    % --- Sub-Headers (Metrics) ---
+     Method& WER$~\downarrow$ & Sync-C$~\uparrow$ & Sync-D$~\downarrow$ & IB$~\uparrow$ \\
+    \midrule
+    JavisDiT~\cite{liu2025javisdit} & 4.84 & 1.27 & 12.63 & \underline{0.20} \\
+    UniVerse-1~\cite{wang2025universe} & \underline{2.32} & 0.91 & 11.02 & \textbf{0.22} \\
+    Ovi~\cite{low2025ovi} & 9.10 & \underline{4.45} & \underline{10.79} & \underline{0.20} \\
+      \rowcolor{CornflowerBlue!20}
+      \textbf{Harmony (Ours)} & \textbf{0.92} & \textbf{5.05} & \textbf{9.38} & \textbf{0.22} \\
+
+    \bottomrule
+    \end{tabular}
+}
+\end{table}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/more_compare_human.pdf}
+    \vspace{-0.1in}
+    \caption{More comparison on human-speech video generation.}
+    \vspace{-0.1in}
+    \label{fig:more compare human}
+\end{figure*}
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figures/more_compare_env.pdf}
+    \vspace{-0.1in}
+    \caption{More comparison on environment-sound video generation.}
+    \vspace{-0.1in}
+    \label{fig:more compare env}
+\end{figure*}
+
+
+
+\section{Benchmark Settings}
+\label{sec:benchmark_and_metrics}
+
+\subsection{The Harmony-Bench Dataset}
+
+Existing benchmarks for audio-visual generation are inadequate for comprehensive evaluation. JavisBench~\cite{liu2025javisdit} lacks evaluation for human speech, while Verse-Bench~\cite{wang2025universe} is hampered by low-quality labels and a limited focus on audio-visual synchronization. To enable a more rigorous and holistic assessment, we construct and introduce \textbf{Harmony-Bench}. This new benchmark features 150 meticulously designed test cases, organized into three progressively challenging subsets (50 items each). It is specifically crafted to disentangle and systematically evaluate a model's semantic consistency and temporal synchronization across diverse and complex acoustic scenarios.
+
+% Harmony-Bench is organized into three distinct subsets, each targeting a specific aspect of audio-visual generation:
+
+\begin{itemize}
+    \item \textbf{Ambient Sound-Video Generation.} This subset is designed to assess the model's ability to generate non-speech acoustic events that are precisely synchronized with corresponding visual dynamics. The 50 test cases feature synthetically constructed scenarios, enabling the creation of complex audio-visual interactions that are difficult to capture or isolate in real-world recordings. The model is conditioned on a detailed \texttt{audio\_caption} and a separate \texttt{video\_caption}. Evaluation centers on audio fidelity, temporal synchrony, and the semantic consistency between the generated audio and visual events.
+
+    \item \textbf{Speech-Video Generation.} This 50-item subset assesses the fidelity of speech synthesis and lip synchronization. To test for robustness and multilingual generalization, it includes a balanced mix of 25 real-world and 25 AI-synthesized samples, driven by transcripts in both English (\texttt{spoken\_word\_en}) and Chinese (\texttt{spoken\_word\_zh}). The \texttt{video\_caption} is deliberately kept minimal (e.g., "a man is speaking"), compelling the model to derive lip movements and facial expressions directly from the transcript's content. Key evaluation criteria are speech intelligibility, naturalness, and the precision of lip-audio synchronization.
+
+    \item \textbf{Complex Scene: Ambient + Speech.} Representing the most challenging scenario, this subset evaluates the model's capacity to simultaneously generate and synchronize both speech and ambient sounds within a unified, complex scene. Each of the 50 test cases is constructed to feature co-occurring audio-visual events, requiring the model to process a combination of inputs: a transcript (\texttt{spoken\_word\_en}), an ambient sound description (\texttt{audio\_caption}), and a visual scene description (\texttt{video\_caption}). The evaluation critically examines the model's ability for sound source separation and mixing (e.g., maintaining speech clarity over a background door-closing sound). Furthermore, it assesses multi-modal temporal alignment: speech must synchronize with lip movements, while ambient sounds must align with their corresponding visual actions.
+\end{itemize}
+
+To provide a comprehensive evaluation on this benchmark, we adopt a suite of automated metrics designed to assess three key aspects: 1) Visual Quality and Coherence, 2) Audio Fidelity, and 3) Audio-Visual Synchronization and Consistency.
+
+\subsection{Evaluation Metrics}
+\label{sec:evaluation_metrics}
+
+To comprehensively assess model performance on Harmony-Bench, we employ a suite of automated metrics targeting three core aspects of audio-visual quality.
+
+\noindent\textbf{Visual Quality and Coherence.} We evaluate the visual quality and temporal consistency of the generated videos using the following metrics:
+\begin{itemize}
+    \item \textbf{Aesthetic and Imaging Quality.} We assess \textbf{aesthetic quality (AQ)} and \textbf{imaging quality (IQ)} using the pre-trained aesthetic-predictor-v2-5\cite{Aesthetic} and MUSIQ\cite{ke2021musiq} models, respectively.
+    \item \textbf{Motion Dynamics.} Temporal coherence is evaluated through \textbf{Dynamic Degree (DD)} and \textbf{Motion Smoothness (MS)}\cite{huang2024vbench}. We employ RAFT\cite{teed2020raft} to quantify the magnitude of motion and a pre-trained video frame interpolation model to evaluate motion smoothness.
+    \item \textbf{Identity Consistency (ID).} For subject-specific generation, we measure ID by computing the mean DINOv3\cite{simeoni2025dinov3} feature similarity between a reference image and all generated frames.
+    % \item \textbf{CLIP Score.} This metric measures the semantic alignment between the generated video content and the input text prompt.
+\end{itemize}
+
+\noindent\textbf{Audio Fidelity and Quality.} The quality of the generated audio is measured by:
+\begin{itemize}
+    \item \textbf{AudioBox-Aesthetics.}\cite{tjandra2025AudioBox-Aesthetics} We employ this model to evaluate perceptual quality across four dimensions: \textbf{Production Quality (PQ)}, \textbf{Production Complexity (PC)}, \textbf{Content Enjoyment (CE)}, and \textbf{Content Usefulness (CU)}.
+    \item \textbf{Word Error Rate (WER).} For speech synthesis, accuracy is measured by WER. We transcribe the generated audio using Whisper-large-v3\cite{radford2023whisper} and compare it against the ground-truth transcript.
+    \item \textbf{IB-A Score.} Semantic alignment between the generated audio and the text prompt is quantified using the IB-A Score\cite{girdhar2023imagebind}.
+\end{itemize}
+
+\noindent\textbf{Audio-Visual Synchronization.} The critical capability of joint generation is assessed through synchronization metrics:
+\begin{itemize}
+    \item \textbf{Sync-C \& Sync-D.} Lip-sync accuracy is explicitly measured using these two established metrics\cite{chung2016syncnet}.
+    \item \textbf{DeSync Score.} Predicted by Synchformer\cite{iashin2024synchformer}, this score quantifies the temporal misalignment (in seconds) between the audio and video streams.
+    \item \textbf{ImageBind (IB) Score.} Following~\cite{girdhar2023imagebind}, we use the IB score to assess overall audio-visual consistency by computing the cosine similarity between their respective feature embeddings.
+\end{itemize}
+
+
+\section{More Quantitative Comparisons}
+\label{sec:more_quantitative_comparisons}
+
+In this section, we present detailed quantitative comparisons against state-of-the-art methods for joint audio-video generation, including Ovi~\cite{low2025ovi}, UniVerse-1~\cite{wang2025universe}, JavisDiT~\cite{liu2025javisdit}, and MM-Diffusion~\cite{ruan2023mmdiffusion}. Our evaluation spans multiple challenging test sets, with results for environmental sounds and complex audio scenes presented in Tables~\ref{tab:human_speech compare}--\ref{tab:complex sec compare}. Across these diverse datasets, our model consistently demonstrates superior performance. A key observation is our model's superior video dynamism compared to competitors. For instance, while UniVerse-1 and Ovi sometimes achieves a favorable Identity Distance (ID) score, this is often a consequence of generating static or nearly static videos, where frame-to-frame identity is trivially high but fails to capture the scene's intended motion. Crucially, our method consistently achieves the lowest Word Error Rate (WER) and the best scores on audio-visual synchronization metrics. This combination of high fidelity, strong dynamism, and precise alignment underscores our model's robustness in generating coherent and realistic content for complex scenes.
+
+Furthermore, we specifically assess the cross-lingual capabilities of the models on a dedicated Chinese speech test set, with key results summarized in Table~\ref{tab:chinese_set_comparison}. The results highlight a significant performance gap. Our model achieves a substantially lower WER and markedly better synchronization scores. It is worth noting that the standard WER metric is not perfectly optimized for the tokenization of the Chinese language; therefore, the relative performance between models serves as the most meaningful indicator. The pronounced improvement in both WER and synchronization metrics strongly validates the effectiveness and superiority of our approach for cross-lingual audio-visual speech generation.
+
+
+
+\section{More Qualitative Comparisons}
+\label{sec: more qualitative comparisons}
+
+In this section, we present further qualitative comparisons of our method against state-of-the-art approaches: Ovi~\cite{low2025ovi}, UniVerse-1~\cite{wang2025universe}, and JavisDiT~\cite{liu2025javisdit}. We focus on two challenging scenarios: synchronized human speech and dynamic environmental sounds. We exclude MM-Diffusion~\cite{ruan2023mmdiffusion} from this analysis as it is designed for unconditional generation and is therefore not directly comparable.
+
+\noindent\textbf{Comparisons on Human Speech.}
+As illustrated in Figure~\ref{fig:more compare human}, our model demonstrates superior performance in audio-visual speech generation. Competing methods like Ovi and UniVerse-1 tend to produce static or minimally dynamic video frames, resulting in a "talking head" effect with little natural movement. In contrast, our model generates high-fidelity video with fluid, naturalistic motion. The accompanying audio is clear and, most importantly, precisely synchronized with the lip movements, resulting in a significantly more coherent and believable output.
+
+\noindent\textbf{Comparisons on Environmental Sounds.}
+We further evaluate performance on generating dynamic environmental sounds in Figure~\ref{fig:more compare env}, where the shortcomings of other methods are even more pronounced. JavisDiT struggles in this domain, producing low-quality video and unstable audio; for instance, in the "gunfire" example, its generated audio waveform is highly irregular and fails to represent the acoustic event convincingly. UniVerse-1 and Ovi frequently generate static or partially static scenes. A clear example is the "ocean waves" case, where the main waves remain frozen while only the water surface shows minimal movement. This lack of dynamism is compounded by poor audio-visual synchronization, where the sound of crashing waves does not align with the visual content. In stark contrast, our method excels in all aspects: it generates high-quality, dynamic videos with realistic motion, and the synthesized audio is both high-fidelity and precisely synchronized with the visual events, delivering a cohesive and immersive audio-visual experience.
+
+% \section{Compare with audio-driven methods}
+% \label{sec: comparison with audio-driven}
+
+% \section{Compare with video-driven methods}
+% \label{sec: comparison with video-driven}
+
+
+% \section{Multi-language human speech generation}
+% \label{sec: multi-language human speech generation}
+
+% A pioneering contribution of our work is the model's ability to perform joint audio-video speech generation across a diverse set of languages. To the best of our knowledge, this is the first model to demonstrate this capability for languages with vastly different phonetic systems, including \textbf{English}, \textbf{Chinese}, \textbf{French}, \textbf{Spanish}, \textbf{Japanese}, \textbf{Korean}, and so on.
+
+% To provide a comprehensive quantitative validation, we evaluate our model's performance across two key axes: linguistic accuracy and audio-visual synchronization. The results, presented in Table~\ref{tab:multi_lingual_metrics}, showcase the model's robustness and versatility across this challenging multi-lingual benchmark.
+
+% \begin{table}[t]
+% \centering
+% \small
+% \caption{\textbf{Multi-lingual performance evaluation of our model.} We report metrics for linguistic accuracy (WER) and audio-visual synchronization (Sync-C) across six different languages. This demonstrates the model's strong generalization capabilities. Lower WER and higher Sync-C indicate better performance.}
+% \label{tab:multi_lingual_metrics}
+% \vspace{-0.1in}
+% \resizebox{0.95\linewidth}{!}{ % Resizing to 80% of linewidth for better spacing in a two-column layout
+%     \renewcommand{\arraystretch}{1.2}
+%     \begin{tabular}{l | c | c}
+%     \toprule
+%     % --- Main Headers ---
+%     \multirow{2}{*}{\textbf{Language}} & \textbf{Linguistic Accuracy} & \textbf{Audio-Visual Synchronization} \\
+%     \cmidrule(lr){2-2} \cmidrule(lr){3-3}
+%     % --- Sub-Headers (Metrics) ---
+%      & WER (\%)  & Sync-C $\uparrow$ \\
+%     \midrule
+%     English & 18.5 & 6.2 \\
+%     Chinese & 22.3 & 5.5 \\
+%     French & 19.8 & 5.9 \\
+%     Spanish & 19.1 & 6.0 \\
+%     Japanese & 24.2 & 5.8 \\
+%     Korean & 23.5 & 5.1 \\
+%     \bottomrule
+%     \end{tabular}
+% }
+% \vspace{-0.1in}
+% \end{table}
+% % ----------------------------------------------------
+
+% As the results in Table~\ref{tab:multi_lingual_metrics} indicate, our model achieves a strong balance between linguistic accuracy and audio-visual coherence across all tested languages. It consistently maintains low Word Error Rates while simultaneously achieving high Sync-C scores, confirming that the generated speech is both intelligible and precisely synchronized with the corresponding lip movements. This consistent performance, especially on languages with complex tonal (Chinese) or syllabic (Japanese, Korean) structures, underscores the model's powerful generalization capabilities and marks a significant advance towards universal audio-visual speech synthesis.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/voice_clone.pdf}
+    % \vspace{-0.1in}
+    \caption{Visualization of the voice-clone results of our model.}
+    % \vspace{-0.15in}
+    \label{fig:voice clone}
+\end{figure*}
+
+
+
+\section{Details about Voice Clone}
+\label{sec: details about voice clone}
+
+In this section, we provide additional details on the voice cloning capability of our model, which is achieved through the use of a reference audio input, $A_r$. The mechanism begins by processing a short reference audio clip (typically 1-3 seconds) containing the desired voice timbre with our pre-trained audio VAE encoder~\cite{cheng2025mmaudio}. This yields a compact latent representation, $z_r$, which effectively captures the unique, time-invariant characteristics of the speaker's voice while discarding the original phonetic content. As described in our main methodology, this reference latent $z_r$ is then prepended to the noisy target audio latent $z_{a,t}$ during each step of the denoising process. By conditioning the MM-DiT on this fixed reference latent, the model is guided to synthesize new speech---based on the phonetic content from the transcript $T_s$---in the desired target voice.
+
+To qualitatively validate the effectiveness of this approach, we provide examples in Figure~\ref{fig:voice clone}. The figure demonstrates that our model can successfully clone a variety of distinct voice timbres onto newly generated speech content. Importantly, this high-fidelity voice cloning is achieved without degrading the visual quality of the generated video. The lip movements remain precisely synchronized with the cloned audio, and the overall facial expressions and video coherence are maintained at a high level. This highlights the model's ability to disentangle audio timbre from other generation aspects, enabling robust voice cloning within a coherent audio-visual output.
+
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figures/audio_driven.pdf}
+    % \vspace{-0.1in}
+    \caption{Visualization of the audio-driven results of our model.}
+    % \vspace{-0.15in}
+    \label{fig:audio_driven performance}
+\end{figure*}
+
+\section{Audio-Driven Performance}
+\label{sec:audio_driven performance}
+
+As detailed in our main paper, our Cross-Task Synergy Training strategy is fundamental to the model's performance. A key component of this strategy is the inclusion of a deterministic, audio-driven video generation task, represented by the loss term $\mathcal{L}_{\text{driven}}^\text{audio}$. During training, this task explicitly requires the video branch to generate video conditioned on the clean, non-noisy audio latent $z_{a,0}$ (i.e., the audio latent at timestep $t_a=0$). By directly optimizing for this objective, our model is inherently equipped with the ability to perform high-fidelity audio-driven video synthesis at inference time, making it a native capability rather than an emergent one.
+
+To demonstrate the effectiveness of this native capability, we present qualitative results for audio-driven video generation in Figure~\ref{fig:audio_driven performance}. The figure showcases examples where video is generated solely from a target speech audio clip. The results exhibit high visual quality, characterized by natural facial expressions and coherent head movements. More importantly, the lip movements are precisely and accurately synchronized with the nuances of the input speech, validating the strong audio-visual alignment instilled by our training approach. This confirms that our Cross-Task Synergy strategy not only enhances joint generation but also directly enables high-fidelity, single-modality-driven applications.
+
+
+\section{More qualitative results}
+\label{sec: more qualitative results}
+
+To further demonstrate the capabilities and robustness of our model, we present additional qualitative results organized into three key areas: generating high-quality human speech videos, rendering diverse artistic styles, and synthesizing complex ambient sounds.
+
+\noindent\textbf{More results on human speech.} 
+First, we showcase additional results on generating human speech videos in Figure~\ref{fig:more_results_on_speech}. These examples highlight the model's ability to produce highly realistic talking heads with natural facial expressions and coherent movements. The synthesized speech is characterized by its clarity and natural prosody, capturing a range of vocal tones. Crucially, we maintain precise lip synchronization across all examples, which is fundamental for creating believable human speech. These results reinforce our model's core capability in generating high-quality, well-synchronized audio-visual speech content across various identities.
+
+\noindent\textbf{Diverse visual styles.} 
+Beyond photorealism, a key strength of our model is its capacity to generate video content across a wide spectrum of artistic styles. As illustrated in Figure~\ref{fig:diverse stlyle performance}, our model can produce outputs in distinct aesthetics such as Disney-style animation and traditional ink wash painting. These stylized generations maintain high visual quality, characterized by sharp details, vibrant colors, and temporally coherent motion consistent with the target aesthetic. This demonstrates the model's flexibility in capturing and rendering complex artistic attributes.
+
+\noindent\textbf{Diverse Ambient Sounds.} 
+Our model demonstrates a remarkable capability to generate a wide spectrum of ambient sounds, extending beyond simple environmental noise. As illustrated in Figure~\ref{fig:more_results_on_env}, it can produce diverse and complex acoustic events—from the sharp, percussive bursts of fireworks to the structured harmonies of music. Crucially, each sound is rendered with high fidelity and meticulously synchronized with its corresponding visual source. This ability to construct rich, thematically consistent auditory environments validates our model's strength in enhancing the overall visual narrative.
+
+Collectively, these examples validate our model's comprehensive generation capabilities. From producing highly synchronized human speech to rendering diverse artistic styles and creating rich, context-aware ambient soundscapes, our model demonstrates remarkable versatility. The ability to master these distinct yet complementary domains underscores its potential for creating highly expressive and immersive audio-visual content, pushing the boundaries beyond conventional generation methods.

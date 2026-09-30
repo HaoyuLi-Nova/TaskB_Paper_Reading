@@ -1,0 +1,109 @@
+% ICCV 2025 Paper Template; see https://github.com/cvpr-org/author-kit
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+% \usepackage{iccv}              % To produce the CAMERA-READY version
+\usepackage{iccv}      % To produce the REVIEW version
+% \usepackage[pagenumbers]{iccv} % To force page numbers, e.g. for an arXiv version
+
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{iccvblue}{rgb}{0.21,0.49,0.74}
+\usepackage{caption}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=iccvblue]{hyperref}
+% copy from aaai version
+\usepackage{float}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{bbding}
+\usepackage{array}
+\usepackage{makecell} 
+\usepackage{graphicx}
+\usepackage{subcaption}
+\let\Cross\relax
+\usepackage{marvosym}
+
+% \usepackage[sanitize]{marvosym}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor} 
+% \usepackage{xcolor}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{*****} % *** Enter the Paper ID here
+\def\confName{ICCV}
+\def\confYear{2025}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{Bind-Your-Avatar: Multi-Talking-Character Video Generation with Dynamic 3D-mask-based Embedding Router}
+
+%%%%%%%%% AUTHORS - PLEASE UPDATE
+\author{
+Yubo Huang$^{1}$ \quad
+Weiqiang Wang$^{2}$ \quad
+Sirui Zhao$^{1\,\textsuperscript{\Letter}}$ \quad
+Tong Xu$^{1}$ \\
+Lin Liu$^{1\,\textsuperscript{\Letter}}$ \quad
+Enhong Chen$^{1\,\textsuperscript{\Letter}}$ \\
+$^{1}$University of Science and Technology of China \\
+$^{2}$Monash University \\
+\small{\textsuperscript{\Letter} Corresponding Authors. siruit@ustc.edu.cn, {ll0825}@mail.ustc.edu.cn, cheneh@ustc.edu.cn}
+}
+\begin{document}
+% \begin{figure*}[!t]
+%     \centering
+%     \includegraphics[width=1.1\textwidth]{figure0} % Reduce the figure size so that it is slightly narrower than the column.
+%     \caption{
+% \textbf{Bind-Your-Avatar} is a novel framework that generates videos from multi-stream speech audio with precise lip-sync for each speaker. It robustly handles overlapping speech and supports prompt-driven, inpainting-free multi-talking-characrer video generation.
+%     }
+%     \label{fig0}
+% \end{figure*}
+% \maketitle
+
+\twocolumn[{%
+\renewcommand\twocolumn[1][]{#1}%
+\maketitle
+% \begin{figure*}[h]
+% \hsize=\textwidth 
+%    \centering
+%   \includegraphics[width=0.99\textwidth]{figure0.pdf}
+%   \caption{\textbf{Bind-Your-Avatar} is a novel framework that generates videos from multi-stream speech audio with precise lip-sync for each speaker. It robustly handles overlapping speech and supports prompt-driven, inpainting-free multi-talking-characrer video generation.}
+%   \label{fig:teaser}
+% \end{figure*}
+
+\begin{center}
+    \centering
+    \includegraphics[width=1.1\textwidth]{figure0.pdf}
+    \captionof{figure}{\textbf{Bind-Your-Avatar} is a novel framework that generates videos from multi-stream speech audio with precise lip-sync for each speaker. It robustly handles overlapping speech and supports prompt-driven, inpainting-free multi-talking-characrer video generation. \href{https://yubo-shankui.github.io/bind-your-avatar/}{Page: https://yubo-shankui.github.io/bind-your-avatar/}}
+\end{center}%
+}]
+
+\input{sec/0_abstract}    
+\input{sec/1_intro}
+\input{sec/2_related_work}
+\input{sec/3_methods}
+\input{sec/4_dataset}
+\input{sec/5_experiments}
+\input{sec/6_conclusion}
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+
+ 
+
+
+% WARNING: do not forget to delete the supplementary pages from your submission 
+\input{sec/X_suppl}
+
+\end{document}

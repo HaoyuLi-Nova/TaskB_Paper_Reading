@@ -1,0 +1,127 @@
+\section{Model Training}
+
+As shown in Figure \ref{fig:stage}, we present our training and inference stages of Seedance 1.0. Our training process is divided into several substages, including pre-training, continue training (CT), supervised fine-tuning (SFT) and human feedback alignment (RLHF). Our refiner also includes pre-training, SFT and RLHF. The visualization results during different training stages are presented in Figure \ref{fig:stage_compare}, where each stage can progressively improve the results.
+
+
+\begin{figure*}[hb]
+\centering
+\includegraphics[width=\textwidth]{figures/stage.png}
+\caption{Overview of training and inference pipeline.}
+\label{fig:stage}
+\end{figure*}
+
+\subsection{Pre-Training}
+\textbf{Diffusion Scheduling.} During training, we employ the flow matching framework with velocity prediction, and a training timestep is sampled from a logit-normal distribution. Considering that videos with higher resolution and longer duration require more noise to disrupt their signal, we then transform the training timestep with a resolution-aware shift, which increases the noise perturbation for videos with higher resolution and longer duration.
+
+\textbf{Progressive Training.} To enable higher data throughput and training efficiency, we initialize the model with sufficient low-resolution text-to-image~($256 px$) training and then progressively introduce video modalities with higher resolution and higher fps in following stages: (1) We conduct image-video joint training using $256 px$ images and video clips from 3 to 12 seconds~($12$ fps). (2) In the second stage, we increase the training resolution to $640 px$ while maintaining the same duration. (3) In the final stage, we train the models with $24$ fps video to further improve the video smoothness. During video pre-training, we also retain a small portion of text-to-image task to maintain semantic alignment and set the proportion of the image-to-video task to 20\% to activate the ability to follow visual prompts.
+
+
+
+
+\begin{figure*}[hp]
+\centering
+\includegraphics[width=1.0\linewidth]{figures/stage_compare.png}
+\vspace{-5pt}
+\caption{Visualization during different post-training stages.}
+\label{fig:stage_compare}
+\vspace{-5pt}
+\end{figure*}
+
+\subsection{Continue Training (CT)}
+As the image-to-video task constitutes only a small fraction of pre-training, the model's potential in this area remains underexplored. To address this, we introduce the Continue Training (CT) phase focused on strengthening image-to-video generation after pre-training. In this phase, we increase the image-to-video ratio from $20\%$ to $40\%$ and further refine the training dataset to improve overall multitask performance.
+
+
+\textbf{High-Quality Data Selection.} We select a subset of the pre-training data with higher aesthetic quality and richer motion dynamics by using a series of specialized evaluation models, including aesthetic scorer and motion evaluators based on optical flow. Since the first frame is always provided in the image-to-video task, we design two types of caption for training: (1) original long captions with detailed descriptions of both dynamic and static content, and (2) short captions that focus solely on motion dynamics by removing the static description corresponding to the first frame. This encourages stronger semantic alignment with the training objective.
+
+
+\textbf{Training Strategy.} During continued training, we use slightly fewer GPUs than in the pre-training stage, while maintaining an annealed learning rate schedule. The richer motion dynamics and diverse captions enable the model to generate more natural and smoother videos. Furthermore, the higher aesthetic quality of the training data leads to significant improvements in the visual fidelity of text-to-video generation. As a result, the final model supports both text-to-video and image-to-video tasks with enhanced overall performance.
+
+
+\subsection{Supervised Fine-Tuning (SFT)}
+Following CT, we perform supervised fine-tuning (SFT) to further align the model's output with human preferences regarding visual quality and motion coherence. During this phase, the model trains on a carefully curated set of high-quality video-text pairs with manually verified captions, allowing it to generate videos with improved aesthetics and more consistent motion dynamics.
+
+
+\textbf{Human-Curated Dataset.} Ensuring data quality and distributional balance is essential. To achieve this, we define several hundred categories based on visual style, motion type, and other key attributes. We then collect data in a targeted manner within each category, resulting in a curated dataset of high-quality video samples with accurate and meaningful captions.
+%All captions are manually verified to ensure precise alignment with their corresponding videos.
+
+
+\textbf{Model Merging.} To fully leverage high-quality data, we train separate models on curated subsets designed to capture a wide range of styles, motions, and scenarios. The resulting models are subsequently merged into a single model that integrates their respective strengths. Each model is trained with a smaller learning rate than in pre-training and utilizes a limited number of GPUs. Moreover, we apply early stopping at an effective point to prevent overfitting and maintain text controllability. The final merging step significantly improves both visual fidelity and motion quality.
+
+
+
+
+\subsection{Human Feedback Alignment (RLHF)}
+
+\subsubsection{Feedback Data Infrastructure}
+
+We collect prompts from training datasets and online users, and perform data balancing and information filtering on prompts to discard duplicate and ambiguous ones. We collect high-quality video data pairs for human preference labeling, including synthetic videos generated by different stages of our model.  Experimental results demonstrate that the incorporation of multiple source visual materials can further enhance the domain capacity of the RM model, expand the preference upper bound of RM, and strengthen generalization capabilities. We adopt a multi-dimensional annotation approach in the labeling process, i.e., selecting the best and worst videos under a specific labeling dimension while ensuring that the best videos are not inferior to the worst ones in other dimensions. 
+
+
+
+% \textbf{Prompt System.} We collect prompts from training datasets and online users, and perform data balancing and information filtering on prompts to discard duplicate and ambiguous ones. We built a unified prompt system to support both RM and RLHF. We align the output of the generative model with human preference by using the response of the Reward Model.
+
+% \textbf{Pair Data Sources.} We collect high-quality video data pairs for human preference labeling, including synthetic videos generated by different stages of our model (including Pretrain, SFT, RLHF, etc.) with different Prompt Engineering strategies, as well as part of high-quality videos from training datasets. Our collection encompasses both image-to-video and text-to-video modalities. Experimental results demonstrate that the incorporation of multistage / multiple source visual materials can further enhance the domain capacity of the RM model, expand the preference upper bound of RM, and strengthen generalization capabilities.
+
+% \textbf{Annotation Protocol.} We adopt a multi-dimensional annotation approach in the labeling process, i.e., selecting the best and worst videos under a specific labeling dimension while ensuring that the best videos are not inferior to the worst ones in other dimensions. Additionally, to enhance annotation precision and practicality, we define and annotate the fine-grained sub-tags besides the primary annotation dimensions. This hierarchical structure facilitates data resampling for specific sub-dimensions during training while simultaneously balancing the Reward Model's training data distribution.
+
+
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/reward.png}
+
+\caption{The reward curves show that the values across diverse reward models all exhibit a stable and consistent upward trend during the base model and Refiner RLHF process.}
+\label{fig:Reward}
+\end{figure*}
+
+\subsubsection{Reward Model}
+
+To comprehensively enhance model performance, we design a sophisticated reward system comprising three specialized reward models: Foundational Reward Model, Motion Reward Model, and Aesthetic Reward Model. These dimension-specific reward models, coupled with video-tailored RLHF optimization strategies, enable comprehensive improvements in multiple aspects of the model capabilities, as illustrated in Figure \ref{fig:Reward}. Foundational reward model focuses on enhancing fundamental model capabilities, such as image-text alignment and structural stability. We employ a Vision-Language Model as the architecture of this reward model. Motion reward model helps to mitigate video artifacts while enhancing motion amplitude and vividness.
+Given that video aesthetics primarily derive from keyframes, we design the aesthetic reward model from image-space input inspired by Seedream \cite{gao2025seedream,gong2025seedream}, with the data source modified to use keyframes from videos. 
+
+
+
+
+% \textbf{Multi-Dimensional Reward System.} 
+%  To comprehensively enhance model performance, we design a sophisticated reward system comprising three specialized reward models: Foundational Reward Model, Motion Reward Model, and Aesthetic Reward Model. These dimension-specific reward models, coupled with video-tailored RLHF optimization strategies, enable comprehensive improvements in multiple aspects of the model capabilities, as illustrated in Figure \ref{fig:Reward}.
+
+% \textbf{Foundational Reward Model.} 
+% This model focuses on enhancing fundamental model capabilities, such as image-text alignment and structural stability. We employ a Vision-Language Model (VLM) as the reward model, perform supervised fine-tuning via QA-style instruction modeling with binary (yes/no) responses. During inference, we draw insights from generative Reward Model (RM) designs in language models, using the probability of token "yes" as the reward. This methodology effectively leverages the inherent knowledge of pretrained VLM/LLM while benefiting from reward quality improvement through LLM scaling. Notably, we observe Reward Model Scaling phenomenon by expanding the reward model's parameter scale.
+
+% \textbf{Motion Reward Model.} To circumvent the computational bottleneck of VAE decoding in video-space processing, we propose a latent-space reward model operating directly on VAE-encoded representations. This efficient design is realized by fine-tuning a pre-trained VLM on annotated data, enabling precise discrimination of motion quality from latent space features. Experimental results demonstrate its effectiveness in mitigating video artifacts while enhancing motion amplitude and vividness.
+
+% \textbf{Aesthetic Reward Model.} Given that video aesthetics primarily derive from keyframes, we design an image-space input architecture inspired by Seedream2.0, with the data source modified to use keyframes extracted from videos. Prompts are also input into this aesthetic reward model to encourage prompt-aware aesthetic evaluation and prevent shortcut learning to specific preferences.
+
+
+\subsubsection{Base Model Feedback Learning}
+Reward feedback learning  \cite{xue2025dancegrpo,zhang2024onlinevpo,liu2025flow,liu2025improving} have been widely used in currnet diffusion models. In Seedance 1.0, we simulate the video inference pipeline during training, directly predict $x_0$ (generated clean video) when the Reward Model (RM) adequately assesses video quality. The optimization strategy directly maximizes the composite rewards from multiple RMs. Comparative experiments against DPO/PPO/GRPO demonstrate that our reward maximization approach is the most efficient and effective approach, comprehensively improving text-video alignment, motion quality, and aesthetics. Furthermore, we preform multi-round iterative learning between the diffusion model and RMs. This approach raises the performance bound of the RLHF process and is more stable and controllable than dynamic update of the RM.
+
+% \textbf{Video-Centric Feedback Algorithm.}
+% We simulate the video inference pipeline during training, directly predict $x_0$ (generated clean video) when the Reward Model (RM) adequately assesses video quality. Subsequently, i) frames are extracted from the video and fed into an Image-based Reward Model for reward calculation; ii) video clips are extracted and input into a Video-space RM for reward calculation. The optimization strategy directly maximizes the composite rewards from multiple RMs. Comparative experiments against DPO/PPO/GRPO demonstrate that our reward maximization approach is the most efficient and effective approach.
+
+% \textbf{Feedback Optimization Strategy.}
+% Our enhanced method optimizes sampling timesteps and employ a weight moving average strategy, eliminating conventional constraints like pretraining loss regularization or KL-divergence penalties while comprehensively improving text-video alignment, motion quality, and aesthetics. Under sequence parallelism, we implement frame-wise distributed sampling across GPUs to prevent over-optimization of identical frames. Task-specific reward selection is applied in the training process, for instance, image-to-video (I2V) tasks prioritize source consistency over aesthetic enhancement, thus excluding the Aesthetic Reward Model.
+
+% \textbf{Multi-Round Iterative Learning.}
+% We establish cyclic co-optimization between the diffusion model and RMs: initially optimizing the diffusion model, then enhancing RMs based on current generation weaknesses, followed by further diffusion optimization. This approach raises the performance bound of the RLHF process and is more stable and controllable than dynamic update of the RM.
+
+
+\subsubsection{Super-Resolution RLHF Framework}
+As shown in Figure \ref{fig:sr_compare}, we also apply RLHF on our diffusion refiner, which can be regarded as a diffusion-based conditional generative model. During training, low-resolution VAE latent space representations serve as conditional inputs to the super-resolution model, while the generated high-resolution videos are evaluated by multiple Reward Models. We directly maximize a linear combination of these reward signals. Notably, our approach applies RLHF directly to the accelerated refiner model, effectively enhancing motion quality and visual fidelity in low-NFE scenarios while maintaining computational efficiency.
+
+
+%\subsection{Refiner}
+
+
+
+
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=0.95\linewidth]{figures/sr_compare.png}
+\vspace{-5pt}
+\caption{Visualization during different resolutions and RLHF process.}
+\label{fig:sr_compare}
+\vspace{-5pt}
+\end{figure*}

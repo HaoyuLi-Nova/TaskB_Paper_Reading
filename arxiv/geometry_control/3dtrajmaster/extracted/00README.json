@@ -1,0 +1,19 @@
+{
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "main.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "conference.bst"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "iclr2025_conference.bib"
+      }
+   ],
+   "process" : {
+      "compiler" : "pdflatex"
+   }
+}

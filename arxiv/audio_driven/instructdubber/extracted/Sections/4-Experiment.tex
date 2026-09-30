@@ -1,0 +1,184 @@
+\section{Experiments}
+
+
+
+
+\subsection{Datasets}
+\textbf{V2C-Animation dataset~\cite{V2C}} is a collection of 10,217 video clips from 26 animated movies,
+% , designed to facilitate research in the real movie dubbing tasks.
+% Our main experimental results are validated on this dataset due to its authenticity and more detailed annotations.
+consists of 10,217 video-audio-text triplets cropped from 26 Disney animated movies, totaling 153 different speakers, with complete speaker and emotion annotations.
+% The dataset extracts the middle audio track from movie clips as dubbing data but still exists some environmental sounds and noise that cannot be eliminated.
+% Due to the authenticity of this dataset which is from publicly available movies, it's the most challenging dataset for the V2C task currently. 
+% Therefore, our main experimental results are validated on this dataset.
+
+\noindent\textbf{Chem dataset~\cite{chem_dataset}} is a popular dubbing dataset recording a chemistry teacher speaking in the class. 
+% It is collected from YouTube, with a total video length of approximately nine hours. 
+For complete dubbing, each video has clip to sentence-level following~\cite{nerualdubber}. %
+
+\noindent \textbf{GRID dataset~\cite{GRID}} is a multi-speaker dubbing benchmark which
+% All samples are recorded in a noise-free studio with a unified screen background.
+comprises video recordings of 33 speakers performing 1,000 scripted sentences each.
+
+% , including a command, a color, an object, and a preposition.
+% V2C-Animation and GRID benchmarks respectively correspond to animated films and basic real-person dubbing, covering a wide range of application scenarios.
+
+
+
+
+\subsection{Evaluation Metrics}
+% \noindent \textbf{Objective metrics}.
+% We employ diverse metrics to comprehensively evaluate the model's performance in the movie dubbing task:
+\noindent \textbf{Duration Divergence (DD).}
+% Following~\cite{flashspeech}, we use Duration Divergence to evaluate the accuracy of the duration prediction.
+The duration divergence evaluates the lip-synchronization by calculating the divergence between phoneme-level duration distributions of synthesized and ground truth dubbing following~\cite{flashspeech}.
+% We adopt a text aligner to obtain the phoneme-level duration following~\cite{StyleTTS2}
+% The phoneme-level duration is obtained by the same text aligner as~\cite{StyleTTS2}.
+% feeds the dubbing audio and the corresponding script into a fine-tuned ASR model to obtain the duration of each phoneme~\cite{StyleTTS2}, and employs the Jensen-Shannon (JS) divergence to quantify the divergence between the predicted and ground truth duration distributions following~\cite{flashspeech}, thereby evaluating the lip-synchronization performance.
+
+\noindent \textbf{EMO-SIM.}
+Emotion similarity (EMO-SIM) measures the cosine similarity between the emotion embedding of generated dubbing and ground truth, which is obtained using Emotion2Vec~\cite{emotion2vec} following~\cite{voicecraftdub}.
+Since GRID videos predominantly feature neutral expressions, we only conduct EMO-SIM on V2C-Animation and Chem benchmarks.
+% Note that this metric is only applicable to the V2C-Animation dataset, as the GRID dataset does not include emotion labels.
+
+\noindent \textbf{WER.}
+The Word Error Rate (WER)~\footnote{https://github.com/jitsi/jiwer} assesses the model's pronunciation accuracy by using an advanced ASR model Whisper\footnote{https://huggingface.co/openai/whisper-large}~\cite{whisper} to transcribe the dubbing into text and compare it with the original dubbing script.
+
+\noindent \textbf{UTMOS.}
+UTMOS~\cite{utmos} is a speech mean opinion score (MOS) predictor to measure the acoustic quality and naturalness of the generated dubbing following~\cite{naturalspeech3}.
+
+\input{Tables/Cross}
+\input{Tables/Cross_2}
+
+% \noindent \textbf{MOS-N \& MOS-S.}
+% MOS-Naturalness (MOS-N) and MOS-Similarity (MOS-S) are mean option scores reported with a 95\% confidence interval based on ratings from 20 native English speakers using a scale from 1 to 5. 
+% Each participant is required to listen to 30 randomly selected generated dubbing and rate the dubbing according to the speech naturalness and voice similarity following~\cite{flashspeech}.
+
+
+\subsection{Implementation Details}
+% Following previous works~\cite{V2C, styledubber}, all the video frames are sampled at 25 FPS. 
+% During training, we resample all audio files in 24kHz and convert them into mel-spectrograms using FFT size of 2048, hop size of 300, window size of 1200, and frequency bins of 80. 
+We employ a pre-trained JDC network~\cite{JDC} as the pitch extractor and use the log norm to calculate the energy following~\cite{StyleTTS2}.
+To get the ground truth duration and calculate the duration divergence metrics, we 
+% resample audio files in 24kHz, convert them into mel-spectrograms using FFT size of 2048, hop size of 300, window size of 1200, frequency bins of 80, and then 
+adopt the ASR model fine-tuned for the TTS task as text aligner~\cite{styletts} to get the alignment between phoneme and mel-spectrogram following StyleTTS2~\cite{StyleTTS2}.
+For audio generation, we adopt the same pre-trained audio decoder as ProDubber~\cite{ProDubber}.
+% We adopt the same audio decoder as ProDubber~\cite{ProDubber}.
+We use the Qwen2.5-Instruct-7B~\cite{qwen2.5} to analyze the emotion instructions and the Qwen2.5-Omni-7B~\cite{Qwen2.5-Omni} to get ground truth emotion entities.
+% The detailed prompt configurations are provided in the \textit{Appendix}.
+% We use 3 distilling layers in the instructed duration distilling module and a 32-dimensional adaptation in the instructed emotion calibrating module.
+% The distilling layer number in the IDD module is set to 3, and the rank in IEC is set to 32.
+An Adam~\cite{adam} with $\beta_1=0.9$, $\beta_2=0.98$, $\epsilon=10^{-9}$ is used as the optimizer during the training.
+The learning rate is set to 0.00625.
+% More details about prompt usage and training configurations are given in the \textit{Appendix}.
+% More details are given in the Appendix.
+% For a fair comparison, all comparison models are re-trained on the same dataset. 
+
+
+
+
+\subsection{Comparison with SOTA Methods}
+\subsubsection{Results on in-domain dubbing.}
+% We first evaluate the in-domain dubbing performance of InstructDubber on three major benchmarks.
+% In this evaluation, we use the in-domain videos as input to evaluate the performance of the proposed instruction-based alignment framework.
+% test set from the same dataset as the training set to assess the alignment performance of the instruction-based alignment framework within the same visual domain.
+As shown in Table~\ref{Ori_result}, InstructDubber outperforms existing state-of-the-art models on the majority of evaluation metrics across three dubbing benchmarks.
+In terms of lip synchronization, InstructDubber achieves the lowest duration divergence on Chem benchmarks, and second best on V2C-Animation and GRID benchmarks.
+It indicates that InstructDubber can generate dubbing exhibits the smallest temporal discrepancy with the ground truth.
+The highest EMO-SIM on both the V2C-Animation and Chem benchmarks shows that the dubbing generated by InstructDubber exhibits the closest emotional expressiveness to the ground truth, demonstrating the best emotion alignment performance in this scenario.
+% In terms of emotion consistency, InstructDubber achieves the highest EMO-SIM on both the V2C-Animation and Chem benchmarks, demonstrating the best prosody alignment performance in in-domain dubbing scenario.
+
+Moreover, due to natural language instructions being inherently less susceptible to noise compared to visual features, resulting in more stable predictions of duration and prosody, the pronunciation clarity and dubbing quality of the generated dubbing are also improved.
+% due to the higher discriminability and robustness of natural language instruction compared to visual features, which leads to more stable predictions of duration and prosody, the pronunciation clarity and speech quality of the generated dubbing are also improved.
+We achieve competitive WER performance across all three benchmarks and observe an improvement in UTMOS, indicating the best overall dubbing alignment and quality.
+
+% 增加一些分析性的内容,不要只输出结论
+\subsubsection{Results on zero-shot dubbing.}
+% To evaluate the zero-shot dubbing capability of the proposed instruction-based alignment framework, we directly use out-of-domain videos from a different dataset as video input for dubbing generation.
+We conduct pairwise zero-shot dubbing evaluations across the three benchmarks by directly using unseen videos from another dataset for evaluation.
+As shown in Table~\ref{cross_1} and~\ref{cross_2}, InstructDubber outperforms state-of-the-art models across all six zero-shot dubbing scenarios on both alignment accuracy and dubbing quality.
+% , achieving both more accurate zero-shot alignment and higher zero-shot dubbing quality.
+
+Specifically, compared to previous approaches that rely on visual features to achieve alignment, which are easily perturbed by variations in visual domains, guidance derived from natural language instructions remains invariant to visual domain variations, enabling more accurate and robust alignment in temporal and emotional aspects.
+More accurate prediction of duration and prosody also leads to significant improvements in pronunciation clarity and speech quality of the generated dubbing.
+% Unlike visual features, which are easily perturbed by variations in visual domains, natural language instructions provide stable and semantically aligned guidance for dubbing alignment, resulting in more precise and resilient duration and prosody prediction.
+% Compared to previous approaches that rely on visual features to achieve alignment, the visual-domain-robust natural language instructions to predict duration and prosody.
+% is robust to cross-domain visual perturbations, enabling accurate and aligned predictions of duration and prosody without causing degradation in audio quality when dubbing movies from unseen visual domains.
+Besides, compared to the DeepDubber, which uses coarse-grained instructions as a supplement to visual features and is trained across multiple benchmarks, our proposed instructed duration distilling and instructed emotion calibrating module effectively leverages fine-grained dubbing instructions to guide the prediction of aligned duration and prosody, consistently achieving superior performance in all six zero-shot dubbing scenarios.
+% These results demonstrate the superior zero-shot dubbing performance of InstructDubber and validate the effectiveness of our proposed instruction-based alignment framework.
+
+\input{Tables/ablation}
+
+
+\begin{figure*}[t]
+ \centering
+  \resizebox{\linewidth}{!}{\includegraphics{Figures/Visual.pdf}}
+  % \vspace{-0.4cm}
+  \caption{
+  The mel-spectrograms of ground truth and synthesized dubbing by different models in zero-shot scenario.
+  % The where exhibit significant differences in duration pausing (red bounding box) and pronunciation details (white bounding box).
+  The red and white boxes highlight regions where different models exhibit significant differences in temporal and prosody alignment.
+  }
+  \label{visual}
+  % \vspace{-0.4cm}
+\end{figure*}
+
+\subsection{Ablation Studies}
+To validate the effectiveness of each proposed module, we conduct ablation studies on V2C-Animation, Chem, and their cross-domain zero-shot scenarios (\ie, V2C2Chem and Chem2V2C)
+% , which cover a diverse range of in-domain and zero-shot dubbing scenarios, including animated and live-action characters and their mutual generalization
+.
+We report the average performance of the four scenarios in this section.
+
+\subsubsection{Ablation of each module.}
+We integrate the proposed Instructed Duration Distilling (IDD) and Instructed Emotion Calibrating (IEC) module into the visual feature-based dubbing baseline model separately to validate their effectiveness.
+As shown in Table~\ref{abl}, incorporating the IDD module leads to improved duration alignment performance, with the average duration divergence (DD) reduced compared to the baseline model.
+More accurate duration alignment also leads to clearer pronunciation and improved dubbing quality, resulting in performance gains in both WER and UTMOS.
+The IEC module enables the model to better predict emotion-aligned prosody, achieving +1.43\% performance gain on the EMO-SIM metric.
+The two proposed modules together enable InstructDubber to achieve the best overall dubbing performance, validating the effectiveness of both components.
+
+\input{Tables/ablation_duration}
+\input{Tables/ablation_emotion}
+
+\subsubsection{Ablation of instruction-based duration alignment.}
+In Table~\ref{abl_duration}, we report the performance of various strategies to leverage the speaking rate instruction for duration alignment.
+% We explore various strategies to leverage the speaking rate instruction for duration alignment, and the results are shown in Table~\ref{abl_duration}.
+Directly applying cross-attention to fine-grained speaking rate instruction and dubbing script (Raw Instruction CA) fails to extract discriminative duration cues from the instruction, resulting in degraded duration alignment performance.
+Finetuning an LLM using LoRA to directly predict the duration sequence based on the instruction (LoRA Prediction) suffers from implicit duration value optimization and unstable inference success rate.
+Instead, the proposed IDD module achieves the best lip-synchronization performance by mining duration cues from fine-grained instructions.
+Through an ablation on the number of learnable duration prototypes, we find that the 10-prototype achieves better balance on alignment accuracy and speech quality.
+
+\subsubsection{Ablation of instruction-based emotion alignment.}
+The results of ablation on instruction-based emotion alignment are shown in Table~\ref{abl_emotion}.
+Directly applying fine-grained emotion instructions in a cross-attention mechanism to predict prosody introduces detailed yet redundant information, which leads to suboptimal performance on the EMO-SIM metric and dubbing quality.
+Using the instruction distilling method similar to the IDD module or directly extracting emotion entities from the instructions lacks supervision of emotion state from the ground truth dubbing audio, limiting the accuracy in reflecting the character’s emotional state in the video.
+The proposed IEC module incorporates ground truth emotion entities as supervision to calibrate the analysis of emotion instruction, which improves the emotion alignment and achieves superior performance on EMO-SIM.
+% supervision 的作用没写,XXX作用带来了XXX性能(as a result)
+% providing effective and accurate emotion information for prosody-emotion alignment and achieving superior performance on EMO-SIM.
+
+\input{Tables/ablation_GTE}
+
+\subsubsection{Ablation of different MLLMs and GTE models.}
+To validate the robustness of our proposed method
+% to different instruction generators and global text embedding (GTE) models
+, we conducted ablation experiments using different MLLMs (VideoLLaMA3-7B~\cite{videollama3} and LLaVA-NEXT-7B~\cite{llavanext}) and GTE models of varying sizes~\cite{qwen3-embedding}.
+Table~\ref{abl_gte} shows that InstructDubber achieves advanced and stable performance
+% in both lip synchronization and emotion consistency without dubbing quality degeneration 
+under different configurations of MLLM and GTE size.
+% These results demonstrate its strong robustness and flexibility to different instruction generators and GTE models.
+% demonstrating its robustness to variations in instruction generators.
+
+
+
+\subsection{Qualitative Analysis}
+% We visualize the mel-spectrograms of ground truth and dubbing generated by different models in zero-shot scenario for comparison in Figure~\ref{visual}.
+% % (More visualization results are presented in the \textit{Appendix}.)
+% As highlighted by the red box, our model demonstrates more accurate phoneme-level duration predictions compared to other models, achieving better lip-synchronization performance.
+% The spectrogram patterns and variations highlighted by the white box demonstrate that the zero-shot dubbing generated by our model exhibits prosody that is more closely aligned with the ground truth.
+% More visualization results and dubbing examples are provided in the \textit{Appendix} and the \textit{Anonymous Demo}.
+We visualize ground-truth and zero-shot dubbing mel-spectrograms from different models in Figure~\ref{visual}. 
+As shown in the red box, our model produces more accurate phoneme-level duration predictions, leading to superior lip synchronization. 
+The white box further highlights spectrogram patterns and variations which shows that we achieves prosody patterns more consistent with the ground truth.
+
+
+
+% \input{Tables/Original}

@@ -1,0 +1,19 @@
+\begin{table}[b]
+    \centering
+    \setlength{\tabcolsep}{4pt}
+    \resizebox{\linewidth}{!}{%
+    \begin{tabular}{cc|cccc|cc}
+        \toprule
+        \multicolumn{2}{c}{\faithfulnessFull} & \multicolumn{4}{c}{\qualityFull} & \multicolumn{2}{c}{Realness \& Aesthetics} \\
+        \midrule
+        Subject \& Motion alignment & & Overall & Frame consistency & Motion Completeness & Motion Naturalness & Realness & Aesthetics \\
+         \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{Evaluation axes for \textToV generation.}
+    We evaluate video generations across 3 axes, each of which is composed of multiple fine-grained sub-axes.
+    \faithfulnessFull evaluates the `alignment' between the input text prompt and the video.
+    \qualityFull, Realness \& Aesthetics evaluate the quality of the generated video independent of the input text prompt.
+    }
+    \label{tab:eval_t2v_axes_list}
+\end{table}

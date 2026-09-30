@@ -1,0 +1,85 @@
+\subsection{Finetuning}  %
+\label{sec:t2v_post_training}
+
+As in prior work~\citep{dai2023emu,emuvideo2023}, we improve the motion and aesthetic quality of the generated videos by finetuning the pre-trained model on a small finetuning set of selected videos.
+The finetuning set videos and captions are manually curated, and thus we term this stage as supervised finetuning.
+During this stage, we train multiple models and combine them to form the final model through a model averaging approach.
+While our model can generate high quality images, we find that post-training specifically for images results in a significant boost in quality.
+We describe the image-specific post-training recipe in~\Cref{sec:t2i_generation} and describe the video-specific post-training recipe next.
+
+
+
+
+
+
+
+
+
+
+
+\noindent \textbf{Finetuning Video Data.}
+We aim to collect a finetuning set of high quality videos with good motion, realness, aesthetics, with a wide range of concepts, and with high quality captions.
+For finding such videos, we start with a large pool of videos and apply both automated and manual filtering steps (taking motivation from the curation recipe from~\citep{dai2023emu}).
+There are four key stages that are run in sequence, each operating on the output of the previous stage:
+(1) Establishing a set of candidate videos.
+Here, we use automated filters that set strict thresholds on aesthetics, motion, scene change.
+Additionally, we remove videos with small subjects using an object detection model~\citep{zhou2022detecting} on frames.
+This stage results in a few million videos but with an unbalanced distribution of concepts.
+(2) Balancing the concepts in set of videos.
+The goal of this stage is to obtain a small enough subset of concept-balanced videos such that each can be manually filtered in the following steps.
+We used our taxonomy of human verbs and expressions, defined in ~\cref{sec:pt-data}, to perform text $k$-NN methods
+to retrieve videos for each concept from the candidate pool of videos.
+We manually picked a few visually appealing seed videos per concept and performed video $k$-NN to get a concept-balanced subset of videos.
+For $k$-NN, we used the video and text embeddings from a video-text joint embedding model.
+(3) Manually identifying cinematic videos.
+Many aspects to high quality finetuning data cannot be reliably captured by automated filters with high precision and recall.
+At this stage, we instead rely on manual filtering.
+Here we ensure that the remaining videos have angled (natural sunshine or studio) lighting, vivid (but not over-saturated) colors, no clutter, non-trivial motion, no camera shake, and no edited effects or overlay text.
+During this stage, annotators additionally clip videos to the desired duration that will be trained on by selecting the best, most compelling clip of the video.
+(4) Manually captioning the videos.
+In detail, human annotators refine \llamaVideo generated captions by fixing incorrect details and ensuring the inclusion of certain key video details.
+These include camera control, human expressions, subject and background info, detailed motion description and lighting information.
+At this stage humans annotate six additional camera motion and position types (see~\Cref{appendix:data_camera_motion}).
+Our video finetuning data is set to have duration between 10.6s and 16s.
+In practice, 50\% of videos are 16s long, while the rest of 50\% videos are between 10.6s to 16s.
+
+\noindent \textbf{Supervised Finetuning Recipe.} In video supervised finetuning (SFT), we use the same model architecture as the pre-training stage, and finetune the model with the pre-training checkpoints as initialization.
+Different from pre-training that uses large-scale data, large batch sizes and training resources, we instead use relatively a small batch size and 64 nodes (512 H100 GPUs) to train the model, and use a cosine learning rate scheduler~\citep{loshchilov2016sgdr}.
+Similar to the \pretraining stage, for videos that are at 16s, we train with 16 FPS, and for videos that are between 10.6s to 16s, we train with 24 FPS.
+As a result, our model is trained to best support the generation of videos in both 10s and 16s.
+
+
+\noindent \textbf{Model Averaging.}
+Our experiments reveal that the choice of different sets of finetune data, hyperparameters as well as pre-train checkpoints significantly affects key aspects of the model's behavior, including motion, consistency, and camera control. To harness the diverse strengths of these models, we employ a model averaging approach.
+Similar to \llama~\citep{llama3}, we average models obtained from SFT experiments that use various versions of finetune data, hyperparameters and pre-train checkpoints.
+
+
+
+
+
+\subsection{Inference} \label{T2V_inference_details}
+In this section, we describe the different hyper-parameters and settings used for sampling from \OursVideo.
+For comparisons to prior work, we use a text classifier-free guidance scale of 7.5, and we use the linear-quadratic sampler described in~\cref{sec:linear_quad_sampler} with 50 steps (emulating 250 linear steps).
+We also use an inference prompt rewrite on the input text prompt, as described below.
+\subsubsection{Inference Prompt Rewrite} %
+\label{sec:t2v_prompt_rewrite}
+
+As mentioned in Section~\ref{sec:pt-data}, we train the model with high quality video/image-text pairs, and these training captions are characterized by their dense details and consistent paragraph structure.
+However, the writing style and length of prompts in the inference stage vary widely.
+For instance, most users typically type less than $10$ words, which is shorter than the average length of training captions.
+To bridge the distribution gap between training captions and inference prompts, we utilize \llama~\citep{llama3} to transform the original input prompts into more detailed ones. The key details of the inference prompt rewrite model are:
+\begin{itemize}
+    \item We employ a standardized information architecture to rephrase the prompts, ensuring consistency in the visual composition.
+    \item We refine the rewritten prompts by replacing complex vocabulary with more accessible and straightforward terminology, thereby enhancing their clarity and comprehensibility.
+    \item We observe that excessively elaborate descriptions of motion details can result in the introduction of artifacts in the generated videos, highlighting the importance of striking a balance between descriptive richness and visual fidelity.
+\end{itemize}
+
+
+
+\textbf{Efficient Inference Rewrite Model.}
+To improve the computation efficiency of the inference rewrite model, we developed a teacher-student distillation approach for this purpose.
+Initially, we built a prompt rewrite teacher model based on the \llama 70B model, using detailed prompt instructions and in-context learning examples from the foundation model training set.
+We then gathered human-in-the-loop (HITL) finetuning data.
+This was achieved by using the \llama 70B prompt rewrite model as the teacher to conduct inference on a large prompt pool, and selecting high-quality rewrite pairs through human evaluations following the quality guideline.
+Finally, we finetuned a 8B \llama model on the HITL prompt rewrite pairs to obtain the final prompt rewrite model to reduce the latency burden to the whole system.
+

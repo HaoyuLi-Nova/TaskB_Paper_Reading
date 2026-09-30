@@ -1,0 +1,50 @@
+\begin{table*}[!t]
+    \centering
+    \adjustbox{max width = \linewidth}{%
+    \subfloat[
+    \label{tab:ablate_t2v_training_objective}
+    ]{
+        \centering
+        \begin{tabular}{c  cc}
+            \toprule
+            Method & \qualityShort & \faithfulnessShort \\
+            \midrule
+            FM \vs Diffusion & 16.53 & 7.08\\
+
+             \bottomrule
+        \end{tabular}%
+    }
+    \hfill
+    \subfloat[
+    \label{tab:ablate_t2v_captions}
+    ]{
+        \centering
+        \begin{tabular}{c  cc}
+            \toprule
+            Method & \qualityShort & \faithfulnessShort \\
+            \midrule
+            Video \vs Image caption & $-0.80$ & $10.80$ \\
+             \bottomrule
+        \end{tabular}%
+    }
+    \hfill
+    \subfloat[
+    \label{tab:ablate_t2v_architecture}
+    ]{
+        \centering
+        \begin{tabular}{c  cc}
+            \toprule
+            Method & \qualityShort & \faithfulnessShort \\
+            \midrule
+            \llama-like \vs DiT & 18.63 & 12.60 \\
+             \bottomrule
+        \end{tabular}%
+    }
+
+    }
+    \caption{\textbf{Key design decisions in \OursVideo}. Each table shows the net win rate, in terms of the overall \quality (\qualityShort) and \faithfulnessFull (\faithfulnessShort), on adopting a design decision \vs a model that does not have it.
+    See~\cref{sec:ablations_t2v} for details.
+    }
+    \label{tab:ablate_t2v}
+
+\end{table*}

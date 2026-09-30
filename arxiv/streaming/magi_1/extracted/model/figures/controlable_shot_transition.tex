@@ -1,0 +1,20 @@
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{1.0\textwidth}
+    \begin{subfigure}[b]{1.0\textwidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{model/figures/shot_transition_images/shot_transition_layout.pdf}
+        \caption{Shot transition with preserved identity.}
+        \label{fig:shot_transition_layout}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{1.0\textwidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{model/figures/shot_transition_images/shot_transition_finegrain_v2.pdf}
+        \caption{Transition with consistent scene layout but changing object details.}
+        \label{fig:shot_transition_finegrain}
+    \end{subfigure}
+    \end{minipage}
+    \caption{This figure illustrates two examples of realizing distinct shot transitions by modulating the KV range at different denoising stages. (a) demonstrates a case where the KV range is set to 1 only at the high-noise denoising stages, whereas (b) applies it at the low-noise denoising stages.}
+    \label{fig:controlable_shot_transition}
+\end{figure}

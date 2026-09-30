@@ -1,0 +1,35 @@
+
+
+
+
+\def\vbenchtitlea{\multirow{2}{*}{\makecell[c]{Metric\\(VBenchI2V)}}}
+\def\vbenchtitleb{\multirow{2}{*}{\makecell[c]{\magi\\(2$\times$decoder)}}} 
+\def\vbenchtitlec{\multirow{2}{*}{\makecell[c]{\magi\\(1$\times$decoder)}}}
+\def\vbenchtitled{\multirow{2}{*}{\makecell[c]{VisualPi}}}
+\def\vbenchtitlee{\multirow{2}{*}{\makecell[c]{StepFun\\(TI2V)}}}
+\def\vbenchtitlef{\multirow{2}{*}{\makecell[c]{OS\\(TopA)}}}
+\def\vbenchtitleg{\multirow{2}{*}{\makecell[c]{OS\\(TopB)}}}
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{l|l|c|c|c|c}
+\toprule
+&\vbenchtitlea           & \vbenchtitleb  & \vbenchtitlec  & \vbenchtitled    & \vbenchtitlee    \\& &  &  &   &      \\\midrule \multirow{9}{*}{\makecell[l]{Quality\\Metrics}} 
+&\abf{I2V-Camera}        & \und{50.85}    & \abf{50.77}    & \bbf{51.20}      & \abf{49.23}      \\ 
+&\abf{I2V-Subject}       & \und{98.39}    & \abf{98.36}    & \bbf{98.67}      & \abf{97.86}      \\ 
+&\abf{I2V-Background}    & \bbf{99.00}    & \und{98.98}    & \abf{98.87}      & \abf{98.63}      \\ 
+&\abf{Subject Cons.}     & \abf{93.96}    & \abf{94.28}    & \bbf{96.87}      & \und{96.02}      \\ 
+&\abf{Motion Smooth.}    & \abf{98.68}    & \abf{98.83}    & \und{99.18}      & \bbf{99.24}      \\ 
+&\abf{Imaging Quality}   & \abf{69.71}    & \abf{69.68}    & \bbf{72.86}      & \und{70.44}      \\ 
+&\abf{Dynamic Degree}    & \bbf{68.21}    & \und{63.41}    & \abf{49.93}      & \abf{48.78}      \\ 
+&\abf{Background Cons.}  & \abf{96.74}    & \abf{96.90}    & \bbf{97.50}      & \und{97.06}      \\ 
+&\abf{Aesthetic Quality} & \bbf{64.74}    & \abf{61.89}    & \abf{61.91}      & \und{62.29}      \\ \midrule \multirow{3}{*}{\makecell[l]{Agg.\\Scores}} 
+& \abf{Quality Score}    & \bbf{82.44}    & \abf{81.67}    & \und{81.95}      & \abf{81.22}      \\
+& \abf{I2V Score}        & \und{96.12}    & \abf{96.08}    & \bbf{96.21}      & \abf{95.50}      \\
+& \abf{Total Score}      & \bbf{89.28}    & \abf{88.88}    & \und{89.08}      & \abf{88.36}      \\
+\bottomrule
+\end{tabular}
+\vspace{0.5em}
+\caption{Quantitative evaluation results on VBench-I2V benchmark. \magi (1$\times$decoder) denotes our baseline model ($1280\times720$ resolution), while \magi (2$\times$decoder) represents the enhanced variant with 2x VAE upsampling ($2560\times1440$ resolution). Comparative data for other models are sourced from the top tier at latest  \href{https://huggingface.co/spaces/Vchitect/VBench_Leaderboard}{Vbench leaderboard}. Bold and underlined values indicate the highest and second-highest scores respectively across all metrics.}\label{tab:vbench_results}
+
+\end{table}

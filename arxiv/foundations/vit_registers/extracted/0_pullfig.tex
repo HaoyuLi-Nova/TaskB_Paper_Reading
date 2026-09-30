@@ -1,0 +1,42 @@
+
+
+\begin{figure}[h]
+    \centering
+    {\footnotesize
+    \setlength{\tabcolsep}{2.5pt} %
+    \renewcommand{\arraystretch}{0.4} %
+    \begin{tabular}{c @{\hspace{5mm}} c@{ }c @{ } c@{\hspace{5mm}}c @{ } c@{ }c }
+        \vspace{0.2em}
+        & \multicolumn{3}{c}{Without registers} & \multicolumn{3}{c}{With registers} \\
+        Input & DeiT-III & OpenCLIP & DINOv2 & DeiT-III & OpenCLIP & DINOv2 \\
+\includegraphics[width=0.13\textwidth]{resources/230914_1202_fig2_vizs_various_models/85_orig.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/deit3_0reg_85_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/clip_0reg_85_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/dinov2_0reg_85_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/deit3_4reg_85_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/clip_4reg_85_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/dinov2_4reg_85_lastattmap.png} \\
+\includegraphics[width=0.13\textwidth]{resources/230914_1202_fig2_vizs_various_models/1589_orig.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/deit3_0reg_1589_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/clip_0reg_1589_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/dinov2_0reg_1589_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/deit3_4reg_1589_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/clip_4reg_1589_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/dinov2_4reg_1589_lastattmap.png} \\
+\includegraphics[width=0.13\textwidth]{resources/230914_1202_fig2_vizs_various_models/5835_orig.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/deit3_0reg_5835_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/clip_0reg_5835_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/dinov2_0reg_5835_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/deit3_4reg_5835_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/clip_4reg_5835_lastattmap.png} &
+\includegraphics[width=0.13\textwidth]{resources/230915_1613_fig1_attmaps_before_after/dinov2_4reg_5835_lastattmap.png} \\
+
+    \end{tabular}
+    }
+    \caption{
+        Register tokens enable \old{``DINO-like''} interpretable attention maps in all vision transformers, \new{similar to the original DINO method~\citep{caron2021emerging}}.
+        Attention maps are calculated in high resolution for better visualisation.
+        More qualitative results are available in appendix \ref{sec:appendix_qualitative}.
+    }
+    \label{fig:pullfig_beforeafter}
+  \end{figure}

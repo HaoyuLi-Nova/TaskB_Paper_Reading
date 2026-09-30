@@ -1,0 +1,38 @@
+\begin{figure*}[t]
+\centering
+\setlength{\tabcolsep}{0.5pt}
+\renewcommand{\arraystretch}{0.3}
+\newcommand{\frameimg}[1]{\includegraphics[width=0.08\linewidth]{figures/images/qual_comp/#1}}
+\small
+\begin{tabular}{@{} *{4}{c} @{\hskip 4pt} *{4}{c} @{\hskip 4pt} *{4}{c} @{}}
+\multicolumn{4}{c}{Control Input}
+& \multicolumn{4}{c}{\textcolor{blue}{Ours}}
+& \multicolumn{4}{c}{\textcolor{red}{VACE}} \\[2pt]
+%
+\frameimg{000050_control_0} & \frameimg{000050_control_1} & \frameimg{000050_control_2} & \frameimg{000050_control_3} & %\frameimg{000050_control_4} &
+\frameimg{000050_ours_0} & \frameimg{000050_ours_1} & \frameimg{000050_ours_2} & \frameimg{000050_ours_3} & %\frameimg{000050_ours_4} &
+\frameimg{000050_vace_0} & \frameimg{000050_vace_1} & \frameimg{000050_vace_2} & \frameimg{000050_vace_3} \\ %\frameimg{000050_vace_4} \\
+%
+\frameimg{000051_control_0} & \frameimg{000051_control_1} & \frameimg{000051_control_2} & \frameimg{000051_control_3} & %\frameimg{000051_control_4} &
+\frameimg{000051_ours_0} & \frameimg{000051_ours_1} & \frameimg{000051_ours_2} & \frameimg{000051_ours_3} & %\frameimg{000051_ours_4} &
+\frameimg{000051_vace_0} & \frameimg{000051_vace_1} & \frameimg{000051_vace_2} & \frameimg{000051_vace_3} \\ %\frameimg{000051_vace_4} \\
+%
+\frameimg{000052_control_0} & \frameimg{000052_control_1} & \frameimg{000052_control_2} & \frameimg{000052_control_3} & %\frameimg{000052_control_4} &
+\frameimg{000052_ours_0} & \frameimg{000052_ours_1} & \frameimg{000052_ours_2} & \frameimg{000052_ours_3} & %\frameimg{000052_ours_4} &
+\frameimg{000052_vace_0} & \frameimg{000052_vace_1} & \frameimg{000052_vace_2} & \frameimg{000052_vace_3} \\[4pt] %\frameimg{000052_vace_4} \\[4pt]
+%
+\frameimg{000076_control_0} & \frameimg{000076_control_1} & \frameimg{000076_control_2} & \frameimg{000076_control_3} & %\frameimg{000076_control_4} &
+\frameimg{000076_ours_0} & \frameimg{000076_ours_1} & \frameimg{000076_ours_2} & \frameimg{000076_ours_3} & %\frameimg{000076_ours_4} &
+\frameimg{000076_vace_0} & \frameimg{000076_vace_1} & \frameimg{000076_vace_2} & \frameimg{000076_vace_3} \\ %\frameimg{000076_vace_4} \\
+%
+\frameimg{000071_control_0} & \frameimg{000071_control_1} & \frameimg{000071_control_2} & \frameimg{000071_control_3} & %\frameimg{000071_control_4} &
+\frameimg{000071_ours_0} & \frameimg{000071_ours_1} & \frameimg{000071_ours_2} & \frameimg{000071_ours_3} & %\frameimg{000071_ours_4} &
+\frameimg{000071_vace_0} & \frameimg{000071_vace_1} & \frameimg{000071_vace_2} & \frameimg{000071_vace_3} \\ %\frameimg{000071_vace_4} \\
+%
+\frameimg{000073_control_0} & \frameimg{000073_control_1} & \frameimg{000073_control_2} & \frameimg{000073_control_3} & %\frameimg{000073_control_4} &
+\frameimg{000073_ours_0} & \frameimg{000073_ours_1} & \frameimg{000073_ours_2} & \frameimg{000073_ours_3} & %\frameimg{000073_ours_4} &
+\frameimg{000073_vace_0} & \frameimg{000073_vace_1} & \frameimg{000073_vace_2} & \frameimg{000073_vace_3} \\ %\frameimg{000073_vace_4} \\
+\end{tabular}
+\caption{Qualitative comparison on the VACE Benchmark (depth and pose). Each triplet: control input, \textcolor{blue}{ours}, \textcolor{red}{VACE}~\cite{jiang2025vace}. Our outputs show higher structural fidelity, consistent with Table~\ref{tab:vbench_comparison}.}
+\label{fig:qualitative_comparison}
+\end{figure*}

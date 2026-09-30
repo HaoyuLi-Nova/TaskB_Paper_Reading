@@ -1,0 +1,50 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{arxiv,times}
+
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{graphicx}
+\usepackage{enumitem}
+
+\graphicspath{{./Figures/}}
+
+\title{FreeNoise: Tuning-Free Longer Video \\ Diffusion via Noise Rescheduling}
+
+\author{\textbf{Haonan Qiu}$^1$, 
+\textbf{Menghan Xia}\thanks{Corresponding Authors}$^{\;\,2}$,
+\textbf{Yong Zhang}$^2$, \\
+\textbf{Yingqing He}$^{2,3}$,
+\textbf{Xintao Wang}$^2$, 
+\textbf{Ying Shan}$^2$, 
+\textbf{Ziwei Liu}$^{*1}$\\
+\\ 
+\small $^{1}$Nanyang Technological University \\
+\small $^{2}$Tencent AI Lab \\
+\small $^{3}$Hong Kong University of Science and Technology
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\finalcopy 
+\begin{document}
+
+\maketitle
+
+\input{0-Abstract-Arxiv}
+\input{1-Introduction}
+\input{2-RelatedWork}
+\input{3-Methodology} 
+\input{4-Experiments}
+\input{9-Conclusion}
+
+\bibliography{ref}
+\bibliographystyle{ref}
+
+\newpage
+\input{10-Appendix}
+
+\end{document}

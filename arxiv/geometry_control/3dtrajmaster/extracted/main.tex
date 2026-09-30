@@ -1,0 +1,86 @@
+
+\documentclass{article} %
+\usepackage{conference,times}
+
+\input{math_commands.tex}
+\input{shortcut}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{multirow}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{nicematrix}
+\usepackage{enumitem}
+\usepackage{booktabs, tabularx}
+\usepackage{threeparttable}
+\usepackage{bbding}
+\usepackage{utfsym}
+\usepackage{pifont}
+\usepackage{mathrsfs}
+
+\makeatletter
+\@ifundefined{Cross}{}
+  {\let\Cross\relax}
+\makeatother
+\usepackage{marvosym}
+
+\title{3DTrajMaster: Mastering 3D Trajectory for Multi-Entity Motion in Video Generation}
+
+
+\author{
+Xiao Fu$^{1}$ \;
+Xian Liu$^{1}$ \;
+Xintao Wang$^{2}{\textsuperscript{\Letter}}$ \;
+Sida Peng$^{3}$ \;
+Menghan Xia$^2$ \;
+Xiaoyu Shi$^2$ \\
+\textbf{Ziyang Yuan}$^2$ \;
+\textbf{Pengfei Wan}$^{2}$ \; 
+\textbf{Di Zhang}$^2$ \;
+\textbf{Dahua Lin}$^{1}{\textsuperscript{\Letter}}$\\
+$^1$The Chinese University of Hong Kong \; 
+$^2$Kuaishou Technology \; 
+$^3$Zhejiang University 
+}
+
+
+\usepackage{color}
+  
+\definecolor{red}{RGB}{255,0,0}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newcommand{\sd}[2]{{\textcolor{cyan}{[Sida: #1 \textcolor{gray}{(#2)}]}}}
+
+\newcommand\nnfootnote[1]{%
+  \begin{NoHyper}
+  \renewcommand\thefootnote{}\footnote{#1}%
+  \addtocounter{footnote}{-1}%
+  \end{NoHyper}
+}
+
+\iclrfinalcopy %
+
+\begin{document}
+
+\maketitle
+
+\input{main/abstract}
+\input{main/introduction}
+\input{main/relatedwork}
+\input{main/method}
+\input{main/experiments}
+\input{main/conclusion}
+\input{main/acknowledgment}
+
+\bibliography{conference}
+\bibliographystyle{conference}
+
+\newpage
+\input{supp/supp}
+
+\end{document}

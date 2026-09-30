@@ -1,0 +1,242 @@
+\documentclass[runningheads]{llncs}
+
+% ---------------------------------------------------------------
+% Include basic ECCV package
+ 
+% TODO REVIEW: Insert your submission number below by replacing '*****'
+% TODO FINAL: Comment out the following line for the camera-ready version
+%\usepackage[review,year=2024,ID=*****]{eccv}
+% TODO FINAL: Un-comment the following line for the camera-ready version
+\usepackage{eccv}
+
+% OPTIONAL: Un-comment the following line for a version which is easier to read
+% on small portrait-orientation screens (e.g., mobile phones, or beside other windows)
+%\usepackage[mobile]{eccv}
+
+
+% ---------------------------------------------------------------
+% Other packages
+\usepackage{tabularx}
+% Commonly used abbreviations (\eg, \ie, \etc, \cf, \etal, etc.)
+\usepackage{eccvabbrv}
+
+% Include other packages here, before hyperref.
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+% The "axessiblity" package can be found at: https://ctan.org/pkg/axessibility?lang=en
+\usepackage[accsupp]{axessibility}  % Improves PDF readability for those with disabilities.
+
+
+% ---------------------------------------------------------------
+% Hyperref package
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% Please disable hyperref *only* if you encounter grave issues.
+% hyperref with option pagebackref eases the reviewers' job, but should be disabled for the final version.
+%
+% If you comment hyperref and then uncomment it, you should delete
+% main.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you
+%  should be clear).
+
+% TODO FINAL: Comment out the following line for the camera-ready version
+%\usepackage[pagebackref,breaklinks,colorlinks,citecolor=eccvblue]{hyperref}
+% TODO FINAL: Un-comment the following line for the camera-ready version
+\usepackage{hyperref}
+
+% Support for ORCID icon
+\usepackage{orcidlink}
+
+
+\begin{document}
+
+% ---------------------------------------------------------------
+% TODO REVIEW: Replace with your title
+\title{EMO: Emote Portrait Alive - Generating Expressive Portrait Videos with Audio2Video Diffusion Model under Weak Conditions}
+
+% TODO REVIEW: If the paper title is too long for the running head, you can set
+% an abbreviated paper title here. If not, comment out.
+\titlerunning{EMO-Emote Portrait Alive}
+
+% TODO FINAL: Replace with your author list. 
+% Include the authors' OCRID for the camera-ready version, if at all possible.
+\author{Linrui Tian\orcidlink{0000-0003-1202-6040} \and
+Qi Wang \and
+Bang Zhang \and
+Liefeng Bo}
+
+% TODO FINAL: Replace with an abbreviated list of authors.
+\authorrunning{L. Tian, Q. Wang, B. Zhang, and L. Bo}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+
+% TODO FINAL: Replace with your institution list.
+\institute{Institute for Intelligent Computing, Alibaba Group\\
+\email{\{tianlinrui.tlr, wilson.wq, zhangbang.zb, liefeng.bo\}@alibaba-inc.com}\\
+\url{https://humanaigc.github.io/emote-portrait-alive/}}
+
+\maketitle
+
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\textwidth]{images/intro.png}
+  \caption{We proposed EMO, an expressive audio-driven portrait-video generation framework. Input a \textbf{single reference image} and the vocal audio, e.g. talking and singing, our method can generate vocal avatar videos with expressive facial expressions, and various head poses, meanwhile, we can generate videos with \textbf{any duration} depending on the length of input audio.
+  }
+  \label{fig:intro}
+\end{figure}
+% \footnotetext{Video are available at \url{https://humanaigc.github.io/emote-portrait-alive/}}
+
+\begin{abstract}
+In this work, we tackle the challenge of enhancing the realism and expressiveness in talking head video generation by focusing on the dynamic and nuanced relationship between audio cues and facial movements. We identify the limitations of traditional techniques that often fail to capture the full spectrum of human expressions and the uniqueness of individual facial styles. To address these issues, we propose EMO, a novel framework that utilizes a direct audio-to-video synthesis approach, bypassing the need for intermediate 3D models or facial landmarks. Our method ensures seamless frame transitions and consistent identity preservation throughout the video, resulting in highly expressive and lifelike animations. Experimental results demonstrate that EMO is able to produce not only convincing speaking videos but also singing videos in various styles, significantly outperforming existing state-of-the-art methodologies in terms of expressiveness and realism.
+
+  % We introduce EMO, a groundbreaking framework that advances the field of talking head video generation by utilizing audio signals to animate still images into coherent and expressive video sequences. Unlike traditional talking head generation methods that often rely on intricate inputs like 3D models or pre-defined facial pose sequences, our approach simplifies the process, requiring only an audio clip to bring a still image to life. Central to EMO is the FrameEncoding mechanism, ensuring smooth frame-to-frame transitions and enabling the creation of extended video sequences without sacrificing the natural flow. Additionally, our identity preservation network guarantees that the generated videos maintain a consistent visual identity with the input image, enhancing the realism of the animated sequences. By focusing on audio-driven synthesis and integrating continuous frame encoding with robust identity preservation, EMO not only simplifies the talking head video generation process but also significantly enhances the expressiveness and authenticity of the output, opening new possibilities in personalized video content creation and digital communication.
+  \keywords{Diffusion Models \and Video Generation \and Talking Head}
+\end{abstract}
+
+% xinchuan : 我们的方法并不是简化了生成的流程，3d model input可能是中间过程中检测生成的，以往的方法，也可以只输入单图，
+% 使用了3d model或者blend shape，landmark之类的方法，弊端在于：1.这些自由度无法完全描述人类的面部变化 2.现有的参数化检测方法无法很好捕捉人类的微表情，这导致模型可能干脆将微表情当作噪声过滤掉。3.不同人类的面部风格不同，同一种参数化的表情描述在不同人之间迁移可能存在不自然，尤其是迁移到其他风格下的人类
+
+\section{Introduction}
+\label{sec:intro}
+%前两段分别介绍diffusionmodel和talkinghead的基本情况，第三段介绍显存的talkinghead的方法，弊端，问题，应该从什么方面解决expressiveness的问题。
+%第四段介绍我们的方法是怎么做的。解决这个问题面临的挑战是什么，我们是如何解决的，哪里可以证明我们是解决了这些问题。
+%第五段介绍我们采集了多少的数据，实验结果如何。
+% In recent years, the field of image generation has witnessed remarkable advancements, largely attributed to the emergence and success of Diffusion Models~\cite{ddpm,ldm,DiffusionNonequ,DiffusionBeatGAN,DiT}. These models, celebrated for their ability to produce high-quality images, owe their prowess to extensive training on large-scale image datasets and a progressive generation approach. This innovative methodology enables the creation of images with unparalleled detail and realism, setting new benchmarks in the domain of generative models.
+% The application of Diffusion Models has not been confined to still images alone. A burgeoning interest in video generation has led to the exploration of these models' potential in crafting dynamic and compelling visual narratives~\cite{animatediff,animate_anyone}. These pioneering efforts underscore the vast potential of Diffusion Models in the field of video generation.  
+Diffusion Models have revolutionized the landscape of generative models, showcasing unparalleled capabilities in generating high-fidelity images\cite{ddpm,ldm,DiffusionNonequ,DiffusionBeatGAN,DiT}. These advancements have extended into video generation, sparking interest in leveraging these models for dynamic and engaging visual storytelling\cite{ho2022video,bartal2024lumiere,2023i2vgenxl}. Beyond the general video generation, human-centric video generation, including portrait video generation\cite{sun2023vividtalk, diffused_head, sadtalker, dreamtalk} and human animation\cite{animatediff, animate_anyone}, has attracted considerable attention for its utility in creating digital human avatars and enhancing film production. 
+A notably prominent area within this field is "talking head" video generation, which aims to synthesize 
+a head video that matches with the input audio, while capturing the facial expressions, head movements and lip motion. 
+% Particularly, human-centric video generation, such as portrait video generation and "talking head" animations, has emerged as a critical application area, driven by its potential in digital avatars and multimedia content creation. Despite the progress, the translation of audio into coherent and expressive head animations poses significant challenges due to the complex, non-deterministic nature of human expressions and movements.
+
+
+% Human-centric video generation, including portrait video generation\cite{sun2023vividtalk, diffused_head, sadtalker, dreamtalk} and human animation\cite{animatediff, animate_anyone}, has attracted considerable attention for its utility in creating digital human avatars and enhancing film production. 
+% A notably prominent area within this field is "talking head" video generation, which aims to synthesize 
+% a head video that matches with the input audio, while capturing the facial expressions, head movements and lip motion. 
+However, translating audio into head animation, such as facial expressions or head movements, is challenging due to the ambiguous and one-to-many mapping relationship. 
+Most research on talking heads divides the process into head motion and facial expression components\cite{sun2023vividtalk}. For head motion, some talking head techniques struggle to manage this aspect effectively and often resort to using a predefined pose sequence from an existing video\cite{wav2lip,Diff2Lip,syncnet} or use separate networks to individually address head poses and facial expressions\cite{sun2023vividtalk}. In terms of facial expressions, some approaches opt for explicit intermediate signals like 3D face models or 2D facial landmarks to guide the generation\cite{sun2023vividtalk,sadtalker}. 
+While these methods enhance the fidelity of specific aspects like lip synchronization, they tend to restrict the overall expressiveness and naturalness of the generated content. For example, the subtleties of spontaneous gestures or the nuanced expressions linked to speech's emotional tone are often lost in translation, leading to less lifelike results.
+% Both predefined poses and explicit intermediate signals act as strong constraints, which, while enhancing the precision of the generated videos, also compromise the expressiveness and authenticity of the head animations.
+% For instance, when people speak or sing, their head and even body movements often accompany the vocal expression. These movements can be related to the audio's rhythm, such as in singing, or the emotional tone of speech. Some might also be unconscious, natural gestures of the speaker. These movements cannot be replicated by preset actions or a simple pose predictor. 
+% 3D intermediate representations like 3DMM\cite{3dmm}, constrained by their inherent capabilities, are insufficient for capturing the subtleties of facial micro-expressions, resulting in the final generated expressions appearing stiff and unnatural.
+Therefore, to create highly expressive videos of talking head, it's crucial to move away from the constraints of strong prior information and fully leverage the generative potential of the model.
+% Strong constraints on facial 3D geometry and head posture can impair the model's ability to generate detailed head/body movements and facial expressions.
+% However, all these elements are crucial for the expressiveness and realism of generated talking head videos, rendering them essential for achieving a genuinely lifelike depiction.
+%周一继续从这里开始修改
+% Explicit and stringent control signals can limit a model's capacity to generate nuanced facial expressions, leading to a lack of expressiveness in the final videos, such as missing micro-expressions and facial rigidity. From another perspective, real humans generate body and head movements along with facial expressions while expressing language; these elements function simultaneously and influence each other as a cohesive whole. Decoupling head/body movements from facial expressions can result in monotonous or even asynchronous actions in the generated videos.
+% Our approach aims to jointly generate the entire portrait area's body and head movements along with facial expressions, without imposing strict constraints on the model. This strategy ensures the diversity and expressiveness of the final outcomes, capturing the full range of human expressivity.
+%需要继续论证两个观点：1. 显式的强控制信号约束/减少了模型对面部表情的生成能力，不足导致生成的最终视频的表现力不足，比如缺少微表情，面部僵硬。
+%第二个观点，真实的人类在表达语言的同时生成肢体/头部动作以及面部表情，他们是一个同时且相互影响的整体。而解耦头部/身体动作与面部表情的方式会导致生成的视频动作单一甚至跟表情不同步。
+%我们的方法是联合生成整个portrait区域的身体头部动作和面部动作，同时不对模型加强约束，来保证最终生成结果的多样性和表现能力。
+% Most current methods tackle this challenge by either employing explicit 3D intermediate representations or concentrating on lip motions which generally have a more direct one-to-one correspondence with spoken audio. 
+% a video depicting a person's facial expressions and movements, driven by an audio input.
+% Human-centric video generation, especially in the forms of aduio-driven portrait video generation or its more commonly known counterpart, "talking head", has garnered significant interest due to its application in digital human avatars and film production. 
+% Beyond general video synthesis, the generation of human-centric videos has been the focal point of research, such as talking head. 
+% The objective of talking head is to generate the facial expressions from user-provided audio clips.
+% Crafting these expressions involves capturing the subtleties and diversity of human facial movements, presenting a significant challenge in video synthesis.
+%陈述传统方法为什么会选择采用3D表征进行约束。这种约束是一种很强的约束，限制了生成头部视频的丰富性和表现力。举个例子，比如从视频中提取头部pose，会导致最终的生成的动作永远都是跟输入的pose一致，而我们知道人在表达声音的时候，头部的运动对于情绪，节奏的表达非常重要，同时声音和头部运动的关系是一对多的关系，并没有一个确定的一一对应，因此固定的头部动作输入会导致生成的talkinghead千篇一律，缺少表现力。
+%同样的对于面部表情中，除了口型之外，还存在很多丰富的面部表情，这些也是因人而异，无法提前预设的。目前的一些方法为了保证生成的结果的准确性，特别是口型的准确性，采用3D face Model/landmarks作为中间表征，来约束生成的过程，但是这种方法都很大程度上牺牲了面部表情的细节，导致生成的面部动作僵硬。
+% Traditional approaches often impose constraints on the final video output to simplify this task. 
+% For instance, some methods use 3D models to restrict facial keypoints, while others extract sequences of head movements from base videos to guide the overall motion. While these constraints reduce the complexity of video generation, they also tend to limit the richness and naturalness of the resulting facial expressions.
+% by the given audio input, aiming to achieve a synchronized and lifelike representation of human interaction and communication. 
+% Among the myriad possibilities, the generation and animation of human expressions stand out as a particularly vibrant area of application. Capturing the subtle nuances of facial movements and expressions presents a formidable challenge, one that traditional generative models like GANs (Generative Adversarial Networks) have grappled with. While GANs have made significant strides in various generative tasks, they often fall short in replicating the depth of human expressions, leading to less convincing results in applications requiring high fidelity and expressiveness.
+
+% In this paper, our goal is to establish an innovative talking head framework designed to capture a broad spectrum of realistic facial expressions, including nuanced micro-expressions, and to facilitate natural head movements, thereby imbuing generated head videos with an unparalleled level of expressiveness. 
+% In this paper, we propose a new talking head framework, named EMO (Emote Portrait Alive), which is capable of converting a single portrait image into an expressive talking head video synchronized with an audio clip.  
+% Unlike other methods, our method does not depend on any intermediate 3D representations or prior inputs for head movements and facial expressions. Instead, it mainly leverages the powerful generative capabilities of Diffusion Models to directly learn the relationship between audio and head videos, achieving highly expressive talking head video generation. 
+In this paper, we introduce EMO (Emote Portrait Alive), a novel talking head framework that transforms a single portrait image into an expressive video, synchronized with audio, without relying on intermediate 3D representations or predefined motion templates. 
+EMO harnesses the generative power of Diffusion Models to directly capture the intricate audio-visual correlations, facilitating the generation of dynamic and lifelike talking head videos.
+Specifically, our method extends Stable Diffusion for video by incorporating temporal modules and 3D convolutions, see Sec.~\ref{sec:backbone}. 
+% Specifically, we build our approach based on Stable Diffusion by adapting it to accommodate video processing. We follow the AnimateDiff\cite{animatediff} by incorporating a temporal module and transitioning from 2D to 3D convolutions, thereby creating a temporal diffusion model for video generation, see Sec.~\ref{sec:backbone}.
+In order to lear the correlation between audio and videos, we introduce an audio feature extractor and employ attention module to modulate audio features into the backbone, see Sec.~\ref{sec:audiolayer}.
+% Then, we enable the model to directly learn the correlation between audio and talking head videos. To achieve this, we introduce an audio feature extractor and employ an audio attention module to modulate the audio features into the diffusion backbone network, see Sec.~\ref{sec:audiolayer}. 
+% Through these initial steps, we established a basic Audio2Video diffusion model which adeptly generates human head videos from audio input. 
+% However, directly generating talking head video from this Audio2Video diffusion model can lead to unstable outcomes, such as head drifting or excessively rapid movements. 
+To ensure stability without compromising expressiveness, we introduce novel mechanisms like the Face Locator and Speed Layers, to perform as week conditions for guiding the general area of the target face and the approximate speed level of movements. 
+Unlike the strong priors, such as 3D intermediate representation, used by previous works, these conditions are not able to strictly constrains the face position and the speed of the generated videos, and therefore do not diminish the expressiveness of the generated videos (for more details, see Sec.~\ref{sec:ablation}). Additionally, we introduced Reference Net\cite{animate_anyone} to ensure consistent facial identity throughout the video (see Sec.~\ref{sec:referencenet}) and implemented Motion Frame module to maintain continuity between adjacent video clips, enabling the generation of seamlessly infinite videos, Sec.~\ref{sec:temporalmodule}.
+% By doing above steps, we have developed an basic Audio2Video diffusion model capable of generating human head videos driven by audio. While this basic model maximizes the model's capability to utilize audio and video information effectively, it also introduces challenges in terms of model stability, see Sec.~\ref{sec:ablation}. 
+% Specifically, our approach is build upon Stable Diffusion which is a widely-used text-to-image model with strong generative ability. 
+% In order to learn the relationship between audio input and the talking head videos, we introduce an 
+% Specifically, we first
+% To achieve this goal, we propose a method that leverages the generative power of Diffusion Models, capable of directly synthesizing character head videos from a given image and an audio clip. This approach eliminates the need for intermediate representations or complex pre-processing, streamlining the creation of talking head videos that exhibit a high degree of visual and emotional fidelity, closely aligned with the nuances present in the audio input. 
+% Audio signals are rich in information related to facial expressions, theoretically enabling models to generate a diverse array of expressive facial movements. However, integrating audio with Diffusion Models is not a straightforward task 
+% due to the ambiguity inherent in the mapping between audio and facial expression. 
+% This issue can lead to instability in the videos produced by the model, manifesting as facial distortions or jittering between video frames, and in severe cases, may even result in the complete collapse of the video. 
+%加入weak conditions， 为了解决这里的稳定性问题，我们引入了weak conditions 来引导生成的过程，但是同时有不会降低生成视频的表现力。
+% To address this challenge, we have incorporated stable control mechanisms into our model, namely a speed controller and a face region controller, to enhance stability during the generation process. 
+% These two controllers function as hyperparameters, acting as subtle control signals that do not compromise the diversity and expressiveness of the final generated videos. Furthermore, to ensure that the character in the generated video remains consistent with the input reference image, we adopted and enhanced the approach of ReferenceNet by designing a similar module, FrameEncoding, aimed at preserving the character's identity across the video. 
+
+
+To train our model, we constructed a vast and diverse audio-video dataset, amassing over 250 hours of footage. This expansive dataset encompasses a wide range of content, including speeches, film and television clips, and singing performances, and covers multiple languages such as Chinese and English. The rich variety of speaking and singing videos ensures that our training material captures a broad spectrum of human expressions and vocal styles, providing a solid foundation for the development of EMO. 
+We conducted extensive experiments across multiple datasets, comparing our model with various state-of-the-art methods. Our model outperforms these on several metrics, including a new metric we introduced, E-FID (Expression-FID), designed to evaluate the expressiveness of generated videos, thereby demonstrating superior performance.
+% We conducted extensive experiments and comparisons on the HDTF dataset, where our approach surpassed current state-of-the-art (SOTA) methods, including DreamTalk, Wav2Lip, and SadTalker, across multiple metrics such as FID, SyncNet, F-SIM, and FVD.
+% %we also propose a new metric for assess the expressiveness of the generated head video.
+% To assess the expressiveness of the generated videos, we introduce a new metric called Expression-FID (E-FID). Experimental results demonstrated that our model significantly surpasses existing methods in terms of generative expressiveness.
+% In addition to quantitative assessments, we also carried out a comprehensive user study and qualitative evaluations, which revealed that our method is capable of generating highly natural and expressive talking and even singing videos, achieving the best results to date.
+In summary, we make the following contributions: 1) We propose a novel talking head framework based on fully generative model without any 3D intermediates or pose prior. 2) Our method outperforms other existing SOTA methods in terms of expressiveness and realism of the talking head video. 3) We use weak conditions to stabilize the generation process without incurring significant loss in performance.
+% In summary, our main contributions are as follows:
+% \vspace{-0.5cm}
+% \begin{itemize}
+%     \item We propose EMO, a novel framework capable of generating highly expressive head videos driven by audio under weak conditions.
+%     \item Our method achieves best 
+% \end{itemize}
+%contribution: 提一下我们的模型可以作为一个基础的portrait video generation的框架，人们可以在这个基础上继续做后续的g
+
+% Specifically, we have moved away from the conventional reliance on 3D models or base videos as the intermediate guidance of the video generation process, instead we only rely on an single headshot and an audio clip as inputs to produce a highly expressive head and facial movements, effectively capturing the essence of the intended expressions and emotions conveyed through the audio. 
+
+% This framework is not only engineered to enhance the fidelity and dynamism of digital personas but also equipped with the novel capability to synthesize complex activities such as singing. 
+% This advancement pushes the envelope of what was previously achievable, setting a new benchmark for realism and versatility in the realm of talking head video generation.
+% In this paper, our goal is to build a novel talking head framework which takes only a signle shothead as input and produces highly realistic and expressive facial expressions, accurate lip movements, and natural head motion according to an audio clip. To accomplish this ambitious goal, we propose a Diffusion based model that harnesses the powerful generative capabilities of Diffusion Models and 
+
+
+
+
+
+
+% Our work, "EMO," ventures into this complex terrain with an ambitious goal: to transcend the limitations of existing models and achieve a new level of expressiveness and realism in video generation. We focus specifically on the domain of facial and head animation, driven solely by audio signals. This approach not only capitalizes on the strengths of Diffusion Models in generating high-quality visuals but also introduces a novel dimension of interactivity and responsiveness to audio cues. By harnessing the intricate patterns of speech and sound, "EMO" aims to breathe life into static images, transforming them into vibrant, talking personas with a wide range of expressions and movements.
+
+% This endeavor is not merely a technical challenge but also a step towards enriching digital communication and storytelling. By enabling more lifelike and expressive digital avatars, we open new avenues for creative expression, virtual interactions, and multimedia content creation. As we delve into the intricacies of "EMO," we invite the reader to explore the convergence of audio-driven animation and cutting-edge generative models, marking a significant leap forward in the realm of digital media.
+% Diffusion Models achieve huge success in the area of image generation.
+% 1. highly-expressive Head and Facial Motion generation. -> Softly conditional generation. Learn to control the generation process from the audio signal.
+%     3DMM, given pose sequence, style parameters extracted from a static portrait image.  
+%     % AdaIn的逻辑：speed 控制机制
+% 2. Unlimited length and stable video generation -> Motion Frames, Speed Embedding
+% 3. Id preservation. Reference Net.
+
+% This document serves as an example submission to ECCV \ECCVyear{}.
+% It illustrates the format authors must follow when submitting a paper. 
+% At the same time, it gives details on various aspects of paper submission, including preservation of anonymity and how to deal with dual submissions.
+% We advise authors to read this document carefully.
+
+% The document is based on Springer LNCS instructions as well as on ECCV policies, as established over the years.
+
+\section{Related Work}
+\textbf{Diffusion Models}
+Diffusion Models have demonstrated remarkable capabilities across various domains, including image synthesis\cite{DiffusionBeatGAN,ddpm}, image editing\cite{imageedit-imagic, dragdiffusion}, video generation\cite{animatediff, animate_anyone} and even 3D  content generation\cite{dreamfusion, magic3d}. Among them, Stable Diffusion (SD)\cite{ldm} stands out as a representative example, employing a UNet architecture to iteratively generate images with notable text-to-image capabilities, following extensive training on large text-image datasets\cite{laion5b}. 
+These pretrained models have found widespread application in a variety of image and video generation tasks\cite{animate_anyone,animatediff}. 
+% These pretrained models have found widespread application in a variety of image and video generation tasks. In pursuit of greater scalability, recent developments are exploring the substitution of UNet with Transformers\cite{DiT}, enabling the training of larger networks and datasets, as demonstrated in innovative video generation projects like Latte and Sora. For video generation, some works have attempted to build upon the foudation of the pretrained SD model by incorporating temporal modules and 3D Conv to the UNet structure\cite{animate_anyone,animatediff}. 
+Additionally, some recent works adopt a DiT (Diffusion-in-Transformer)\cite{DiT} which alters the UNet with a Transformer incpororating temporal modules and 3D Convoluations, enabling support for larger-scale data and model parameters. By training the entire text-to-video model from scratch, it achieves superior video generation results\cite{latte}. Also, some efforts have delved into applying Diffusion Models for talking head generation, producing promising results that highlight the capability of these models in crafting realistic talking head videos\cite{diffused_head,dreamtalk}. 
+
+\textbf{Audio-driven talking head generation}
+Audio-driven talking head generation can be broadly catgorized into two approaches:video-based methods\cite{wen2020audiodvp,faceformer2022, wav2lip, shen2023difftalk, guan2023stylesync} and single-image \cite{sadtalker,sun2023vividtalk,dreamtalk, liu2023moda}.
+video-based talking head generation allows for direct editing on an input video segment. For example, Wav2Lip\cite{wav2lip} regenerates lip movements in a video based on audio, using a discriminator for audio-lip sync. Its limitation is relying on a base video, leading to fixed head movements and only generating mouth movements, which can limit realism.
+For single-image talking head generation, a reference photo is utilized to generate a video that mirrors the appearance of the photo. 
+\cite{sun2023vividtalk} proposes to generate the head motion and facial expressions independently by learning blendshapes and head poses. These are then used to create a 3D facial mesh, serving as an intermediate representation to guide the final video frame generation. Similarly, \cite{sadtalker} employs a 3D Morphable Model (3DMM) as an intermediate representation for generating talking head video.
+A common issue with these methods is the limited representational capacity of the 3D mesh, which constrains the overall expressiveness and realism of the generated videos. Additionally, both methods are based on non-diffusion models, which further limits the performance of the generated results. \cite{dreamtalk} attempts to use diffusion models for talking head generation, but instead of applying directly to image frames, it employs them to generate coefficients for 3DMM. Compared to the previous two methods, Dreamtalk offers some improvement in the results, but it still falls short of achieving highly natural facial video generation.
+
+\input{SEC_Method}
+
+\input{SEC_EXP}
+
+% \section*{Acknowledgements}
+% Please insert your acknowledgments here.
+
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+%
+\bibliographystyle{splncs04}
+\bibliography{main}
+\end{document}

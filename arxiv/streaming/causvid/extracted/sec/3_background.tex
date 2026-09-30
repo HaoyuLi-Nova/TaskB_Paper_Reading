@@ -1,0 +1,48 @@
+\section{Background}
+\label{sec:background}
+This section provides background information on video diffusion models~(Sec.~\ref{sec:video_diffusion}) and distribution matching distillation~(Sec.~\ref{sec:dmd}), which our method is built upon.
+
+\subsection{Video Diffusion Models}
+\label{sec:video_diffusion}
+Diffusion models~\cite{sohl2015deep,ho2020denoising} generate samples from a data distribution $p(x_{0})$ by progressively denoising samples that are initially drawn from a Gaussian distribution $p(x_{T})$. 
+They are trained to denoise samples created by adding random noise $\epsilon$ to the samples $x_0$ from the data distribution
+\begin{equation}
+    x_t = \alpha_t x_0 + \sigma_t\epsilon,\ \epsilon \sim \mathcal{N}(0, I)\,,
+    \label{eq:diffusion_noise}
+\end{equation}
+where $\alpha_t, \sigma_T>0$ are scalars that jointly define the signal-to-noise ratio according to a specific noise schedule~\cite{karras2022elucidating,kingma2021variational,song2020score} at step $t$. 
+The denoiser with parameter $\theta$ is typically trained to predict the noise~\cite{ho2020denoising}
+\begin{equation}
+    \mathcal{L}(\theta) = \mathbb{E}_{t, x_0, \epsilon}\left\|\epsilon_{\theta}(x_t, t) - \epsilon\right\|_2^2\,.
+    \label{eq:denoising_loss}
+\end{equation}
+Alternative prediction targets include the clean image $x_0$~\cite{salimans2022progressive,karras2022elucidating} or a weighted combination of $x_0$ and $\epsilon$ known as v-prediction~\cite{salimans2022progressive}.
+All prediction schemes are fundamentally related to the score function, which represents the gradient of the log probability of the distribution~\cite{song2020score,kingma2021variational}: \begin{equation} \label{eq
+} s_\theta(x_t, t) = \nabla_{x_t} \log p(x_t) = - \frac{\epsilon_\theta(x_t, t)}{\sigma_t}. \end{equation} In the following sections, we simplify our notation by using the score function $s_\theta$ as a general representation of the diffusion model, while noting that it can be derived through reparameterization from a pretrained model of any prediction scheme.
+At inference time, we start from full Gaussian noise $x_T$ and progressively apply the diffusion model to generate a sequence of increasingly cleaner samples. There are many possible sampling methods~\cite{song2020denoising,lu2022dpm,zhangfast,karras2022elucidating} to compute the sample $x_{t-1}$ in the next time step from the current one $x_t$ based on the predicted noise $\epsilon_{\theta}(x_t, t)$.
+
+Diffusion models can be trained on either raw data~\cite{ho2020denoising,jabri2022scalable,karras2022elucidating} or on a lower-dimensional latent space obtained by a variational autoencoder~(VAE)~\cite{rombach2022high,peebles2023scalable,karras2024analyzing,yang2024cogvideox,opensora}.
+The latter is often referred to as latent diffusion models~(LDMs) and has become the standard approach for modeling high-dimensional data such as videos~\cite{zhou2022magicvideo,opensora,hong2022cogvideo,blattmann2023align,yang2024cogvideox}. 
+The autoencoder usually compresses both spatial and temporal dimensions of the video, making diffusion models easier to learn. The denoiser network %
+in video diffusion models can be instantiated by different neural architectures, such as U-Net~\cite{ronneberger2015u,ho2022video,zhou2022magicvideo,chen2023videocrafter1} or Transformers~\cite{vaswani2017attention,hong2022cogvideo,yang2024cogvideox,videoworldsimulators2024}.
+
+\subsection{Distribution Matching Distillation}
+\label{sec:dmd}
+Distribution matching distillation is a technique designed to distill a slow, multi-step teacher diffusion model into an efficient few-step student model~\cite{yin2024improved, yin2024onestep}. 
+The core idea is to minimize the reverse KL divergence across randomly sampled timesteps $t$ between the smoothed data distribution $p_{\text{data}}(x_{t})$ and the student generator's output distribution $p_{\text{gen}}(x_{t})$. 
+The gradient of the reverse KL can be approximated as the difference between two score functions:
+\begin{align}
+\label{eq:dmd}
+\nabla_{\phi} \mathcal{L}_{\text{DMD}} & \triangleq \mathbb{E}_{t} \left( \nabla_{\phi} \text{KL} \left( p_{\text{gen}, t} \| p_{\text{data}, t} \right) \right) \notag \\
+& \approx - \mathbb{E}_{t} \left( \int \left( s_{\text{data}} \left( \Psi \left( G_{\phi}(\epsilon), t \right), t \right) \right. \right. \\ 
+& \qquad \left. \left. - s_{\text{gen},\xi} \left( \Psi \left( G_{\phi}(\epsilon), t \right), t \right) \right) \frac{d G_{\phi}(\epsilon)}{d \phi} \, d\epsilon \right), \notag 
+\label{eq:dmd}
+\end{align}
+where $\Psi$ represents the forward diffusion process as defined in Eq.~\ref{eq:diffusion_noise}, $\epsilon$ is random Gaussian noise, $G_{\phi}$ is the generator parameterized by $\phi$, and $s_{\text{data}}$ and $s_{\text{gen},\xi}$ represent the score functions trained on the data and generator's output distribution, respectively, using a denoising loss~(Eq.~\ref{eq:denoising_loss}). 
+
+During training, DMD~\cite{yin2024onestep} initializes both score functions from a pre-trained diffusion model. 
+The score function of the data distribution is frozen, while the score function of the generator distribution is trained online using the generator's outputs.
+Simultaneously, the generator receives gradients to align its output with the data distribution~(Eq.~\ref{eq:dmd}).  
+DMD2~\cite{yin2024improved} extends this framework from single-step to multi-step generation by replacing the pure random noise input $\epsilon$ with a partially denoised intermediate image $x_t$.
+
+

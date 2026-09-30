@@ -1,0 +1,178 @@
+\begin{figure*}[th!]  % 使用figure环境
+    \centering
+    \includegraphics[width=1.0\textwidth]{figs/ablation_comp.pdf}  
+    % \vspace{-7mm} 
+    \caption{Visual comparison among four training strategies. (a) High video sampling rates (first and second rows) prevent appearance degradation during quick movements, while low FPS leads to significant visual inconsistencies.(b) The human appearance filter (third and fourth rows) eliminates facial blurring and deformities in faces and hands.(c) Our method aligns better with action prompts like "extending arms" (fifth and sixth rows), unlike the baseline which fails to follow the prompts.(d) Our method accurately reflects facial expressions prompted, such as "sorrowful expression" and "smile" (seventh and eighth rows), whereas the baseline does not.}
+    \label{fig:ablation_compare} 
+    % \vspace{-5mm}
+\end{figure*}
+
+
+\section{Experiments}
+\subsection{Implementation}
+
+
+\noindent\textbf{Training.}
+During the training phase, we utilized A100 GPU server cluster and incorporated low-rank matrices with a rank of 1024 into the full 3D attention module of the baseline network. 
+After incorporating LoRA, the total number of parameters in the model was 6.60 billion, with 1.02 billion trainable parameters. We froze the gradients of all weights in the original base network and trained for 20,000 steps with a learning rate of 5e-4, implementing both learning rate warm-up and decay mechanisms. 
+
+\noindent\textbf{Inference.}
+During the inference phase, we employed 50 diffusion steps and dynamic Classifier-Free Guidance (CFG)~\cite{ho2021classifier} to enhance the generation process. The generated videos have a resolution of 720$\times$480 and consist of 49 frames per sequence. This setting is consistently applied across all experiments to ensure a fair comparison.
+
+
+\noindent\textbf{Data.}
+To validate the effectiveness of our data and training strategy, we selected 6.55K hours from the filtered video dataset using a human quality filter and adopted a sampling rate of 24 FPS, an increase from the previous baseline of 8 FPS. 
+%This training dataset ensures high video quality, specifically a higher DOVER value, and captures a broader range of human expressions and movements across diverse scenes.
+Prior to large-scale training, we conducted small-scale experiments to evaluate various training data strategies. 
+For these experiments, we randomly selected 1.05K hours from the 6.55K hour dataset and performed four comparative experiments on different training strategies: video sampling rate, human appearance text-video alignment, human motion text-video alignment, and face motion text-video alignment.
+For the test set, we randomly selected 240 samples from the dataset that were not used during training. 
+These samples encompass a variety of human proportions and scenes. Additionally, we selected 100 samples where humans occupy a significant spatial portion, aiming to better assess human evaluation metrics.
+
+\begin{table}[t!]
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}{@{}cccc@{}}
+\toprule
+Category& Metrics& Description \\
+\midrule
+\multirow{2}{*}{Human Consistency} & Face Consistency             & Evaluates the consistency of facial feature across the video.          \\
+ & Body Consistency& Evaluates the consistency of the body feature across the video.         \\
+\midrule
+ \multirow{2}{*}{Human Semantics}&Body Semantics&Measures semantic alignment of human body motion and text prompt.\\
+&Face Semantics&Measures semantic alignment of human face motion and text prompt.\\
+\midrule
+\multirow{4}{*}{Vbench}&I2V Consistency &Quantifies adherence to a reference image across frames. \\
+&Aesthetic Quality &Scores artistic and beauty of video.\\
+&Imaging Quality &Assesses visual technical quality. \\
+&Motion Smoothness &Evaluates naturalness of motion. \\
+\bottomrule
+\end{tabular}}
+% \vspace{-4mm}
+  \caption{Metrics used for evaluating the generated results.}
+  \label{tab:metrics}
+  % \vspace{-7mm}
+\end{table}
+
+
+
+\begin{table*}[th!] 
+  \centering
+  \resizebox{\textwidth}{!}{
+  \begin{tabular}{c|cccccccc}
+\toprule
+\multirow{2}{*}{Video sample rate} & \multicolumn{2}{c}{Human Consistency} & \multicolumn{2}{c}{Human Semantics} & \multicolumn{4}{c}{VBench Evaluation}                                     \\ \cline{2-9} 
+                                   & Face Consistency  & Body Consistency & Body Semantics     & Face Semantics      & I2V Consistency & Aesthetic Quality & Imaging Quality & Motion Smoothness \\
+                                   \cmidrule{1-9} 
+FPS = 8                            & 0.7209            & 0.9540           & 0.4217          & 0.3021          & 0.9763          & 0.5546            & 0.6534          & 0.9929            \\
+FPS = 24                           & \textbf{0.7390}   & \textbf{0.9638}  & \textbf{0.4262} & \textbf{0.3055} & \textbf{0.9825} & \textbf{0.5572}   & \textbf{0.6587} & \textbf{0.9946}   \\ \hline
+\end{tabular}
+  }
+  \vspace{-3 mm}
+  \caption{Quantitative comparison of the extended diffusion transformer network further pretrained on the proposed 1.05K hours dataset with different video sampling strategy. We can see that using higher video sampling rate as train data markedly improves human appearance consistency, meanwhile enhancing the video quality.}
+  \label{tab:fps_compare}
+  \vspace{-3 mm}
+\end{table*}
+
+
+\begin{table*}[th!]
+\resizebox{\textwidth}{!}{
+\begin{tabular}{c|cccccccc}
+\toprule
+\multirow{2}{*}{Filter Method} & \multicolumn{2}{c}{Human Consistency} & \multicolumn{2}{c}{Human Semantics} & \multicolumn{4}{c}{VBench Evaluation}                                     \\ \cmidrule{2-9} 
+                               & Face Consistency  & Body Consistency & Body Semantics      & Face Semantics     & I2V Consistency & Aesthetic Quality & Imaging Quality & Motion Smoothness \\ 
+   \midrule
+No Filter                      & 0.7976            & 0.9679           & 0.4437           & 0.3148         & 0.9821          & 0.5656            & 0.6912          & 0.9941            \\
+Human Appearance Filter        & 0.8674            & 0.9810           & 0.4556           & 0.3197         & 0.9898          & 0.5843            & 0.7077          & 0.9951            \\
+Human Motion Filter            & 0.8275            & 0.9796           & 0.4866           & 0.3144         & 0.9888          & 0.5575            & 0.6971          & 0.9946            \\
+Face Motion Filter             & 0.8407            & 0.9794           & 0.4454           & 0.3220         & 0.9891          & 0.5685            & 0.7007          & 0.9950            \\ \bottomrule
+\end{tabular}
+}
+\vspace{-3 mm}
+\caption{Quantitative comparison of the extended diffusion transformer network further pretrained on the proposed 1.05K hours dataset with different human quality filter, including the filter of human appearance text-video alignment, human motion text-video alignment and face motion text-video aligment.  }
+\vspace{-3 mm}
+  \label{tab:quan_compare_furthertrain}
+\end{table*}
+
+\begin{table*}[th!] 
+  \centering
+  \resizebox{\textwidth}{!}{
+  \begin{tabular}{c|cccccccc}
+    \toprule
+    & \multicolumn{2}{c}{Human Consistency} & \multicolumn{2}{c}{Human Semantics} & \multicolumn{4}{c}{VBench Evaluation} \\
+    \cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-9}
+    & Face Consistency & Body Consistency & Body Semantics & Face Semantics & I2V Consistency & Aesthetic Quality & Imaging Quality & Motion Smoothness \\
+    \midrule
+    Baseline (CogVideoX) &0.7108 & 0.9405 & 0.4166&0.3018 & 0.9759  & 0.5562 & 0.6530 &0.9905\\
+    Ours & \textbf{0.7418} & \textbf{0.9678} & \textbf{0.4333} & \textbf{0.3136} & \textbf{0.9885} & \textbf{0.5594} & \textbf{0.6662} & \textbf{0.9948}\\
+    \bottomrule
+  \end{tabular}}
+  \vspace{-3 mm}
+  \caption{Quantitative comparison between the baseline and the proposed extended diffusion transformer network further pretrained on the proposed 6.05K hours dataset. }
+  \vspace{-6 mm}
+  \label{tab:action_compare}
+\end{table*}
+
+
+
+
+\noindent\textbf{Evaluation Metrics.}
+%There are several evaluation metrics for generated videos, such as Vbench~\cite{huang2024vbench}, which assesses video quality based on factors like subject appearance consistency, motion semantics, and low-level visual quality. 
+In this experiment, to evaluate the general quality of the generated video results, we employed the following metrics from Vbench: Image-to-Video Consistency, Motion Smoothness, Aesthetic Quality, and Imaging Quality. 
+%These metrics allow us to assess the visual continuity, smoothness of motion while adhering to physical laws, as well as the aesthetic appeal and technical distortions of the generated videos.
+As shown in Table~\ref{tab:metrics}, we aim to focus on the generative performance of the human in the video. Inspired by Subject Consistency in Vbench, we introduce two metrics: \textbf{Face Consistency} and \textbf{Body Consistency}. Face Consistency evaluates whether facial features remain consistent across the video. We measure this by calculating feature similarity across frames using the InsightFace model~\cite{Deng2020CVPR}, which is specialized in face tasks. Body Consistency evaluates the consistency of the body in a similar manner, we employ the YOLOv8 detection model to extract human body, followed by DINO~\cite{caron2021emerging} for feature extraction and similarity comparison.
+We also introduce two metrics to measure the semantic alignment of body motion and face motion: \textbf{Body Semantics} and \textbf{Face Semantics}. Specifically, we use the similarity score between the generated video and words of body motion and face motion as an evaluation metric for human-video alignment, in the following experiments, the BLIP2 score is employed.
+
+
+
+
+
+
+% \begin{figure*}[th!]  % 使用figure环境
+%     \centering
+%     \includegraphics[width=1.0\textwidth]{figs/vis_res/generated_results.png}  
+%     \vspace{-6mm}
+%     \caption{Different visual generation results of ours diffusion transformer extended model. It can be seen from the first row and the second row, we can produce human more stable portrait videos, and anime characters with high character consistency. In addition to that, ours model also can handle complex motion, like the third row, person is riding a horse without any distortion.}  
+    
+%     \label{fig:generated_results} 
+%     \vspace{-5mm}
+% \end{figure*}
+
+
+
+
+\subsection{Training Data Strategy}
+\label{sec：training_strategy}
+In this section, we build upon a prestigious baseline diffusion transformer network, enhancing it with the LoRA technique, and subsequently pretraining the network on the proposed dataset.
+Based on the results of the further pretraining, we derive four key insights.
+
+\noindent\textbf{Video sampling rate.}
+The video sampling rate is critical for maintaining identity consistency in generated human videos and aligning facial and body movements with textual captions. 
+A higher sampling rate facilitates the capture of more frames, enhancing temporal coherence in features such as facial expressions and body postures. 
+Moreover, effective alignment of movements with textual descriptions hinges on the model's ability to accurately capture motion dynamics over time. 
+An increased sampling rate provides detailed information about these dynamics, enabling realistic movements that correspond to captions.
+
+Table~\ref{tab:fps_compare} illustrates the training strategy employed to enhance the video sampling rate. Results indicate that a frame rate of 24 FPS yields significant improvements in appearance consistency and in the alignment between human motion and text prompts, alongside enhancements in general video metrics. 
+As depicted in Figure~\ref{fig:ablation_compare} (a), higher FPS markedly improves character appearance, particularly in complex scenes with numerous individuals, whereas lower FPS leads to discernible artifacts in human representations.
+
+\noindent\textbf{Human Appearance Text-Video Alignment.} As shown in Table~\ref{tab:quan_compare_furthertrain}, the introduced human appearance text-video alignment method significantly improves both face consistency and body consistency, and slightly improves body semantics and face semantics, alongside improvements in general video metrics. As depicted in Figure~\ref{fig:ablation_compare}~(b), our method shows remarkable consistency in character appearance across frames, whereas the baseline version shows more visual degradation in appearance, such as the face and hands.
+
+\noindent\textbf{Human Motion Text-Video Alignment.} As shown in Table~\ref{tab:quan_compare_furthertrain}, the introduced human motion text-video alignment method significantly improves body consistency and body semantics, alongside improvements in general video metrics, which indicates better adherence to the actions specified in the prompts. As depicted in Figure~\ref{fig:ablation_compare}~(c), our method shows higher adherence to the actions indicated in the prompts, while the baseline method failed to follow the prompts.
+
+\noindent\textbf{Face Motion Text-Video Alignment.} As shown in Table~\ref{tab:quan_compare_furthertrain}, the introduced face motion text-video alignment method shows significant improvement in both face consistency and face semantics, alongside improvements in general video metrics. As depicted in Figure~\ref{fig:ablation_compare}~(d), our method shows higher adherence to the expressions indicated in the prompts, while the baseline method failed to follow the prompts.
+
+% Our analysis indicates that the accuracy of textual captions regarding character appearance, facial expressions, and body motion significantly impacts the final outcomes. 
+% The alignment between textual descriptions and video content is essential for achieving high-quality results.
+% In light of these insights, we validate the effectiveness of the proposed human quality filter and further design a data training strategy for the model.
+
+% Finally, based on our large and diverse dataset, combined with various training strategies, we find that, as shown in Table~\ref{tab:quan_compare_furthertrain}, our results significantly outperform those of baseline network in generating human videos. 
+
+% As seen in the Figure~\ref{fig:ablation_compare} (b)(c)(d), the appearance filter prevents artifacts on the hands and face. Additionally, with the motion and expression filters, the human's actions and expressions better follow the prompt instructions, such as raising a hand, furrowing brows, or smiling.
+
+
+
+\subsection{Training on OpenHumanVid} 
+As shown in Table~\ref{tab:action_compare}, utilizing the proposed large-scale and high-quality human video dataset, and incorporate the training data strategies described above, including higher video sampling rate, human appearance filter, human motion filter and face motion filter, the extended model obviously improves compared with the baseline model after further pretraining, evaluated no matter in general video evaluation metrics and human-related evaluation metrics.
+
+\vspace{-2mm}
+
+% And in Figure~\ref{fig:generated_results}, ours diffusion transformer extended model can produce human more stable portrait videos, and anime characters with high character consistency.

@@ -1,0 +1,38 @@
+\begin{table}
+\small
+\caption{\small Video reconstruction results on Moments-in-Time. The number of tokens is computed for 10 frames with the exception of \cvivit which is for 11, due to the isolated initial frame.}
+\vspace{-.3cm}
+\label{tab:quant}
+\begin{center}
+\begin{tabular}{lccc}
+Method  & FID  & FVD  & \makecell{Number of Tokens} \\
+\hline
+Conv VQ-GAN \cite{vqgan}                 & 7.5 & 306.1 & 2560 \\
+Conv VQ-GAN + Video loss            & 13.7 & 346.5 & 2560 \\
+ViT VQ-GAN \cite{vit_vqgan}                  & 3.4 & 166.6 & 2560 \\
+ViT VQ-GAN + Video loss             & 3.8 & 173.1 & 2560 \\ \hline
+% ViViT VQ-GAN (Ours)                 & 4.3 & 23.76 & 1280 & N \\
+C-ViViT VQ-GAN (Ours)               & 4.5 & 65.78 & 1536 \\
+\end{tabular}
+\end{center}
+\end{table}
+
+% \begin{table}
+% \small
+% \vspace{-0.7cm}
+% \caption{\small Video reconstruction results on Moments-in-Time. The number of tokens is computed for 10 frames with the exception of \cvivit which is for 11, due to the isolated initial frame.}
+% \vspace{-.3cm}
+% \label{tab:quant}
+% \begin{center}
+% \begin{tabular}{lcccc}
+% Method  & FID  & FVD  & \makecell{Number of Tokens}  & Supports Variable Length Videos\\
+% \hline
+% Conv VQ-GAN \cite{vqgan}                 & 7.5 & 306.1 & 2560 & Y\\
+% Conv VQ-GAN + Video loss            & 13.7 & 346.5 & 2560 & Y \\
+% ViT VQ-GAN \cite{vit_vqgan}                  & 3.4 & 166.6 & 2560 & Y \\
+% ViT VQ-GAN + Video loss             & 3.8 & 173.1 & 2560 & Y \\ \hline
+% % ViViT VQ-GAN (Ours)                 & 4.3 & 23.76 & 1280 & N \\
+% C-ViViT VQ-GAN (Ours)               & 4.5 & 65.78 & 1536 & Y \\
+% \end{tabular}
+% \end{center}
+% \end{table}

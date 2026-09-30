@@ -1,0 +1,34 @@
+\section{Introduction}
+\vspace{-0.5em}
+
+Lip synchronization, matching mouth movements with speech audio, is essential for creating compelling visual content across film dubbing~\cite{zhang2023dinet}, digital avatars~\cite{peng2023emotalk,peng2023selftalk,zhou2024meta}, and teleconferencing~\cite{meng2024comprehensive,peng2025dualtalk}. With the rise of AI-generated content, this technology has evolved from a specialized technique to a fundamental aspect of the video generation landscape~\cite{yan2021videogpt, singer2022make, liu2024evalcrafter}. Despite significant advances in text-to-video (T2V) models~\cite{chen2023videocrafter1,blattmann2023stable,yang2024cogvideox,kong2024hunyuanvideo,wang2025wan} creating increasingly realistic footage, achieving precise and natural lip synchronization remains an unsolved challenge. 
+
+
+Traditional lip synchronization approaches rely heavily on reference frames combined with masked-frame inpainting~\cite{prajwal2020lip, zhang2023dinet, guan2023stylesync, guan2024resyncer}. This methodology extracts appearance information from reference frames to inpaint masked regions in target frames—a process that introduces several critical limitations. These methods struggle with head pose variations, identity preservation, and artifact elimination, especially when target poses differ significantly from references~\cite{peng2024synctalk,peng2025synctalk++}. 
+
+Furthermore, the dependence on explicit masks cannot fully prevent unwanted lip shape leakage, compromising synchronization quality and restricting applicability across diverse visual representations~\cite{bigata2025keysync}. The challenges intensify in the context of audio-driven generation. Unlike strong visual cues, audio signals provide relatively weak conditioning, making precise lip synchronization difficult~\cite{wang2024v}. Additionally, existing methods rely on face detection and alignment~\cite{bulat2017far} techniques that break down when applied to stylized characters and non-human entities, precisely the diverse content that modern text-to-video models excel at generating.
+
+This technical gap is compounded by the absence of standardized evaluation frameworks for lip sync in stylized videos. Current benchmarks~\cite{zhang2021flow, wang2020mead} focus almost exclusively on photorealistic human faces in controlled settings, failing to capture the visual diversity inherent in AI-generated videos.
+
+To address these challenges, we introduce OmniSync, a universal lip synchronization framework designed for diverse videos. Our approach eliminates reliance on reference frames and explicit masks through a diffusion-based direct video editing paradigm. In addition, we establish AIGC-LipSync Benchmark, the first comprehensive evaluation framework for lip synchronization across diverse AIGC contexts. OmniSync's technical approach is built upon three key innovations:
+
+First, we implement a mask-free training paradigm using Diffusion Transformers (DiT)~\cite{peebles2023scalable} for direct cross-frame editing. Our model learns a mapping function $(V_{cd}, A_{ab}) \mapsto V_{ab}$, where $V$ represents video frames and $A$ represents audio. The indices $(a:b, c:d)$ represent different segments sampled from the same video. The model modifies only speech-relevant regions according to target audio without requiring explicit masks or references. This approach enables unlimited-duration inference while maintaining natural facial dynamics and preserving character identity.
+
+
+Second, we introduce a flow-matching-based progressive noise initialization strategy during inference. Rather than beginning with random noise~\cite{tian2024emo}, we inject controlled noise into original frames using Flow Matching~\cite{lipman2022flow}, then execute only the final denoising steps. This approach maintains spatial consistency between source and generated frames while allowing sufficient flexibility for precise mouth region modifications, effectively mitigating pose inconsistency and identity drift.
+
+Third, we develop a dynamic spatiotemporal Classifier-Free Guidance (CFG) framework~\cite{ho2022classifier} that provides fine-grained control over the generation process. By adaptively adjusting guidance strength across both temporal and spatial dimensions: temporally reducing guidance strength as denoising progresses, and spatially applying Gaussian-weighted control centered on mouth-relevant regions. This balanced approach ensures precise lip synchronization without disturbing unrelated areas.
+
+
+Our contributions can be summarized as follows:
+\begin{itemize}
+\item[$\bullet$] A universal lip synchronization framework that eliminates reliance on reference frames and explicit masks, enabling accurate speech synchronization across diverse visual representations.
+
+\item[$\bullet$] A flow-matching-based progressive noise initialization strategy during inference, effectively stabilizing the early denoising process and mitigating pose inconsistency and identity drift.
+
+\item[$\bullet$] A dynamic spatiotemporal CFG framework that provides fine-grained control over audio influence, addressing the weak signal problem in audio-driven generation.
+
+\item[$\bullet$] A comprehensive AIGC-LipSync Benchmark for evaluating lip synchronization in AI-generated content, including stylized characters and non-human entities.
+
+\end{itemize}
+

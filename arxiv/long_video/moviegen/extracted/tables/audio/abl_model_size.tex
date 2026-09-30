@@ -1,0 +1,44 @@
+\begin{table}[h]
+    \begin{subfigure}[b]{.65\linewidth}
+        \centering
+        \adjustbox{max width=\textwidth}{%
+        \begin{tabular}{cc ccc cc}
+            \toprule
+            \multicolumn{2}{c}{\multirow{2}{*}{Model parameter}}
+            & \multicolumn{5}{c}{A net win rate \vs B} \\
+            & & \multicolumn{3}{c}{Quality} & \multicolumn{2}{c}{Video-SFX Alignment} \\
+            \cmidrule(lr){3-5} \cmidrule(lr){6-7}
+            Model A & Model B & Ovr. & Nat. & Pro. & Corr. & Sync. \\
+            \midrule
+            3B & 300M & \meanci{29.9}{19.0} & \meanci{25.1}{18.7} & \meanci{20.2}{19.1} & \meanci{35.2}{14.3} & \meanci{34.9}{19.5} \\
+            9B & 3B   & \meanci{34.6}{18.8} & \meanci{36.7}{18.8} & \meanci{36.7}{18.4} & \meanci{19.4}{13.4} & \meanci{20.1}{17.3}\\
+            13B & 9B  & \meanci{11.0}{21.3} & \meanci{10.3}{21.3} & \meanci{11.7}{21.3} & \meanci{18.8}{19.3} & \meanci{23.1}{16.8} \\
+            \bottomrule
+        \end{tabular}
+        }
+        \subcaption{Subjective metrics.}
+        \label{tab:audio_abl_model_size_sbj}
+    \end{subfigure}
+    \begin{subfigure}[b]{.33\linewidth}
+        \centering
+        \adjustbox{max width=0.9\textwidth}{%
+        \begin{tabular}{c c}
+            \toprule
+            Model & CLAP \\
+            \midrule
+            300M & 0.23 \\
+            3B  & 0.35 \\
+            9B & 0.35 \\
+            13B  & 0.38 \\
+            \bottomrule
+        \end{tabular}
+        }
+        \subcaption{Objective metrics.}
+        \label{tab:audio_abl_model_size_obj}
+    \end{subfigure}
+
+    \caption{\textbf{Scaling the \OursAudio model size.}
+    We observe that scaling the model size generally improves performance across all metrics.
+    }
+    \label{tab:audio_abl_model_size}
+\end{table}

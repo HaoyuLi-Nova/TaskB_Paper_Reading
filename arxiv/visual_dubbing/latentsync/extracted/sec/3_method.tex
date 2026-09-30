@@ -1,0 +1,179 @@
+\section{Method}
+
+\subsection{LatentSync Framework}
+The overview of the LatentSync framework is shown in \cref{fig:framework}. The framework is based on video-to-video inpainting with the temporal modeling by temporal layer \cite{guo2023animatediff}. To incorporate the visual features of the face from the input video, reference frames are introduced as additional inputs. During training, these frames are randomly selected, while during inference, they are taken from the current frames. We concatenate different inputs along the channel dimension, making the total input of U-Net to be 13 channels (4 channels for noise latent, 1 channel for the mask, 4 channels for the masked frame, and 4 channels for the reference frame). At the beginning of training, the model is initialized with the parameters of SD 1.5 \cite{rombach2022high}, except for the first \texttt{conv\_in} layer with 13 channels and cross-attention layers of dimension 384, which are randomly initialized.
+
+\para{Audio layers.}
+We used the pretrained audio feature extractor Whisper \cite{radford2023robust} to extract audio embeddings. Lip motion may be influenced by the audio from the surrounding frames, and a larger range of audio input also provides more temporal information for the model. Therefore, for each generated frame, we bundled the audio from several surrounding frames as input. We define the input audio feature $A^{(f)}$ for the $f$th frame as: $A^{(f)} = \left\{ a^{(f-m)}, \dots, a^{(f)}, \dots, a^{(f+m)} \right\}$, where $m$ is the number of surrounding audio features from one side. To integrate the audio embeddings into the U-Net \cite{ronneberger2015u}, we used the native cross-attention layer.
+
+\para{Affine transformation and fixed mask.}
+During the data preprocessing stage, affine transformation was employed to perform face frontalization. This approach \cite{guan2023stylesync} helps the model to effectively learn facial features particularly in challenging scenarios such as side-profile views. We applied a mask that covers the entire face to minimize the model's tendency to learn visual-visual shortcuts. The position and shape of the mask are fixed. We do not use the detected landmarks \cite{lugaresi2019mediapipe,bulat2017far} to draw the mask, as moving landmarks also provide cues about lip movements. The affine transformation and fixed mask are illustrated in \cref{fig:affine}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{./figures/affine.pdf}
+    % \vspace{-20pt}
+    \caption{The illustration of affine transformation and fixed mask.}
+    \vspace{-10pt}
+    \label{fig:affine}
+\end{figure}
+
+\para{SyncNet supervision.}
+Latent diffusion models predict in the noise space, while SyncNet \cite{chung2017out,prajwal2020lip} requires an input in the image space. To address this issue, we use the predicted noise $\epsilon_\theta(z_t)$ to obtain the estimated $\hat{z}_0$ in one step, which can be formulated as:
+\begin{equation}
+    \hat{z}_0 = \left( z_t - \sqrt{1 - \bar{\alpha}_t} \, \epsilon_\theta(z_t) \right) / \sqrt{\bar{\alpha}_t}
+\end{equation}
+Another problem is that latent diffusion models make predictions in the latent space. We explored two methods to incorporate SyncNet supervision into latent diffusion models: (a) \textbf{Decoded pixel space supervision}, which trains SyncNet in the same way as Wav2Lip \cite{prajwal2020lip}. (b) \textbf{Latent space supervision}, which requires training a SyncNet in the latent space. The visual encoder input of this SyncNet is the latent vectors obtained by the VAE \cite{esser2021taming,kingma2013auto} encoding.  The illustration is shown in \cref{fig:supervision}. Our empirical analysis in \cref{sec:ablation} reveals that training SyncNet in the latent space exhibits inferior convergence compared to training in the pixel space. This degradation may arise from information loss in the lip region during the VAE encoding process. The poorer convergence of SyncNet in the latent space adversely impacts the lip-sync accuracy of the supervised diffusion models, according to the experimental results in \cref{sec:ablation}. Therefore, we finally choose the decoded pixel space supervision in the LatentSync framework.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.8\linewidth]{./figures/supervision.pdf}
+    % \vspace{-20pt}
+    \caption{Two methods to add SyncNet supervision to latent diffusion models.}
+    \vspace{-10pt}
+    \label{fig:supervision}
+\end{figure}
+
+\subsection{Two-Stage Training Strategy}
+
+The decoded pixel space supervision has a problem that the activations in VAE decoding need to be stored for backpropagation, which significantly increases GPU memory consumption. To mitigate this issue, we designed a two-stage training strategy: in the first stage, the model learns to extract features from reference frames and develops inpainting capabilities, which we refer to as learning visual features. In the second stage, it learns audio-visual correlations under SyncNet supervision. This approach eliminates the need for the VAE decoding process in the first stage, enabling model to learn visual features with a larger batch size. We observed that audio-conditioned LDMs typically spend more time learning visual features and less time learning audio-visual correlations. Therefore, this two-stage training strategy allows the model to efficiently learn both visual features and audio-visual correlations. We provide the formal definitions of training objectives in the following paragraphs.
+
+In the first stage of training, we do not add the temporal layer \cite{guo2023animatediff,blattmann2023align} and train all parameters of the U-Net. The training objective has only a simple loss \cite{ho2020denoising}:
+\begin{equation}
+    \mathcal{L}_{\text{simple}} = \mathbb{E}_{x, A, \epsilon \sim \mathcal{N}(0,1), t}
+    \left[ \left\| \epsilon - \epsilon_\theta(z_t, t, \tau_\theta(A)) \right\|_2^2 \right]
+\end{equation}
+where $A$ is the input audio, $\epsilon_\theta(z_t, t, \tau_\theta(A))$ is the predicted noise, and $\tau_\theta$ is the audio feature extractor.
+
+In the second stage of training, we only train the temporal layer and audio layer while freezing the other parameters of the U-Net. Suppose we have 16 decoded video frames $\mathcal{D}(\hat{z}_0)_{f:f+16}$ and the corresponding audio sequence $a_{f:f+16}$, the SyncNet loss can be formulated as:
+\begin{equation}
+    \mathcal{L}_{\text{sync}} = \mathbb{E}_{x, a, \epsilon, t} \left[ \text{SyncNet}(\mathcal{D}(\hat{z}_0)_{f:f+16}, a_{f:f+16}) \right]
+\end{equation}
+where $\mathcal{D}$ represents the VAE decoder, since the lipsync task requires generating detailed areas, such as lips, teeth, and facial hair, we used the LPIPS \cite{zhang2018unreasonable} to improve the visual quality of the images generated by the U-Net.
+\begin{equation}
+    \mathcal{L}_{\text{lpips}} = \mathbb{E}_{x, \epsilon, t}
+    \left[ \left\| \mathcal{V}_l(\mathcal{D}(\hat{z}_0)_f) - \mathcal{V}_l(x_f) \right\|_2^2 \right]
+\end{equation}
+where $\mathcal{V}_l(\cdot)$ denotes the features extracted from the $l^{\text{th}}$ layer of a pretrained VGG network \cite{simonyan2014very}. In addition, to improve temporal consistency, we also employed the proposed TREPA, see \cref{eq:trepa}. For more details of the TREPA, please refer to \cref{sec:trepa}.
+
+The total loss function for the second stage of training is:
+\begin{equation}
+    \mathcal{L}_{\text{total}} = \lambda_{1} \mathcal{L}_{\text{simple}} + \lambda_{2} \mathcal{L}_{\text{sync}} + \lambda_{3} \mathcal{L}_{\text{lpips}} + \lambda_{4} \mathcal{L}_{\text{trepa}}
+\end{equation}
+
+% \para{Mixed noise model.}
+% To ensure that the model correctly learns temporal information, the input noises also need to have temporal consistency; otherwise the model will fail to learn properly. The simplest method is applying the same noise to all frames \cite{mukhopadhyay2024diff2lip}. We further found that diffusion models trained with the mixed noise model \cite{ge2023preserve} exhibit better temporal consistency. The method generates two distinct noise vectors, $\epsilon_{\text{shared}}$ and $\epsilon_{\text{ind}}$. $\epsilon_{\text{shared}}$ represents a common noise vector applied across all 16 video frames, whereas $\epsilon_{\text{ind}}$ corresponds to the frame-specific noise. The final noise is obtained through a linear combination of these two vectors.
+% \begin{equation}
+%     \epsilon^{f} = \epsilon_{\text{shared}} + \epsilon_{\text{ind}}^{f}
+% \end{equation}
+% We used the mixed noise model in both two training stages, and we applied the same initial latent noise to all frames in the video during inference stage. 
+
+
+
+\subsection{Temporal Representation Alignment}
+\label{sec:trepa}
+TREPA aligns the temporal representations of the generated image sequences with those of ground truth image sequences. The insight behind this method is that merely employing distance loss between individual images improves the content quality of single generated images but does not enhance the temporal consistency of the generated image sequence. In contrast, temporal representations capture temporal correlation within image sequences, enabling the model to focus on improving the overall temporal consistency. We employed a large-scale self-supervised video model VideoMAE-v2 \cite{wang2023videomae} to extract temporal representations. Due to its unsupervised training on large-scale unlabeled datasets, the model's temporal representations exhibit strong generalization capabilities, robustness, and high information density.
+
+In mathematical form, let $\mathcal{T}$ be the self-supervised video model encoder. The encoder's output is the embedding before the head projection. TREPA can be represented as:
+\begin{equation}
+    \mathcal{L}_{\text{trepa}} = \mathbb{E}_{x, \epsilon, t} \left[ \left\| \mathcal{T}(\mathcal{D}(\hat{z}_0)_{f:f+16}) - \mathcal{T}(x_{f:f+16}) \right\|_2^2 \right]
+    \label{eq:trepa}
+\end{equation}
+where the straightforward Mean Squared Error (MSE) is employed to measure the distance between temporal representations. We also fix the representation by $\ell_2$ normalization before calculating the MSE.
+
+% \para{Observations.}
+% The temporal layer \cite{guo2023animatediff,blattmann2023align} adds temporal self-attention layers to the U-Net to enhance temporal consistency. We initially attempted to apply the temporal layer to LatentSync, but found that it significantly compromised lip-sync accuracy. In contrast, our TREPA not only avoids harming lip-sync accuracy but even improves it to some extent. We hypothesize this is because the temporal layer adds additional parameters to the U-Net, causing some of the gradients in backpropagation to be distributed to the temporal layer parameters, weakening the learning of the audio cross-attention layer parameters. On the other hand, TREPA does not add extra parameters; to improve temporal consistency, the model must rely more effectively on the information in the audio window (since we know that lip-sync models use the audio window to capture temporal information). As a result, the audio cross-attention layers are further trained and strengthened. Refer to the quantitative results in \cref{sec:ablation}.
+
+% Another interesting finding is that TREPA can also be applied to improve the temporal consistency and lip-sync accuracy of Wav2Lip \cite{prajwal2020lip}, according to the experimental results in \cref{sec:ablation}. Theoretically, any video generation model that generates multiple consecutive frames at once can utilize TREPA to enhance the temporal consistency.
+
+% Many researchers have reported the convergence problem of SyncNet \cite{mayur,yonglianglan,rizwanishaq,mrlihellohorld}, a typical characteristic of this issue is that the training loss gets stuck at 0.69 and fails to decrease further
+
+% Many researchers have reported the convergence problem of SyncNet \cite{mayur,yonglianglan,rizwanishaq,mrlihellohorld}, a typical characteristic of this issue is that the training loss gets stuck at 0.69 and fails to decrease further
+
+\section{Empirical Studies on SyncNet Convergence}
+\label{sec:syncnet}
+Our experiments reveal that SyncNet is difficult to converge in both latent space and high-resolution pixel space, a typical characteristic of this issue is that the training loss gets stuck at 0.69 and fails to decrease further. In this section, we analyze the SyncNet convergence problem and identify several critical factors affecting the convergence through various ablation studies. Importantly, we preserved SyncNet's original training framework and employed the same contrastive loss function as Wav2Lip \cite{prajwal2020lip}. Therefore, our experience can be applied to many lip-sync \cite{prajwal2020lip,guan2023stylesync,mukhopadhyay2024diff2lip,cheng2022videoretalking,zhang2023dinet,zhang2024musetalk} and audio-driven portrait animation methods \cite{ma2023dreamtalk,ye2023geneface} that utilize SyncNet.
+
+\para{Why is the SyncNet training loss stuck at 0.69?}
+According to the classic training framework of SyncNet \cite{prajwal2020lip,chung2017out}, we randomly provide SyncNet with positive and negative samples with a 50\% probability during the training stage. The output of SyncNet is a probability distribution of whether the sample is positive or negative. We define $p(x=1)$ as the probability that the sample is positive, and $p(x=0)$ as the probability that the sample is negative. Let $p(x)$ be the true probability distribution and $q(x)$ the predicted probability distribution. When $q(x=1) \approx q(x=0) \approx 0.5$ and batch size $N$ is sufficiently large, the training loss of SyncNet is (proof in \cref{suppsec:syncnet_loss_proof}):
+\begin{align}
+    \mathcal{L}_{\text{syncnet}} & = -\frac{1}{N}\sum_{i=1}^N \sum_{x_i \in \{0,1\}} p(x_i) \,\text{log}\, {q(x_i)} \approx 0.693
+\end{align}
+This means that SyncNet has not learned any discriminative capability; it is just randomly guessing whether the samples are positive or negative. This may be due to various reasons, including the model's insufficient capacity to fit the data, the large audio-visual offset in the data, and flaws in the training strategy. In the following paragraphs, we will identify the key factors affecting the convergence of SyncNet through comprehensive ablation studies.
+
+\para{Batch size.}
+As shown in \cref{fig:batch_ablation}, a larger batch size (e.g., 1024) not only enables the model to converge faster and more stably but also results in a lower validation loss at the end of training. In contrast, smaller batch sizes (e.g., 128) may fail to converge, with the loss remaining stuck at 0.69. Even with a slightly larger batch size (e.g., 256), while convergence may be achieved, the training loss exhibits significant oscillations during its descent.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{./figures/batch_ablation.pdf}
+    % \vspace{-20pt}
+    \caption{SyncNet training curves of different batch sizes. VoxCeleb2 results, the more transparent curves represent the training set loss, while the darker curves represent the validation set loss; the same applies to the following figures. (VoxCeleb2, Dim 2048, StbleSyncNet arch, 16 frames.)}
+    \vspace{-10pt}
+    \label{fig:batch_ablation}
+\end{figure}
+
+\para{Architecture.}
+We redesign the SyncNet's visual and audio encoders with the U-Net encoder from Stable Diffusion 1.5 \cite{rombach2022high}, retaining the structure of residual blocks \cite{he2016deep} and self-attention blocks \cite{vaswani2017attention} in the U-Net encoder blocks. We only adjusted the downsampling factors based on the size of the input visual images and mel-spectrograms, and we removed the cross-attention blocks, as SyncNet does not require additional conditions. We refer to the SyncNet with this modified architecture as \textit{StableSyncNet}. As shown in \cref{fig:arch_ablation}, StableSyncNet maintained both training loss and validation loss lower than those of Wav2Lip's SyncNet \cite{prajwal2020lip} throughout the training process.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{./figures/arch_ablation.pdf}
+    % \vspace{-20pt}
+    \caption{SyncNet training curves of different architectures. For comparison, we also modified the architecture of Wav2Lip's SyncNet to accept 256 $\times$ 256 visual input according to \cite{wav2lip288}. (VoxCeleb2, Dim 2048, Batch size 512, 5 frames.)}
+    \vspace{-10pt}
+    \label{fig:arch_ablation}
+\end{figure}
+
+\para{Embedding dimension.}
+As illustrated in \cref{fig:dim_ablation}, embeddings with smaller dimensions (e.g., 512) result in representations that fail to capture sufficient semantic information, while larger dimensions (e.g., 4096 or 6144) lead to sparse representations, thereby impeding model convergence. Se identified that an optimal embedding dimension of 2048 is suitable for images with an input resolution of 256 $\times$ 256 pixels.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{./figures/dim_ablation.pdf}
+    % \vspace{-20pt}
+    \caption{SyncNet training curves of different embedding dimensions. (VoxCeleb2, Batch size 512, StableSyncNet arch, 16 frames.)}
+    \vspace{-10pt}
+    \label{fig:dim_ablation}
+\end{figure}
+
+% \para{Self attention.}
+% We attempted to remove the self-attention \cite{vaswani2017attention} blocks in the U-Net encoder, keeping only the residual blocks \cite{he2016deep}. As shown in \cref{fig:attn_ablation}, removing the self-attention blocks results in faster convergence during the initial training phase, while achieving lower validation loss towards the end of the training. Additionally, this approach helps to reduce the model size and accelerates both inference and training speeds. We hypothesize that the reason may be that attention layers do not possess the inherent inductive biases of CNNs, such as translation equivariance and locality. Therefore, they do not generalize well without sufficient data. Similar findings and explanations can be found in \cite{dosovitskiy2020image}.
+
+% \begin{figure}[!t]
+%     \centering
+%     \includegraphics[width=\linewidth]{./figures/attn_ablation.pdf}
+%     % \vspace{-20pt}
+%     \caption{SyncNet training curves with and without self-attention layers. (VoxCeleb2, Dim 2048, Batch size 512, 16 frames.)}
+%     \vspace{-10pt}
+%     \label{fig:attn_ablation}
+% \end{figure}
+
+\para{Number of frames.}
+The number of input frames determines the range of visual and audio information that SyncNet can perceive. As shown in \cref{fig:frames_ablation}, selecting a larger number of frames (e.g., 16) can help the model converge. However, an excessively large number of frames (e.g., 25) will cause the model to get stuck around 0.69 in the early stage of training, and the validation loss at the end of training does not show a significant advantage compared to using 16 frames. 
+
+% Another issue with selecting too large number of frames is that when training a lip sync generator, a substantial number of frames must be included within a batch. For models like diffusion models, which already have a large number of parameters, this may lead to CUDA out of memory errors. Therefore, we recommend selecting a moderate number of frames.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{./figures/frames_ablation.pdf}
+    % \vspace{-20pt}
+    \caption{SyncNet training curves of different numbers of input frames. (VoxCeleb2, Batch size 512, StableSyncNet arch, Dim 2048.)}
+    \vspace{-10pt}
+    \label{fig:frames_ablation}
+\end{figure}
+
+\para{Data preprocessing.}
+In-the-wild videos naturally contain audio-visual offsets, it is necessary to adjust this offset to zero before inputting them into the SyncNet network. We used the official open-source version of pretrained SyncNet \cite{chung2017out} to adjust the offset and remove videos with ${\text{Sync}}_{\text{conf}}$ below 3. Specifically, we evaluated adjusting the offset before and after applying affine transformation. As shown in \cref{fig:offset_ablation}, without offset adjustment, the model's convergence is significantly impaired. Performing affine transformation before offset adjustment yields better results. This may be due to that affine transformation reducing data with side profiles or unusual angles, allowing the pretrained SyncNet \cite{chung2017out} to predict the offset more accurately.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{./figures/offset_ablation.pdf}
+    % \vspace{-20pt}
+    \caption{SyncNet training curves of different data preprocessing methods. (VoxCeleb2, Batch size 512, StableSyncNet arch, Dim 2048, 16 frames.)}
+    \vspace{-10pt}
+    \label{fig:offset_ablation}
+\end{figure}
+
+\para{Discussions.}
+Based on the ablation studies above, we found that batch size, number of input frames, and data preprocessing method are the primary factors affecting SyncNet convergence. We identified the optimal settings for a StableSyncNet with the 256 $\times$ 256 input size: batch size of 1024, 16 frames, SD U-Net encoder adapted for both visual and audio encoders, embedding dimension of 2048, and adjusting the audio-visual offset after affine transformation. We train a StableSyncNet on VoxCeleb2 \cite{chung2018voxceleb2} and test it on HDTF \cite{zhang2021flow}, which is an out-of-distribution experimental setup. The validation loss on VoxCeleb2 reaches around 0.18 and the accuracy on HDTF achieves 94\%, which significantly surpasses the previous SOTA result 91\% \cite{prajwal2020lip,gupta2023towards}.

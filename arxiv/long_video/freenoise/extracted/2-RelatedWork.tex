@@ -1,0 +1,52 @@
+\section{Related Work}
+
+\subsection{Video Diffusion Models}
+
+\paragraph{Latent Diffusion Models (LDM).} 
+Diffusion models~\citep{sohldickstein2015deep,ddpm} are generative models that formulate a fixed forward diffusion process to gradually add noise to the data $\bx_0 \sim p(\bx_0)$ and learn a denoising model to reverse this process. 
+The forward process contains $T$ timesteps, which gradually add noise to the data sample $\bx_0$ to yield $\bx_t$ through a parameterization trick:
+%
+\begin{equation}
+q(\bx_t|\bx_{t-1}) = \mathcal{N}(\bx_t;\sqrt{1-\beta_t}\bx_{t-1},\beta_t \bI), \qquad q(\bx_t|\bx_0) = \mathcal{N}(\bx_t; \sqrt{\bar\alpha_t}\bx_0, (1-\bar\alpha_t)\bI) 
+\end{equation}
+%
+where $\beta_t$ is a predefined variance schedule, $t$ is the timestep, $\bar\alpha_t = \prod_{i=1}^t \alpha_i$, and $\alpha_t = 1-\beta_t$.
+The reverse denoising process obtains less noisy data $\boldsymbol{x}_{t-1}$ from the noisy input $\boldsymbol{x}_t$ at each timestep:
+%
+\begin{equation}
+p_\theta\left(\boldsymbol{x}_{t-1} \mid \boldsymbol{x}_t\right)=\mathcal{N}\left(\boldsymbol{x}_{t-1} ; \boldsymbol{\mu}_\theta\left(\boldsymbol{x}_t, t\right), \boldsymbol{\Sigma}_\theta\left(\boldsymbol{x}_t, t\right)\right).
+\end{equation}
+
+Here $\boldsymbol{\mu}_\theta$ and $\boldsymbol{\Sigma}_\theta$ are determined through a noise prediction network $\boldsymbol{\epsilon}_{\theta}\left(\boldsymbol{x}_t, t\right)$, which is supervised by the following objective function, where $\boldsymbol{\epsilon}$ is sampled ground truth noise and $\theta$ is the learnable network parameters.
+\begin{equation}
+\min _{\theta} \mathbb{E}_{t, \boldsymbol{x}_0, \boldsymbol{\epsilon}}\left\|\boldsymbol{\epsilon}-\boldsymbol{\epsilon}_{\theta}\left(\boldsymbol{x}_t, t\right)\right\|_2^2,
+\end{equation}
+
+Once the model is trained, we can synthesize a data $\bx_0$ from random noise $\bx_T$ by sampling $\bx_t$ iteratively. Recently, to ease the modeling complexity of high dimensional data like images, Latent Diffusion Model (LDM)~\citep{ldm} is proposed to formulate the diffusion and denoising process in a learned low-dimensional latent space. It is realized through perceptual compression with an autoencoder, where an encoder $\mathcal{E}$ maps $\bx_0 \in \mathbb{R}^{3 \times H \times W}$ to its latent code $\boldsymbol{z}_0 \in \mathbb{R}^{4 \times H' \times W'}$ and a decoder $\mathcal{D}$ reconstructs the image $\boldsymbol{x}_{0}$ from the $\boldsymbol{z}_0$. Then, the diffusion model $\theta$ operates on the image latent variables to predict the noise $\hat{\bepsilon}$.
+%
+\begin{equation}
+\boldsymbol{z}_0=\mathcal{E}\left(\boldsymbol{x}_0\right), \quad \hat{\bx_0} = \mathcal{D}\left(\boldsymbol{z}_0\right) \approx \bx_0, 
+\quad \hat{\bepsilon} = \bepsilon_\theta(\bz_t, \by, t),
+\end{equation}
+The network is a sequence of the following layers, where $\bh$ represents the hidden feature in a certain layer and $\by$ denotes conditions like text prompts. Conv and ST are residual convolutional block and spatial transformer, respectively.
+\begin{equation}
+\bh' = \mathrm{ST}(\mathrm{Conv}(\bh, t), \by), \quad \mathrm{ST} = \mathrm{Proj}_{\text{in}} \circ (\mathrm{Attn}_{\text{self}} \circ \mathrm{Attn}_{\text{cross}} \circ \mathrm{MLP}) \circ \mathrm{Proj}_{\text{out}}, 
+\end{equation}
+\noindent\textbf{Video Latent Diffusion Model (VideoLDM)} \citep{blattmann2023align} extends LDM to video generation and trains a video diffusion model in video latent space. 
+The $\bz_0 \in \mathbb{R}^{4 \times N \times H' \times W'}$ becomes 4 dimensions, and $\theta$ consequently becomes temporal-aware architecture consisting of basic layers as the following equation, where Tconv denotes temporal convolutional block and TT denotes temporal transformers, serving as cross-frame operation modules.
+\begin{gather}
+\bh' = \mathrm{TT}(\mathrm{ST}(\mathrm{Tconv}(\mathrm{Conv}(\bh, t)), \by)),
+\quad \mathrm{TT} = \mathrm{Proj}_{\mathrm{in}} \circ (\mathrm{Attn}_{\text{temp}} \circ \mathrm{Attn}_{\text{temp}} \circ \mathrm{MLP}) \circ \mathrm{Proj}_{\text{out}}.
+\end{gather}
+Following the same architecture, some similar text-to-video models have been proposed~\citep{blattmann2023align,wang2023modelscope}, primarily differing in training strategies or auxiliary designs (such as fps conditioning, image-video joint training, etc.). AlignYourLatent~\citep{blattmann2023align} is designed to train only the temporal blocks based on a pre-trained text-to-image model (i.e., Stable Diffusion (SD)~\citep{ldm}). In contrast, ModelScope~\citep{wang2023modelscope} is proposed for fully training the entire model with a SD checkpoint pre-loaded.
+
+\subsection{Long video generation.}
+%
+Generating long videos poses challenges due to the increased complexity introduced by the temporal dimension, resource limitations, and the need to maintain content consistency. Many GAN-based methods \citep{skorokhodov2022stylegan,brooks2022generating,ge2022long} and diffusion-based methods \citep{harvey2022flexible,voleti2022mcvd,yu2023video,lvdm,yin2023nuwa,ho2022imagen} are proposed to generate long videos. Despite their advantages, those approaches necessitate extensive training on large long video datasets.
+%
+Recently, a tuning-free method, Gen-L-Video \citep{wang2023gen} is proposed and successfully extends the video smoothly by merging some overlapping sub-segments into a smoothly changing long segment during the denoising process. However, their content consistency lacks preservation due to the large content gap among those sub-segments. Benefiting from the design of noise rescheduling, our paradigm FreeNoise preserves content consistency well in the generated long videos. Meanwhile, Gen-L-Video costs around $255\%$ extra inference time while FreeNoise only costs $17\%$ additional inference time approximately.
+%
+Another demand in long video generation is multi-prompt control, as a single-text condition is often insufficient to describe content that evolves over time. While some recent works \citep{yin2023nuwa,he2023animate,wang2023gen} have explored this direction, they introduce a new lens when a new prompt is provided. Phenaki \citep{villegas2022phenaki} utilizes an auto-regressive structure to generate one-shot long videos under multi-text conditions but suffers from noticeable content variation. In our paradigm, we can generate multiple motions while preserving the main subjects and scenarios.
+
+
+

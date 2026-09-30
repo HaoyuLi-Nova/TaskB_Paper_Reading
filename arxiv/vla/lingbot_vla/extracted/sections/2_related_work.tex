@@ -1,0 +1,43 @@
+\section{Related Work}\label{sec:related}
+
+\subsection{Vision-Language-Action Models}
+\textbf{Foundation VLA.} 
+Vision-language-action foundation models typically adopt a powerful pre-trained vision-language model~\cite{bai2025qwen2, paligemma} as the semantic backbone, coupled with diffusion-based action head.
+% By employing flow-matching processes, these models can generate continuous action chunks rather than single-step discrete tokens.
+Recent VLA foundation models~\cite{pi_0, pi_0d5, gr00tN1, gr00t_n1_6, gemini_robotics, walloss, galaxeaG0, magma, gr3} have demonstrated enhanced multi-task execution capabilities and superior multi-embodiment adaptability, following pre-training on larger-scale and increasingly diverse datasets.
+Distinguishing itself from the datasets utilized in preceding VLA foundation models, our model is pre-trained on an extensive corpus approximate 20,000 hours of multi-embodiment data. This massive-scale dataset, characterized by its high behavioral diversity, significantly bolsters the model's generalization capabilities across various robotic manipulation tasks.
+
+
+\noindent
+\textbf{Spatial VLA.} 
+While traditional VLA models excel at semantic understanding, they often struggle with precise geometric reasoning and depth perception required for complex spatial manipulation.
+To address this, several works~\cite{spatialvla, Spatial_forcing, internvla_M1, guo2025omnivla, magma, gemini_robotics_1d5, geovla} have integrated spatial representations into the VLA framework.
+Several research~\cite{magma, internvla_M1, gemini_robotics} initiatives have focused on bolstering the spatial awareness of VLMs within embodied scenarios to enhance the spatial manipulation capabilities of VLAs in downstream tasks. 
+Others explicitly or implicitly incorporate depth information during the VLA training phase.
+Spatial Forcing~\cite{Spatial_forcing} employs a streamlined alignment strategy that compels the integration of VLA visual embeddings with spatial representations, thereby significantly improving the model's spatial comprehension.
+% Different with the prior spatial VLA works, our method....\todo{}
+
+
+\subsection{Evaluation on Robot Policy}
+Current evaluation methodologies for robot policies are primarily bifurcated into two categories: simulation-based~\cite{libero, calvin, simplerenv, robocasa, robotwin2} and real-world embodiment-based~\cite{robochallenge, roboarena}.
+Simulation-based benchmark provide a rapid and convenient means to evaluate the capabilities of policies, enabling large-scale parallel testing across vast and diverse interaction scenarios at very low cost. 
+Although simulation environments typically employ idealized physical models, their results often do not fully represent the complexity of the real physical world.
+The another real-world evaluations' efficiency is often bottlenecked by the requirement for extensive hardware parallelism. 
+Consequently, the majority of prior VLA studies have been confined to comparing a limited number of methods across only a few tasks. 
+% Recently, RoboChallenge~\cite{robochallenge} introduced a framework for the fair comparison of multiple policies across 30 tasks via remote robotic arm deployment.
+To more comprehensively evaluate the real-world performance of policies, this work conducts an assessment across three distinct robotic platforms, with 100 tasks executed on each platform. We further provide a thorough analysis of how mainstream VLA models adapt to the diversity encountered in real-world scenarios.
+
+
+\subsection{Efficient VLA Training}
+The rapid iteration of VLA models has catalyzed the development of specialized training infrastructure. Several well-designed open-source codebases have recently emerged in the community, each catering to different research priorities. 
+For instance, the OpenPI~\cite{pi_0} repository provides a versatile framework supporting both JAX and PyTorch for training the $\pi$ series models. 
+StarVLA~\cite{starvla} introduces a modular and user-friendly codebase specifically optimized for the co-training of VLAs and VLMs, facilitating the transfer of semantic knowledge to robotic control. 
+Additionally, Dexbotic~\cite{dexbotic} is designed as a unified and efficient solution to streamline the development lifecycle of VLAs, focusing on standardizing the pipeline from data ingestion to model deployment.
+Despite these advancements, training large-scale VLA models on multi-node clusters remains a significant challenge due to data I/O bottlenecks and communication overheads.
+To bridge this gap, we present \method, a high-performance open-source codebase engineered for large-scale VLA training. Unlike existing frameworks, our codebase implements systemic optimizations in data loading, distributed training strategies, and operator-level acceleration. 
+These enhancements lead to a comprehensive improvement in training throughput and scalability, providing a more efficient foundation for the community to explore the scaling limits of robotic foundation models.
+
+
+
+
+% \lipsum[1-7]

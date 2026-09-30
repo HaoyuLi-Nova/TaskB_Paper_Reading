@@ -1,0 +1,45 @@
+\section{Introduction}
+
+
+
+Modern video diffusion models~\citep{openai_sora, polyak2024movie} have demonstrated impressive capabilities in generating short video clips with rich detail and coherent motion.
+% 
+However, interactive applications such as world models~\citep{bruce2024genie}, neural game engines~\citep{valevski2024diffusion}, and immersive XR environments require the ability to \emph{stream} each frame with \emph{minimal latency} while maintaining visual quality and temporal coherence over \emph{long horizons}.
+% 
+Unlike offline video generation, where the entire sequence is synthesized together at one go, the streaming video generation operates in an online fashion: frames are generated sequentially and immediately consumed by downstream tasks or displayed to users.
+%
+Such online nature imposes unique challenges, as the model must maintain long-horizon consistency while accommodating real-time constraints in an autoregressive manner.
+
+% Real-time streaming video generation distils a pretrained bidirectional video diffusion model into a fast, causal autoregressive generator~\citep{yin2025slow,huang2025self}, enabling consistent sequential generation. However, real-time streaming video generation predicts new frames based on strict causality, where each newly generated frame inherits errors from its predecessors and the error compounds over long horizons and eventually leads to noticeable drift and quality degradation.  
+
+
+Real-time streaming video generation methods, such as CausVid~\citep{yin2025slow} and Self Forcing~\citep{huang2025self} (illustrated in \cref{fig:intro}(c)), distill a pretrained bidirectional video diffusion model into a fast, causal autoregressive generator. While they enable consistent sequential generation, their strictly causal frame prediction causes each frame to inherit errors from its predecessors, allowing small imperfections to compound over long horizons and eventually leading to noticeable drift and quality degradation.
+%
+Two representative approaches have been explored for improving video generation over long horizons, as illustrated in \cref{fig:intro}(a,b). The first approach explores \emph{history corruption}, which injects noise into past frames to reduce over-reliance on histories~\citep{chen2024diffusion, guo2025long}. History corruption mitigates drift by narrowing the gap between self-generated and ground-truth context, but it deprives the model of clean references and compromises temporal consistency. The second approach explores \emph{planning generation} by first synthesizing distant key frames and then interpolating intermediates~\citep{zhang2025packing, xiang2025macro}. Anchoring distant frames to the initial context mitigates drift, but the introduced out-of-order schedule violates strict sequential emission, which is unsuitable for real-time streaming.
+
+
+
+
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figure/intro.pdf}
+\caption{Different paradigms in autoregressive video generation. History corruption~\citep{chen2024diffusion, guo2025long} in (a) compromises temporal consistency, while planning generation~\citep{zhang2025packing, xiang2025macro} in (b) is incompatible with sequential streaming video generation. Self Forcing~\citep{huang2025self} in (c) can achieve consistent sequential streaming but suffers from severe error accumulation while generating long videos. The proposed Rolling Forcing in (d) supports streaming long video generation with superior temporal consistency and minimal error accumulation.}
+\label{fig:intro}
+\end{figure}
+
+
+
+We design \emph{Rolling Forcing}, an autoregressive long video generation technique that mitigates error accumulation while maintaining real-time performance as illustrated in \cref{fig:intro}. 
+%
+Rolling Forcing comes with three new designs. 
+%
+First, instead of iteratively denoising a single frame at a time as in most existing work, Rolling Forcing introduces rolling-window denoising to process multiple consecutive frames simultaneously. Within each window, frames are connected by bidirectional attention and assigned progressively increasing noise levels. Such mutual refinement corrects local errors before any frame is finalized, thereby suppressing long-horizon drift. In addition, this design allows us to emit a clean frame after each single forward pass, achieving real-time throughput on a single GPU despite a much larger attention window. 
+%
+Second, we adapt the attention sink mechanism~\citep{xiao2023efficient} to the streaming video generation task, thereby strengthening long-term global consistency. Specifically, we persist the key–value states of the initial frames as a global context anchor and dynamically adjust their Rotary Position Embeddings (RoPE)~\citep{su2024roformer}, which freezes the relative positions of initial frames to the current denoising frames and prevents excessive offsets. Note that the KV caching is applied to the recent clean frames as well to reduce latency and maintain temporal consistency. 
+%
+Third, we design an efficient training algorithm that enables few-step distillation over the extended denoising windows. This algorithm operates on non-overlapping windows that collectively cover all video frames, mitigating exposure bias by conditioning on self-generated histories during training. Extensive experiments show that Rolling Forcing achieves real-time streaming generation of multi-minute videos on a single GPU, with substantially reduced error accumulation as illustrated in \cref{fig:teaser}.
+
+
+
+The contributions of this work can be summarized in three key aspects. \textit{First}, we introduce a rolling-window joint denoising technique that processes multiple frames in a single forward pass, enabling mutual refinement while preserving real-time latency. \textit{Second}, we introduce the attention sink mechanism into the streaming video generation task, a pioneering effort that enables caching the initial frames as consistent global context for long-term coherence in video generation. \textit{Third}, we design an efficient training algorithm that operates on non-overlapping windows and conditions on self-generated histories, enabling few-step distillation over extended denoising windows and concurrently mitigating exposure bias.

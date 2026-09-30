@@ -1,0 +1,64 @@
+\vspace{-0.3cm}
+\section{Introduction}
+\label{sec:intro}
+
+\textit{“The brain is wider than the sky.”} — Emily Dickinson
+
+The endeavor to comprehend how the human brain perceives the visual world has long been a central focus of cognitive neuroscience
+~\cite{hendee1997perception,grill2004human}. 
+As we navigate through the environment, 
+our perception of the three-dimensional world is shaped by both fine details and the diverse perspectives from which we observe them. This stereo experience of color, depth, and spatial relationships forms complex neural activity in the brain's cortex.
+Unraveling how the brain processes 3D perception remains an appealing challenge in neuroscience. Recently, electroencephalography (EEG), a non-invasive neuroimaging technique favored for its safety and ethical suitability, has been widely adopted in 2D visual decoding ~\cite{yi2024learning,chen2024eegformer,chen2023seeing,jiang2024large,luo2024brain,lahner2024modeling} to generate static visual stimuli.
+With the aid of EEG and generative techniques, an intriguing question arises: \textit{\textbf{can we directly reconstruct the original 3D visual stimuli from dynamic brain activity?}}
+
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\columnwidth]{figure/picture_intro_v3.pdf} 
+	\vspace{-0.1cm}
+	\caption{Illustration of brain activity acquisition and colored 3D objects reconstruction from EEG signal.}
+	\label{intro_img}
+	\vspace{-0.5cm}
+\end{figure}
+
+To address this question, in this paper, we explore a new task, \textbf{3D visual decoding from EEG signals}, shedding light on the brain mechanisms for perceiving natural 3D objects in the real world.  To be specific, this task aims to reconstruct 3D objects from the EEG signals in the form of colored point clouds, as shown in Fig.~\ref{intro_img}.
+The task involves not only extracting semantic features but also capturing intricate visual cues, \textit{e.g.}, color, shape, and structural information, underlying in dynamic neural signals, all of which are essential for a thorough understanding of 3D visuals.
+In observing the surrounding world, humans 
+form 3D perception through shifting views of objects in continuous movement overtime.
+EEG provides an effective means of tracking neural dynamics in this evolving perceptual process for the 3D decoding task, owing to its high temporal resolution with millisecond precision~\cite{engel1994fmri,gifford2022large}. This property
+distinguishes it from other neuroimaging techniques like fMRI with high spatial resolution but extremely low temporal resolution of few seconds~\cite{engel1994fmri}. 
+Furthermore, as EEG offers the advantages of cost-effectiveness and portability, EEG-based 3D visual decoding research could be employed in real-time applications such as in clinical scenarios~\cite{metzger2023high,moses2021neuroprosthesis}. 
+
+
+
+However, when delving into this task, two critical challenges need to be addressed.
+(1) \textbf{Limited data availability}: 
+Currently, there is no publicly available dataset that provides paired EEG signals and 3D stimulus data. 
+(2)~\textbf{Complexity of neural representation}:
+The neural representations are inherently complex~\cite{hebb2005organization}. 
+This complexity is amplified by low signal-to-noise ratio of non-invasive neuroimaging techniques, making it challenging to learn robust neural representation and recover complex 3D visual cues from brain signals.
+Thus, how to construct a robust 3D visual decoding framework is a critical issue.
+
+
+To address the first challenge, we develop a new EEG dataset, named \textbf{EEG-3D} dataset, comprising paired EEG signals collected from 12 participants while watching 72 categories of 3D objects. To create diverse 3D stimuli, we select a subset of common objects from the Objaverse dataset \cite{deitke2023objaverse,xu2023pointllm}. Previous works \cite{gao2023mind,sargent2023zeronvs} have revealed that 360-degree rotating videos effectively represent 3D objects. Thus, we capture rotational videos of colored 3D objects to serve as  visual stimuli, as shown in Fig.~\ref{intro_img}.
+Compared to existing datasets \cite{horikawa2017generic,chang2019bold5000,wen2018neural,gao2023mind,kavasidis2017brain2image,gifford2022large,grootswagers2022human,allen2022massive}, EEG-3D dataset offers several distinctive features: 
+(1)~\textbf{Comprehensive EEG signals in diverse states}. 
+In addition to EEG signals from video stimuli, our dataset includes signals from static images and resting-state activity, providing diverse neural responses and insights into brain perception mechanisms across dynamic and static scenes.
+(2)~\textbf{Multimodal analysis data with high-quality annotations}. The dataset comprises high-resolution videos, static images, text captions, and corresponding 3D objects with geometry and color details, supporting a wide range of visual decoding and analyzing tasks.
+Building upon the EEG-3D dataset, 
+we introduce an EEG-based 3D visual decoding framework, termed as \textbf{Neuro-3D}, to reconstruct 3D visual cues from complex neural signals. 
+We first propose a Dynamic-Static EEG-Fusion Encoder to extract robust and discriminative EEG features against noises. 
+Given EEG recordings evoked from dynamic and static stimuli, we design an attention based neural aggregator to adaptively fuse different EEG signals, exploiting their complementary characteristics to extract robust neural representation.
+Subsequently, to recover 3D perception from EEG embedding, we propose a Colored Point Cloud Decoder, with the first stage generating the shape and the second stage assigning colors to the generated point clouds. To enhance precision in the generation process, we further decouple the EEG embedding into distinct geometry and appearance components, enabling targeted conditioning of shape and color generation.
+To learn discriminative and semantically meaningful EEG features,
+we align them with visual features of observed videos through contrastive learning \cite{wang2020understanding}. 
+Finally, utilizing the aligned geometry feature as condition, a 3D diffusion model is applied to generate the point cloud of the 3D object, which is then combined with appearance EEG feature for color prediction. 
+Our main contributions can be summarized as follows:
+
+\begin{itemize}
+	\item We are the first to explore the task of 3D visual decoding from EEG signals, which serves as a critical step for advancing neuroscience research into the brain’s 3D perceptual mechanism.
+	\item We present \textbf{EEG-3D}, a pioneering dataset accompanied by both multimodal analysis data and comprehensive EEG recordings from 12 subjects watching 72 categories of 3D objects.
+	This dataset fills a crucial gap in 3D-stimulus neural data for the computer vision and neuroscience communities.
+	\item We propose \textbf{Neuro-3D}, a 3D visual decoding framework based on EEG signals. A diffusion-based colored point cloud decoder is proposed to recover both shape and color characteristics of 3D objects from adaptively fused EEG features captured under static and dynamic 3D stimuli. 
+	\item The experiments indicate that Neuro-3D not only reconstructs colored 3D objects with high fidelity,  but also learns effective neural representation that enables insightful brain region analysis. 
+\end{itemize}

@@ -1,0 +1,124 @@
+% \section{Scalable Pre-training of \method}
+\section{Model Design and Acceleration}
+\label{sec:coding}
+
+\subsection{Spatio-temporal Variational Autoencoder}
+\label{sec:vae_arch}
+
+\begin{figure}[th]  
+    \centering  
+    \includegraphics[width=0.99\textwidth]{./figures/vae/vae.pdf}  
+    \caption{Our \method-VAE Framework. \method-VAE can compress the spatio-temporal dimension of a video by $4\times8\times8$ times. The orange rectangles represent $2\times$ spatio-temporal compression, and the green rectangles represent $2\times$ spatial compression.} 
+    \label{fig:vae_network} % 
+\end{figure}
+
+
+Variational Autoencoders (VAEs)~\citep{wu2024improved, blattmann2023svd, openaisora2024}  play a crucial role in learning compact latent representations from high-dimensional visual data (especially videos), facilitating scalable and efficient training of generative models, \emph{e.g.}, diffusion models.
+%
+However, designing effective VAEs for video generation tasks faces several challenges. 
+First, videos inherently possess both spatial and temporal dimensions, requiring the VAE to capture complex spatio-temporal dependencies. 
+Second, the inherent high-dimensional nature of video (\emph{e.g.}, multiple frames with high-resolution pixels) increases memory consumption and computational costs, making it difficult to scale VAEs to long video sequences.
+Third, ensuring temporal causality (\emph{i.e.}, future frames do not influence past frames) is critical for generating realistic and coherent video content, yet this constraint introduces additional architectural complexities. 
+
+
+To address these challenges, we propose a novel 3D causal VAE architecture (\method-VAE) specifically designed for video generation. 
+We combine multiple strategies~\citep{wu2024improved} to improve spatio-temporal compression, reduce memory usage, and ensure temporal causality.
+These enhancements make \method-VAE more efficient and scalable and better suited for integration with diffusion-based generative models such as DiT.
+Next, we introduce the network design, training details, efficient inference, and experimental comparison of our \method-VAE.
+
+
+\subsubsection{Model Design}
+
+To achieve a bidirectional mapping between the high-dimensional pixel space and the low-dimensional latent space, we design a 3D causal VAE as illustrated in Fig.~\ref{fig:vae_network}. 
+Given an input video $V\in \mathbb{R}^{(1+T) \times H \times W \times 3}$, \method-VAE compresses its spatio-temporal dimensions to $[1+T/4, H/8, W/8]$ while expanding the number of channels $C$ to 16.
+Specifically, the first frame is only spatially compressed to better handle the image data, following MagViT-v2~\citep{yu2023language}.
+In terms of architecture, we replace all GroupNorm layers~\citep{wu2018group} with RMSNorm layers~\citep{rms} to preserve temporal causality.
+This modification enables the use of the feature cache mechanism (refer to Sec.~\ref{sec:cache_infer}), significantly improving the inference efficiency.
+Furthermore, we halve the input feature channel in the spatial upsampling layer, resulting in a 33\% reduction in memory consumption during inference.
+
+By carefully tuning the number of base channels further, \method-VAE achieves a compact model size of only 127M parameters. 
+This optimization reduces the encoding time and memory usage, thus benefiting the training of subsequent diffusion transformer models.
+
+\subsubsection{Training}
+
+We adopt a three-stage approach to train \method-VAE. 
+First, we construct a 2D image VAE with the same structure and train it on image data. Then, we inflate the well-trained 2D image VAE into a 3D causal \method-VAE to provide an initial spatial compression prior, which drastically improves the training speed compared to training a video VAE from scratch. 
+At this stage, \method-VAE is trained on the low-resolution (128$\times$128) and small frame number (5-frame) videos to accelerate convergence speed. 
+The training losses include $L1$ reconstruction loss, KL loss, and LPIPS perceptual loss, which are weighted by coefficients of 3, 3e-6, and 3, respectively.
+Finally, we fine-tune the model on high-quality videos with different resolutions and frame numbers, integrating the GAN loss~\citep{esser2020taming} from a 3D discriminator. 
+ 
+
+\begin{figure}[t]  
+    \centering  
+    \includegraphics[width=0.99\textwidth]{./figures/vae/vae_cache.pdf}  
+    \caption{Our feature cache mechanism. (a) and (b) show how we use this mechanism in regular causal convolution and temporal downsampling, respectively.} 
+    \label{fig:vae_cache} % 
+\end{figure}
+
+
+\subsubsection{Efficient Inference} \label{sec:cache_infer} 
+
+
+To efficiently support the encoding and decoding of arbitrarily long videos~\citep{CDT,yao2021wenet}, we implement a feature cache mechanism within the causal convolution module of \method-VAE. 
+
+Specifically, the number of video sequence frames follows the $1+T$ input format, so we divide the video into $1+T/4$ chunks, which is consistent with the number of latent features.
+When processing input video sequences, the model employs a chunk-wise strategy where each encoding and decoding operation handles only the video chunk corresponding to a single latent representation.
+Based on the temporal compression ratio, the number of frames in each processing chunk is limited to at most 4, effectively preventing memory overflow.
+
+To ensure temporal continuity between context chunks, our model strategically maintains frame-level feature caches from preceding chunks.
+These cached features are systematically integrated into the causal convolution computations of subsequent chunks.
+The specific process is illustrated in Fig.~\ref{fig:vae_cache}, which demonstrates two typical scenarios in our feature cache mechanism. 
+In Fig.~\ref{fig:vae_cache} (a), in our default setting, the causal convolution does not change the number of frames, and we need to maintain two cached features (convolution kernel size is 3) from historical frames. 
+For the initial chunk, we apply zero padding with two dummy frames to initialize the cache buffer. 
+Subsequent chunks systematically reuse the last two frames from the preceding chunk as cached features while discarding obsolete historical data.
+Fig.~\ref{fig:vae_cache} (b) presents the scenario involving 2$\times$ temporal downsampling (stride is equal to 2). 
+Here, the scenario necessitates different cache management: we implement single-frame cache padding exclusively for non-initial chunks to ensure dimensional consistency. This configuration guarantees that the output sequence length follows the exact downsampling ratio while maintaining causal relationships across the boundaries of the chunk.
+
+This feature cache mechanism not only optimizes memory utilization but also preserves feature coherence across chunk boundaries, thereby supporting stable inference for infinite-length videos.
+
+
+\subsubsection{Evaluation}  
+
+
+\begin{figure}[tbp]  
+    \centering  
+    \includegraphics[width=0.82\textwidth]{./figures/vae/vae_psnr.pdf}  
+   \caption{Comparison of video reconstruction performance at $720\times720$ resolution and 25 frames.} 
+    \label{fig:vae_psnr}  
+\end{figure}
+
+ 
+\textbf{Quantitative results.}
+This study conducts a comprehensive evaluation of the performance of various state-of-the-art (SOTA)  video VAE models~\citep{kong2024hunyuanvideo,cogvideox} by analyzing their Peak Signal-to-Noise Ratio (PSNR) and processing efficiency (frame per unit latency (second)). 
+Notably, for fair comparison, most models~\citep{kong2024hunyuanvideo,cogvideox} adopt the same compression rate and latent feature dimension as our approach, \textit{i.e.,} a compression rate of $4\times8\times8$ with a latent dimension of 16.
+Open Sora Plan~\citep{yuan_opensora}  has the same compression ratio as ours, but the latent dimension is 4.
+SVD~\citep{blattmann2023svd} employs a compression rate of $1\times8\times8$ with a latent dimension of 4,
+Step Video~\citep{step_video} employs a compression rate of $8\times16\times16$ with a latent dimension of 64, 
+and Mochi~\citep{genmo2024mochi} uses a compression rate of $6\times8\times8$ with a latent dimension of 12.
+The evaluation is performed on 200 videos.
+These videos consist of 25 frames, and the resolution is set to $720 \times 720$.
+In Fig.~\ref{fig:vae_psnr}, the size of the circles is positively correlated with the number of model parameters.
+ 
+Experimental results indicate that \method-VAE exhibits highly competitive performance across both metrics, showcasing a compelling dual advantage of superior video quality and high processing efficiency. 
+It is worth noting that under the same hardware environment, our VAE's reconstruction speed is 2.5 times faster than the existing SOTA method (\textit{i.e.}, HunYuan Video). 
+This speed advantage will be further demonstrated at higher resolutions due to the small size design of our VAE model and the feature cache mechanism.
+
+This advancement offers an efficient solution for video reconstruction tasks and video generation training. 
+These findings not only validate the effectiveness of the proposed model design but also provide valuable insights for the future development of VAE technologies.
+
+\begin{figure}[tbp]  
+    \centering  
+    \includegraphics[width=0.93\textwidth]{./figures/vae/vae_visual.pdf}  
+    \caption{Visualization results of video reconstruction across different scenarios, including texture (first row),  face (second row), text (third row), and high-motion (fourth row). The above videos have rich details but are not used in training.} 
+    \label{fig:vae_visual}  
+\end{figure}
+ 
+
+\textbf{Qualitative results.}
+ To validate the video reconstruction performance of our method across diverse scenarios, Fig.~\ref{fig:vae_visual}  presents visual results for texture, face, text, and high-motion scenes. 
+ Compared to existing VAE models, \method-VAE demonstrates superior performance in these contexts. 
+ In the texture scene shown in the first row, our method is capable of capturing details more accurately, such as the texture and direction of hair. 
+ In the facial scene depicted in the second row, \method-VAE preserves facial features while reducing blurring and distortion around the lips. 
+ In the text scene illustrated in the third row, our method successfully restores textual content with clarity, mitigating issues of character distortion and loss. 
+ In the high-motion scene presented in the fourth row, \method-VAE maintains the motion sharpness of video frames. 
+ These results indicate that our method offers significant advantages in handling a variety of complex scenarios.

@@ -1,0 +1,8 @@
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=\linewidth]{infra/train_infra/figs/magiattn_overview_v3.pdf}
+    \caption{Overview of MagiAttention: (1) Flex-Flash-Attention(FFA), an efficient attention supports flexible mask patterns and native considers distribution requirements; (2) The \textit{dispatch solver} shards and dispatches packed data with ultra-long contexts and heterogeneous masks, ensuring load-balanced computation; (3) Group-Cast and Group-Reduce primitives eliminate redundant communication; (4) The \textit{adaptive multi-stage overlap} strategy effectively hides communication latency; (5) Forward and backward timelines of MagiAttention. With all techniques together, MagiAttention reach linear scalability under diverse scenarios.}
+
+    
+    \label{fig:magiattn_overview}
+\end{figure}

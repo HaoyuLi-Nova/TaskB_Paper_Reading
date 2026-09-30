@@ -1,0 +1,97 @@
+\section{3DTrajMaster}
+
+
+Our goal is to master entity motions in 3D space for text-to-video (T2V) generation by leveraging entity-specific 3D trajectories as additional inputs. To this end, we introduce \textit{3DTrajMaster} (see~\figref{fig:pipeline}), a 3D-motion grounded video diffusion model trained in two stages. First, we describe the video diffusion model and the task formulation (\secref{sec:preliminaries}). Then, we present our proposed model, whose core is to train a plug-and-play 3D grounded object injector to integrate multiple detailed entity descriptions and the respective pose sequences (\secref{sec:3d_grounded_object_injector}). We further incorporate a domain adaptor to mitigate video domain shifts introduced by our constructed training data (\secref{sec:lora_module}). Finally, we detail the inference process using annealed sampling to enhance video quality (\secref{sec:inference}). 
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=\linewidth]{figs/video_generator.pdf}
+\vspace{-1em}
+\caption{\textbf{3DTrajMaster Framework.} Given a text prompt consisting of N entities $\{\mathbf{e}_n\}_{n=1}^N$, 3DTrajMaster (a) is able to generate the desired video with entity motions that conform to the input entity-wise pose sequences $\{\mathbf{P}_n\}_{n=1}^N$. 
+Specifically, it involves two training phases.  
+First, it utilizes a domain adaptor to mitigate the negative impact of training videos. Then, an object injector module is inserted after the 2D spatial self-attention layer to integrate paired entity prompts and 3D trajectories. 
+(b) Details of the object injection process. 
+The entities are projected into latent embeddings through the text encoder. The paired pose sequences are projected using a learnable pose encoder and then fused with entity embeddings to form entity-trajectory correspondences. 
+This condition embedding is concatenated with the video latent and fed into a gated self-attention layer for motion fusion. 
+Finally, the modified latent gets back to the remaining layers in the DiT block.
+}
+\label{fig:pipeline}
+\vspace{-1em}
+\end{figure*}
+
+\subsection{Preliminaries on 3D-Entity-Aware Video Distribution} \label{sec:preliminaries}
+
+\noindent \textbf{Video Diffusion Models.} Latent text-to-video diffusion model~\citep{ho2022imagen,ho2022video,videoworldsimulators2024,chen2023videocrafter1,blattmann2023stable} learns the conditional distribution $p(\mathbf{x}|\mathbf{c})$ of encoded video data $\mathbf{x}$ ($\mathbf{x}=\mathcal{E}(X)$, $\mathcal{E}(\cdot)$ is VAE encoder) given text description $\mathbf{c}$ in latent space. In the forward progress, it progressively transits the clean data $\mathbf{x}_{0}$ to the desired Gaussian distribution in a Markov chain: $\left\{\mathbf{x}_t, t \in(1, T) \mid \mathbf{x}_t=\alpha_t \mathbf{x}_0+\sigma_t \boldsymbol{\epsilon}, \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \mathbf{I}) \right\}$. 
+To iteratively recover the data $\hat{\mathbf{x}}_{0}$ from the noise $\boldsymbol{\epsilon} \sim \mathcal{N}\left(\mathbf{0}, \sigma_{t}^2 \mathbf{I}\right)$, it learns a denoising model $\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}$ with the objective function: $\boldsymbol{\epsilon} \approx \hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}} \left(\mathbf{x}_t;t,\mathbf{c}\right)$. 
+With the preconditioning strategy~\citep{karras2022elucidating,salimans2022progressive}, it optimizes the neural network $\hat{F}_{\boldsymbol{\theta}}$ by parameterizing the $\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}$ as: $\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}} = c_{\text{out}}(\sigma_t) \hat{F}_{\boldsymbol{\theta}}\left(c_{\text {in}}(\sigma_t) \mathbf{x}_t ; \boldsymbol{c}, \sigma_t\right)+c_{\text {skip }}(\sigma_t) \mathbf{x}_t$. 
+
+\noindent \textbf{Task Formulation.} Given an input text prompt $\boldsymbol{c}$ consisting of N entities $\{\mathbf{e}_n\}_{n=1}^N$ and their paired 3D trajectories $\{\mathbf{P}_n\}_{n=1}^N$, where $\mathbf{P}_n^f=[\mathbf{R}; \mathbf{T}] \in \mathbb{R}^{3 \times 4}$ for $f$-th frame and object orientation and translation are represented by $\mathbf{R} \in \mathbb{R}^{3\times3}$ and $\mathbf{T} \in \mathbb{R}^{3}$, respectively, our goal is to generate plausible video $\mathbf{X} \in \mathbb{R}^{F \times H \times W}$ that accords with each entity description $\mathbf{e}$ and the respective trajectory $\mathbf{P}$. The overall generative formulation $f(\cdot)$ is 
+\begin{equation}
+f(\cdot): \mathbf{c} \in \mathcal{Y}^L, (\mathbf{e}_n \in \mathcal{Y}^{L_n},\mathbf{P}_n \in \mathbb{R}^{3 \times 4})_{n=1}^N \rightarrow \mathbf{X} \in \mathbb{R}^{F \times H \times W} 
+\end{equation}
+where $\mathbf{X} \approx \mathcal{D}(\hat{\mathbf{x}}_0)$ ($\mathcal{D}(\cdot)$ is the VAE decoder), $\hat{\mathbf{x}} = p\left(\hat{\mathbf{x}}_T \right) \prod_{t=1}^T p_{\boldsymbol{\theta}}\left(\hat{\mathbf{x}}_{t-1} \mid \hat{\mathbf{x}}_t, \mathbf{c}, (\mathbf{e}_n,\mathbf{P}_n)_{n=1}^N) \right)$, $\mathcal{Y}$ is the alphabet, and $L$ is the token length. Our primary challenge lies in modeling the distribution $p_{\boldsymbol{\theta}}$ or specifically $\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}$ to generate realistic videos that accurately correspond to the given multiple 3D entity conditions. Here we structure $\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}}(\mathbf{x}; \boldsymbol{c}, \sigma_t, (\mathbf{e}_n,\mathbf{P}_n)_{n=1}^N)$ as transformer architecture~\citep{peebles2023scalable} for its superior scalability and performance over U-Net~\citep{ronneberger2015u}.
+
+\subsection{Plug-and-play 3D-Motion Grounded Object Injector} \label{sec:3d_grounded_object_injector}
+
+\noindent \textbf{Matching Entity-Trajectory Pair.} The entity prompts $\{\mathbf{e}_n\}_{n=1}^N$ are projected into latent embeddings $\{\mathbf{Z}^{\mathbf{e}}_n\}_{n=1}^N$ using a frozen text encoder $\mathcal{E}_{\mathbf{T}}(\cdot): \mathbf{e}_n \in \mathcal{Y}^{L_n} \rightarrow \mathbf{Z}^{\mathbf{e}}_n \in \mathbb{R}^{L_{\text{max}}\times D}$, where each embedding $\mathbf{Z}^{\mathbf{e}}_n$ is zero-padded to maximum token length $L_{\text{max}}$. Correspondingly, the pose sequences $\{\mathbf{P}_n\}_{n=1}^N$ are also projected into latent embeddings $\{\mathbf{Z}^{\mathbf{P}}_n\}_{n=1}^N$ through the trainable pose encoder $\mathcal{E}_{\mathbf{P}}(\cdot)$: $\mathbf{P}_n \in \mathbb{R}^{F \times 12} \rightarrow \mathbf{Z}^{\mathbf{P}}_n \in \mathbb{R}^{\tilde{F} \times D}$. The pose encoder $\mathcal{E}_{\mathbf{P}}$ consists of a linear layer and a downsampler along the temporal dimension, resembling the causal encoding applied to video input $\mathbf{x}$ in 3D VAE, where the mapping function is $\mathcal{E}_{\mathbf{X}}(\cdot)$: $\mathbf{X} \in \mathbb{R}^{F \times H \times W} \rightarrow \mathbf{x}\in \mathbb{R}^{\tilde{F} \times \tilde{H} \times \tilde{W}}$. Here the downsampler refers to interval sampling of tensors, where we also tried several sequential one-dimensional convolution layers but achieved similar results. Then, the paired entity and trajectory embeddings are expanded and combined through entity-wise addition to form a bonded entity-motion correspondence $\mathbf{Z}^\mathbf{Pe}\in \mathbb{R}^{\tilde{F} \times N \times L_{\text{max}} \times D}$.
+
+\noindent \textbf{Gated Self-Attention for Motion Fusion.} Inspired by \citep{li2023gligen}, we employ a gated self-attention layer to handle multiple entity-trajectory pairs $\mathbf{Z}^\mathbf{Pe}$ (with varying dimensional embeddings) as input, while further refining the correlated features. Specifically, we replicate the weight of the 2D spatial self-attention layer in each DiT block as initialization to enable grounding. The input video tokens $\mathbf{x}_t$ and $\mathbf{Z}^\mathbf{Pe}$ are passed through this trainable copy via truncated self-attention. The output can be expressed in a residue-connection form:
+\begin{equation}
+\begin{split}
+& \mathbf{x}_t = \mathbf{x}_t + \beta \cdot \mathbf{Tc}(\mathbf{Att}(\mathbf{q}, \mathbf{k}, \mathbf{v})) \\
+\bq =\bQ \cdot \bT&,  \bk =\bK \cdot \bT, \bv=\bV \cdot \bT, \bT=\mathbf{x}_t \oplus \mathbf{Z}^\mathbf{Pe}
+\end{split}
+\end{equation}
+where $\beta$ is a trainable scale, $\mathbf{Tc}(\cdot)$ is the truncation operation to preserve $\mathbf{x}_n$ tokens, $\mathbf{Att(\cdot)}$ is softmax attention, $\mathbf{Q}$, $\mathbf{K}$ and $\mathbf{V}$ are query, key and value embedding matrices, and $\oplus$ denotes concatenation. In this stage, we train the $\boldsymbol{\theta_1}$ including the pose encoder and the gated self-attention parameters as follow.
+\begin{equation}
+\mathcal{L}(\boldsymbol{\theta_1})=\mathbb{E}_{\mathbf{x}, \mathbf{c}, \boldsymbol{\epsilon} \sim \mathcal{N}\left(\mathbf{0}, \sigma_{t}^2 \mathbf{I}\right), \mathbf{e}, \mathbf{P}, t, \beta}\left[\left\|\boldsymbol{\epsilon}-\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}_1}\left(\mathbf{x}_t, \mathbf{c}, (\mathbf{e}_n,\mathbf{P}_n)_{n=1}^N), t, \beta \right)\right\|_2^2\right]
+\end{equation}
+
+\subsection{Alleviating Video Domain Shift from Constructed Training Data} \label{sec:lora_module}
+
+\begin{figure*}[ht]
+\centering
+\includegraphics[width=\linewidth]{figs/dataset.pdf}
+\vspace{-2em}
+\caption{\textbf{Dataset Construction Illustration.}
+We correlate (a) collected 3D assets with (b) GPT-generated 3D trajectories on (c) diverse 3D UE platforms, positioning (d) 12 evenly distributed surrounding cameras to capture the object motions in video format.
+}
+\label{fig:dataset}
+\vspace{-1em}
+\end{figure*}
+
+\noindent \textbf{360$^{\circ}$-Motion Dataset.} 
+High-quality training data is vital for learning generalizable 3D motion control. A straightforward preparation is to extract paired entity descriptions and 6DoF poses from common video datasets. However, it is hard due to twofold: 1) \textit{Low diversity/quality entity}:  Datasets with paired entities and 3D trajectories are mostly limited to humans~\citep{jiang2024scaling,araujo2023circle} and autonomous vehicles~\citep{geiger2012we,sun2020scalability}, where the spatial distributions vary between datasets and the entities may be overcrowded. In video datasets like Artgrid, Pixabay, and Pexels\footnote{Artgrid: https://artgrid.io/, Pixabay: https://www.videvo.net/, Pexels: https://www.pexels.com/}, human category occupies a relatively large proportion in 3D/4D asset objectives (refer to~\secref{subsec:unbalanceddataset}), limiting model generalization to other categories like animals and vehicles. Issues like watermarks in WebVid~\citep{bain2021frozen} further increase the cost of filtering. 2) \textit{Low-accuracy/Failed pose estimation}: Most 6D pose estimation methods exclusively focus on rigid objects, and rely on CAD models~\citep{labbe2022megapose,wen2024foundationpose} or posed multi-view images~\citep{liu2022gen6d,sun2022onepose}. For non-rigid animated objects, only human poses have been widely studied via methods like SMPL~\citep{loper2023smpl}, limiting the estimation for general 4D objects, such as animals. A simpler alternative is to represent only 3D locations via depth models~\citep{hu2024depthcrafter,ke2024video,fu2025geowizard}. However, there exist errors in segmenting the foreground entities from the background and can not generate consistent video metric depth.
+
+To circumvent the aforementioned challenges, we opt to construct a synthetic dataset, named \textit{360$^{\circ}$-Motion}, through Unreal Engine (UE) with advanced rendering technologies (see~\figref{fig:dataset}). We begin by collecting 70 animated 3D assets across two categories: human and animal. Humans are differentiated by attributes such as gender, clothing, body shape, and hairstyle. GPT-4V~\citep{openai2023gpt4v} is then used to generate text descriptions $\mathbf{e}_n \in \mathcal{Y}^{L_n} ({L_n} \leq 20)$ for each rendered asset image (\figref{fig:dataset} (a)). For posed object trajectory templates (\figref{fig:dataset} (b)), we follow TC4D~\citep{bahmani2024tc4d} by leveraging GPT to generate 3D spline (location $\mathbf{T}$) and additional orientation $\mathbf{R}$ via the gradient calculation on spline. This process yields approximately 96 templates in canonical space, each associated with one to three assets. We additionally reduce the size of the animals by a ratio of 0.6 to prevent collisions with other assets. The paired assets and their motion templates are then placed within a 5$\times$5 square meter range in one of the 3D platforms, including city (MatrixCity~\citep{li2023matrixcity}), dessert, forest, and HDRIs (projected into 3D). We position 12 sets of cameras evenly around the scene to capture 360-degree views, producing 100 frames per video clip at 384$\times$672 resolution for each camera. This process produces a total of 54,000 videos by arranging and combining various objects and trajectories. (see~\secref{subsec:360motiondataset} and Supp. video samples for illustration)
+
+\noindent \textbf{Video Domain Adaptor.} Training video diffusion models on this relatively small set of constructed video clips can lead to an undesirable UE style, limiting the generalization ability. To prevent learning this variation in quality and retain the knowledge of the base T2V, we train LoRA modules~\citep{hu2021lora} that serve as video domain adaptor. Specifically, we integrate LoRA into self-attention, cross-attention, and linear layers of the base T2V model, as shown in~\figref{fig:pipeline}. The attention/linear projection matrices $\{\mathbf{W}_n\}_{n=1}^K$ are associated with additional trainable lower rank matrices $\{\Delta\mathbf{W}_n=\alpha \mathbf{A}_n \mathbf{B}_n^T\}_{n=1}^K$, where $\alpha$ is the scaler that can be adjusted to control the adaptor influence. During inference, we set $\alpha$ to a small value to mitigate the negative impact of synthetic video data. We optimize $\boldsymbol{\theta_2}=\{\Delta\mathbf{W}_n\}_{n=1}^K$ with the training objective:
+
+\begin{equation}
+\mathcal{L}(\boldsymbol{\theta_2})=\mathbb{E}_{\mathbf{x}, \mathbf{c}, \boldsymbol{\epsilon} \sim \mathcal{N}\left(\mathbf{0}, \sigma_{t}^2 \mathbf{I}\right), t, }\left[\left\|\boldsymbol{\epsilon}-\hat{\boldsymbol{\epsilon}}_{\boldsymbol{\theta}_1}\left(\mathbf{x}_t, \mathbf{c}, t, \alpha \right)\right\|_2^2\right].
+\end{equation}
+
+Note that the domain adaptor $\boldsymbol{\theta_2}$ is frozen when training the object injector $\boldsymbol{\theta_1}$. 
+
+\subsection{Inference Procedure} \label{sec:inference}
+We initialize the video latent $\hat{\bx}_T$ as standard Gaussian noise, and progressively denoise it with the guidance of desired entity-trajectory pairs $(\mathbf{e}_n,\mathbf{P}_n)_{n=1}^N$, following the same schedule as the previous two training stages. We apply classifier-free guidance~\citep{ho2022classifier} and use DDIM~\citep{song2020denoising} for re-spaced sampling for acceleration. To further enhance the video quality, we employ an annealed sampling strategy (Algorithm 1): During inference in the former steps, trajectories are inserted into the model to define the general object motions, while in the latter stage, they are dropped out, transitioning to the standard T2V generation process. We also observe that setting negative 3D trajectories as static motions $\{(\hat{\mathbf{P}}_n)_{n=1}^N|\hat{\mathbf{P}}_n=\mathbf{P}_0,\forall n\}$ can further improve pose accuracy. This phenomenon reflects the model's ability to learn 3D motion representations: Since we do not randomly drop out motion sequences during training like text, the model implicitly learns static motion modeling from videos where entities are primarily in motion. Thus when setting static motion as a ``negative motion prompt”, we can amplify the magnitude of entity movement, leading to improved pose accuracy during evaluation. However, we do not adopt it as it sometimes results in a video quality decline (refer to~\secref{subsec:negpose}).
+
+\begin{algorithm} 
+\caption{Annealed conditional sampling with classifier-free guidance (CFG)} \label{alg:infer}
+\begin{algorithmic}[1]
+\Require $w$: guidance strength, $T_c$: annealed timestep, $\alpha$: LoRA modulator, $\tilde{\boldsymbol{\theta}}$: frozen base T2V model, $\boldsymbol{\theta}_1$: object injector, $\boldsymbol{\theta}_2$: domain adaptor, $\mathbf{c}$: text condition, $(\mathbf{e},\mathbf{P})$: entity-trajectory pairs  \\
+$\hat{\mathbf{x}}_1 \sim \mathcal{N}\left(\mathbf{0}, \sigma_{t}^2 \mathbf{I}\right)$
+\For{$t=1,...,T$}
+\If{$\leq T_c$} 
+    \State $\tilde{\epsilon}_t=(1+w) \hat{\boldsymbol{\epsilon}}_{\tilde{\boldsymbol\theta},\boldsymbol\theta_1,\boldsymbol\theta_2}\left(\hat{\mathbf{x}}_t, \mathbf{c}, (\mathbf{e}_n,\mathbf{P}_n)_{n=1}^N, \alpha\right)-w \hat{\boldsymbol{\epsilon}}_{\tilde{\boldsymbol\theta},\boldsymbol\theta_1,\boldsymbol\theta_2}\left(\hat{\mathbf{x}}_t, \alpha\right)$
+\Else{}
+    \State $\hat{\epsilon}_t=(1+w) \boldsymbol{\epsilon}_{\tilde{\boldsymbol\theta}}\left(\hat{\mathbf{x}}_t, \mathbf{c}\right)-w\boldsymbol{\epsilon}_{\tilde{\boldsymbol\theta}}\left(\hat{\mathbf{x}}_t\right)$ 
+\EndIf 
+\State $\hat{\boldsymbol{z}}_t = \left(\hat{\mathbf{x}}_t-\sigma_t \tilde{\boldsymbol{\epsilon}}_t\right) / \alpha_t$
+\State $\hat{\mathbf{x}}_{t+1} \sim \mathcal{N}\left(\hat{\mathbf{x}}_{t+1} ; \tilde{\boldsymbol{\mu}}_{t+1 \mid t}\left(\hat{\boldsymbol{z}}_t, \hat{\mathbf{x}}_t\right), \sigma_{t+1 \mid t}^2 \mathbf{I}\right)$ if $t < T$ else $\hat{\mathbf{x}}_{t+1}=\hat{\boldsymbol{z}}_t$
+\EndFor
+\State \Return $\hat{\mathbf{x}}_{t+1}$
+\end{algorithmic}
+\end{algorithm}
+
+\vspace{-1.5em}

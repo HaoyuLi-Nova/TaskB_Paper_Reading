@@ -1,0 +1,60 @@
+% \begin{table}[t]
+% \centering
+% % \resizebox{\columnwidth}{!}{%
+
+% \begin{tabular}{lccc}
+% \toprule
+% Method & Diversity$\uparrow$ & Beat Align$\uparrow$ & FID \\ \hline
+% % All from a single network~\cite{ren2021pirenderer} \\
+% Speech2Gesture~\cite{speech2gesture}  & 0.1574 & 0.274 &33.399 \\ \hline
+% % Emotion and pose individually \\
+% Our~(Single Style) & 0.2735 & 0.287 &21.841 \\
+% w/o  $\mathcal{L}_{gan}$  & 0.2500 & 0.271 &22.106 \\
+% w/o  initial pose & 0.2725 & 0.278 &22.025 \\
+% w/o  Audio & 0.2566 &0.274 &22.947 \\ 
+% w/o  All Cond. & 0.2631 & 0.279 &22.170  \\\hline
+% Ours Mixed Style & \textbf{0.2778} & \textbf{0.293} &\textbf{22.057} \\
+% % + ref pose \\
+% % + ref pose + $\mathcal{L}_{loss}$ \\
+% % \midrule
+% % Ours & 0.502 \\
+% \bottomrule
+% \end{tabular}
+
+% % }
+% \caption{
+% Ablation for PoseNet.
+% }
+% \vspace{-0.05in}
+% \label{tab:pose}
+% \end{table}
+
+\begin{table}[t]
+\centering
+% \resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcc}
+\toprule
+Method & Diversity$\uparrow$ & Beat Align$\uparrow$  \\ \hline
+% All from a single network~\cite{ren2021pirenderer} \\
+Speech2Gesture~\cite{speech2gesture}  & 0.1574 & 0.274  \\ \hline
+% Emotion and pose individually \\
+OurFull~(Single Fixed Style) & 0.2735 & 0.287  \\
+w/o  $\mathcal{L}_{gan}$  & 0.2500 & 0.271  \\
+w/o  initial pose & 0.2725 & 0.278  \\
+w/o  audio & 0.2566 &0.274  \\ 
+w/o  all conditions & 0.2631 & 0.279  \\\hline
+OursFull~(Mixed Style) & \textbf{0.2778} & \textbf{0.293} \\
+% + ref pose \\
+% + ref pose + $\mathcal{L}_{loss}$ \\
+% \midrule
+% Ours & 0.502 \\
+\bottomrule
+\end{tabular}
+\vspace{-1em}
+% }
+\caption{
+Ablation the diversity and audio alignment of the proposed PoseVAE. Each component or conditional contribute largely to generate realistic head motions.
+}
+\vspace{-1em}
+\label{tab:pose}
+\end{table}

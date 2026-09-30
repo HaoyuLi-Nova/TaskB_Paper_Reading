@@ -1,0 +1,59 @@
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/dffa/full_mask_fwd_per_gpu/flops_report.pdf}
+        \caption{Forward pass for full mask.}
+        \label{fig:dffa_fwd_perf_report_full}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/dffa/full_mask_bwd_per_gpu/flops_report.pdf}
+        \caption{Backward pass for full mask.}
+        \label{fig:dffa_bwd_perf_report_full}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \caption{Benchmarking MaiAttention's scalability against other leading CP strategies for full mask scenarios. (Note that: the $\mathbf{X}$ symbol indicates the corresponding distributed attention implementation is not supported in that specific configuration.)}
+    \label{fig:dffa_perf_report_full}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/dffa/varlen_full_mask_fwd_per_gpu/flops_report.pdf}
+        \caption{Forward pass for varlen-full mask.}
+        \label{fig:dffa_fwd_perf_report_varlen_full}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \begin{minipage}{\textwidth}
+    
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{infra/train_infra/figs/exps/dffa/varlen_full_mask_bwd_per_gpu/flops_report.pdf}
+        \caption{Backward pass for varlen-full mask.}
+        \label{fig:dffa_bwd_perf_report_varlen_full}
+    \end{subfigure}
+
+    \end{minipage}
+
+    \caption{Benchmarking MaiAttention's scalability against other leading CP strategies for varlen full mask scenarios. (Note that: the $\mathbf{X}$ symbol indicates the corresponding distributed attention implementation is not supported in that specific configuration.)}
+    \label{fig:dffa_perf_report_varlen_full}
+\end{figure}

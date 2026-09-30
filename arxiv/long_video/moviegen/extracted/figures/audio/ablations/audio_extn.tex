@@ -1,0 +1,65 @@
+\begin{table}[h]
+    \centering
+    \captionsetup{type=figure}
+    \setlength{\tabcolsep}{1pt}
+    \adjustbox{max width=0.95\textwidth}{%
+    \centering
+    \begin{tabular}{cccccc}
+        \rowcolor{blue300}
+        \multicolumn{6}{c}{\textbf{Sound effects: crackling and popping of the fire, Music: dark, intense, and suspenseful orchestral track}} \\
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_18/md_triangle/out-042.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_18/md_triangle/out-085.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_18/md_triangle/out-128.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_18/md_triangle/out-170.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_18/md_triangle/out-213.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_18/md_triangle/out-256.jpg}\\
+        \multicolumn{6}{c}{{(a) multi-diffusion}} \\
+\multicolumn{6}{c}{
+    \includegraphics[width=\linewidth, height=0.05\linewidth]
+    {figures/audio/ablations/ablation_audio_extn/sample_18/md_triangle/spec.jpg}
+} \\
+        \multicolumn{6}{c}{{(b) stitch}} \\
+\multicolumn{6}{c}{
+    \includegraphics[width=\linewidth, height=0.05\linewidth]
+    {figures/audio/ablations/ablation_audio_extn/sample_18/stitch/spec.jpg}
+} \\
+
+        \multicolumn{6}{c}{{(c) autoregressive}} \\
+\multicolumn{6}{c}{
+    \includegraphics[width=\linewidth, height=0.05\linewidth]
+    {figures/audio/ablations/ablation_audio_extn/sample_18/segrerank_ic_true_state_true_blend_1/spec.jpg}
+} \\
+        \rowcolor{blue300}
+        \multicolumn{6}{c}{\textbf{Sound effects: water splashes against the rocky cliff, Music: classical piano music piece}} \\
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_15/md_triangle/out-042.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_15/md_triangle/out-085.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_15/md_triangle/out-128.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_15/md_triangle/out-170.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_15/md_triangle/out-213.jpg}&
+\includegraphics[width=0.17\linewidth]{figures/audio/ablations/ablation_audio_extn/sample_15/md_triangle/out-256.jpg}\\
+        \multicolumn{6}{c}{{(a) multi-diffusion}} \\
+\multicolumn{6}{c}{
+    \includegraphics[width=\linewidth, height=0.05\linewidth]
+    {figures/audio/ablations/ablation_audio_extn/sample_15/md_triangle/spec.jpg}
+} \\
+        \multicolumn{6}{c}{{(b) stitch}} \\
+\multicolumn{6}{c}{
+    \includegraphics[width=\linewidth, height=0.05\linewidth]
+    {figures/audio/ablations/ablation_audio_extn/sample_15/stitch/spec.jpg}
+} \\
+
+        \multicolumn{6}{c}{{(c) autoregressive}} \\
+\multicolumn{6}{c}{
+    \includegraphics[width=\linewidth, height=0.05\linewidth]
+    {figures/audio/ablations/ablation_audio_extn/sample_15/segrerank_ic_true_state_true_blend_1/spec.jpg}
+} \\
+
+
+    \end{tabular}}
+\vspace{-3mm}
+\caption{\textbf{Examples of sound track generation using different audio extension methods with \OursAudio.}
+Each video comprises 2 segments of about 5 seconds each. Both multi-diffusion and autoregressive generate coherent samples with smooth transitions at the boundary. Stitching results in noticible music artifacts at the boundary.
+Videos in this Figure found at \url{https://go.fb.me/MovieGen-Figure35}.
+}
+\label{fig:audio_ablation_extn}
+\end{table}

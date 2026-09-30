@@ -1,0 +1,553 @@
+% appendix.tex
+% AAAI-27 technical appendix / supplementary material
+% Added by LYL, not official kit file
+%
+% Two usage modes:
+%   1) Standalone supplementary PDF:
+%        pdflatex appendix.tex
+%        bibtex appendix          % only if citations are used
+%        pdflatex appendix.tex
+%        pdflatex appendix.tex
+%
+%   2) Included in the main paper for local drafting:
+%        \def\AppendixIncluded{}
+%        \input{appendix}
+%
+% IMPORTANT:
+% - Keep this file anonymous during double-blind review.
+% - The forced page break below is only for the local combined draft.
+%   Do not include this appendix in the submitted main-paper PDF.
+% - Mirror any additional packages/macros from your main paper in the
+%   standalone preamble below.
+
+\ifdefined\AppendixIncluded
+  % Included mode: the main paper already provides the document class,
+  % AAAI style, packages, macros, title, and \begin{document}.
+   % \usepackage{multirow} 
+\else
+  % Standalone mode
+  \documentclass[letterpaper]{article}
+  \usepackage[submission]{aaai2027}
+
+  % Required/recommended AAAI-27 packages
+  \usepackage[hyphens]{url}
+  \usepackage{graphicx}
+  \urlstyle{rm}
+  \def\UrlFont{\rm}
+  \usepackage{natbib}
+  \usepackage{caption}
+  \frenchspacing
+  \usepackage{booktabs}
+   \usepackage{multirow} 
+
+  % Add the same extra packages and custom commands used by your main paper.
+  \usepackage{amsmath}
+  \usepackage{amssymb}
+
+  \pdfinfo{
+    /TemplateVersion (2027.1)
+  }
+
+  % Appendix sections will be labeled A, B, ...
+  \setcounter{secnumdepth}{1}
+
+  % Keep the supplementary PDF anonymous for review.
+  \title{Supplementary Material for\\QuerySplat}
+  \author{Anonymous AAAI-27 Submission}
+  \affiliations{Paper ID: XXXX}
+
+  \begin{document}
+  \maketitle
+\fi
+
+% Start the appendix on a fresh page only in the local combined draft.
+% AAAI-27 forbids forced page breaks in the submitted main paper.
+\ifdefined\AppendixIncluded
+  \clearpage
+\fi
+
+\begin{center}
+  {\LARGE\bfseries Appendix}
+\end{center}
+
+\appendix
+\setcounter{secnumdepth}{1}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Detailed Quantitative Comparisons}
+\label{app:detailed_quantitative_comparisons}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 24.1130 & \underline{0.8729} & \textbf{0.1101} & 17.4135 & 0.5472 & \underline{0.3651} & 18.7962 & \underline{0.6150} & \textbf{0.3006} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & \underline{26.2841} & 0.8457 & 0.2626 & \underline{17.6985} & \underline{0.5703} & 0.4828 & \underline{18.9342} & 0.6123 & 0.4359 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & 24.3481 & 0.8471 & 0.1291 & 16.8822 & 0.4994 & 0.4050 & 18.1934 & 0.5555 & 0.3476 \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & \textbf{28.2681} & \textbf{0.9186} & \underline{0.1125} & 11.7463 & 0.3890 & 0.5317 & 12.7023 & 0.4229 & 0.4860 \\
+    NoPoSplat~\shortcite{ye2025noposplat} & $\checkmark$ & 19.6465 & 0.6290 & 0.2816 & 16.3361 & 0.4798 & 0.4398 & 17.0561 & 0.5063 & 0.4073 \\
+    SPFSplat~\shortcite{huang2025spfsplat} & $\checkmark$ & 22.4244 & 0.7106 & 0.1704 & 16.5557 & 0.4753 & 0.4200 & 17.4773 & 0.5173 & 0.3708 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 24.2824 & 0.8356 & 0.1674 & 13.0674 & 0.4087 & 0.4561 & 13.8261 & 0.4368 & 0.4187 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 18.6309 & 0.5367 & 0.3204 & 16.0399 & 0.4531 & 0.4317 & 16.6372 & 0.4727 & 0.4064 \\
+    \textbf{Ours} & $\checkmark$ & 26.2565 & 0.8251 & 0.1581 & \textbf{18.6272} & \textbf{0.5945} & \textbf{0.3594} & \textbf{19.5802} & \textbf{0.6269} & \underline{0.3206} \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 29.6810 & 0.8633 & 0.1091 & 18.9195 & 0.6124 & 0.3509 & 20.1278 & 0.6475 & 0.3036 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 30.2295 & 0.8681 & 0.0950 & 18.8219 & 0.6088 & 0.3497 & 20.0710 & 0.6449 & 0.3004 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{2-view} input on the \textbf{large} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-2views-large}
+\end{table*}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 25.5474 & \underline{0.8932} & \textbf{0.0940} & \underline{20.5908} & \underline{0.6802} & \underline{0.2509} & 20.4691 & \underline{0.6993} & \textbf{0.2360} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & 27.5959 & 0.8795 & 0.2222 & 20.3666 & 0.6761 & 0.3729 & \underline{20.5332} & 0.6871 & 0.3623 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & 25.9272 & 0.8738 & 0.1101 & 20.0542 & 0.6412 & 0.2796 & 20.1932 & 0.6649 & 0.2657 \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & \textbf{28.3469} & \textbf{0.9189} & \underline{0.1060} & 14.1915 & 0.4464 & 0.4452 & 14.0380 & 0.4595 & 0.4272 \\
+    NoPoSplat~\shortcite{ye2025noposplat} & $\checkmark$ & 21.8738 & 0.7114 & 0.2020 & 19.2279 & 0.6047 & 0.3046 & 18.9084 & 0.6016 & 0.3103 \\
+    SPFSplat~\shortcite{huang2025spfsplat} & $\checkmark$ & 23.2262 & 0.7494 & 0.1460 & 19.3380 & 0.5931 & 0.2944 & 18.6967 & 0.5818 & 0.3035 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 24.6273 & 0.8375 & 0.1620 & 15.6790 & 0.4970 & 0.3644 & 15.2040 & 0.5005 & 0.3617 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 21.9742 & 0.6774 & 0.1998 & 19.4209 & 0.6011 & 0.2952 & 19.0395 & 0.5880 & 0.3005 \\
+    \textbf{Ours} & $\checkmark$ & \underline{28.2766} & 0.8856 & 0.1098 & \textbf{21.4607} & \textbf{0.7069} & \textbf{0.2501} & \textbf{21.2292} & \textbf{0.7026} & \underline{0.2526} \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 32.4299 & 0.9184 & 0.0695 & 22.0407 & 0.7232 & 0.2398 & 21.9990 & 0.7264 & 0.2358 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 33.1205 & 0.9228 & 0.0599 & 21.9792 & 0.7215 & 0.2382 & 21.9669 & 0.7256 & 0.2336 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{2-view} input on the \textbf{medium} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-2views-medium}
+\end{table*}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 27.1695 & 0.9171 & \textbf{0.0759} & \underline{23.6028} & \underline{0.7890} & \textbf{0.1617} & 22.7682 & \textbf{0.7871} & \textbf{0.1683} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & \underline{28.5841} & 0.9012 & 0.1918 & 23.2123 & 0.7744 & 0.2792 & \underline{22.9806} & 0.7713 & 0.2849 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & 27.1469 & 0.8997 & 0.0888 & 22.5705 & 0.7483 & 0.1882 & 22.2366 & 0.7554 & 0.1937 \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & 28.5431 & \underline{0.9220} & 0.0958 & 16.2849 & 0.4986 & 0.3655 & 15.5915 & 0.4987 & 0.3663 \\
+    NoPoSplat~\shortcite{ye2025noposplat} & $\checkmark$ & 23.8145 & 0.7917 & 0.1393 & 21.6310 & 0.7145 & 0.2047 & 20.9450 & 0.6944 & 0.2247 \\
+    SPFSplat~\shortcite{huang2025spfsplat} & $\checkmark$ & 24.0475 & 0.7880 & 0.1183 & 21.4553 & 0.6937 & 0.1995 & 20.4444 & 0.6635 & 0.2264 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 25.3171 & 0.8459 & 0.1521 & 18.3395 & 0.5917 & 0.2794 & 17.3749 & 0.5840 & 0.2929 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 24.3293 & 0.7801 & 0.1322 & 22.0417 & 0.7184 & 0.1976 & 21.2538 & 0.6952 & 0.2143 \\
+    \textbf{Ours} & $\checkmark$ & \textbf{29.7749} & \textbf{0.9276} & \underline{0.0774} & \textbf{24.0786} & \textbf{0.7956} & \underline{0.1660} & \textbf{23.3463} & \underline{0.7790} & \underline{0.1831} \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 34.5038 & 0.9590 & 0.0409 & 25.0680 & 0.8148 & 0.1527 & 24.6639 & 0.8090 & 0.1630 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 35.2782 & 0.9627 & 0.0337 & 25.0299 & 0.8144 & 0.1512 & 24.6862 & 0.8096 & 0.1601 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{2-view} input on the \textbf{small} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-2views-small}
+\end{table*}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 23.9394 & \underline{0.8564} & \textbf{0.1284} & 20.2901 & \underline{0.6871} & \textbf{0.2503} & 18.2692 & \underline{0.6175} & \textbf{0.3123} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & 25.0249 & 0.8090 & 0.2876 & \underline{20.5588} & 0.6712 & 0.3830 & \underline{18.6832} & 0.6076 & 0.4375 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & 23.9833 & 0.8206 & \underline{0.1561} & 20.3328 & 0.6550 & 0.2722 & 18.6229 & 0.5968 & 0.3329 \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & \underline{25.2204} & \textbf{0.8636} & 0.1599 & 14.9064 & 0.4713 & 0.4283 & 13.2399 & 0.4421 & 0.4728 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 23.0137 & 0.7963 & 0.1874 & 16.5145 & 0.5306 & 0.3495 & 14.3430 & 0.4712 & 0.4055 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 21.0418 & 0.6457 & 0.2282 & 19.3526 & 0.5926 & 0.2979 & 17.7817 & 0.5316 & 0.3583 \\
+    \textbf{Ours} & $\checkmark$ & \textbf{26.0338} & 0.8337 & 0.1699 & \textbf{21.8724} & \textbf{0.7169} & \underline{0.2593} & \textbf{19.6819} & \textbf{0.6432} & \underline{0.3277} \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 30.2927 & 0.8931 & 0.1100 & 23.0259 & 0.7501 & 0.2325 & 20.5441 & 0.6794 & 0.3026 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 31.3715 & 0.9045 & 0.0907 & 23.0427 & 0.7505 & 0.2262 & 20.5315 & 0.6798 & 0.2966 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{4-view} input on the \textbf{large} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-4views-large}
+\end{table*}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 25.3594 & 0.8781 & \textbf{0.1082} & 22.7572 & \underline{0.7687} & \underline{0.1837} & 19.6293 & \underline{0.6801} & \textbf{0.2589} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & \underline{26.6703} & 0.8545 & 0.2355 & \underline{23.2286} & 0.7589 & 0.2981 & \underline{20.1766} & 0.6754 & 0.3753 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & 25.8785 & 0.8683 & 0.1149 & 22.7899 & 0.7512 & 0.1944 & 19.8817 & 0.6614 & 0.2797 \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & 26.2466 & \underline{0.8807} & 0.1343 & 17.4232 & 0.5484 & 0.3387 & 14.1144 & 0.4759 & 0.4210 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 24.2414 & 0.8227 & 0.1632 & 19.1637 & 0.6300 & 0.2675 & 15.1613 & 0.5185 & 0.3555 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 23.5423 & 0.7532 & 0.1578 & 21.9269 & 0.7041 & 0.2112 & 19.1994 & 0.6099 & 0.2977 \\
+    \textbf{Ours} & $\checkmark$ & \textbf{28.0864} & \textbf{0.8957} & \underline{0.1146} & \textbf{24.6659} & \textbf{0.8084} & \textbf{0.1758} & \textbf{21.0778} & \textbf{0.7122} & \underline{0.2673} \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 32.8387 & 0.9406 & 0.0675 & 26.2940 & 0.8379 & 0.1516 & 22.1078 & 0.7477 & 0.2431 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 34.0826 & 0.9500 & 0.0535 & 26.4224 & 0.8399 & 0.1462 & 22.1743 & 0.7500 & 0.2371 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{4-view} input on the \textbf{medium} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-4views-medium}
+\end{table*}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 27.2767 & \underline{0.9066} & \textbf{0.0846} & 25.6765 & \underline{0.8491} & \underline{0.1219} & 21.9588 & \underline{0.7686} & \textbf{0.1888} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & \underline{28.1302} & 0.8880 & 0.1959 & \underline{26.0239} & 0.8395 & 0.2267 & \underline{22.7399} & 0.7662 & 0.2930 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & 27.3757 & 0.8971 & 0.0893 & 25.4238 & 0.8344 & 0.1297 & 21.9304 & 0.7491 & 0.2061 \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & 27.6666 & 0.9005 & 0.1126 & 19.8517 & 0.6253 & 0.2583 & 15.9692 & 0.5350 & 0.3505 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 25.8388 & 0.8562 & 0.1378 & 22.0457 & 0.7276 & 0.1975 & 17.5045 & 0.6112 & 0.2830 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 25.6956 & 0.8274 & 0.1127 & 24.6138 & 0.7980 & 0.1410 & 21.3475 & 0.7114 & 0.2185 \\
+    \textbf{Ours} & $\checkmark$ & \textbf{29.5741} & \textbf{0.9234} & \underline{0.0867} & \textbf{27.1912} & \textbf{0.8754} & \textbf{0.1179} & \textbf{23.2606} & \textbf{0.7886} & \underline{0.1942} \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 34.5002 & 0.9602 & 0.0480 & 29.4373 & 0.9032 & 0.0933 & 24.7796 & 0.8243 & 0.1697 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 35.6475 & 0.9666 & 0.0384 & 29.6687 & 0.9059 & 0.0888 & 24.9192 & 0.8279 & 0.1643 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{4-view} input on the \textbf{small} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-4views-small}
+\end{table*}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 20.7272 & \underline{0.7537} & \textbf{0.2147} & 20.0607 & 0.6960 & \underline{0.2522} & 16.7422 & \underline{0.5426} & \textbf{0.3870} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & 20.7762 & 0.6591 & 0.4168 & 19.8281 & 0.6213 & 0.4378 & 16.8357 & 0.5252 & 0.5175 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & 21.5871 & 0.7396 & \underline{0.2215} & \underline{20.9436} & \underline{0.6962} & \textbf{0.2474} & \underline{17.2244} & 0.5390 & \underline{0.3882} \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & \underline{22.0788} & \textbf{0.7762} & 0.2323 & 17.9160 & 0.5682 & 0.3562 & 13.5825 & 0.4462 & 0.4965 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 20.7351 & 0.7116 & 0.2398 & 18.7349 & 0.5964 & 0.3014 & 14.3457 & 0.4453 & 0.4361 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 20.1787 & 0.6341 & 0.2581 & 19.9175 & 0.6219 & 0.2735 & 16.7819 & 0.4957 & 0.4039 \\
+    \textbf{Ours} & $\checkmark$ & \textbf{22.7212} & 0.7347 & 0.2677 & \textbf{21.8494} & \textbf{0.7024} & 0.2895 & \textbf{18.2572} & \textbf{0.5938} & 0.3917 \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 27.0716 & 0.8473 & 0.1826 & 24.6674 & 0.7913 & 0.2214 & 19.1717 & 0.6435 & 0.3579 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 28.5342 & 0.8769 & 0.1475 & 25.2006 & 0.8063 & 0.1984 & 19.2486 & 0.6479 & 0.3473 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{12-view} input on the \textbf{large} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-12views-large}
+\end{table*}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 21.8850 & \underline{0.7884} & \underline{0.1859} & 21.4410 & 0.7521 & \underline{0.2092} & 16.5801 & 0.5507 & \textbf{0.3843} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & 22.0150 & 0.7065 & 0.3710 & 21.4151 & 0.6862 & 0.3812 & 16.9313 & 0.5381 & 0.5099 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & \underline{22.9007} & 0.7844 & \textbf{0.1858} & \underline{22.3512} & \underline{0.7550} & \textbf{0.2037} & \underline{17.4104} & \underline{0.5554} & \underline{0.3856} \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & 22.7391 & \textbf{0.7900} & 0.2160 & 19.2000 & 0.6218 & 0.3124 & 13.1844 & 0.4489 & 0.4961 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 21.4336 & 0.7356 & 0.2212 & 19.9685 & 0.6543 & 0.2628 & 13.8483 & 0.4492 & 0.4378 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 21.4287 & 0.6928 & 0.2173 & 21.1921 & 0.6850 & 0.2277 & 16.9888 & 0.5155 & 0.3988 \\
+    \textbf{Ours} & $\checkmark$ & \textbf{23.7809} & 0.7732 & 0.2312 & \textbf{23.2820} & \textbf{0.7589} & 0.2404 & \textbf{18.1704} & \textbf{0.5906} & 0.3979 \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 28.2484 & 0.8739 & 0.1517 & 26.4901 & 0.8413 & 0.1741 & 19.1523 & 0.6443 & 0.3629 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 29.7052 & 0.8988 & 0.1214 & 27.1794 & 0.8562 & 0.1527 & 19.2620 & 0.6499 & 0.3517 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{12-view} input on the \textbf{medium} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-12views-medium}
+\end{table*}
+
+% Requires: \usepackage{booktabs,multirow,amssymb}
+\begin{table*}[!t]
+  \centering
+  \setlength{\tabcolsep}{1.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{input} & \multicolumn{3}{c}{interp} & \multicolumn{3}{c}{extrap} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & 23.6793 & 0.8307 & \underline{0.1458} & 23.5338 & 0.8167 & \underline{0.1535} & 18.1796 & 0.6259 & \underline{0.3159} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & 24.4677 & 0.7886 & 0.2873 & 24.1851 & 0.7805 & 0.2898 & 18.8982 & 0.6230 & 0.4278 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & \underline{25.2678} & \underline{0.8484} & \textbf{0.1275} & \underline{24.9030} & \underline{0.8313} & \textbf{0.1364} & \underline{19.1503} & \underline{0.6381} & \textbf{0.3110} \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & 24.4494 & 0.8276 & 0.1723 & 21.7598 & 0.7102 & 0.2282 & 14.3189 & 0.5034 & 0.4269 \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 23.3236 & 0.7922 & 0.1740 & 22.5108 & 0.7541 & 0.1904 & 15.0812 & 0.5223 & 0.3682 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 23.9189 & 0.7835 & 0.1489 & 23.7872 & 0.7791 & 0.1539 & 18.6901 & 0.6029 & 0.3227 \\
+    \textbf{Ours} & $\checkmark$ & \textbf{26.1943} & \textbf{0.8488} & 0.1578 & \textbf{25.9700} & \textbf{0.8443} & 0.1591 & \textbf{19.9808} & \textbf{0.6705} & 0.3197 \\
+    \midrule
+    \textbf{Ours} + TTO20 & $\checkmark$ & 30.9625 & 0.9237 & 0.0949 & 29.8434 & 0.9090 & 0.1045 & 21.3198 & 0.7252 & 0.2827 \\
+    \textbf{Ours} + TTO50 & $\checkmark$ & 32.4794 & 0.9413 & 0.0737 & 30.7796 & 0.9219 & 0.0882 & 21.5483 & 0.7338 & 0.2710 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Per-scale results for \textbf{12-view} input on the \textbf{small} split. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison.}
+  \label{tab:appendix-12views-small}
+\end{table*}
+
+
+
+The main paper reports interpolation results averaged over the three sampling splits. Tables~\ref{tab:appendix-2views-large}, \ref{tab:appendix-2views-medium}, and \ref{tab:appendix-2views-small} present the complete 2-view results; Tables~\ref{tab:appendix-4views-large}, \ref{tab:appendix-4views-medium}, and \ref{tab:appendix-4views-small} report the corresponding 4-view results; and Tables~\ref{tab:appendix-12views-large}, \ref{tab:appendix-12views-medium}, and \ref{tab:appendix-12views-small} provide the 12-view evaluation. Each table includes input-view reconstruction, interpolation, and extrapolation. The large, medium, and small splits correspond to progressively narrower sampling intervals, allowing us to examine reconstruction under different degrees of viewpoint change. Taken together, these results reveal a consistent distinction between reproducing the observed images and recovering a scene representation that remains reliable beyond them.
+
+\paragraph{Input and novel-view reconstruction.}
+Pixel-aligned methods are naturally competitive on the input views because their Gaussian predictions retain a direct correspondence with observed pixels and camera rays. QuerySplat remains strong in this setting despite removing that constraint, showing that scene-level queries can preserve input fidelity without being anchored to individual observations. Its advantage becomes clearer on interpolation and extrapolation, where the rendering camera departs from the input views. Across different view counts and sampling intervals, QuerySplat exhibits substantially more stable novel-view performance than previous pose-free and query-based methods. This suggests that the predicted Gaussians form a coherent scene-level organization rather than merely reproducing appearance along the observed rays.
+
+\paragraph{Effect of the number of input views.}
+With only two views, reconstruction is highly under-constrained, yet QuerySplat can still establish a plausible geometric layout and recover useful appearance information. As the number of views increases, the model benefits from broader scene coverage and stronger cross-view constraints. The improvement from 2 to 4 views is particularly evident, while the 12-view results show that the query decoder can continue integrating denser observations without changing the overall formulation. QuerySplat also maintains its advantage across the three sampling splits, indicating that it generalizes to both nearby viewpoints and wider camera displacements.
+
+\paragraph{Effect of test-time optimization.}
+TTO adapts the extracted features using the available input images. Its largest gains appear on input-view reconstruction because supervision is applied directly at these views; importantly, the improvement also transfers to interpolation and extrapolation, indicating that TTO refines the underlying scene representation rather than simply memorizing the observations. The benefit generally grows with the number of input views, as additional images provide denser geometric constraints and more complete appearance coverage. Most improvements are already obtained with a small optimization budget, while further steps provide more gradual refinement. TTO is therefore an optional accuracy--runtime trade-off and is excluded from the main feed-forward comparison.
+
+\paragraph{Limitations and future directions.}
+The current model uses a fixed query budget, which bounds the number of Gaussians available to represent each scene. Consequently, very large or highly complex environments may be under-represented. This limitation concerns physical scene extent and complexity, rather than the large/medium/small evaluation splits. A promising extension is to divide a large environment into overlapping regions, reconstruct each region independently with QuerySplat, and then align and merge the resulting Gaussian sub-scenes, followed by optional global refinement.
+
+
+
+
+
+
+
+
+
+
+
+
+\section{More Qualitative Comparisons}
+\label{sec:more_qualitative}
+
+\paragraph{Additional novel-view synthesis comparisons.}
+Due to space limitations in the main paper, here, Figure~\ref{fig:more_qualitative_comparison} provides additional qualitative comparisons with representative feed-forward 3DGS methods. Across diverse indoor and outdoor scenes, QuerySplat preserves sharper object boundaries, thin structures, and high-frequency textures while reducing blur and structural distortions. The enlarged regions further demonstrate that our method recovers finer local details and produces renderings more consistent with the ground truth.
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/more_qualitative_comp.pdf}
+    \caption{\textbf{Additional qualitative comparisons.}
+    We compare QuerySplat with representative posed and pose-free feed-forward 3DGS methods on diverse scenes. The red and blue boxes highlight enlarged regions. QuerySplat preserves sharper boundaries, finer textures, and more coherent structures than competing methods.}
+    \label{fig:more_qualitative_comparison}
+\end{figure*}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\columnwidth]{Figures/more_in_the_wild.pdf}
+    \caption{\textbf{Additional in-the-wild comparison with TokenGS.}
+    TokenGS is a pose-required method and therefore receives cameras from an external VGGT-$\Omega$ predictor, followed by calibration to the DL3DV camera distribution used during its training. QuerySplat instead estimates cameras and establishes its coordinate system as part of its native pose-free reconstruction pipeline. Under this carefully calibrated adaptation, QuerySplat still preserves sharper object boundaries, finer appearance details, and more coherent structures. Because the TokenGS camera pipeline is not part of its original method, this result is presented as a supplementary comparison rather than a strictly like-for-like pose-free evaluation. (Note that TokenGS requires rectangular input, so the scene sizes are not strictly consistent)}
+    \label{fig:in_the_wild_tokengs}
+\end{figure}
+
+\paragraph{In-the-wild comparison with a pose-required query model.}
+In the main paper, we restrict the in-the-wild comparison to pose-free methods. This distinction is important because pose-required methods do not define how camera parameters should be obtained from uncalibrated images. Supplying externally estimated cameras introduces an additional camera-prediction and calibration system, making the final reconstruction dependent on components outside the original method. Consequently, comparisons between native pose-free methods and externally adapted pose-required methods are not strictly like-for-like. We therefore report the following comparison only as supplementary evidence rather than as part of the main in-the-wild evaluation.
+
+To nevertheless compare against the most closely related query-based baseline, we adapt the released DL3DV 4-view checkpoint of TokenGS~\cite{ren2026tokengs} to uncalibrated images using an externally calibrated VGGT-$\Omega$~\cite{wang2026vggtomega} camera pipeline. Each original image is independently center-cropped and resized to $512\times512$ for VGGT-$\Omega$ camera prediction and to $256\times448$ for TokenGS inference, avoiding cascaded resizing between the two branches. VGGT-$\Omega$ predicts cameras under the OpenCV world-to-camera convention; we invert them to camera-to-world matrices and express all views relative to the first input camera, matching the relative camera convention used by TokenGS on DL3DV. To characterize the systematic discrepancy between the two camera distributions, we randomly sample 300 cases from DL3DV-Evaluation and process them using the same image preprocessing and view-sampling protocol. For each case, the predicted and ground-truth cameras are converted to the same convention and first-camera-relative frame, after which we compare their relative rotations and camera-center trajectories. The relative rotations are retained without additional correction, while a dataset-level translation-scale coefficient is robustly estimated from the ratio between the ground-truth and predicted trajectory spans across the sampled cases. During in-the-wild inference, the VGGT-$\Omega$ poses are first normalized to the reference camera, their relative rotations are kept unchanged, and their relative translations are rescaled by this precomputed coefficient to better match the DL3DV camera distribution seen during TokenGS training. We further transform the predicted intrinsics analytically from the VGGT-$\Omega$ crop coordinates to the TokenGS crop coordinates before constructing the Pl\"ucker ray embeddings. The resulting RGB images, calibrated poses, intrinsics, and rays are then passed to the released TokenGS model without finetuning.
+
+As shown in Figure~\ref{fig:in_the_wild_tokengs}, QuerySplat produces substantially sharper and more coherent reconstructions across diverse casually captured scenes. TokenGS frequently loses high-frequency appearance and thin structures, resulting in blurred object boundaries and distorted local geometry. In contrast, QuerySplat more faithfully preserves the bicycle frame, individual plant leaves, the shape of the camera body, and the detailed appearance of the toy. These results further demonstrate the advantage of combining geometry-aware decoding with an explicitly separated appearance pathway.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Inference Efficiency and Memory Usage}
+\label{sec:inference_efficiency}
+
+We benchmark the inference efficiency of QuerySplat on a single NVIDIA H200 GPU. Runtime is averaged over five CUDA-synchronized forward passes after one excluded warm-up pass. Peak GPU memory is measured for one complete 8,192-query forward pass using \texttt{torch.cuda.max\_memory\_allocated()} and reported in GiB. The VGGT-$\Omega$~\cite{wang2026vggtomega} time includes feature aggregation, while the decoder time excludes the encoder.
+
+\begin{table*}[!t]
+\centering
+\begin{tabular}{cccccc}
+\toprule
+\shortstack{\# Views} &
+\shortstack{VGGT-Omega\\Aggregator} &
+\shortstack{Our Decoder\\(1024)} &
+\shortstack{Our Decoder\\(8192)} &
+\shortstack{Total Infer\\Time (8192)} &
+\shortstack{Total (8192)\\Peak Memory (GiB)} \\
+\midrule
+1 & 0.080 & 0.071 & 0.621 & 0.703 & 9.276 \\
+2 & 0.129 & 0.076 & 0.648 & 0.780 & 9.329 \\
+3 & 0.205 & 0.080 & 0.675 & 0.884 & 9.383 \\
+4 & 0.242 & 0.085 & 0.702 & 0.949 & 9.436 \\
+5 & 0.345 & 0.090 & 0.729 & 1.082 & 9.489 \\
+6 & 0.410 & 0.095 & 0.758 & 1.175 & 9.542 \\
+8 & 0.550 & 0.105 & 0.818 & 1.377 & 9.648 \\
+12 & 0.931 & 0.125 & 0.943 & 1.890 & 10.064 \\
+24 & 2.559 & 0.182 & 1.293 & 3.880 & 11.549 \\
+48 & 7.970 & 0.297 & 1.990 & 10.017 & 14.706 \\
+72 & 16.393 & 0.411 & 2.687 & 19.158 & 18.431 \\
+100 & 30.031 & 0.545 & 3.499 & 33.645 & 22.588 \\
+200 & 111.950 & 1.025 & 6.400 & 118.574 & 29.979 \\
+300 & 246.115 & 1.501 & 9.297 & 255.725 & 40.773 \\
+\bottomrule
+\end{tabular}
+\caption{QuerySplat inference time (s) and 8192-query peak allocated GPU memory (GiB).}
+\label{tab:inference_efficiency}
+\end{table*}
+
+As shown in Table~\ref{tab:inference_efficiency}, QuerySplat reconstructs scenes from up to four input views in under one second and processes 12 views in 1.89 seconds with the 8,192-query model. Peak memory remains around 10~GiB for up to 12 views and grows to 22.59 and 40.77~GiB for 100 and 300 views, respectively. Increasing the query count primarily affects decoder runtime, whereas the VGGT-$\Omega$ aggregation path becomes the dominant cost for large numbers of input views. These results show that QuerySplat supports both fast sparse-view reconstruction and substantially larger input collections on a single accelerator.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Ablation Details}
+\label{app:ablation_details}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/ablation_loss.pdf}
+    \caption{\textbf{Training-loss curves of the ablation variants.}
+    In the later training stage, the curves correspond from top to bottom to \emph{w/o Appearance}, \emph{One-branch Query}, \emph{w/o Early Reg.}, and the full model. All variants exhibit similar convergence trends and maintain a stable relative ordering. The temporary increase in the middle is caused by the scheduled introduction of LPIPS, while the subsequent abrupt decrease results from a shared training-time filtering strategy. (Note that each global step contains 500 (0.5k) steps with totally 150k steps)}
+    \label{fig:ablation_loss}
+\end{figure*}
+
+\paragraph{Training protocol.}
+The main QuerySplat model is trained with a base stage followed by progressive finetuning with an increasing number of Gaussian queries. Fully repeating this training procedure for every ablation variant would incur prohibitive computational cost. Therefore, all ablation models are trained only in the base stage for 150K iterations, without progressive query expansion. Except for the component being ablated, all variants use the same training data, input-view sampling strategy, optimization settings. For the shortened 150K ablation runs, the scheduled loss transitions are correspondingly rescaled and kept identical across all variants. The quantitative ablations reported in the main paper are obtained from these base-stage checkpoints.
+
+\paragraph{Convergence behavior.}
+Figure~\ref{fig:ablation_loss} presents the training-loss curves of the four variants. In the later training stage, the curves correspond from top to bottom to \emph{w/o Appearance}, \emph{One-branch Query}, \emph{w/o Early Reg.}, and the full model. All variants exhibit closely aligned optimization dynamics: they decrease rapidly during early training, undergo the same scheduled transitions, and subsequently continue to converge at comparable rates. More importantly, the relative ordering between the variants becomes stable well before the end of base training, with no indication that the inferior variants are closing the performance gap. This suggests that extending all variants through the substantially more expensive progressive-finetuning stage would be unlikely to reverse the conclusions of the ablation study. The 150K-iteration base training therefore provides a sufficient and computationally practical comparison of the proposed components.
+
+The temporary increase in loss observed in the middle of training is caused by the scheduled activation and gradual introduction of the LPIPS term. Because the plotted objective begins to include an additional perceptual loss component, its absolute value increases even though the underlying optimization remains stable. The later abrupt decrease is caused by a training-time filtering strategy shared by all variants. Since both changes occur consistently across the four models, they reflect common training-schedule transitions rather than instability introduced by any particular architectural design.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Parameter Details}
+\label{app:parameter_details}
+
+\paragraph{Hardware and software environment.}
+QuerySplat is trained on 64 NVIDIA A800 GPUs using distributed data parallelism. Each GPU processes one training sample, resulting in a global batch size of 64 without gradient accumulation. Training uses BF16 mixed precision, while the perceptual loss is evaluated in FP32 for improved numerical stability. Our implementation is based on Python 3.12 and PyTorch 2.11, with CUDA 12.8 and cuDNN 9.19, running on Ubuntu 24.04.
+
+\paragraph{Model and training configuration.}
+The input images are center-cropped and resized to $512\times512$. We use a frozen pretrained VGGT-$\Omega$ as the geometric encoder and fuse features extracted from its 4th, 11th, 17th, and 23rd intermediate layers. The geometry and appearance decoders contain 12 and 6 Transformer blocks, respectively. Both use an embedding dimension of 2,048, 16 attention heads, and an MLP expansion ratio of 4. The geometry decoder is initialized with 1,024 learnable queries, each of which predicts 64 Gaussian primitives. The predicted Gaussians use first-order spherical harmonics, and their activated scales are capped at $0.075$.
+
+Base training uses four input views and is performed for 300K iterations. We then progressively double the number of queries until reaching 8,192, training each expansion stage for 30K iterations with randomly sampled 2--12 input views. We use AdamW with an initial learning rate of $10^{-4}$ during base training and $10^{-5}$ during progressive finetuning. A linear warm-up is followed by cosine learning-rate decay, and the global gradient norm is clipped to $1.0$. An exponential moving average of the model parameters is maintained with a decay factor of $0.9995$.
+
+The reconstruction objective uses an $\ell_1$ photometric loss together with SSIM and LPIPS, whose weights are set to $0.2$ and $0.05$, respectively. LPIPS is introduced progressively after the initial photometric training stage. The visibility loss has a weight of $1.0$. The bidirectional Chamfer-distance loss and opacity-floor regularization are assigned initial weights of $1.0$ and $0.1$, respectively, and are annealed to zero during early training. The opacity floor is set to $0.1$. Cameras are normalized relative to the first input view, and the renderer uses near and far clipping planes of $0.025$ and $125.0$. During late training, a loss-rank filtering strategy retains $95\%$ of samples according to their historical reconstruction losses to reduce the influence of unstable training cases.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\ifdefined\AppendixIncluded
+  % Included mode: let the main paper provide the bibliography.
+\else
+  % Standalone mode: change "references" if your .bib file has another name.
+  \bibliography{aaai2027}
+  \end{document}
+\fi

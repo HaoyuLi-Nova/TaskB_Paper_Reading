@@ -1,0 +1,520 @@
+\begin{thebibliography}{58}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Ahmed et~al.(2021)Ahmed, Wilbur, Bharadwaj, and
+  Siskind]{ahmed2021object}
+Hamad Ahmed, Ronnie~B. Wilbur, Hari~M. Bharadwaj, and Jeffrey~Mark Siskind.
+\newblock Object classification from randomized {{EEG}} trials.
+\newblock In \emph{2021 {{IEEE}}/{{CVF Conference}} on {{Computer Vision}} and
+  {{Pattern Recognition}} ({{CVPR}})}, pp.\  3844--3853, {Nashville, TN, USA},
+  June 2021. {IEEE}.
+\newblock ISBN 978-1-66544-509-2.
+\newblock \doi{10.1109/CVPR46437.2021.00384}.
+
+\bibitem[Allen et~al.(2022)Allen, {St-Yves}, Wu, Breedlove, Prince, Dowdle,
+  Nau, Caron, Pestilli, Charest, Hutchinson, Naselaris, and
+  Kay]{allen2022massive}
+Emily~J. Allen, Ghislain {St-Yves}, Yihan Wu, Jesse~L. Breedlove, Jacob~S.
+  Prince, Logan~T. Dowdle, Matthias Nau, Brad Caron, Franco Pestilli, Ian
+  Charest, J.~Benjamin Hutchinson, Thomas Naselaris, and Kendrick Kay.
+\newblock A massive {{7T fMRI}} dataset to bridge cognitive neuroscience and
+  artificial intelligence.
+\newblock \emph{Nature Neuroscience}, 25\penalty0 (1):\penalty0 116--126,
+  January 2022.
+\newblock ISSN 1546-1726.
+\newblock \doi{10.1038/s41593-021-00962-x}.
+
+\bibitem[Bao et~al.(2020)Bao, She, McGill, and Tsao]{bao2020map}
+Pinglei Bao, Liang She, Mason McGill, and Doris~Y. Tsao.
+\newblock A map of object space in primate inferotemporal cortex.
+\newblock \emph{Nature}, 583\penalty0 (7814):\penalty0 103--108, July 2020.
+\newblock ISSN 1476-4687.
+\newblock \doi{10.1038/s41586-020-2350-5}.
+
+\bibitem[Bastos et~al.(2015)Bastos, Vezoli, Bosman, Schoffelen, Oostenveld,
+  Dowdall, De~Weerd, Kennedy, and Fries]{bastos2015visual}
+Andr{\'e}~Moraes Bastos, Julien Vezoli, Conrado~Arturo Bosman, Jan-Mathijs
+  Schoffelen, Robert Oostenveld, Jarrod~Robert Dowdall, Peter De~Weerd, Henry
+  Kennedy, and Pascal Fries.
+\newblock Visual {{Areas Exert Feedforward}} and {{Feedback Influences}}
+  through {{Distinct Frequency Channels}}.
+\newblock \emph{Neuron}, 85\penalty0 (2):\penalty0 390--401, January 2015.
+\newblock ISSN 0896-6273.
+\newblock \doi{10.1016/j.neuron.2014.12.018}.
+
+\bibitem[Benchetrit et~al.(2023)Benchetrit, Banville, and
+  King]{benchetrit2023brain}
+Yohann Benchetrit, Hubert Banville, and Jean-R{\'e}mi King.
+\newblock Brain decoding: Toward real-time reconstruction of visual perception,
+  October 2023.
+
+\bibitem[Brody et~al.(2022)Brody, Alon, and Yahav]{brody2022how}
+Shaked Brody, Uri Alon, and Eran Yahav.
+\newblock How {{Attentive}} are {{Graph Attention Networks}}?, January 2022.
+
+\bibitem[Cheng et~al.(2022)Cheng, Wei, Du, Qiu, Tian, Ma, and
+  He]{cheng2022vigilancenet}
+Xinyu Cheng, Wei Wei, Changde Du, Shuang Qiu, Sanli Tian, Xiaojun Ma, and
+  Huiguang He.
+\newblock {{VigilanceNet}}: {{Decouple Intra-}} and {{Inter-Modality Learning}}
+  for {{Multimodal Vigilance Estimation}} in {{RSVP-Based BCI}}.
+\newblock In \emph{Proceedings of the 30th {{ACM International Conference}} on
+  {{Multimedia}}}, pp.\  209--217, {Lisboa Portugal}, October 2022. {ACM}.
+\newblock ISBN 978-1-4503-9203-7.
+\newblock \doi{10.1145/3503161.3548367}.
+
+\bibitem[Cichy \& Oliva(2020)Cichy and Oliva]{cichy2020eegfmri}
+Radoslaw~M. Cichy and Aude Oliva.
+\newblock A {{M}}/{{EEG-fMRI Fusion Primer}}: {{Resolving Human Brain
+  Responses}} in {{Space}} and {{Time}}.
+\newblock \emph{Neuron}, 107\penalty0 (5):\penalty0 772--781, September 2020.
+\newblock ISSN 0896-6273.
+\newblock \doi{10.1016/j.neuron.2020.07.001}.
+
+\bibitem[Cichy et~al.(2014)Cichy, Pantazis, and Oliva]{cichy2014resolving}
+Radoslaw~Martin Cichy, Dimitrios Pantazis, and Aude Oliva.
+\newblock Resolving human object recognition in space and time.
+\newblock \emph{Nature Neuroscience}, 17\penalty0 (3):\penalty0 455--462, March
+  2014.
+\newblock ISSN 1546-1726.
+\newblock \doi{10.1038/nn.3635}.
+
+\bibitem[Clevert et~al.(2016)Clevert, Unterthiner, and
+  Hochreiter]{clevert2016fast}
+Djork-Arné Clevert, Thomas Unterthiner, and Sepp Hochreiter.
+\newblock Fast and accurate deep network learning by exponential linear units
+  (elus).
+\newblock In \emph{International {{Conference}} on {{Learning
+  Representations}}}, 2016.
+
+\bibitem[Dapello et~al.(2023)Dapello, Kar, Schrimpf, Geary, Ferguson, Cox, and
+  DiCarlo]{dapello2023aligning}
+Joel Dapello, Kohitij Kar, Martin Schrimpf, Robert~Baldwin Geary, Michael
+  Ferguson, David~Daniel Cox, and James~J. DiCarlo.
+\newblock Aligning {{Model}} and {{Macaque Inferior Temporal Cortex
+  Representations Improves Model-to-Human Behavioral Alignment}} and
+  {{Adversarial Robustness}}.
+\newblock In \emph{The {{Eleventh International Conference}} on {{Learning
+  Representations}}}, February 2023.
+
+\bibitem[DiCarlo \& Cox(2007)DiCarlo and Cox]{dicarlo2007untangling}
+James~J. DiCarlo and David~D. Cox.
+\newblock Untangling invariant object recognition.
+\newblock \emph{Trends in Cognitive Sciences}, 11\penalty0 (8):\penalty0
+  333--341, August 2007.
+\newblock ISSN 1364-6613.
+\newblock \doi{10.1016/j.tics.2007.06.010}.
+
+\bibitem[Ding et~al.(2023)Ding, Robinson, Tong, Zeng, and Guan]{ding2023lggnet}
+Yi~Ding, Neethu Robinson, Chengxuan Tong, Qiuhao Zeng, and Cuntai Guan.
+\newblock {{LGGNet}}: {{Learning From Local-Global-Graph Representations}} for
+  {{Brain}}\textendash{{Computer Interface}}.
+\newblock \emph{IEEE Transactions on Neural Networks and Learning Systems},
+  pp.\  1--14, 2023.
+\newblock ISSN 2162-2388.
+\newblock \doi{10.1109/TNNLS.2023.3236635}.
+
+\bibitem[Dosovitskiy et~al.(2021)Dosovitskiy, Beyer, Kolesnikov, Weissenborn,
+  Zhai, Unterthiner, Dehghani, Minderer, Heigold, Gelly, Uszkoreit, and
+  Houlsby]{dosovitskiy2021image}
+Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn,
+  Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg
+  Heigold, Sylvain Gelly, Jakob Uszkoreit, and Neil Houlsby.
+\newblock An {{Image}} is {{Worth}} 16x16 {{Words}}: {{Transformers}} for
+  {{Image Recognition}} at {{Scale}}.
+\newblock In \emph{International {{Conference}} on {{Learning
+  Representations}}}, April 2021.
+
+\bibitem[Du et~al.(2023)Du, Fu, Li, and He]{du2023decoding}
+Changde Du, Kaicheng Fu, Jinpeng Li, and Huiguang He.
+\newblock Decoding {{Visual Neural Representations}} by {{Multimodal Learning}}
+  of {{Brain-Visual-Linguistic Features}}.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, pp.\  1--17, 2023.
+\newblock ISSN 1939-3539.
+\newblock \doi{10.1109/TPAMI.2023.3263181}.
+
+\bibitem[Fries et~al.(2008)Fries, Scheeringa, and Oostenveld]{fries2008finding}
+Pascal Fries, Ren{\'e} Scheeringa, and Robert Oostenveld.
+\newblock Finding {{Gamma}}.
+\newblock \emph{Neuron}, 58\penalty0 (3):\penalty0 303--305, May 2008.
+\newblock ISSN 0896-6273.
+\newblock \doi{10.1016/j.neuron.2008.04.020}.
+
+\bibitem[Fu et~al.(2022)Fu, Du, Wang, and He]{fu2022multiview}
+Kaicheng Fu, Changde Du, Shengpei Wang, and Huiguang He.
+\newblock Multi-{{View Multi-Label Fine-Grained Emotion Decoding From Human
+  Brain Activity}}.
+\newblock \emph{IEEE Transactions on Neural Networks and Learning Systems},
+  pp.\  1--15, 2022.
+\newblock ISSN 2162-2388.
+\newblock \doi{10.1109/TNNLS.2022.3217767}.
+
+\bibitem[Gao et~al.(2021)Gao, Wang, Chen, and Gao]{gao2021interfacea}
+Xiaorong Gao, Yijun Wang, Xiaogang Chen, and Shangkai Gao.
+\newblock Interface, interaction, and intelligence in generalized
+  brain\textendash computer interfaces.
+\newblock \emph{Trends in Cognitive Sciences}, 25\penalty0 (8):\penalty0
+  671--684, August 2021.
+\newblock ISSN 1364-6613.
+\newblock \doi{10.1016/j.tics.2021.04.003}.
+
+\bibitem[Gifford et~al.(2022)Gifford, Dwivedi, Roig, and
+  Cichy]{gifford2022large}
+Alessandro~T. Gifford, Kshitij Dwivedi, Gemma Roig, and Radoslaw~M. Cichy.
+\newblock A large and rich {{EEG}} dataset for modeling human visual object
+  recognition.
+\newblock \emph{NeuroImage}, 264:\penalty0 119754, December 2022.
+\newblock ISSN 1053-8119.
+\newblock \doi{10.1016/j.neuroimage.2022.119754}.
+
+\bibitem[Guggenmos et~al.(2018)Guggenmos, Sterzer, and
+  Cichy]{guggenmos2018multivariate}
+Matthias Guggenmos, Philipp Sterzer, and Radoslaw~Martin Cichy.
+\newblock Multivariate pattern analysis for {{MEG}}: {{A}} comparison of
+  dissimilarity measures.
+\newblock \emph{NeuroImage}, 173:\penalty0 434--447, June 2018.
+\newblock ISSN 1053-8119.
+\newblock \doi{10.1016/j.neuroimage.2018.02.044}.
+
+\bibitem[He et~al.(2016)He, Zhang, Ren, and Sun]{he2016deepa}
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+\newblock Deep {{Residual Learning}} for {{Image Recognition}}.
+\newblock In \emph{2016 {{IEEE Conference}} on {{Computer Vision}} and
+  {{Pattern Recognition}} ({{CVPR}})}, pp.\  770--778, {Las Vegas, NV, USA},
+  June 2016. {IEEE}.
+\newblock ISBN 978-1-4673-8851-1.
+\newblock \doi{10.1109/CVPR.2016.90}.
+
+\bibitem[Hebart et~al.(2023)Hebart, Contier, Teichmann, Rockter, Zheng, Kidder,
+  Corriveau, {Vaziri-Pashkam}, and Baker]{hebart2023thingsdata}
+Martin~N Hebart, Oliver Contier, Lina Teichmann, Adam~H Rockter, Charles~Y
+  Zheng, Alexis Kidder, Anna Corriveau, Maryam {Vaziri-Pashkam}, and Chris~I
+  Baker.
+\newblock {{THINGS-data}}, a multimodal collection of large-scale datasets for
+  investigating object representations in human brain and behavior.
+\newblock \emph{eLife}, 12:\penalty0 e82580, February 2023.
+\newblock ISSN 2050-084X.
+\newblock \doi{10.7554/eLife.82580}.
+
+\bibitem[Herrmann \& Demiralp(2005)Herrmann and Demiralp]{herrmann2005human}
+C.~S. Herrmann and T.~Demiralp.
+\newblock Human {{EEG}} gamma oscillations in neuropsychiatric disorders.
+\newblock \emph{Clinical Neurophysiology}, 116\penalty0 (12):\penalty0
+  2719--2733, December 2005.
+\newblock ISSN 1388-2457.
+\newblock \doi{10.1016/j.clinph.2005.07.007}.
+
+\bibitem[Ho et~al.(2023)Ho, Horikawa, Majima, Cheng, and
+  Kamitani]{ho2023interindividual}
+Jun~Kai Ho, Tomoyasu Horikawa, Kei Majima, Fan Cheng, and Yukiyasu Kamitani.
+\newblock Inter-individual deep image reconstruction via hierarchical neural
+  code conversion.
+\newblock \emph{NeuroImage}, 271:\penalty0 120007, May 2023.
+\newblock ISSN 1053-8119.
+\newblock \doi{10.1016/j.neuroimage.2023.120007}.
+
+\bibitem[Horikawa \& Kamitani(2017)Horikawa and Kamitani]{horikawa2017generic}
+Tomoyasu Horikawa and Yukiyasu Kamitani.
+\newblock Generic decoding of seen and imagined objects using hierarchical
+  visual features.
+\newblock \emph{Nature Communications}, 8\penalty0 (1):\penalty0 15037, May
+  2017.
+\newblock ISSN 2041-1723.
+\newblock \doi{10.1038/ncomms15037}.
+
+\bibitem[Jia et~al.(2021)Jia, Hong, and DiCarlo]{jia2021unsupervised}
+Xiaoxuan Jia, Ha~Hong, and James~J DiCarlo.
+\newblock Unsupervised changes in core object recognition behavior are
+  predicted by neural plasticity in inferior temporal cortex.
+\newblock \emph{eLife}, 10:\penalty0 e60830, June 2021.
+\newblock ISSN 2050-084X.
+\newblock \doi{10.7554/eLife.60830}.
+
+\bibitem[Kamitani \& Tong(2005)Kamitani and Tong]{kamitani2005decoding}
+Yukiyasu Kamitani and Frank Tong.
+\newblock Decoding the visual and subjective contents of the human brain.
+\newblock \emph{Nature Neuroscience}, 8\penalty0 (5):\penalty0 679--685, May
+  2005.
+\newblock ISSN 1546-1726.
+\newblock \doi{10.1038/nn1444}.
+
+\bibitem[Kay et~al.(2008)Kay, Naselaris, Prenger, and
+  Gallant]{kay2008identifying}
+Kendrick~N. Kay, Thomas Naselaris, Ryan~J. Prenger, and Jack~L. Gallant.
+\newblock Identifying natural images from human brain activity.
+\newblock \emph{Nature}, 452\penalty0 (7185):\penalty0 352--355, March 2008.
+\newblock ISSN 1476-4687.
+\newblock \doi{10.1038/nature06713}.
+
+\bibitem[Keysers \& Perrett(2002)Keysers and Perrett]{keysers2002visual}
+Christian Keysers and David~I Perrett.
+\newblock Visual masking and {{RSVP}} reveal neural competition.
+\newblock \emph{Trends in Cognitive Sciences}, 6\penalty0 (3):\penalty0
+  120--125, March 2002.
+\newblock ISSN 1364-6613.
+\newblock \doi{10.1016/S1364-6613(00)01852-0}.
+
+\bibitem[Kobler et~al.(2022)Kobler, Hirayama, Zhao, and
+  Kawanabe]{kobler2022spd}
+Reinmar Kobler, Jun-ichiro Hirayama, Qibin Zhao, and Motoaki Kawanabe.
+\newblock {{SPD}} domain-specific batch normalization to crack interpretable
+  unsupervised domain adaptation in {{EEG}}.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  35:\penalty0 6219--6235, December 2022.
+
+\bibitem[Lawhern et~al.(2018)Lawhern, Solon, Waytowich, Gordon, Hung, and
+  Lance]{lawhern2018eegneta}
+Vernon~J. Lawhern, Amelia~J. Solon, Nicholas~R. Waytowich, Stephen~M. Gordon,
+  Chou~P. Hung, and Brent~J. Lance.
+\newblock {{EEGNet}}: A compact convolutional neural network for {{EEG-based}}
+  brain\textendash computer interfaces.
+\newblock \emph{Journal of Neural Engineering}, 15\penalty0 (5):\penalty0
+  056013, July 2018.
+\newblock ISSN 1741-2552.
+\newblock \doi{10.1088/1741-2552/aace8c}.
+
+\bibitem[Li et~al.(2021)Li, Johansen, Ahmed, Ilyevsky, Wilbur, Bharadwaj, and
+  Siskind]{li2021perils}
+Ren Li, Jared~S. Johansen, Hamad Ahmed, Thomas~V. Ilyevsky, Ronnie~B. Wilbur,
+  Hari~M. Bharadwaj, and Jeffrey~Mark Siskind.
+\newblock The {{Perils}} and {{Pitfalls}} of {{Block Design}} for {{EEG
+  Classification Experiments}}.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, 43\penalty0 (1):\penalty0 316--333, January 2021.
+\newblock ISSN 1939-3539.
+\newblock \doi{10.1109/TPAMI.2020.2973153}.
+
+\bibitem[Lin et~al.(2022)Lin, Sprague, and Singh]{NEURIPS2022_bee5125b}
+Sikun Lin, Thomas Sprague, and Ambuj~K Singh.
+\newblock Mind {{Reader}}: {{Reconstructing}} complex images from brain
+  activities.
+\newblock In S.~Koyejo, S.~Mohamed, A.~Agarwal, D.~Belgrave, K.~Cho, and A.~Oh
+  (eds.), \emph{Advances in Neural Information Processing Systems}, volume~35,
+  pp.\  29624--29636. {Curran Associates, Inc.}, 2022.
+
+\bibitem[Liu et~al.(2021)Liu, Chen, Shi, Wang, Gao, and Gao]{liu2021improvinga}
+Bingchuan Liu, Xiaogang Chen, Nanlin Shi, Yijun Wang, Shangkai Gao, and
+  Xiaorong Gao.
+\newblock Improving the {{Performance}} of {{Individually Calibrated
+  SSVEP-BCI}} by {{Task- Discriminant Component Analysis}}.
+\newblock \emph{IEEE Transactions on Neural Systems and Rehabilitation
+  Engineering}, 29:\penalty0 1998--2007, 2021.
+\newblock ISSN 1558-0210.
+\newblock \doi{10.1109/TNSRE.2021.3114340}.
+
+\bibitem[Liu et~al.(2023)Liu, Dai, Zhang, Jin, Cao, and
+  Kong]{liu2023brainmachine}
+Dongjun Liu, Weichen Dai, Hangkui Zhang, Xuanyu Jin, Jianting Cao, and Wanzeng
+  Kong.
+\newblock Brain-{{Machine Coupled Learning Method}} for {{Facial Emotion
+  Recognition}}.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, pp.\  1--15, 2023.
+\newblock ISSN 1939-3539.
+\newblock \doi{10.1109/TPAMI.2023.3257846}.
+
+\bibitem[Michalareas et~al.(2016)Michalareas, Vezoli, {van Pelt}, Schoffelen,
+  Kennedy, and Fries]{michalareas2016alphabeta}
+Georgios Michalareas, Julien Vezoli, Stan {van Pelt}, Jan-Mathijs Schoffelen,
+  Henry Kennedy, and Pascal Fries.
+\newblock Alpha-{{Beta}} and {{Gamma Rhythms Subserve Feedback}} and
+  {{Feedforward Influences}} among {{Human Visual Cortical Areas}}.
+\newblock \emph{Neuron}, 89\penalty0 (2):\penalty0 384--397, January 2016.
+\newblock ISSN 0896-6273.
+\newblock \doi{10.1016/j.neuron.2015.12.018}.
+
+\bibitem[Miyawaki et~al.(2008)Miyawaki, Uchida, Yamashita, Sato, Morito,
+  Tanabe, Sadato, and Kamitani]{miyawaki2008visual}
+Yoichi Miyawaki, Hajime Uchida, Okito Yamashita, Masa-aki Sato, Yusuke Morito,
+  Hiroki~C. Tanabe, Norihiro Sadato, and Yukiyasu Kamitani.
+\newblock Visual {{Image Reconstruction}} from {{Human Brain Activity}} using a
+  {{Combination}} of {{Multiscale Local Image Decoders}}.
+\newblock \emph{Neuron}, 60\penalty0 (5):\penalty0 915--929, December 2008.
+\newblock ISSN 0896-6273.
+\newblock \doi{10.1016/j.neuron.2008.11.004}.
+
+\bibitem[Palazzo et~al.(2021)Palazzo, Spampinato, Kavasidis, Giordano, Schmidt,
+  and Shah]{palazzo2021decoding}
+Simone Palazzo, Concetto Spampinato, Isaak Kavasidis, Daniela Giordano, Joseph
+  Schmidt, and Mubarak Shah.
+\newblock Decoding {{Brain Representations}} by {{Multimodal Learning}} of
+  {{Neural Activity}} and {{Visual Features}}.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, 43\penalty0 (11):\penalty0 3833--3849, November 2021.
+\newblock ISSN 0162-8828.
+\newblock \doi{10.1109/TPAMI.2020.2995909}.
+
+\bibitem[Pan et~al.(2022)Pan, Chou, and Wei]{pan2022matt}
+Yue-Ting Pan, Jing-Lun Chou, and Chun-Shu Wei.
+\newblock {{MAtt}}: {{A Manifold Attention Network}} for {{EEG Decoding}}.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  35:\penalty0 31116--31129, December 2022.
+
+\bibitem[Radford et~al.(2021)Radford, Kim, Hallacy, Ramesh, Goh, Agarwal,
+  Sastry, Askell, Mishkin, Clark, et~al.]{radford2021learning}
+Alec Radford, Jong~Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+  Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark,
+  et~al.
+\newblock Learning transferable visual models from natural language
+  supervision.
+\newblock In \emph{International Conference on Machine Learning}, pp.\
+  8748--8763. PMLR, 2021.
+
+\bibitem[Sayal et~al.(2020)Sayal, Sousa, Duarte, Costa, Martins, and
+  {Castelo-Branco}]{sayal2020identification}
+Alexandre Sayal, Teresa Sousa, Jo{\~a}o~V. Duarte, Gabriel~N. Costa, Ricardo
+  Martins, and Miguel {Castelo-Branco}.
+\newblock Identification of competing neural mechanisms underlying positive and
+  negative perceptual hysteresis in the human visual system.
+\newblock \emph{NeuroImage}, 221:\penalty0 117153, November 2020.
+\newblock ISSN 1053-8119.
+\newblock \doi{10.1016/j.neuroimage.2020.117153}.
+
+\bibitem[Schirrmeister et~al.(2017)Schirrmeister, Springenberg, Fiederer,
+  Glasstetter, Eggensperger, Tangermann, Hutter, Burgard, and
+  Ball]{schirrmeister2017deepa}
+Robin~Tibor Schirrmeister, Jost~Tobias Springenberg, Lukas Dominique~Josef
+  Fiederer, Martin Glasstetter, Katharina Eggensperger, Michael Tangermann,
+  Frank Hutter, Wolfram Burgard, and Tonio Ball.
+\newblock Deep learning with convolutional neural networks for {{EEG}} decoding
+  and visualization.
+\newblock \emph{Human Brain Mapping}, 38\penalty0 (11):\penalty0 5391--5420,
+  2017.
+\newblock ISSN 1097-0193.
+\newblock \doi{10.1002/hbm.23730}.
+
+\bibitem[Schneider et~al.(2023)Schneider, Lee, and
+  Mathis]{schneider2023learnable}
+Steffen Schneider, Jin~Hwa Lee, and Mackenzie~Weygandt Mathis.
+\newblock Learnable latent embeddings for joint behavioural and neural
+  analysis.
+\newblock \emph{Nature}, 617\penalty0 (7960):\penalty0 360--368, May 2023.
+\newblock ISSN 1476-4687.
+\newblock \doi{10.1038/s41586-023-06031-6}.
+
+\bibitem[Selvaraju et~al.(2017)Selvaraju, Cogswell, Das, Vedantam, Parikh, and
+  Batra]{selvaraju2017gradcama}
+Ramprasaath~R. Selvaraju, Michael Cogswell, Abhishek Das, Ramakrishna Vedantam,
+  Devi Parikh, and Dhruv Batra.
+\newblock Grad-{{CAM}}: {{Visual Explanations}} from {{Deep Networks}} via
+  {{Gradient-Based Localization}}.
+\newblock In \emph{2017 {{IEEE International Conference}} on {{Computer
+  Vision}} ({{ICCV}})}, pp.\  618--626, October 2017.
+\newblock \doi{10.1109/ICCV.2017.74}.
+
+\bibitem[Shen et~al.(2019)Shen, Horikawa, Majima, and Kamitani]{shen2019deep}
+Guohua Shen, Tomoyasu Horikawa, Kei Majima, and Yukiyasu Kamitani.
+\newblock Deep image reconstruction from human brain activity.
+\newblock \emph{PLOS Computational Biology}, 15\penalty0 (1):\penalty0
+  e1006633, 2019.
+\newblock ISSN 1553-7358.
+\newblock \doi{10.1371/journal.pcbi.1006633}.
+
+\bibitem[Shi et~al.(2023)Shi, Li, Liu, Yang, Wang, and
+  Gao]{shi2023representativebaseda}
+Nanlin Shi, Xiang Li, Bingchuan Liu, Chen Yang, Yijun Wang, and Xiaorong Gao.
+\newblock Representative-{{Based Cold Start}} for {{Adaptive SSVEP-BCI}}.
+\newblock \emph{IEEE Transactions on Neural Systems and Rehabilitation
+  Engineering}, 31:\penalty0 1521--1531, 2023.
+\newblock ISSN 1558-0210.
+\newblock \doi{10.1109/TNSRE.2023.3245654}.
+
+\bibitem[Song et~al.(2023)Song, Zheng, Liu, and Gao]{song2023eega}
+Yonghao Song, Qingqing Zheng, Bingchuan Liu, and Xiaorong Gao.
+\newblock {{EEG Conformer}}: {{Convolutional Transformer}} for {{EEG Decoding}}
+  and {{Visualization}}.
+\newblock \emph{IEEE Transactions on Neural Systems and Rehabilitation
+  Engineering}, 31:\penalty0 710--719, 2023.
+\newblock ISSN 1558-0210.
+\newblock \doi{10.1109/TNSRE.2022.3230250}.
+
+\bibitem[Spampinato et~al.(2017)Spampinato, Palazzo, Kavasidis, Giordano,
+  Souly, and Shah]{spampinato2017deep}
+C.~Spampinato, S.~Palazzo, I.~Kavasidis, D.~Giordano, N.~Souly, and M.~Shah.
+\newblock Deep {{Learning Human Mind}} for {{Automated Visual Classification}}.
+\newblock In \emph{2017 {{IEEE Conference}} on {{Computer Vision}} and
+  {{Pattern Recognition}} ({{CVPR}})}, pp.\  4503--4511, July 2017.
+\newblock \doi{10.1109/CVPR.2017.479}.
+
+\bibitem[Sun et~al.(2023)Sun, Fang, Wu, Wang, and Cao]{sun2023evaclip}
+Quan Sun, Yuxin Fang, Ledell Wu, Xinlong Wang, and Yue Cao.
+\newblock {{EVA-CLIP}}: {{Improved Training Techniques}} for {{CLIP}} at
+  {{Scale}}, March 2023.
+
+\bibitem[Takagi \& Nishimoto(2023)Takagi and Nishimoto]{takagi2022high}
+Yu~Takagi and Shinji Nishimoto.
+\newblock High-resolution image reconstruction with latent diffusion models
+  from human brain activity.
+\newblock \emph{2023 {{IEEE Conference}} on {{Computer Vision}} and {{Pattern
+  Recognition}} ({{CVPR}})}, 2023.
+
+\bibitem[van~den Oord et~al.(2019)van~den Oord, Li, and
+  Vinyals]{oord2019representation}
+Aaron van~den Oord, Yazhe Li, and Oriol Vinyals.
+\newblock Representation {{Learning}} with {{Contrastive Predictive Coding}},
+  January 2019.
+
+\bibitem[van~der Maaten \& Hinton(2008)van~der Maaten and
+  Hinton]{maaten2008visualizinga}
+Laurens van~der Maaten and Geoffrey Hinton.
+\newblock Visualizing {{Data}} using t-{{SNE}}.
+\newblock \emph{Journal of Machine Learning Research}, 9\penalty0
+  (86):\penalty0 2579--2605, 2008.
+\newblock ISSN 1533-7928.
+
+\bibitem[Vaswani et~al.(2017)Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez,
+  Kaiser, and Polosukhin]{vaswani2017attentiona}
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+  Aidan~N Gomez, {\L}ukasz Kaiser, and Illia Polosukhin.
+\newblock Attention is {{All}} you {{Need}}.
+\newblock In \emph{Advances in {{Neural Information Processing Systems}}},
+  volume~30. {Curran Associates, Inc.}, 2017.
+
+\bibitem[Veli{\v c}kovi{\'c} et~al.(2018)Veli{\v c}kovi{\'c}, Cucurull,
+  Casanova, Romero, Li{\`o}, and Bengio]{velickovic2018graph}
+Petar Veli{\v c}kovi{\'c}, Guillem Cucurull, Arantxa Casanova, Adriana Romero,
+  Pietro Li{\`o}, and Yoshua Bengio.
+\newblock Graph {{Attention Networks}}.
+\newblock In \emph{International {{Conference}} on {{Learning
+  Representations}}}, April 2018.
+
+\bibitem[Wang et~al.(2022)Wang, Chen, Wu, Luo, Zhou, Zhao, Xie, Liu, Jiang, and
+  Yuan]{NEURIPS2022_259a5df4}
+Junke Wang, Dongdong Chen, Zuxuan Wu, Chong Luo, Luowei Zhou, Yucheng Zhao,
+  Yujia Xie, Ce~Liu, Yu-Gang Jiang, and Lu~Yuan.
+\newblock {{OmniVL}}: {{One}} foundation model for image-language and
+  video-language tasks.
+\newblock In S.~Koyejo, S.~Mohamed, A.~Agarwal, D.~Belgrave, K.~Cho, and A.~Oh
+  (eds.), \emph{Advances in Neural Information Processing Systems}, volume~35,
+  pp.\  5696--5710. {Curran Associates, Inc.}, 2022.
+
+\bibitem[Willett et~al.(2021)Willett, Avansino, Hochberg, Henderson, and
+  Shenoy]{willett2021highperformance}
+Francis~R. Willett, Donald~T. Avansino, Leigh~R. Hochberg, Jaimie~M. Henderson,
+  and Krishna~V. Shenoy.
+\newblock High-performance brain-to-text communication via handwriting.
+\newblock \emph{Nature}, 593\penalty0 (7858):\penalty0 249--254, May 2021.
+\newblock ISSN 1476-4687.
+\newblock \doi{10.1038/s41586-021-03506-2}.
+
+\bibitem[Xu et~al.(2023)Xu, Zhou, Xu, Ling, Liu, and Hong]{xu2023temporal}
+Rui Xu, Wenjing Zhou, Xin Xu, Zhipei Ling, Hesheng Liu, and Bo~Hong.
+\newblock A temporal hierarchy of object processing in human visual cortex,
+  September 2023.
+
+\bibitem[{Yuval-Greenberg} et~al.(2008){Yuval-Greenberg}, Tomer, Keren, Nelken,
+  and Deouell]{yuval-greenberg2008transient}
+Shlomit {Yuval-Greenberg}, Orr Tomer, Alon~S. Keren, Israel Nelken, and Leon~Y.
+  Deouell.
+\newblock Transient {{Induced Gamma-Band Response}} in {{EEG}} as a
+  {{Manifestation}} of {{Miniature Saccades}}.
+\newblock \emph{Neuron}, 58\penalty0 (3):\penalty0 429--441, May 2008.
+\newblock ISSN 0896-6273.
+\newblock \doi{10.1016/j.neuron.2008.03.027}.
+
+\end{thebibliography}

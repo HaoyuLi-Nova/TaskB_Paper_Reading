@@ -1,0 +1,25 @@
+
+
+
+
+  The \OURS cast of models generates videos with synchronized audio, personalized characters, and supports video editing as illustrated in~\cref{fig:main_figure}.
+
+  We achieve these wide capabilities using two foundation models:
+  \begin{itemize}
+      \item \textbf{\OursVideo}. A 30B parameter foundation model for joint text-to-image and text-to-video generation that generates high-quality HD videos of up to 16 seconds duration that follow the text prompt. The model naturally generates high-quality images and videos in multiple aspect ratios and variable resolutions and durations. The model is pre-trained jointly on \videoDataSize videos and \imageDataSize images and learns about the visual world by `watching' videos. We find that the pre-trained model can reason about object motion, subject-object interactions, geometry, camera motion, and physics, and learns plausible motions for a wide variety of concepts. %
+      To improve the video generations, we perform supervised finetuning (SFT) on a small set of curated high-quality videos and text captions. We present the model architecture and training details in~\cref{sec:image_video_model}.
+
+      \item \textbf{\OursAudio}. A 13B parameter foundation model for video- and text-to-audio generation that can generate 48kHz high-quality cinematic sound effects and music synchronized with the video input, and follow an input text prompt.
+      The model naturally handles variable length audio generation and can produce long-form coherent audio for videos up to several minutes long via audio extension techniques.
+      We pre-train the model on \bigO(1)M hours of audio and observe that it learns not only the physical association, but also the psychological associations between the visual and the audio world.
+      The model can generate diegetic ambient sounds matching the visual scene even when the source is unseen, and also diegetic sound effects synchronized with the visual actions.
+      Moreover, it can generate non-diegetic music that supports the mood and aligns with the actions of the visual scene, and blend sound effects and background music professionally.
+      We further perform SFT on a small set of curated higher quality (text, audio) and (video, text, audio) data which improves the overall audio quality and aims for cinematic styles.
+      The model and training recipe are outlined in~\cref{sec:audio_model}.
+  \end{itemize}
+
+  We add video personalization and video editing capabilities to our foundation \OursVideo model via post-training procedures:
+  \begin{itemize}
+    \item \textbf{Personalization} enables the video generation model to condition on text as well as an image of a person to generate a video featuring the chosen person. The generated  personalized video maintains the identity of the person while following the text prompt. We use a subset of videos containing humans, and automatically construct pairs of (image, text) inputs and video outputs to train the model. We outline the post training strategy for personalization in~\cref{sec:personalization}.
+    \item \textbf{Precise Editing} allows users to effortlessly perform precise and imaginative edits on both real and generated videos using a textual instruction. Since large-scale supervised video editing data is harder to obtain, we show a novel approach to train such a video editing model without supervised video editing data (\cref{sec:video_editing}). We provide examples of our model's video editing capabilities in \url{https://go.fb.me/MovieGen-Figure24}.
+  \end{itemize}

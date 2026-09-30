@@ -1,0 +1,197 @@
+\section{Model Performance}
+
+This section provides a comprehensive evaluation of Seedance 1.0, structured as follows. In Section 7.1, we first present results from an external public evaluation platform, where Seedance 1.0 tops the leaderboards in both text-to-video and image-to-video. Section 7.2 details the internal evaluation, covering benchmark design, absolute scoring, and comparative analysis using the Good-Same-Bad (GSB) metric. The subsequent subsections highlight Seedance 1.0's strengths in multi-shot transitions and multi-style generation. The overall results are presented in Figure 1.
+
+\subsection{Artificial Analysis Arena}
+
+Artificial Analysis~\cite{aa_elo} has emerged as a widely recognized and trusted benchmarking platform, particularly in the domains of image and video generation. It offers an open arena in which various generative models are evaluated and scored by the public. Leveraging a large corpus of comparison results, the platform calculates Elo scores to reflect user preferences across different models. 
+The Artificial Analysis Video Arena Leaderboard comprises two distinct tracks: text-to-video and image-to-video. Seedance 1.0 has participated in both categories. Some notable external competitors include Veo 3, Kling 2.0, Runway Gen4, OpenAI Sora, and Wan 2.1.
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/aa.pdf}
+    \caption{Results from Artificial Analysis Arena. Seedance 1.0 achieves the top position on both the text-to-video and image-to-video leaderboards.}
+    \label{fig:aa_seedance}
+\end{figure}
+
+Seedance 1.0 tops both the text-to-video and image-to-video leaderboards, demonstrating a substantial performance advantage over competing models. In particular, it outperforms the second- and third-best models, Veo 3 and Kling 2.0, by over 100 points in the image-to-video task. Notably, Seedance 1.0 attains state-of-the-art results across both tasks using a single unified model, whereas prior models typically excelled in one domain while underperforming in the other. The subsequent sections provide a detailed analysis of Seedance 1.0's advantages in each scenario.
+
+\subsection{Comprehensive Evaluation}
+Besides overall user preferences, a comprehensive benchmark is equally important for the evaluation of visual generation models, as it enables a more holistic assessment of model capabilities. We developed SeedVideoBench-1.0, a comprehensive benchmark for video generation, comprising 300 prompts each for T2V and I2V. We then collaborated with film director experts to co-develop evaluation criteria and conducted a detailed manual expert evaluation.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/t2v_all_per_dim.pdf}
+\caption{Absolute Evaluation for Text-to-Video task.}
+\label{fig:t2v_abs}
+\end{figure*}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\linewidth]{figures/t2v_gsb_test.pdf}
+\caption{GSB Evaluation for Text-to-Video Task.}
+\label{fig:t2v_gsb}
+\end{figure*}
+
+\subsubsection{SeedVideoBench 1.0}
+To comprehensively evaluate video generation models across diverse scenarios, we proposed SeedVideoBench-1.0, a benchmark designed through systematic analysis of real-world user prompts. This benchmark encompasses a wide range of application scenarios, including special effects, e-commerce, and professional-generated content (PGC). Additionally, a detailed taxonomy has been developed to assess model capabilities. The following section demonstrates the classification of main label categories, using text-to-video as an example.
+
+\begin{itemize}[leftmargin=*]
+\item ~\underline{\textit{Subject}} It is essential to first evaluate the model's ability to accurately generate primary entities, including humans, animals, natural scenes, consumer goods, and some virtual subjects.
+
+\item ~\underline{\textit{Subject Description}} The focus is on models' ability to produce accurate representations of primary subjects. It includes subject quantity, entity attributes (e.g. appearance characteristics of human subjects, object properties of physical items), and spatial positioning.
+
+\item ~\underline{\textit{Action}} Action simulation and generation represent fundamental capabilities of video generation models, indicative of their proficiency in capturing real-world dynamics and underlying physical laws. This category assesses motion-related actions across multiple categories, including human activities, multi-entity interactions, animal locomotion, sports movements, natural phenomena (e.g., weather events, biological processes), physical principles (e.g., gravity, fluid dynamics), and creative or imaginative motion patterns.
+
+\item ~\underline{\textit{Action Description}} This category provides a finer-grained analysis of action generation, focusing on action number, movement direction, temporal sequencing, motion intensity, and expression of emotional states.
+
+\item ~\underline{\textit{Camera}} The camera language component reflects a distinctive dimension of artistic expression in video generation, encompassing camera movements, shooting angles, shot size definition and variation, as well as transitions between multiple shots. SeedVideoBench-1.0 integrates a range of professional camera movements, including circular tracking shots, dolly-in shots, Hitchcock zooms, lateral pans, and follow shots.
+
+\item ~\underline{\textit{Aesthetic description}} Aesthetics evaluation is an essential component in assessing visual generation models. This part encompasses style consistency, compositional atmosphere, lighting and shadow dynamics, and other factors governing the overall aesthetic quality of the generated videos.
+
+\end{itemize}
+
+The taxonomy for image-to-video is similar, with the addition of a labeling system for the first frame. For both text-to-video and image-to-video tasks, we construct 300 prompts each, uniformly distributed across the aforementioned categories. The quantity of prompts per category is designed to ensure sufficient discriminative and statistical confidence in the evaluation.
+
+\subsubsection{Video Evaluation Metrics}
+In collaboration with film directors, we developed a set of specialized evaluation metrics for generated videos, enabling assessment from a professional perspective. Unlike public preference evaluations, which often emphasize aesthetic appeal while neglecting fine-grained distinctions in model capabilities, this framework is structured around four core dimensions.
+
+\begin{itemize}[leftmargin=*]
+
+\item ~\underline{\textit{Motion Quality}} Motion Quality is the first intuitive impression that generated videos bring to users. It includes multiple aspects such as structural accuracy, motion plausibility, motion stability, and motion vividness. Structural accuracy focuses on detecting structural anomalies in generated content, such as extra limbs, truncation, unnatural bending, or inhuman postures. Motion plausibility involves physical plausibility in trajectory and speed, adherence to physical laws and common sense, and the identification of unnaturally static subjects or those with insufficient movement amplitude. Separately, motion stability is evaluated to detect artifacts caused by subject or background dynamics, while motion vividness addresses the coherence and realism of action sequences, including macro-structural integrity and the aesthetic quality of camera motion.
+
+
+\item ~\underline{\textit{Prompt Following}} Prompt Following represents a foundational capability of generative models, reflecting their ability to produce content aligned with human intent. This evaluation focuses on multiple dimensions, including action responsiveness, subject description fidelity, stylistic conformity, incorporation of auxiliary entities, temporal alignment of motion, camera behavior, and environmental depiction accuracy.
+
+\item ~\underline{\textit{Aesthetic Quality}} Evaluation of aesthetic appeal and visual quality in generated video emphasizes visual texture, perceptibility of AI sense, material detail fidelity, and the artistic expression of aesthetic intent.
+
+\item ~\underline{\textit{Preservation}} Original image preservation, specific to image-to-video tasks, is assessed across multiple dimensions, including subject consistency, stylistic coherence, material fidelity, visual content alignment, and consistency in color and lighting.
+
+
+\end{itemize}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/i2v_all_per_dim.pdf}
+\vspace{-1cm}
+\caption{Absolute Evaluation for Image-to-Video task.}
+\label{fig:i2v_abs}
+\end{figure*}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\linewidth]{figures/i2v_gsb_test.pdf}
+\caption{GSB Evaluation for Image-to-Video task.}
+\label{fig:i2v_gsb}
+\end{figure*}
+
+
+\subsubsection{Human Evaluation}
+
+Leveraging SeedVideoBench 1.0, we conducted a comprehensive comparative evaluation of Seedance 1.0 against several leading video generation models across two tasks: text-to-video and image-to-video generation. For the text-to-video task, comparative models include Kling 2.1(Master), Veo 3, Wan 2.1, and Sora; for the image-to-video task, Sora is replaced by Runway Gen4. Two evaluation protocols are adopted: Absolute Score and the Good-Same-Bad (GSB) comparison metric. The Absolute Score employs a five-point Likert scale (where 1 indicates extreme dissatisfaction and 5 signifies utmost satisfaction), facilitating unified performance comparison across models. The GSB metric conducts pairwise comparisons to assess relative video quality, enabling fine-grained differentiation between model outputs.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/multi_shot_woman.pdf}
+\caption{Comparison of Multi-Shot Generation. Top: Seedance 1.0; Middle: Kling 2.1; Bottom: Veo 3.}
+\label{fig:multi_shot_woman}
+\end{figure*}
+
+\begin{figure*}[!hb]
+\centering
+\includegraphics[width=\linewidth]{figures/multi_shot_showcase.pdf}
+\caption{Multi-Shot Generation for Seedance 1.0.}
+\label{fig:multi_shot_showcase}
+\end{figure*}
+
+Figures \ref{fig:t2v_abs} and \ref{fig:t2v_gsb} show the absolute scores and GSB results for video generation models in the text-to-video task. Seedance 1.0, Kling 2.1, and Veo 3 substantially outperform other models. While Kling 2.1 demonstrates strong motion quality and visual fidelity, its limited prompt-following capability negatively impacts its overall effectiveness. In text-to-video generation, precise instruction adherence is critical to the adoption of generated content. Seedance 1.0 and Veo 3 exhibit superior prompt-following capability, driving their higher rankings on the Artificial Analysis leaderboard. Veo 3 excels at generating realistic videos, but its comparatively weaker motion quality constrains its capacity for complex video synthesis.
+
+Figures \ref{fig:i2v_abs} and \ref{fig:i2v_gsb} present the absolute scores and GSB results for the image-to-video task. Seedance 1.0 and Kling 2.1 exhibit strong overall performance in this scenario. Adding image input as a condition introduces challenges in preserving character and background. Veo 3 performs relatively weak in this regard, occasionally altering lighting conditions, object textures, and other visual elements of the reference image. Additionally, it suffers from some quality degradation issues such as oily appearance or blurred details, which substantially affect its overall effectiveness. Kling 2.1 excels in motion quality, producing natural and coherent dynamics suitable for complex scenarios, though it occasionally experiences detail breakdown. Seedance 1.0 matches Kling 2.1's motion quality while offering superior prompt-following capability in scenarios involving complex shot transitions or detailed instruction prompts, resulting in more favorable overall performance.
+
+
+\subsection{Multi-Shot Generation}
+Seedance 1.0 demonstrates the capability to generate multiple consecutive shots from a single prompt, while ensuring subject continuity and stylistic coherence across frames. This enables the model to handle complex narrative techniques commonly used in cinematic storytelling. Specifically, Seedance 1.0 facilitates the construction of shot-reverse shot sequences for dialogic interaction, as well as the use of cut-in and cut-away shots to enrich narrative pacing and contextual layering. Furthermore, it supports match cuts and action cuts, enabling seamless transitions and preserving visual continuity. These competencies highlight Seedance’s proficiency in cinematic shot composition and temporal coherence, offering enhanced creative control and narrative expressiveness for video content generation. Figure~\ref{fig:multi_shot_woman} presents an example of continuous shot transitions generated by Seedance 1.0, which exhibits more coherent and fluid cinematic storytelling compared to other models.
+
+\begin{figure*}[h]
+\centering
+\includegraphics[width=\linewidth]{figures/style_showcase.pdf}
+\caption{Multi-Style Generation for Seedance 1.0.}
+\label{fig:style_showcase}
+\end{figure*}
+
+\subsection{Multi-Style Alignment}
+Seedance 1.0 exhibits strong generalization across a broad spectrum of visual styles. In text-to-video (T2V) tasks, Seedance 1.0 enables direct generation of fine-grained stylistic videos, while in image-to-video (I2V) tasks, it reliably preserves visual characteristics of the reference image. The model supports a wide range of real-world cinematic styles, including black-and-white silent films, classic Hong Kong cinema, and retro Hollywood aesthetics, as well as animated and fantasy-oriented styles such as Japanese anime, cyberpunk futurism, and ink-wash animation. This multi-style adaptability facilitates seamless transitions between realism and fantasy without the need for extensive task-specific tuning. As a result, Seedance 1.0 offers exceptional versatility and controllability, making it well-suited for professional filmmaking and AIGC creation.
+
+
+
+\subsection{Visualization}
+% We present several visual outcomes by Seedance 1.0 in Figure \ref{fig:chinese_cha_comp},\ref{fig:Alignment_Comparisons},\ref{fig:Structure_comparisons},\ref{fig:Aesthetics_comparisons},\ref{fig:text_rendering_comp},\ref{fig:text_rendering_show},\ref{fig:chinese_char_show}. It can be seen that our approach demonstrates superiority in aspects such as image-text alignment, structural coherence, aesthetic appeal, and text rendering accuracy. For a more comprehensive exploration of our model, we invite you to visit our DouBao and Dreamina web pages.
+We present several visual outcomes by Seedance 1.0 in Figure \ref{fig:multi_shot_woman},\ref{fig:multi_shot_showcase},\ref{fig:style_showcase}.
+For additional examples, please refer to the official website for an enhanced viewing experience.
+
+
+
+
+% \section{Conclusion}
+
+% In this paper, we have introduced Seedream 3.0, which employs several innovative strategies to address existing challenges, including limited image resolutions,  complex attributes adherence, fine-grained typography generation, and suboptimal visual aesthetics and fidelity. Through system-level upgrades in data construction, model pretraining, post-training, and model acceleration, Seedream 3.0 has achieved comprehensive improvements in multiple aspects compared to our previous version. Seedream 3.0 provides native high-resolution output, comprehensive capability, superior text rendering quality, enhanced visual appeal, and extreme generation speed. With its integration into platforms like Doubao and Jimeng, Seedream 3.0 exhibits strong potential to become a powerful productivity tool across various work and daily life scenarios.
+
+% % In this work, we present Seedream 2.0, a state-of-the-art bilingual text-to-image diffusion model designed to address critical limitations in current image generation systems, including model bias, insufficient text rendering capabilities, and deficiencies in understanding culturally nuanced prompts. By integrating a self-developed bilingual LLM as a text encoder, our model learns meaningful native knowledge in both Chinese and English, enabling high-fidelity generation of culturally relevant content. The incorporation of Glyph-Aligned ByT5 for character-level text rendering and Scaled ROPE for resolution generalization further enhances its versatility and robustness. Through systematic optimization via multi-phase SFT and RLHF iterations, Seedream 2.0 demonstrates superior performance in prompt adherence, aesthetic quality, structural correctness, and human preference alignment, as evidenced by its exceptional ELO scores. In particular, it achieves remarkable effectiveness in Chinese text rendering and culturally specific scene generation, earning widespread acclaim on applications such as Doubao (豆包) and Dreamina (即梦).
+
+
+
+% % \begin{figure*}[t]
+% % \centering
+% % \includegraphics[width=\linewidth]{figures/seedream_2.0_pdf/chinese_char_comp.pdf}
+% % \caption{Chinese Characteristics Comparisons. Our model demonstrates a more accurate understanding and expression of Chinese elements.}
+% % \label{fig:chinese_cha_comp}
+% % \end{figure*}
+
+
+% % \begin{figure*}[t]
+% % \centering
+% % \includegraphics[width=\textwidth]{figures/seedream_2.0_pdf/align_comp.pdf}
+% % \caption{Alignment Comparisons. Seedream and Ideogram 2.0 excel in these two prompts, while other models either struggle with imaginative scenarios or misinterpret quantity and position in the prompts below.}
+% % \label{fig:Alignment_Comparisons}
+% % \end{figure*}
+
+% % \begin{figure*}[t]
+% % \centering
+% % \includegraphics[width=\textwidth]{figures/seedream_2.0_pdf/structure_comp.pdf}
+% % \caption{Structure comparisons. External models encounter issues with the distortion of fingers and limbs under complex movements.}
+% % \label{fig:Structure_comparisons}
+% % \end{figure*}
+
+% % \begin{figure*}[t]
+% % \centering
+% % \includegraphics[width=\textwidth]{figures/seedream_2.0_pdf/aes_comp.pdf}
+% % \caption{Aesthetics comparisons. Seedream demonstrates outstanding performance in cinematic scenes and artistic design, while other models show weaker performance in artistic style and texture details.}
+% % \label{fig:Aesthetics_comparisons}
+% % \end{figure*}
+
+% % \begin{figure*}[t]
+% % \centering
+% % \includegraphics[width=\linewidth]{figures/seedream_2.0_pdf/text_rendering_comp.pdf}
+% % \caption{Text-Rendering Comparisons. Seedream performs exceptionally well in harmonizing text with content and demonstrates strong typesetting capabilities. Notably, it offers a distinct understanding of scenarios with Chinese characteristics.}
+% % \label{fig:text_rendering_comp}
+% % \end{figure*}
+
+
+% % \begin{figure*}[h]
+% % \centering
+% % \includegraphics[width=\linewidth]{figures/text_example.jpeg}
+% % \caption{Text Rendering by Seedream. Our model presents infinite potential in poster design and artistic creation.}
+% % \label{fig:text_rendering_show}
+% % \end{figure*}
+
+% % \begin{figure*}[h]
+% % \centering
+% % \includegraphics[width=\linewidth]{figures/seedream_2.0_pdf/compress_char_show_case.jpeg}
+% % \caption{Chinese Characteristics by Seedream. Our model presents impressive representation of Chinese aesthetics.}
+% % \label{fig:chinese_char_show}
+% % \end{figure*}
+
+
+% % \newpage
+

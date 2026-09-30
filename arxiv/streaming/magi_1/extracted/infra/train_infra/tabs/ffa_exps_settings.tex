@@ -1,0 +1,21 @@
+
+
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \begin{tabular}{c|c}
+    \toprule
+     Settings & Value \\
+    \midrule
+    Batch Size (b) & 1 \\
+    Number of Heads (nh)  & \begin{tabular}[c]{@{}c@{}}nhq:nhk:nhv = 64:8:8\\ (\textit{GQA})\end{tabular} \\
+    Head Dimension (hd) & 128       \\
+    Dtype & torch.bfloat16                        \\
+    Window Size & \begin{tabular}[c]{@{}c@{}}1024\\ (\textit{for sliding window masks only})\end{tabular}\\
+    \bottomrule
+    \end{tabular}
+    \vspace{0.5em}
+    \caption{The fixed settings of FFA performance and flexibility benchmark}
+    \label{tab:ffa_exps_settings}
+\end{table}

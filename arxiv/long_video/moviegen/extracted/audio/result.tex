@@ -1,0 +1,83 @@
+\subsection{Results}
+
+\subsubsection{Comparisons to Prior Work}
+\label{sec:main_res}
+
+We present qualitative and quantitative results of sound effect generation, joint sound effect and music generation, and long-form generation with audio extension in this section.
+More audio samples can be found in \cref{app:audio_samples}.
+
+\input{figures/audio/teaser_main_sfx.tex}
+\noindent\textbf{Sound effect generation.}
+We first compare \OursAudio with 4 open-sourced models (Diff-Foley~\citep{luo2024diff}, FoleyCraft~\citep{zhang2024foleycrafter}, VTA-LDM~\citep{xu2024video}, Seeing\&Hearing~\citep{xing2024seeing}) and 2 blackbox commercial models (PikaLabs~\citep{pikalabs}, ElevenLabs~\citep{elevenlabs}) on sound effect generation for single shot videos.
+Among these, Seeing\&Hearing and PikaLabs support video and optional text input (denoted as TV2A when text is used and V2A otherwise), ElevenLabs supports text input (T2A), and others support video input (V2A). More details about the baselines can be found in \cref{sec:related_audio}.
+
+\input{tables/audio/main_single_shot_sfx}
+
+\cref{fig:audio_main_sfx} shows 5 samples on \OursAudioBench. \cref{tab:eval_audio_main_ss_sfx} presents the pairwise subjective evaluation results on audio quality and video alignment. Additional metrics can be found in~\Cref{sec:app_audio_main_sfx}.
+At a high level, \OursAudio outperforms all baselines on all metrics by a large margin: with 33.8\% to 72.8\% on synchronization, 27.5\% to 82.2\% on correctness for all videos, and 31.3\% to 91.0\% on overall quality for generated videos.
+Compared to the commercial baselines, \OursAudio wins even more on generated videos, demonstrating its robustness.
+In terms of audio quality, we highlight that \OursAudio wins more on \textit{professionalness} than on \textit{naturalness}, indicating that \OursAudio learns to not only generate realistic sounds but also professionally produced sounds, which leads to higher overall quality.
+
+Among the baselines, commercial models generally outperforms open-sourced models in audio quality, while remaining similar in audio-video alignment.
+Surprisingly text-based ElevenLabs model achieves similar performance to other baselines on video synchronization.
+This is likely because text-based model can still perform well for videos that contain mostly ambient sounds, and for challenging videos with dense actions, none of the baseline can generate well-aligned audio.
+Additionally, we observe that models using text prompts generally achieve better performance compared to their original forms.
+This shows text captions provides complimentary information for guiding generation.
+
+\noindent\textbf{Sound effect and music generation.}
+We next showcase \OursAudio's ability to generate cinematic soundtracks for short films that also include non-diegetic music supporting the mood and synchronized with the visual actions. We evaluate \OursAudio on \OursAudioBenchMGen SFX+music, where music likelihood is set to 0.90 in text prompts.
+As for the baselines, we need models that support text input to prompt them for joint SFX and music generation, since V2A models only produce diegetic SFX most of the time.
+Seeing\&Hearing (S\&H)~\citep{xing2024seeing} and PikaLabs~\citep{pikalabs} are the only two options, while ElevenLabs is another option with only text input. From preliminary testing, we find neither Pika nor ElevenLabs can generate SFX and music jointly, so we do not consider them in this experiment.
+
+\input{tables/audio/main_multi_shot_sfx_music}
+
+\input{figures/audio/teaser_main_sfx_music.tex}
+
+In addition to joint generation, we include baselines that mix separately generated sound effects and music with an SNR sampled uniformly from [-5, 5]dB.
+For sound effect generation, we include the open-sourced baselines used in the previous section.
+For music generation, we consider the open-sourced S\&H using both video and text input, and an external text-to-music generation API that accepts only text input.
+Sound captions (quoted text of the orange part in \cref{tab:audio_caption}) are used for sound effect generation if text prompt is supported, and music captions (quoted text of the pink part in \cref{tab:audio_caption}) are used for both music generation models.
+We show qualitative samples on both single- and multi-shot videos in \cref{fig:audio_main_sfx_music}.
+
+
+\cref{tab:eval_audio_main_ms_sfx_music} presents the pairwise subjective evaluation results on audio quality and video alignment for both sound effects and music.
+Similar to the single-shot scenario, we outperform all baselines significantly across all aspects of alignment and quality.
+Notably, the margin by which we surpass the joint generation baseline S\&H TV2A is even larger than in the sound effect-only case.
+Separately generating sound effects and music with S\&H improves from joint generation, but it stills falls behind \OursAudio.
+This highlights the limitations of existing public V2A models in cinematic content creation.
+
+
+Although incorporating the high quality music generated by the external API greatly improves music quality,
+this approach still falls short compared to our proposed model, especially on the alignment metrics.
+There are two main reasons.
+Since music and sound effects are generated separately, the correlation between them (\eg, music volume should be lowered when there are prominent sound effects) cannot be modeled.
+Moreover, because the external API is a text-to-music model that is entirely unaware of video, it cannot generate music capturing the scene and mood changes in the video.
+
+
+
+\noindent\textbf{Audio extension.}
+Lastly, we evaluate \OursAudio's ability to generate long-form audio using the audio extension methods described in \cref{sec:audio_ext}.
+\cref{fig:audio_main_long} shows three long videos with cinematic soundtracks generated by \OursAudio with audio extension.
+
+\input{figures/audio/teaser_main_long.tex}
+
+For quantitative comparison, since there is no prior work on audio extension for video-to-audio generation,
+we compare against a simple stitching method where audio is generated independently for each segment and then stitched together.
+We use \OursAudio as the base model (denoted as ``\OursAudio stitch'').
+Ideally, audio extension should be evaluated on long-form generated videos.
+However, there are limited sources (26 full videos from \OursAudioBenchMGen).
+We also found raters having trouble staying focused comparing long videos.
+Both factors contribute to large variance on subjective tests.
+As a workaround, we probe whether audio extension leads to \textit{smooth transitions} across segment boundaries,
+using shorter videos and generating both sound effect and music  (\OursAudioBenchSGen SFX+music).
+We set the segment size to 5.5 seconds, where each video from \OursAudioBenchSGen is split into two segments.
+Single-shot generated video evaluation also enables us to use Seeing\&Hearing as
+an additional baseline without stitching.
+On this evaluation set, we set $n_{hop} = 5.5$ seconds and $n_{ctx} = 5.5$ seconds.
+Comparison of different extension methods and configurations are presented in ablation studies in \cref{sec:audio_ablation}.
+
+\cref{tab:eval_audio_main_ext} presents the pairwise subjective evaluation results on audio quality and video alignment. \OursAudio with extension outperforms both baselines as expected.
+In particular, we note that \OursAudio-extension and \OursAudio-stitch use the same base model, and hence they should have similar quality and alignment \textit{within} each segment.
+However, we can observe from the table that the audio quality and the video-music alignment metrics are significantly worse for \OursAudio-stitch, because stitching independently generated audio would lead to abrupt transition and incoherent music.
+
+\input{tables/audio/main_extension}

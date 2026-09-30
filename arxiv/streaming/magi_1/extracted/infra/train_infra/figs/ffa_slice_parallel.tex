@@ -1,0 +1,6 @@
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\linewidth]{infra/train_infra/figs/ffa_slice_parallel.for_arxiv.pdf}
+    \caption{Illustration of slice-level parallelism in FFA for both forward and backward kernels (see~\ref{sec:magiattn_ffa}). The overlapping nature across slices in both rows (\texttt{QRange}) and columns (\texttt{KRange}) necessitates \textit{atomic reduce} operations in both kernels to ensure correct reduction.}
+    \label{fig:ffa_slice_parallel}
+\end{figure}

@@ -1,0 +1,36 @@
+\section{Related Work}
+\label{sec:related}
+\noindent\textbf{Autoregressive Video Generation.}
+Given the inherent temporal order of video data, it is intuitively appealing to model video generation as an autoregressive process. 
+Early research uses either regression loss~\cite{liu2017video,hao2018controllable} or GAN loss~\cite{mathieu2016deep,tulyakov2018mocogan,lee2018stochastic,vondrick2017generating} to supervise the frame prediction task. Inspired by the success of LLMs~\cite{brown2020language}, some works choose to tokenize video frames into discrete tokens and apply autoregressive transformers to generate tokens one by one~\cite{yan2021videogpt,liang2022nuwa,ge2022long,kondratyuk2023videopoet,wu2024vila,wang2024loong}. However, this approach is computationally expensive as each frame usually consists of thousands of tokens.
+Recently, diffusion models have emerged as a promising approach for video generation. 
+While most video diffusion models have bidirectional dependencies~\cite{opensora,videoworldsimulators2024,yang2024cogvideox,polyak2024movie}, autoregressive video generation using diffusion models has also been explored.
+Some works~\cite{zhang2024extdm,valevski2024diffusion,alonso2024diffusion,jin2024pyramidal} train video diffusion models to denoise new frames given context frames.
+Others~\cite{ruhe2024rolling,kim2024fifo,chen2024diffusion} train the model to denoise the entire video under the setting where different frames may have different noise levels. Therefore, they support autoregressive sampling as a special case where the current frame is noisier than previous ones.
+A number of works have explored adapting pretrained text-to-image~\cite{kodaira2023streamdiffusion,liang2024looking,weng2024art,valevski2024diffusion} or text-to-video~\cite{henschel2024streamingt2v,xing2024live2diff,gao2024vid,xie2024progressive,kim2024fifo} diffusion models to be conditioned on context frames, enabling autoregressive video generation.
+Our method is closely related to this line of work, with the difference that we introduce a novel adaption method through diffusion distillation, significantly improving efficiency and making autoregressive methods competitive with bidirectional diffusion for video generation.
+\vspace{0.5em}
+
+\noindent\textbf{Long Video Generation.}
+Generating long and variable-length videos remains a challenging task.
+Some works~\cite{qiu2023freenoise,chen2023seine,zhang2023diffcollage,zhang2024avid,wang2023gen,tan2024video,wang2024zola} generate multiple overlapped clips simultaneously using video diffusion model pretrained on fixed and limited-length clips, while employing various techniques to ensure temporal coherence.
+Another approach is to generate long videos hierarchically, first generating sparse keyframes and then interpolating between them~\cite{yin2023nuwa,zhao2024moviedreamer}.
+Unlike full-video diffusion models that are trained to generate videos of fixed length, autoregressive models~\cite{liang2022nuwa,henschel2024streamingt2v,jin2024pyramidal,gao2024vid,xie2024progressive,wang2024loong} are inherently suitable for generating videos of various length, although they may suffer from error accumulation when generating long sequences.
+We find that the distribution matching objective with a bidirectional teacher is surprisingly helpful for reducing the accumulation of errors, enabling both efficient and high-quality long video generation.
+\vspace{0.5em}
+
+\noindent\textbf{Diffusion Distillation.} Diffusion models typically require many denoising steps to generate high-quality samples, which can be computationally expensive~\cite{ho2020denoising,song2020denoising}. 
+Distillation techniques train a student model to generate samples in fewer steps by mimicking the behavior of a teacher diffusion model~\cite{salimans2022progressive,meng2023distillation,song2023consistency,yin2024onestep,xu2023ufogen,sauer2025adversarial,luhman2021knowledge,kang2024distilling,ren2024hyper}. 
+Luhman~\etal~\cite{luhman2021knowledge} train a single-step student network to approximate the noise-image mapping obtained from a DDIM teacher model~\cite{song2020denoising}. Progressive Distillation~\cite{salimans2022progressive} trains a sequence of student models, reducing the number of steps by half at each stage. Consistency Distillation~\cite{song2023consistency,luo2023latent,kim2023consistency,song2024improved,heek2024multistep} trains the student to map any points on an ODE trajectory to its origin. Rectified flow~\cite{liu2022flow,liu2023instaflow,esser2024scaling} trains a student model on the linear interpolation path of noise-image pairs obtained from the teacher. Adversarial loss~\cite{goodfellow2020generative} is also used, sometimes in combination with other methods, to improve the quality of student output~\cite{sauer2025adversarial,lin2024sdxl,yin2024improved,kang2024distilling,xu2023ufogen}.
+DMD~\cite{yin2024onestep,yin2024improved} optimizes an approximate reverse KL divergence~\cite{wang2023prolificdreamer,luo2023diff,franceschi2023unifying,yi2023monoflow}, whose gradients can be represented as the difference of two score functions trained on the data and generator's output distribution, respectively. 
+Unlike trajectory-preserving methods~\cite{salimans2022progressive,kim2023consistency,liu2023instaflow}, DMD provides supervision at the distribution level and offers the unique advantage of allowing different architectural formulations for the teacher and student diffusion models. 
+Our approach builds upon the effectiveness and flexibility of DMD to train an autoregressive generator by distilling from a bidirectional teacher diffusion model.
+
+
+Recently, researchers have begun to apply distillation methods to video diffusion models, such as progressive distillation~\cite{lin2024animatediff}, consistency distillation~\cite{wang2023videolcm,wang2024animatelcm,mao2024osv, li2024t2v}, and adversarial distillation~\cite{mao2024osv,zhang2024sf}. 
+Most approaches focus on distilling models designed to generate short videos~(less than 2 seconds).
+Moreover, they focus on distilling a non-causal teacher into a student that is also non-causal. 
+In contrast, our method distills a non-causal teacher into a causal student, enabling streaming video generation. 
+Our generator is trained on 10-second videos and can generate infinitely long videos via sliding window inference.
+There has been another line of work that focuses on improving the efficiency of video diffusion models by system-level optimization (e.g., caching and parallelism)~\cite{zhang2024cross,liu2024faster,zhao2024real,zou2024accelerating}. 
+However, they are usually applied to standard multi-step diffusion models and can be combined with our distillation approach, further improving the throughput and latency.

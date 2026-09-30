@@ -1,0 +1,146 @@
+% CVPR 2025 Paper Template; see https://github.com/cvpr-org/author-kit
+
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+%%%%%%%%% PAPER TYPE  - PLEASE UPDATE FOR FINAL VERSION
+% \usepackage{cvpr}              % To produce the CAMERA-READY version
+% \usepackage[review]{cvpr}      % To produce the REVIEW version
+\usepackage[pagenumbers]{cvpr} % To force page numbers, e.g. for an arXiv version
+
+% Import additional packages in the preamble file, before hyperref
+\input{preamble}
+
+% It is strongly recommended to use hyperref, especially for the review version.
+% hyperref with option pagebackref eases the reviewers' job.
+% Please disable hyperref *only* if you encounter grave issues, 
+% e.g. with the file validation for the camera-ready version.
+%
+% If you comment hyperref and then uncomment it, you should delete *.aux before re-running LaTeX.
+% (Or just hit 'q' on the first LaTeX run, let it finish, and you should be clear).
+\definecolor{cvprblue}{rgb}{0.21,0.49,0.74}
+\usepackage[pagebackref,breaklinks,colorlinks,allcolors=cvprblue]{hyperref}
+
+\usepackage{tocloft}
+
+%%%%% color Package
+\usepackage{xcolor}
+
+%%%% Table Package
+\newcommand\Tstrut{\rule{0pt}{2.6ex}}         % = `top' strut
+\newcommand\Bstrut{\rule[-0.9ex]{0pt}{0pt}}   % = `bottom' strut
+\usepackage{multirow}
+\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\seco}[1]{\underline{#1}}
+\definecolor{Gray}{gray}{0.95}
+\usepackage{colortbl}
+\newcolumntype{a}{>{\columncolor{Gray}}c}
+\newcommand{\mc}[2]{\multicolumn{#1}{c}{#2}}
+
+\newcommand{\phil}[1]{{\color[rgb]{0.4,0.8,0.2}{#1}}}
+
+
+%%%%%% abbr
+\newcommand{\MOCA}{\text{MotionCanvas}\xspace}
+\newcommand{\MOCAAR}{\text{MotionCanvas$_\text{AR}$}\xspace}
+
+%%%
+\usepackage{enumitem}
+
+%%%% GIF figure
+\usepackage{animate}
+
+%%%% PAPER author package
+\newcommand*{\affaddr}[1]{#1} 
+\newcommand*{\affmark}[1][*]{\textsuperscript{#1}}
+\newcommand*{\email}[1]{\texttt{#1}}
+\usepackage[symbol]{footmisc}
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+\newcommand\blfootnote[1]{
+    \begingroup
+    \renewcommand\thefootnote{}\footnote{#1} 
+    \addtocounter{footnote}{-1}
+    \endgroup
+}
+%%%%%%%%% PAPER ID  - PLEASE UPDATE
+\def\paperID{*****} % *** Enter the Paper ID here
+\def\confName{CVPR}
+\def\confYear{2025}
+
+%%%%%%%%% TITLE - PLEASE UPDATE
+\title{MotionCanvas:\\Cinematic Shot Design with Controllable Image-to-Video Generation}
+
+%%%%%%%%% AUTHORS - PLEASE UPDATE
+\author{%
+Jinbo Xing\affmark[1]$^{,*}$~~~~~~~~
+Long Mai\affmark[2]~~~~~~~~
+Cusuh Ham\affmark[2]~~~~~~~~
+Jiahui Huang\affmark[2]~~~~~~~~
+Aniruddha Mahapatra\affmark[2]\\
+Chi-Wing Fu\affmark[1]~~~~~~~~~~~
+Tien-Tsin Wong\affmark[3]~~~~~~~~~~~
+Feng Liu\affmark[2]\\
+\affaddr{\affmark[1]The Chinese University of Hong Kong~~~~~~~~~~}
+\affaddr{\affmark[2]Adobe Research~~~~~~~~~~}
+\affaddr{\affmark[3]Monash University}\\
+% \small{\email{\{jbxing,yczhang21,ttwong\}@cse.cuhk.edu.hk ~~~~ \{menghanxyz,vinthony,arphid\}@gmail.com}}
+\small\email{Project page: \url{https://motion-canvas25.github.io/}}
+}
+
+\begin{document}
+\twocolumn[{
+\renewcommand\twocolumn[1][]{#1}
+\maketitle
+\begin{center}
+    \centering
+    \captionsetup{type=figure}
+    \animategraphics[autoplay,loop,width=\textwidth, trim=0 7 0 7, clip]{24}{Frames/teaser/}{0}{30}
+    \vspace{-2em}
+    \captionof{figure}{\MOCA offers comprehensive motion controls to animate a static image (the ``Inputs'' column) with various types of camera movements and object motions. Note the different camera movements across columns and object motions across rows. Please use \textbf{Adobe Acrobat Reader} for video playback.
+    }
+    \label{fig:teaser}
+\end{center}
+}]
+
+
+
+\blfootnote{* Work done during an internship at Adobe Research.}
+
+\begin{abstract}
+This paper presents a method that allows users to design cinematic video shots in the context of image-to-video generation. Shot design, a critical aspect of filmmaking, involves meticulously planning both camera movements and object motions in a scene.
+However, enabling intuitive shot design in modern image-to-video generation systems presents two main challenges: first, effectively capturing user intentions on the motion design, where both camera movements and scene-space object motions must be specified jointly; and second, representing motion information that can be effectively utilized by a video diffusion model to synthesize the image animations.
+To address these challenges, we introduce \MOCA, a method that integrates user-driven controls into image-to-video (I2V) generation models, allowing users to control both object and camera motions in a scene-aware manner. 
+By connecting insights from classical computer graphics and contemporary video generation techniques, we demonstrate the ability to achieve 3D-aware motion control in I2V synthesis without requiring costly 3D-related training data.
+\MOCA enables users to intuitively depict scene-space motion intentions, and translates them into spatiotemporal motion-conditioning signals for video diffusion models.
+We demonstrate the effectiveness of our method on a wide range of real-world image content and shot-design scenarios, highlighting its potential to enhance the creative workflows in digital content creation and adapt to various image and video editing applications.
+\end{abstract}
+
+
+\input{Sections/sec-1-intro}
+
+\input{Sections/sec-2-related-work}
+
+\input{Sections/sec-3-method}
+
+\input{Sections/sec-4-applications}
+
+\input{Sections/sec-5-evaluation}
+
+\input{Sections/sec-6-conclusion}
+
+
+
+{
+    \small
+    \bibliographystyle{ieeenat_fullname}
+    \bibliography{main}
+}
+\clearpage
+% WARNING: do not forget to delete the supplementary pages from your submission 
+\input{Sections/X_supp}
+
+
+
+
+
+\end{document}

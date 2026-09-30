@@ -1,0 +1,48 @@
+\begin{algorithm}[htbp]
+\caption{Greedy Load-Balance Dispatch Algorithm via Min-Heap w.r.t.~\ref{sec:magiattn_comp}}
+\label{alg:minhp}
+\begin{algorithmic}[1]
+\REQUIRE Dispatch chunk and area pairs $\{(C_i, \mathrm{Area}(C_i))\}_{i=1}^n$, number of buckets $cp\_size$ ($cp\_size \mid n$)
+\ENSURE A dispatch mapping minimizing maximum bucket workload, satisfying Eq.~(\ref{eq:comp_load_balance})
+
+\STATE Sort dispatch chunks $\{C_i\}_{i=1}^n$ in descending order by $\mathrm{Area}(C_i)$
+
+\STATE Compute chunk capacity per bucket: $chunk\_per\_bucket \gets n / cp\_size$
+
+\STATE Initialize buckets: workload counters $W \gets [0]^{cp\_size}$, chunk counters $count \gets [0]^{cp\_size}$, and mapping $B_j \gets \emptyset, \forall j$
+
+\STATE Initialize min-heap $\mathcal{H}$ with tuples $(0, j)$ for each bucket $j \in [1, cp\_size]$
+
+\FOR{each chunk $C_i$ in sorted order}
+    \REPEAT
+        \STATE $(w_{\text{min}}, j_{\text{min}}) \gets \text{extract-min}(\mathcal{H})$
+    \UNTIL{$count[j_{\text{min}}] < chunk\_per\_bucket$} \COMMENT{Select least-loaded bucket that is not full}
+
+    \STATE Assign chunk: $B_{j_{\text{min}}} \gets B_{j_{\text{min}}} \cup \{C_i\}$
+    
+    \STATE Update workload and count:
+    \[
+    W[j_{\text{min}}] \gets W[j_{\text{min}}] + \mathrm{Area}(C_i), \quad count[j_{\text{min}}] \gets count[j_{\text{min}}] + 1
+    \]
+
+    \STATE Insert updated tuple $(W[j_{\text{min}}], j_{\text{min}})$ back into $\mathcal{H}$
+
+\ENDFOR
+
+\RETURN Bucket assignments $\{B_j\}_{j=1}^{cp\_size}$ and maximum bucket workload $\max_j W[j]$
+
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
+
+
+
+
+    
+
+
+
+

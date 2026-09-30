@@ -1,0 +1,568 @@
+\newpage
+\section*{\Large Appendix}
+
+
+This appendix complements our main paper with experiments, in which we further investigate the text-to-video generation quality of StreamingT2V, demonstrate even longer sequences than those assessed  in the main paper, and provide additional information on the implementation of StreamingT2V and the experiments carried out.
+
+In \secrefcustom{appendix:sec:user_study}, a user study is conducted on the test set, in which all  text-to-video methods under consideration are evaluated by humans to determine the user preferences.
+
+\secrefcustom{sec:appendix.additional_results} supplements our main paper by additional qualitative results of StreamingT2V for very long video generation, and qualitative comparisons with competing methods. 
+
+In \secrefcustom{sec:appendix.ablation_studies}, we present ablation studies to show the effectiveness of our proposed components CAM, APM and randomized blending.
+
+In \secrefcustom{appendix:sec:implementation_details}, implementation and training details, including hyperparameters used in StreamingT2V, and implementation details of our ablated models are provided.
+
+\secrefcustom{sec:appendix.test_prompts} provides the prompts that compose our testset.
+
+Finally, in \secrefcustom{sec:appendix.MAWE}, the exact definition of the motion aware warp error (MAWE) is provided.
+
+
+%%%%%% USER STUDY %%%%%%
+
+\section{User Study}
+\label{appendix:sec:user_study}
+We conduct a user study comparing our StreamingT2V method with prior work using the video results generated for the benchmark  of 
+% \secrefcustom{sec:exp_comparison_with_baselines}. 
+%% EXTERNAL REFERENCE ATTENTION
+Sec. \textcolor{linkblue}{5.3} main paper.
+To remove potential biases, we resize and crop all videos to align them. 
+The user study is structured as a one vs one comparison between our StreamingT2V method and competitors where participants are asked to answer three questions for each pair of videos:
+\begin{itemize}
+    \item Which model has better motion? 
+    \item Which model has better text alignment?
+    \item Which model has better overall quality?
+\end{itemize}
+We accept exactly one of the following three answers for each question: preference for the left model, preference for the right model, or results are considered equal. To ensure fairness, we randomize the order of the videos presented in each comparison, and the sequence of comparisons. \figrefcustom{appendix:fig:user_study} shows the  preference score obtained from the user study as the percentage of votes devoted to the respective answer.
+
+Across all comparisons to competing methods, StreamingT2V is significantly more often preferred than the competing method, which demonstrates that StreamingT2V clearly improves upon state-of-the-art for long video generation. For instance in motion quality, as the results of StreamingT2V are non-stagnating videos, temporal consistent and possess seamless transitions between chunks, $65\%$ of the votes were preferring StreamingT2V, compared to  $17\%$ of the votes preferring SEINE.  
+
+Competing methods are much more affected by quality degradation over time, which is reflected in the preference for  StreamingT2V in terms of \textit{text alignment} and \textit{overall quality}.
+
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=1\linewidth]{figures/user_study_ovrl_new.png}
+    \includegraphics[width=1\linewidth]{figures/user_study_ta_new.png}
+    \includegraphics[width=1\linewidth]{figures/user_study_ma_new.png}
+    \caption{
+        We conduct a user study, asking humans to assess the test set results 
+        %% EXTERNAL REFERENCE ATTENTION
+        % of \secrefcustom{sec:exp_comparison_with_baselines}
+        (mentioned in Sec. \textcolor{linkblue}{5.3} of the paper)
+        in a one-to-one evaluation, where for any prompt of the test set and any competing method, the results of the competing method have to be compared with the corresponding results of our StreamingT2V method. For each comparison of our method to a competing method, we report the relative of number votes that prefer StreamingT2V (\ie wins), that prefer the competing method (\ie losses), and that consider results from both methods as equal (\ie draws).
+    }
+    \label{appendix:fig:user_study}
+\end{figure*}
+
+
+\section{Qualitative Results}
+\label{sec:appendix.additional_results}
+Complementing our visual results shown in the main paper 
+%% (see \figrefcustom{fig:comparison-to-sota})
+%% EXTERNAL REFERENCE ATTENTION
+(see Fig \textcolor{linkblue}{5} main paper)
+, we present additional qualitative results of StreamingsT2V on our test set on very long video generation, and further qualitative comparisons to prior works on 240 frames.
+
+
+\subsection{Very Long Video Generation}
+\label{sec:appendix.long_video_generation}
+
+Supplementing our main paper, we show that StreamingT2V can be used for very long video generation. To this end, we generate and show videos consisting of 1200 frames, thus spanning 2 minutes, which is 5 times longer than the ones produced for the 
+experiments in our main paper. \figrefcustom{appendix:fig:all_1}  show these text-to-video results of StreamingT2V for different actions, \eg \textit{dancing}, \textit{running}, or \textit{camera moving}, and different characters like \textit{bees} or \textit{jellyfish}.
+We can observe that scene and object features are kept across each video generation (see \eg \figrefcustom{appendix:fig:all_1}(a)\&(e)), thanks to our proposed APM module. Our proposed CAM module ensures that generated videos are temporally smooth, with seamless transitions between video chunks, and not stagnating (see \eg \figrefcustom{appendix:fig:all_1}(f)\&(k)).
+
+
+\begin{figure*}
+    \centering
+    \input{figures/appendix-frame-selection/plain-videos/our-all-1}
+    \caption{Qualitative results of StreamingT2V for different prompts. Each video has 1200 frames. }
+    \label{appendix:fig:all_1}
+\end{figure*}
+
+
+\subsection{More Qualitative Evaluations.}
+
+\label{sec:appendix.more_qualitative_evaluations}
+The visual comparisons shown in \figrefcustom{appendix:fig:testset-compare-1}, \ref{appendix:fig:testset-compare-2}, \ref{appendix:fig:testset-compare-3}, \ref{appendix:fig:testset-compare-4} demonstrate that StreamingT2V significantly excels the generation quality of all competing methods. StreamingT2V shows non-stagnating videos with good motion quality, in particular seamless transitions between chunks and temporal consistency.
+
+Videos generated by DynamiCrafter-XL eventually possess severe image quality degradation. For instance, we observe in \figrefcustom{appendix:fig:testset-compare-1} eventually wrong colors at the beagle’s face and the background pattern heavily deteriorates. The quality degradation also heavily deteriorates the textual alignment (see the result of DynamiCrafter-XL in \figrefcustom{appendix:fig:testset-compare-3}). Across all visual results, the method SVD is even more susceptible to these issues.
+
+The methods SparseControl and FreeNoise eventually lead to almost stand-still, and are thus not able to perform the action described in a prompt, \eg "zooming out" in \figrefcustom{appendix:fig:testset-compare-4}. Likewise, also SEINE is not following this camera instructions (see \figrefcustom{appendix:fig:testset-compare-4}).
+
+OpenSora is mostly not generating any motion, leading either to complete static results (\figrefcustom{appendix:fig:testset-compare-1}), or some image warping without motion (\figrefcustom{appendix:fig:testset-compare-3}). OpenSoraPlan is loosing initial object details and suffers heavily from quality degradation through the autoregressive process, \eg the dog is hardly recognizable at the of the video generation (see \figrefcustom{appendix:fig:testset-compare-1}), showing again that a sophisticated conditioning mechanism is necessary. 
+
+I2VGen-XL shows low motion amount, and eventually quality degradation,
+leading eventually to frames that are weakly aligned to the textual instructions.
+
+
+We further analyse visually the chunk transitions using an X-T slice visualization in \figrefcustom{fig:dynamicrafter-inconsistencies}. We can observe that StreamingT2V leads to smooth transitions. In contrast, we observe that conditioning via CLIP or concatenation may lead to strong inconsistencies between chunks.   
+
+\setcounter{table}{\value{figure}}
+\bgroup
+\def\arraystretch{0.5}%
+\begin{table*}
+\captionsetup{name=Figure}
+    \centering
+\input{figures/appendix-frame-selection/comparison-with-all/general-v2-2-1}
+\caption{Video generation for the prompt "\textit{A beagle reading a paper}", using StreamingT2V and competing methods. For each method, the image sequence of its first row is continued by the image in the leftmost column of the following row.
+}
+\label{appendix:fig:testset-compare-1}
+\end{table*}
+\egroup
+\setcounter{figure}{\value{table}}
+
+\setcounter{table}{\value{figure}}
+\bgroup
+\def\arraystretch{0.5}%
+\begin{table*}
+\captionsetup{name=Figure}
+    \centering
+\input{figures/appendix-frame-selection/comparison-with-all/general-v2-2-2}
+\caption{Video generation for the prompt "\textit{A beagle reading a paper}", using StreamingT2V and competing methods. For each method, the image sequence of its first row is continued by the image in the leftmost column of the following row.
+}
+\label{appendix:fig:testset-compare-2}
+\end{table*}
+\egroup
+\setcounter{figure}{\value{table}}
+
+
+\setcounter{table}{\value{figure}}
+\bgroup
+\def\arraystretch{0.5}%
+\begin{table*}
+\captionsetup{name=Figure}
+    \centering
+\input{figures/appendix-frame-selection/comparison-with-all/general-v2-3-1}
+\caption{Video generation for the prompt "\textit{Camera is zooming out and the baby starts to cry}", using StreamingT2V and competing methods. For each method, the image sequence of its first row is continued by the image in the leftmost column of the following row.
+}
+\label{appendix:fig:testset-compare-3}
+\end{table*}
+\egroup
+\setcounter{figure}{\value{table}}
+
+
+\setcounter{table}{\value{figure}}
+\bgroup
+\def\arraystretch{0.5}%
+\begin{table*}
+\captionsetup{name=Figure}
+    \centering
+\input{figures/appendix-frame-selection/comparison-with-all/general-v2-3-2}
+\caption{Video generation for the prompt "\textit{Camera is zooming out and the baby starts to cry}", using StreamingT2V and competing methods. For each method, the image sequence of its first row is continued by the image in the leftmost column of the following row.
+}
+\label{appendix:fig:testset-compare-4}
+\end{table*}
+\egroup
+\setcounter{figure}{\value{table}}
+
+
+\begin{figure*}%[t]
+    \centering
+    
+    \begin{subfigure}{0.7\textwidth}
+        \includegraphics[width=1\linewidth]{figures/video_comparisons/comparison-competitors-temporal-consistancy/our.pdf}
+        \caption{StreamingT2V}
+    \end{subfigure} \\
+    \begin{subfigure}{0.7\textwidth}
+        \includegraphics[width=1\linewidth]{figures/video_comparisons/comparison-competitors-temporal-consistancy/dynamicrafter.pdf}
+        \caption{DynamiCrafter-XL}
+    \end{subfigure} \\
+    \begin{subfigure}{0.7\textwidth}
+        \includegraphics[width=1\linewidth]{figures/video_comparisons/comparison-competitors-temporal-consistancy/sparse_control.pdf}
+        \caption{SparseControl}
+    \end{subfigure}
+    
+    \caption{
+        Visual comparison of SparseControl, DynamiCrafter-XL and StreamingT2V. All text-to-video results are generated using the same prompt. The X-T slice visualization shows that DynamiCrafter-XL and SparseControl suffer from severe chunk inconsistencies and repetitive motions.
+        In contrast, our method shows seamless transitions and evolving content.
+    }
+    \label{fig:dynamicrafter-inconsistencies}
+\end{figure*}
+
+% \begin{figure*} 
+%     \centering
+%     \input{figures/appendix-frame-selection/plain-videos/our-all-2}
+%     \caption{Qualitative results of StreamingT2V for different prompts. Each video has 1200 frames.}
+%     \label{appendix:fig:all_2}
+% \end{figure*}
+
+
+\section{Ablation Studies}
+\label{sec:appendix.ablation_studies}
+To assess the importance of our proposed components, we conduct several ablation studies on a randomly sampled set of $75$ prompts from our validation set that we used during training. 
+
+Specifically, we compare CAM against established conditioning approaches in \secrefcustom{sec:appendix.ablation_studies.cam}, analyse the impact of our long-term memory APM in \secrefcustom{sec:appendix.ablation_studies.apm}, and ablate on our  modifications for the video enhancer in \secrefcustom{sec:appendix.ablation_studies.randomized_blending}. 
+
+
+%We present additional qualitative results for the ablations on our APM module and randomized blending.
+
+\subsection{Conditional Attention Module.}
+\label{sec:appendix.ablation_studies.cam}
+To analyse the importance of CAM, we compare CAM (w/o APM) with two baselines (baseline details in \secrefcustom{sec:appendix.cam_ablation.ablation_models}): 
+(i) Connect the features of CAM with the skip-connection of the UNet via zero convolution, followed by addition. We zero-pad the condition frame and concatenate it with  a frame-indicating mask to form the input for the modified CAM, which we denote as Add-Cond.
+(ii) We append the conditional frames and a frame-indicating mask to input of Video-LDM's Unet along the channel dimension, but do not use CAM, which we denote as Conc-Cond.
+We train our method with CAM and the baselines on the same dataset. Architectural details (including training) of these baselines are provided in the appendix.
+
+We obtain an SCuts score of $0.24$, $0.284$ and $0.03$ for Conc-Cond, Add-Cond and Ours (w/o APM), respectively. 
+This shows that the inconsistencies in the input caused by the masking leads to frequent inconsistencies in the generated videos and that concatenation to the Unet's input is a too weak conditioning. 
+In contrast, our CAM generates consistent videos with a SCuts score that is 88\% lower than the baselines. 
+
+\input{figures/video_comparisons/figure-ablation-clip-no-clip}
+
+\begin{figure*}[t]
+    \centering
+    \input{figures/appendix-frame-selection/identity-preservation/example-1}
+    \input{figures/appendix-frame-selection/identity-preservation/example-2}
+    \caption{
+        Ablation study on the APM module. Top row is generated from StreamingT2V, bottom row is generated from StreamingT2V w/o APM.
+    }
+    \label{appendix:fix:ablation-apm}
+\end{figure*}
+
+
+
+\subsubsection{Ablation models}
+\label{sec:appendix.cam_ablation.ablation_models}
+For the ablation of CAM, we considered two baselines that we compare with CAM. Here we provide additional implementation details of these baselines. 
+
+The ablated model \textit{Add-Cond} applies to the features of CAM (\ie the outputs of the encoder and middle layer of the ControlNet part in Fig \textcolor{blue}{3} from main paper) zero-convolution, 
+and uses addition to fuse it with the features of the skip-connection of the UNet (similar to ControlNet \cite{controlnet})  (see \figrefcustom{fig:add-cond}). 
+We provide here additional details to construct this model.
+Given a video sample $\mathcal{V} \in \mathbb{R}^{F \times H \times W \times 3}$ with $F = 16$ frames, we construct  a  mask $M\in \{0,1\}^{F \times H \times W \times 3}$ that indicates which frame we use for conditioning, \ie $M^{f}[i,j,k] = M^{f}[i',j',k']$ for all frames $f = 1,\ldots,F$ and for all $i,j,k,i',j',k'$. We require that exactly $F-F_{\mathrm{cond}}$ frames are masked, \ie 
+\begin{equation}
+    \sum_{f=1}^{F} M^{f}[i,j,k] = F-F_{\mathrm{cond}}, \text{ for all } i,j,k.
+\end{equation}
+
+We concatenate $[\mathcal{V} \odot M,M]$ along the channel dimension and use it as input for the image encoder $\mathcal{E}_{\mathrm{cond}}$, where  $\odot$ denotes element-wise multiplication.
+
+During training, we randomly set the mask $M$. During inference, we set the mask for the first $8$ frames to zero, and for the last $8$ frames to one, so that the model conditions on the last $8$ frames of the previous chunk.
+
+For the ablated model \textit{Conc-Cond}, we start from our Video-LDM's UNet, and modify its first convolution. 
+Like for \textit{Add-Cond}, we consider a video $\mathcal{V}$ of length $F=16$ and a mask $M$ that encodes which frames are overwritten by zeros. Now the Unet takes $[z_t, \mathcal{E}(\mathcal{V}) \odot M,M]$ as input, where we concatenate along the channel dimension. 
+As with \textit{Add-Cond}, we randomly set $M$ during training so that the information of $8$ frames is used, while during inference, we set it such that the last $8$ frames of the previous chunk are used.  Here $\mathcal{E}$ denotes the VQ-GAN encoder 
+%% EXTERNAL REFERENCE ATTENTION
+% (see \secrefcustom{ssec:preliminary}). 
+(see Sec. \textcolor{linkblue}{3}). 
+
+
+
+
+\subsection{Appearance Preservation Module}
+\label{sec:appendix.ablation_studies.apm}
+We analyse the impact of utilizing long-term memory in the context of long video generation.  
+ \figrefcustom{appendix:fix:ablation-apm} shows that long-term memory greatly helps keeping the object and scene features across autoregressive generations.
+Thanks to the usage of long-term information via our proposed APM module, identity and scene features are preserved throughout the video.  For instance, the face of the woman in \figrefcustom{appendix:fix:ablation-apm} (including all its tiny details) are consistent\footnote{The background appears to have changed. However, please note that the camera is rotating so that a different area behind the two woman becomes visible, so that the background change is correct.} across the video generation.  Also, the style of the jacket and the bag are correctly generated throughout the video. 
+Without having access to a long-term memory, these object and scene features are changing over time.  
+
+This is also supported quantitatively. We utilize a person re-identification score to measure feature preservation (definition in \secrefcustom{sec:appendix.apm.feature_preservation_score}), and obtain scores of $93.42$ and $94.95$ for Ours w/o APM, and Ours, respectively. Our APM module thus improves the identity/appearance preservation. Also the scene information is better kept, as we observe an image distance score in terms of  LPIPS  \cite{zhang2018perceptual} of 0.192 and 0.151 for Ours w/o APM and Ours, respectively. 
+We thus have an improvement in terms of scene preservation of more than 20\% when APM is used. 
+
+
+
+\subsubsection{Measuring Feature Preservation.}
+\label{sec:appendix.apm.feature_preservation_score}
+We employ a person re-identification score as a proxy to measure feature preservation. To this end, let $P_n=\{p_{i}^{n}\}$ be all face patches extracted from frame $n$ using an off-the-shelf head detector  \cite{schroff2015facenet} and let $F_{i}^{n}$ be the  corresponding facial feature of $p_{i}^{n}$, which we obtain from an off-the-shelf face recognition network  \cite{schroff2015facenet}. Then, for frame $n$,  $n_{1} := |P_{n}|$, $n_{2} := |P_{n+1}|$, we define the re-id score $\text{re-id}(n)$
+for frame $n$ as 
+\begin{equation}
+    \text{re-id}(n):=
+    \begin{cases}
+        \max_{i,j} \cos \Theta(F_{i}^{n},F_{j}^{n+1}), & n_{1}, n_{2} > 0\ \\ 0 & \text{otherwise.}
+    \end{cases}
+\end{equation}
+where $\cos \Theta$ is the cosine similarity. Finally, we obtain the re-ID score of a video by averaging over all frames, where the two consecutive frames have face detections, \ie with $m := | \{n \in \{1,..,N\} : |P_{n}|>0 \}|$, we compute the weighted sum:
+\begin{equation}
+    \text{re-id}:=  \frac{1}{m} \sum_{n=1}^{N-1} \text{re-id}(n),
+\end{equation}
+where $N$ denotes the number of frames.
+
+
+\subsection{Randomized Blending.}
+\label{sec:appendix.ablation_studies.randomized_blending}
+%\figrefcustom{appendix:fig:video_enhancer_1} and \figrefcustom{appendix:fig:video_enhancer_2} show additional ablated results on our randomized blending approach. From the X-T slice visualizations we can see that the randomized blending leads to smooth chunk transitions. In contrast, when naively concatenating enhanced video chunks, or using shared noise, the resulting videos possess visible inconsistencies between chunks.
+
+
+
+%\noindent\textbf{Randomized Blending for Video Enhancement.}
+We assess our randomized blending approach by comparing against two baselines.
+(B) enhances each video chunk independently, and (B+S) uses shared noise for consecutive chunks, with an overlap of 8 frames, but not randomized blending.
+We compute per sequence the standard deviation of the optical flow magnitudes between consecutive frames and average over all frames and sequences, which indicates temporal  smoothness. We obtain the scores 8.72, 6.01 and 3.32 for B, B+S, and StreamingT2V, respectively.
+Thus, noise sharing improves chunk consistency (by $31\%$ vs B), but it is significantly further improved by randomized blending (by $62\%$ vs B). 
+%
+
+These findings are  supported visually.  \figrefcustom{fig:video_enhancer} shows ablated results on our randomized blending approach. From the X-T slice visualizations we can see that the randomized blending leads to smooth chunk transitions, confirming our observations and quantitative evaluations. In contrast, when naively concatenating enhanced video chunks, or using shared noise, the resulting videos possess visible inconsistencies between chunks.
+
+% in \figrefcustom{fig:video_enhancer}, where only StreamingT2V is able to produce seamless transitions, confirms the benefit of randomized blending.
+
+
+\begin{figure*}[t]
+    \centering
+    
+    %\begin{subfigure}{\textwidth}\hspace*{\fill}
+    %    \includegraphics[width=0.3275\textwidth]{figures/video_comparisons/ablation-enhancer/naive.pdf} 
+    %    \hfill
+    %    \includegraphics[width=0.3275\textwidth]{figures/video_comparisons/ablation-enhancer/shared-noise.pdf} 
+    %    \hfill
+    %    \includegraphics[width=0.3275\textwidth]{figures/video_comparisons/ablation-enhancer/random-blending.pdf} 
+        
+    %    \vspace{0.25cm}
+    %\end{subfigure}
+    
+    \begin{subfigure}{\textwidth}\hspace*{\fill}
+        %\begin{subfigure}{.3275\textwidth}
+        \includegraphics[width=0.3275\textwidth]{figures/appendix-frame-selection/enhancer-comparison-plots/0019/naive.pdf}
+        %\caption{Naive Concatenation}
+    \hfill
+    %
+    %\begin{subfigure}{.3275\textwidth}
+        \includegraphics[width=0.3275\textwidth]{figures/appendix-frame-selection/enhancer-comparison-plots/0019/shared-noise.pdf}
+        %\caption{Shared Noise}
+    %\end{subfigure} \hfill
+    \hfill
+%    
+    %\begin{subfigure}{0.3275\textwidth}
+        \includegraphics[width=0.3275\textwidth]{figures/appendix-frame-selection/enhancer-comparison-plots/0019/random-blending.pdf}
+        %\caption{Randomized Blending}    
+    %\end{subfigure}
+    
+    \vspace{0.25cm}
+    \end{subfigure}
+    
+    \begin{subfigure}{\textwidth}\hspace*{\fill}
+    \includegraphics[width=0.3275\textwidth]{figures/appendix-frame-selection/enhancer-comparison-plots/0016/naive.pdf}
+        \hfill
+        \includegraphics[width=0.3275\textwidth]{figures/appendix-frame-selection/enhancer-comparison-plots/0016/shared-noise.pdf}
+        \hfill
+        \includegraphics[width=0.3275\textwidth]{figures/appendix-frame-selection/enhancer-comparison-plots/0016/random-blending.pdf}
+    \end{subfigure}
+    \begin{tabular}{p{0.15cm} p{4.7cm} p{3.7cm} p{5cm}}
+        & (a) Naive Concatenation & (b) Shared Noise & (c) Randomized Blending \\
+    \end{tabular}
+
+    \caption{Ablation study on our video enhancer improvements. The X-T slice visualization shows that randomized blending leads to smooth chunk transitions, while both baselines have  clearly visible, severe inconsistencies between chunks.}
+    \label{fig:video_enhancer}
+\end{figure*}
+
+
+
+
+\section{Implementation detail}
+\label{appendix:sec:implementation_details}
+
+
+
+% Model details
+
+% Inference
+
+% Training
+We generate $F=16$ frames, condition on $F_{\mathrm{cond}} = 8$ frames, and display videos with $10$ FPS.
+%
+Training is conducted using an internal dataset. 
+We sample with 3FPS@256x256 16 frames (during CAM training) and 32 frames (during  CAM+APM training). 
+
+\noindent\textbf{CAM training}: we freeze the weights of the pre-trained Video-LDM and train the new layers of CAM with batch size 8 and learning rate $5\cdot 10^{-5}$ for 400K steps.\\
+\noindent\textbf{CAM+APM training}:  After the CAM training, we freeze the CLIP encoder and the temporal layers of the main branch, and train the remaining layers for 1K steps.
+
+%We randomly sample an anchor frame out of the first 16 frames. For the conditioning and denoising, we use the frames $17-24$ and $17-32$, respectively. This aligns training with inference, where there is a large time gap between the conditional frames and the anchor frame. In addition, by randomly sampling an anchor frame,  the model can leverage the CLIP information only for the extraction of high-level semantic information, as we do not provide a frame index to the model. 
+%We freeze the CLIP encoder and the temporal layers of the main branch, and train the remaining layers for 1K steps.
+
+The image encoder $\mathcal{E}_{\mathrm{cond}}$ used in CAM is composed of stacked 2D convolutions, layer norms and SiLU activations.
+For the video enhancer, we diffuse an input video using $T'=600$ steps.
+%
+%Further training and implementation details are provided in the appendix 
+%% EXTERNAL REFERENCE ATTENTION
+% (see \secrefcustom{appendix:sec:implementation_details}).
+%(see Sec. \textcolor{linkblue}{A.4}).
+
+
+%We provide additional details regarding the training of StreamingT2V and further implementation details.
+
+% \subsection{Training details}
+In order to train the APM module, we randomly sample an anchor frame out of the first 16 frames. For the conditioning and denoising, we use the frames $17-24$ and $17-32$, respectively. This aligns training with inference, where there is a large time gap between the conditional frames and the anchor frame. In addition, by randomly sampling an anchor frame, the model can leverage the CLIP information only for the extraction of high-level semantic information, as we do not provide a frame index to the model. 
+
+
+\subsection{Streaming T2V Stage}
+For the StreamingT2V stage, we use classifier free guidance  \cite{ho2022classifier,gen1_paper} from text and the anchor frame. More precisely, let $\epsilon_{\theta}(x_t,t,\tau,a)$ denote the noise prediction in the StreamingT2V stage for latent code $x_t$ at diffusion step $t$, text $\tau$ and anchor frame $a$.
+For text guidance and guidance by the anchor frame, we introduce weights $\omega_{\mathrm{text}}$ and $\omega_{\mathrm{anchor}} $, respectively. Let $\tau_{\mathrm{null}}$ and $a_{\mathrm{null}}$ denote the empty string, and the image with all pixel values set to zero, respectively. Then, we obtain the multi-conditioned classifier-free-guided noise prediction $\hat{\epsilon}_{\theta}$  (similar to DynamiCrafter-XL   \cite{xing2023dynamicrafter}) from 
+the noise predictor $\epsilon$ via  
+\begin{align}    
+    \notag \hat{\epsilon}_{\theta}(x_t,t,\tau,a) =\ &\epsilon_{\theta}(x_t,t,\tau_{\mathrm{null}},a_{\mathrm{null}}) \\ & \notag
+    + \omega_{\mathrm{text}}  \bigl(\epsilon_{\theta}(x_t,t,\tau,a_{\mathrm{null}}) \\ & \notag
+    - \epsilon_{\theta}(x_t,t,\tau_{\mathrm{null}},a_{\mathrm{null}})\bigr) \\ &   \notag
+     + \omega_{\mathrm{anchor}} \bigl(\epsilon_{\theta}(x_t,t,\tau,a)  \\ &
+     - \epsilon_{\theta}(x_t,t,\tau,a_{\mathrm{null}})\bigr). 
+\end{align}
+We then use $\hat{\epsilon}_{\theta}$ for denoising. 
+In our experiments, we set $\omega_{\mathrm{text}} = \omega_{\mathrm{anchor}} = 7.5$.
+During training, we randomly replace $\tau$ with $\tau_{\mathrm{null}}$ with $5 \% $ likelihood, the anchor frame $a$ with $a_{\mathrm{null}}$ with $5 \%$ likelihood, and we replace at the same time $\tau$ with $\tau_{\mathrm{null}}$  and  $a$ with $a_{\mathrm{null}}$ with $5\%$ likelihood. 
+
+Additional hyperparameters for the architecture, training and inference of the  Streaming T2V stage are presented in \tabrefcustom{tab:hyperparameters}, where \textit{Per-Pixel Temporal Attention} refers to the attention module used in CAM 
+%% EXTERNAL REFERENCE ATTENTION
+% (see \figrefcustom{fig:pipeline}).
+(see Fig. \textcolor{linkblue}{3})
+
+\begin{table}[t]
+    \centering
+    
+    \begin{tabular}{l|c}
+        \textbf{Per-Pixel Temporal Attention} & \\ 
+        Sequence length Q & 16 \\
+        Sequence length K,V & 8 \\
+        Token dimensions & 320, 640, 1280 \\ 
+        
+        \textbf{Appearance Preservation Module} & \\
+        CLIP Image Embedding Dim & 1024 \\
+        CLIP Image Embedding Tokens & 1 \\ 
+        MLP hidden layers & 1 \\  
+        MLP inner dim & 1280 \\
+        MLP output tokens & $16$\\
+        MLP output dim & $1024$\\
+        1D Conv input tokens & 93 \\ 
+        1D Conv output tokens & $77$ \\
+        1D Conv output dim & $1024$ \\
+        Cross attention sequence length & 77 \\
+        
+        \textbf{Training} & \\
+        Parametrization & $\epsilon$ \\
+        
+        \textbf{Diffusion Setup} & \\
+        Diffusion steps & 1000 \\
+        Noise scheduler & Linear \\
+        $\beta_{0}$ & 0.0085 \\
+        $\beta_{T}$ & 0.0120 \\
+        
+        \textbf{Sampling Parameters} \\
+        Sampler & DDIM \\
+        Steps & 50 \\
+        $\eta$ & $1.0$ \\
+        $\omega_{\mathrm{text}}$ & $7.5$ \\ 
+        $\omega_{\mathrm{anchor}}$ & $7.5$ \\ 
+    \end{tabular}
+
+    \caption{
+        Hyperparameters of Streaming T2V Stage. Additional architectural hyperparameters are provided by the Modelsope report  \cite{Modelscope}.
+    }
+    
+
+    \label{tab:hyperparameters}
+\end{table}
+
+
+
+%MAWE is based on Warp errors and OF scores which have highly dependent values. We try to counteract this effect in our MAWE score by assuming this dependency is linear $W(\mathcal{V}) = c \cdot  \mathrm{OFS}(\mathcal{V})$ and account for it in MAWE's denominator. 
+%To calculate $c$ we randomly sample a small part of our training with a range of optical scores and remove outliers applying the Z-score method. Using this dataset $c$ is obtained by a simple regression analysis.
+
+
+
+
+
+%\begin{figure*}[t]
+%    \centering
+    
+%    \begin{subfigure}{.3\textwidth}
+%        \includegraphics[width=1\linewidth]{figures/appendix_mawe.png}
+%        \caption{MAWE score ().}
+%    \end{subfigure}   
+%    \begin{subfigure}{.3\textwidth}
+%        \includegraphics[width=1\linewidth]{figures/appendix_scuts.png}
+%        \caption{SCuts score ().}
+%    \end{subfigure}
+%    \begin{subfigure}{.3\textwidth}
+%        \includegraphics[width=1\linewidth]{figures/appendix_clip.png}
+%        \caption{CLIP score ($\uparrow$).}
+%    \end{subfigure}
+    
+%    \caption{
+%        Study on how generating longer videos are affecting the generation quality.
+%    }
+    %\label{appendix:fig:metric_figures_long_video_generation}
+%\end{figure*}
+
+
+
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.93\linewidth]{figures/ablation.pdf}
+    \caption{Illustration of the Add-Cond baseline, which is used in \secrefcustom{sec:appendix.ablation_studies.cam}.}
+    \label{fig:add-cond}
+\end{figure*}
+
+
+
+
+\section{Test set prompts}
+\label{sec:appendix.test_prompts}
+\begin{enumerate}
+    \item A camel resting on the snow field.
+    \item Camera following a pack of crows flying in the sky.
+    \item A knight riding on a horse through the countryside.
+    \item A gorilla eats a banana in Central Park.
+    \item Men walking in the rain.
+    \item Ants, beetles and centipede nest.
+    \item A squirrel on a table full of big nuts.
+    \item Close flyover over a large wheat field in the early morning sunlight.
+    \item A squirrel watches with sweet eyes into the camera.
+    \item Santa Claus is dancing.
+    \item Chemical reaction.
+    \item Camera moving in a wide bright ice cave, cyan.
+    \item Prague, Czech Republic. Heavy rain on the street.
+    \item Time-lapse of stormclouds during thunderstorm.
+    \item People dancing in room filled with fog and colorful lights.
+    \item Big celebration with fireworks.
+    \item Aerial view of a large city.
+    \item Wide shot of battlefield, stormtroopers running at night, fires and smokes and explosions in background.
+    \item Explosion.
+    \item Drone flythrough of a tropical jungle with many birds.
+    \item A camel running on the snow field.
+    \item Fishes swimming in ocean camera moving.
+    \item A squirrel in Antarctica, on a pile of hazelnuts cinematic.
+    \item Fluids mixing and changing colors, closeup.
+    \item A horse eating grass on a lawn.
+    \item The fire in the car is extinguished by heavy rain.
+    \item Camera is zooming out and the baby starts to cry.
+    \item Flying through nebulas and stars.
+    \item A kitten resting on a ball of wool.
+    \item A musk ox grazing on beautiful wildflowers.
+    \item A hummingbird flutters among colorful flowers, its wings beating rapidly.
+    \item A knight riding a horse, pointing with his lance to the sky.
+    \item steampunk robot looking at the camera.
+    \item Drone fly to a mansion in a tropical forest.
+    \item Top-down footage of a dirt road in forest.
+    \item Camera moving closely over beautiful roses blooming time-lapse.
+    \item A tiger eating raw meat on the street.
+    \item A beagle looking in the Louvre at a painting.
+    \item A beagle reading a paper.
+    \item A panda playing guitar on Times Square.
+    \item A young girl making selfies with her phone in a crowded street.
+    \item Aerial: flying above a breathtaking limestone structure on a serene and exotic island.
+    \item Aerial: Hovering above a picturesque mountain range on a peaceful and idyllic island getaway.
+    \item A time-lapse sequence illustrating the stages of growth in a flourishing field of corn.
+    \item Documenting the growth cycle of vibrant lavender flowers in a mesmerizing time-lapse.
+    \item Around the lively streets of Corso Como, a fearless urban rabbit hopped playfully, seemingly unfazed by the fashionable surroundings.
+    \item Beside the Duomo's majestic spires, a fearless falcon soared, riding the currents of air above the iconic cathedral.
+    \item A graceful heron stood poised near the reflecting pools of the Duomo, adding a touch of tranquility to the vibrant surroundings.
+    \item A woman with a camera in hand joyfully skipped along the perimeter of the Duomo, capturing the essence of the moment.
+    \item Beside the ancient amphitheater of Taormina, a group of friends enjoyed a leisurely picnic, taking in the breathtaking views.
+\end{enumerate}
+
+
+\section{MAWE Definition}
+\label{sec:appendix.MAWE}
+For MAWE, we measure the motion amount using OFS (optical flow score), which computes for a video the mean of the squared magnitudes of all optical flow vectors between any two consecutive frames. 
+Furthermore, for a video $\mathcal{V}$, we consider the mean warp error \cite{lai2018warp_error_metric}  $W(\mathcal{V}) $, which measures 
+the average squared L2 pixel distance from a frame to its warped subsequent frame, excluding occluded regions.  
+Finally, MAWE is defined as:
+\begin{equation}
+    \mathrm{MAWE}(\mathcal{V}) := \frac{W(\mathcal{V})}{  \mathrm{OFS}(\mathcal{V})},
+\end{equation}
+which we found to be well-aligned with human perception.
+For MAWE, we measure the motion amount using OFS (optical flow score), which computes for a video the mean of the squared magnitudes of all optical flow vectors between any two consecutive frames. 
+Furthermore, for a video $\mathcal{V}$, we consider the mean warp error \cite{lai2018warp_error_metric}  $W(\mathcal{V}) $, which measures 
+the average squared L2 pixel distance from a frame to its warped subsequent frame, excluding occluded regions.  
+Finally, MAWE is defined as:
+\begin{equation}
+    \mathrm{MAWE}(\mathcal{V}) := \frac{W(\mathcal{V})}{  \mathrm{OFS}(\mathcal{V})},
+\end{equation}
+which we found to be well-aligned with human perception.

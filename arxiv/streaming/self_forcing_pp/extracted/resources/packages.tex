@@ -1,0 +1,95 @@
+% For flexible citation formats (author-year, numeric)
+\usepackage{natbib}
+
+% For UTF-8 encoded CJK (Chinese, Japanese, Korean) characters
+\usepackage{CJKutf8}
+
+% 允许使用 \newcommandx
+\usepackage{xargs}  
+
+% 用于创建 todo notes
+\usepackage{todonotes}  
+
+% 用于表格multirow
+\usepackage{multirow}
+
+
+% 用于cref
+\usepackage{cleveref}
+
+\usepackage{amsmath}
+\usepackage{dsfont}
+
+% % using itemize
+% \usepackage{enumerate}
+
+
+\usepackage{subcaption}
+
+
+\usepackage{svg}
+
+\usepackage{mathrsfs}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{tcolorbox}
+\usepackage{changepage}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{wrapfig}
+\usepackage[table]{xcolor}  % loads xcolor with table support
+\usepackage{colortbl}       % gives \columncolor, \rowcolor
+\usepackage{tabularx} % Add to your preamble
+\usepackage{makecell} % Add to your preamble
+\usepackage[dvipsnames]{xcolor}
+
+\newcolumntype{g}{>{\columncolor{gray!10}}c} % gray background
+\newcommand{\KVSet}{\mathbf{KV}}
+\newcommand{\ModelOuput}{\mathbf{X}_{\theta}}
+\newcommand{\KVOutput}{\mathbf{kv}}
+
+\definecolor{catgray}{gray}{0.9}
+\definecolor{skyblue}{rgb}{0.53,0.81,0.92} % sky blue
+
+% make it look transparent by mixing with white
+\colorlet{skyblue!30}{skyblue!30!white} % 30% skyblue, 70% white
+
+\definecolor{customblue}{RGB}{70,130,180}  % This is equivalent to rgb(70,130,180)
+
+\newtcolorbox{evolbox}[2][]{%
+  enhanced,
+  % colframe=blue!70!black,
+  colframe=customblue,
+  colback=white,
+  coltitle=white,
+  rounded corners,
+  boxrule=1pt,
+  titlerule=0pt,
+  toptitle=1mm,
+  bottomtitle=1mm,
+  fonttitle=\bfseries,
+  % title=#3,
+  % fontupper=\boxcontentfont\fontsize{10pt}{12pt}\selectfont,
+  width=#2\textwidth, % This takes the second parameter as the width fraction
+  % Applying the custom font with size
+  % left=1mm, % Reduced left padding
+  % right=1mm, % Reduced right padding
+  % top=1mm, % Reduced top padding
+  % bottom=1mm, % Reduced bottom padding
+  #1
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{minitoc}
+\usepackage{url}
+

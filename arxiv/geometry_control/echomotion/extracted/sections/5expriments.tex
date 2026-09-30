@@ -1,0 +1,45 @@
+\section{Experiments}
+\subsection{Implementation Details}
+\input{tables/quantitative_compare}
+\input{figures/qualitative}
+
+We perform experiments on two variants of the open-sourced base model, Wan2.1-1.3B and Wan2.2-5B, to validate the effectiveness of our method. 
+The initial motion-only training phase leverages a composite motion dataset of our proposed \textit{HuMoVe} dataset alongside the extensive HumanML3D dataset \citep{guo2022generating}, a public repository containing over 14,616 human motions in SMPL format, \reb{and is conducted for 15k steps.} Following this, the \reb{motion-video multi-task training} phase is performed on our collected motion-video paired data \reb{for an additional 12k steps. These step counts were determined empirically by monitoring both loss convergence and qualitative quality on a held-out validation set.} The Wan2.2-5B+EchoMotion model is trained for 4000 A100 GPU hours.
+The whole training procedure is conducted on 32 NVIDIA A100 GPUs for about 4 days.
+
+\input{figures/generations}
+\input{figures/joint_gen}
+\subsection{Text to Video Generation}
+\textbf{Evaluation Protocol.}
+To enable a comprehensive evaluation, we build a new benchmark that covers a wide spectrum of human motion, from daily activities to extreme athletic feats. Our benchmark includes a diverse set of prompts (30 per category) covering: precise, high-momentum movements from gymnastics and athletics; fluid, expressive motions from dance; reactive and interactive scenarios from ball and combat sports; and the natural gestures of everyday life. 
+For quantitative analysis, we use the automatic metrics from VBench \citep{huang2024vbench} and VBench-2.0 \citep{zheng2025vbench}, alongside human user studies to collect numerical ratings. These quantitative findings are complemented by qualitative visualizations that illustrate the performance of our method.
+
+
+\textbf{Quantitative Results.}
+We evaluate our method against the video-only baselines at both 1.3B and 5B scales with baseline open-source models. The results, summarized in Table \ref{tab:comparison_results}, demonstrate that our joint modeling approach yields substantial gains in motion fidelity. On automatic metrics, EchoMotion markedly improves scores for Motion Smoothness and Anatomical Consistency over the baselines. Notably, this improvement is achieved without any reduction in the Aesthetic Quality score.
+These results are strongly corroborated by our human evaluation, where participants assign EchoMotion significantly higher ratings for Video Quality, Motion Plausibility, and Prompt-Following for human-centric prompts.
+
+
+\input{figures/attn_map} \textbf{Qualitative Results.}
+Figure \ref{fig:quanlitative} highlights the critical limitations of Video-only training on complex, human-centric prompts. While the Wan2.2-5B baseline generates reasonable aesthetics, it consistently violates kinematic constraints, producing severe anatomical artifacts (e.g., the tangled gymnast, the distorted skateboarder). Furthermore, the baseline struggles with semantic compositionality, failing to execute the multi-step workout sequence. In contrast, by jointly modeling video and human motion, our model generates subjects with plausible anatomy and successfully follows compositional instructions. Our model generates coherent and physically plausible motions across all challenging cases, demonstrating that joint distribution modeling leads to a superior internal representation of human kinetics.
+ 
+In addition to outperforming baselines, our method demonstrates remarkable versatility and a sophisticated capacity for multi-modal generation.
+Figure \ref{fig:generations} showcases its generative breadth, successfully synthesizing a wide variety of high-quality, kinematically plausible actions—from a golf swing to a snowboarding aerial—across diverse scenes. Moreover, the efficacy of our joint modeling approach is directly illustrated in Figure \ref{fig:joint_gen}, where the model simultaneously generates a video and its corresponding, temporally-aligned SMPL sequence from one prompt. This co-generation demonstrates that the model's output is not simply a pixel-level synthesis but is fundamentally conditioned on an internal representation of human kinematics.
+
+\subsection{Cross-Modal Completion}
+
+
+Our model's unified design enables powerful cross-modal capabilities, as shown in Figure \ref{fig:multi-modal-completion}. By forming tasks as modal completion, EchoMotion operates bi-directionally: (a) it can synthesize a high-fidelity video that precisely follows a given motion sequence (motion-to-video), and (b) it can recover the underlying SMPL motion from an input video (video-to-motion). This flexibility to perform both generation and inverse kinematics with a single model highlights the significant advantage of our joint modeling approach. \reb{We provide further quantitative evaluations for cross-modal completion tasks in Appendix \ref{sec:m2v_quantitative} and \ref{sec:v2m_quantitative}.}
+\input{figures/multi_modal_fill}
+
+\subsection{Ablation Studies}
+In this section, we conduct ablation studies to validate the key components of our framework. \reb{Additional ablations are detailed in Appendix \ref{sec:more_ablations}.}
+
+\textbf{Joint Modeling vs. Video-Only Modeling.}
+We compare our joint training approach against a baseline fine-tuned exclusively on the video data from our dataset (Video Tuning). As shown in Table \ref{tab:comparison_results}, while the Video-only tuning approach offers only marginal improvements and fails to enhance key kinematic metrics, our EchoMotion model demonstrates substantial gains in both Human Anatomy and, notably, Posture Plausibility.
+This result confirms our central hypothesis:
+The key to high-quality human motion synthesis lies in the joint modeling of appearance and kinematics during training, whereas simply adding more human-centric video data offers marginal benefits.
+
+
+\textbf{MVS-RoPE Design.}
+To validate our MVS-RoPE design for aligning video and motion modalities, we visualize the self-attention score in Figure \ref{fig:attn_map}. Crucially, the motion temporal sequence is four times the length of the video temporal sequence, requiring the model to learn a non-trivial 4:1 temporal mapping. In our model with MVS-RoPE (a), the attention map reflects this perfectly. The video-to-motion attention forms a clear, shallow diagonal, while the Motion-to-Video attention forms a corresponding steep diagonal. This asymmetrical structure is direct evidence that the model has learned the correct temporal alignment. In contrast, the baseline without MVS-RoPE (b) fails completely; the attention is scattered, and the required diagonal structures are absent, demonstrating its inability to synchronize the two modalities.

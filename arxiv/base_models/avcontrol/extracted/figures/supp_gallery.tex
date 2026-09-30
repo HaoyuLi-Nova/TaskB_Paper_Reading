@@ -1,0 +1,105 @@
+% ---------------------------------------------------------------------------
+% Extended Qualitative Gallery
+% Each figure uses full column width.
+% ---------------------------------------------------------------------------
+
+\paragraph{Spatially-aligned controls.}
+Figures~\ref{fig:supp_canny}--\ref{fig:supp_sparse_tracks} show results for canny edge and sparse track control. 
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/canny.jpg}
+\caption{Canny edge-guided generation. Control input (top) and generated output (bottom).}
+\label{fig:supp_canny}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/sparse_tracks.jpg}
+\caption{Sparse track-guided generation. Point trajectories rendered as colored dots on a black canvas (top) and generated output (bottom).}
+\label{fig:supp_sparse_tracks}
+\end{figure}
+
+\clearpage
+
+\paragraph{Video editing.}
+Figures~\ref{fig:supp_inpainting}--\ref{fig:supp_detailing} show video editing results: inpainting, outpainting, local edit, and video detailing (upscaling).
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/inpainting.jpg}
+\caption{Video inpainting. Masked input (top) and completed output (bottom).}
+\label{fig:supp_inpainting}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/outpainting.jpg}
+\caption{Video outpainting. Masked input with border regions (top) and extended output (bottom).}
+\label{fig:supp_outpainting}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/local_edit.jpg}
+\caption{Local video editing. Reference video (top) and edited output (bottom). The LoRA propagates a first-frame edit consistently across the video.}
+\label{fig:supp_local_edit}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/detailing.jpg}
+\caption{Video detailing (upscaling). Low-resolution input (top) and upscaled output (bottom).}
+\label{fig:supp_detailing}
+\end{figure}
+
+\clearpage
+
+\paragraph{Camera trajectory control.}
+Figures~\ref{fig:supp_camera_image}--\ref{fig:supp_cut_on_action} show camera control results, including image-to-video, video-to-video, and cut-on-action with diverse viewpoints.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/camera_image.jpg}
+\caption{Camera trajectory from a single image. Input image and canonical grid reference (top) and generated video with the target camera motion (bottom).}
+\label{fig:supp_camera_image}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/camera_image_diverse.jpg}
+\caption{Diverse camera trajectories from the same input image, demonstrating controllable camera motion.}
+\label{fig:supp_camera_image_diverse}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/camera_video.jpg}
+\caption{Camera trajectory from video. Source video re-rendered at a new camera trajectory while preserving scene motion.}
+\label{fig:supp_camera_video}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/camera_video_diverse.jpg}
+\caption{Diverse re-rendered camera trajectories from the same source video.}
+\label{fig:supp_camera_video_diverse}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/cut_on_action.jpg}
+\caption{Cut-on-action. The source video (top) is re-rendered from a substantially different camera angle (bottom).}
+\label{fig:supp_cut_on_action}
+\end{figure}
+
+\clearpage
+
+\paragraph{Audio-visual modalities.}
+Figure~\ref{fig:supp_whoistalking} shows a who-is-talking result. Audio-only modalities (audio intensity, speech-to-ambient) are best evaluated in the supplementary video, as static frames cannot convey audio quality.
+
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figures/images/supp_qualitative/whoistalking.jpg}
+\caption{Who-is-talking control. An abstract reference layout of colored bounding boxes with voice activity (top) produces multi-person talking video with synchronized lip motion and audio (bottom).}
+\label{fig:supp_whoistalking}
+\end{figure}

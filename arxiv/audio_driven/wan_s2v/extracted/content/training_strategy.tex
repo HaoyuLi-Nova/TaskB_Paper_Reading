@@ -1,0 +1,16 @@
+\section{Implementation}
+To train our Audio-to-Video model, we adopted a hybrid-parallel training scheme which combines FSDP and context parallelism, enabling large-scale, full-parameter model training. To support different resolutions, we support the training of variable-length video data. Our model is trained based on a pre-trained Wan model and is designed with a three-stage training process, including: audio encoder training, training on speech videos, training on film and television + speech videos, and finally, high-quality SFT (Supervised Fine-Tuning) stage training.
+\subsection{Parallel Strategy}
+To efficiently train our large model, a hybrid parallel training strategy is employed. This involves combining Fully Sharded Data Parallelism (FSDP)~\cite{fsdp} with Context Parallelism. Initially, FSDP is leveraged to shard the model's parameters across 8 GPU cards within a single node, enabling the training of our Wan-S2V-14B model while utilizing 80GB of memory per GPU.
+
+Subsequently, for parallel computing, we implement a Context Parallelism scheme, combining RingAttention and Ulysses similar to \cite{usp}. This integrated approach, executed on 8 GPUs within a single node, allows us to achieve near-linear speedup, significantly reducing the single training iteration time from $\sim$100 seconds to $\sim$12 seconds. This robust setup ultimately supports the training of models exceeding 16B parameters, including our audio encoder and cross-attention components, enabling high-resolution video training up to 48 frames at $1024\times 768$ resolution (Height $\times$ Width) on 8 GPUs.
+
+To accommodate diverse output resolutions and optimize training, a variable-length resolution training method is implemented. This method uses the token count, determined after the patchify operation, as a key metric. A maximum allowable token limit, $M$, is established. For videos exceeding this limit, resolution resizing or cropping is applied to reduce the token count to $M$ or below. Videos with token counts already below $M$ are used directly for model training without any modifications.
+
+% \subsection{Distillation Method}
+
+
+
+
+
+

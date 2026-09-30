@@ -1,0 +1,60 @@
+
+\section{Inference Infra}
+\subsection{W8A8 Quantization}
+\label{sec:appendix_w8a8}
+We adopt the A8W8 SmoothQuant approach~\citep{xiao2023smoothquant}, which leverages a calibration dataset to pre-compute per-channel scaling factors $s$. This enables an equivalent transformation of the form $Y = (X \cdot \text{diag}(s)^{-1}) \cdot (\text{diag}(s)W)$, effectively mitigating the impact of outliers in channel-wise activations.
+
+For calibration, we constructed a dataset encompassing a wide range of usage scenarios, including different task types (\emph{e.g.}, T2V and I2V) and a uniformly sampled step size within the range [12, 32]. Notably, I2V samples constituted approximately 30\% of the dataset. We employed the \texttt{FP8} data type for quantization, as \texttt{INT8} was found to introduce noticeable visual artifacts in the generated videos. Furthermore, we conducted a hyperparameter search over the range $\alpha \in (0.4, 0.6)$, and ultimately selected $\alpha = 0.45$ for SmoothQuant.
+All model weights were quantized except for the first and last layers. This quantization strategy led to a 30\% performance improvement without compromising generation quality.
+
+
+\subsection{Multi-Node Parallel Inference}
+\label{sec:appendix_multinode_parallel_inference}
+We adopted a multi-node Ulysses-based parallel inference framework across 3 nodes (24 GPUs), where inter-GPU communication and the high computational density of attention emerged as the primary bottlenecks.
+Ulysses performs four all-to-all communication steps for the $q$, $k$, $v$, and $o$ tensors. To mitigate communication overhead, we carefully overlapped each communication stage with corresponding computations:
+
+\begin{itemize} 
+    \item $v$-communication overlaps with $k$-computation
+    \item $k$-communication overlaps with $q$-computation
+    \item $q$-communication overlaps with KV cache updates
+    \item $o$-communication overlaps with cross-attention computation
+\end{itemize}
+
+This overlapping strategy effectively reduced communication overhead to less than 3\% of total execution time.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{1.0\textwidth}
+    \begin{subfigure}[b]{1.0\textwidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{infra/infer_infra/figures/ulysses_split.pdf}
+        \caption{Ulysses context split logic.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{1.0\textwidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{infra/infer_infra/figures/cso_split_v2.pdf}
+        \caption{CSO context split logic.}
+    \end{subfigure}
+    \end{minipage}
+    \caption{Overview of Ulysses and CSO context split logic.}
+    \label{fig:context_split_logic_overview}
+\end{figure}
+
+\subsection{Context Shuffle Overlap}
+\label{sec:appendix_context_shuffle_overlap}
+We optimized based on the Ulysses CP algorithm, striving to overlap communication with computation or data movement. Since the RTX 4090 GPUs communicate via PCIe, which has a relatively low bandwidth, we further proposed the \textbf{CSO (Context Shuffle Overlap)} algorithm to optimize communication more deeply.
+
+The key difference between CSO and Ulysses lies in how the context is partitioned. In Ulysses, all chunks are distributed sequentially across different ranks. In contrast, CSO assigns each rank a partial view of every chunk. As illustrated in Fig.~\ref{fig:context_split_logic_overview}, this alternative partitioning strategy allows CSO to conveniently overlap computation and communication at the chunk level. Assuming we have 5 chunks, the complete process of CSO is as follows:
+\begin{itemize} 
+    \item $k$-communication and $v$-communication of all chunks overlaps with $q$-computation of all chunks
+    \item $q$-communication of chunk 1 overlaps with KV cache updates
+    \item $q$-communication of chunk 2 overlaps with $o$-computation of chunk 1
+    \item $q$-communication of chunk 3 and $o$-communication of chunk 1 overlaps with $o$-computation of chunk 2
+    \item $q$-communication of chunk 4 and $o$-communication of chunk 2 overlaps with $o$-computation of chunk 3
+    \item $q$-communication of chunk 5 and $o$-communication of chunk 3 overlaps with $o$-computation of chunk 4
+    \item $o$-communication of chunk 4 overlaps with $o$-computation of chunk 5
+    \item $o$-communication of chunk 5 overlaps with cross-attention computation
+\end{itemize}
+
+In addition, the CSO partition pattern enables communication operations to be split into multiple balanced all-to-all communications. These balanced operations offer better performance compared to unbalanced all-to-all communication and also allow for efficient subsequent merging.

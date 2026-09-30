@@ -1,0 +1,42 @@
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/Teaser.pdf}
+\caption{\textbf{Overview} of \method. We scale dual-arm robot data collected in the real world for pre-training. \method can be easily and efficiently transferred to downstream tasks. Moreover, we conduct a systematic assessment across three robotic embodiments, which demonstrates the clear superiority of our model.}
+\label{fig:teaser}
+\end{figure}
+
+
+\section{Introduction}\label{sec:intro}
+
+
+Vision-Language-Action (VLA) foundation models~\cite{pi_0,pi_0d5,gr00t_n1_6} have emerged as a promising method for enabling robots to perform diverse manipulation tasks guided by natural language instructions. 
+%
+Through large-scale pre-training, these models acquire generalizable skills that can be rapidly adapted to diverse tasks and robotic platforms.
+%
+Despite the significant progress, there remains a lack of comprehensive empirical studies on how real-robot performance scales with increasingly vast pre-training datasets. Moreover, the community lacks a highly optimized training codebase capable of efficiently conducting these scaling evaluations on massive volumes of data.
+% {\color{red} developing a truly capable VLA system that generalizes across diverse robots and tasks while maintaining practical cost efficiency remains a critical challenge}.
+%
+Consequently, a fundamental question that demands investigation in the real-world setting is: \textit{How do VLA models truly scale with massive real-world robot data?}
+
+Understanding the scaling behavior of VLA models is crucial for robotic learning, especially on vast and diverse real-world datasets.
+%
+% While prior work GEN-0~\cite{generalist2025gen0} has established scaling laws for validation loss on UMI data, the scaling behavior on success rates of real robot tasks, especially when trained on vast, diverse real-world datasets, remains largely unexplored.
+%
+In this work, we provide a systematic empirical investigation into how success rates scale with respect to data volume and diversity during VLA pre-training
+%
+By scaling pre-training data from 3,000 hours to 20,000 hours, we demonstrate that downstream success rates improve consistently and substantially. Notably, this scaling behavior shows no signs of saturation even at the 20,000-hour mark, suggesting that VLA performance continues to benefit from increased data volume. These results provide the first empirical evidence of favorable scaling properties in real-world robot learning, offering critical insights for future VLA development and large-scale data curation.
+
+While scaling analysis reveals favorable performance trends, translating these insights into reliable, deployable systems necessitates rigorous evaluation on real robotic platforms at a large scale. Thanks to GM-100~\cite{gm100}, which provides 100 carefully designed tasks, we conduct a systematic assessment across 4 robotic platforms, involving 130 episodes per task per embodiment. 
+% This evaluation protocol represents the most extensive real-world cross-platform assessment to date, providing a definitive comparison against state-of-the-art competitors. 
+By emphasizing task diversity and multi-platform consistency, our evaluation framework provides a choice of new standards for sound VLA benchmarking.
+%
+% This evaluation protocol, the most comprehensive real-world cross-platform assessment to date, can demonstrate the real-world performance compared to state-of-the-art competitors. Critically, our evaluation design accounts for task diversity and multi-platform consistency, providing a choice of new standards for sound VLA benchmarking.
+
+% For enhancing depth-aware , We introduce an efficient query-based alignment mechanism to directly integrate spatial awareness from a pretrained depth module.
+
+In this paper, we present \method, a pragmatic VLA foundation model trained on about 20,000 hours of real-world manipulation data from 9 robotic platforms. 
+%
+Our systematic evaluation on the comprehensive benchmark, demonstrates that \method achieves state-of-the-art performance and exceptional generalization compared to existing methods. Beyond model capabilities, we emphasize that large-scale robot learning necessitates high computational efficiency. To this end, we have developed an optimized codebase that achieves a throughput of 261 samples per second on an 8-GPU cluster. This efficiency gain substantially shortens training cycles and reduces computational overhead, thereby lowering the overall costs. By combining superior performance, broad generalizability, and computational efficiency, \method is well-positioned for real-world robotic applications. To foster community progress, we provide open access to the code, base model, and benchmark data, with a focus on enabling more challenging tasks and promoting sound evaluation standards.
+%
+% Beyond model capabilities, we recognize that practical deployment requires computational efficiency. To this end, we have developed an optimized codebase that achieves a throughput of 70K tokens per second per GPU with an 8-GPU setup. This efficiency gain significantly reduces training time, making the robotic deployment economically viable. By combining superior performance, broad generalizability, and computational efficiency, \method is well-positioned for real-world robotic applications. To advance the field of robot learning, we provide open access to the code, base model, and benchmark data, with a focus on enabling more challenging tasks and promoting sound evaluation standards.
+

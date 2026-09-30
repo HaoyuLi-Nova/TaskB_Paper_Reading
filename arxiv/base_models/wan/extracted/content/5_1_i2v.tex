@@ -1,0 +1,195 @@
+\section{Extended Applications}
+\label{sec:applications}
+
+
+\subsection{Image-to-Video Generation}
+\label{sec:i2v}
+
+The image-to-video (I2V) generation task focuses on synthesizing a dynamic video sequence from a static input image guided by a textual prompt. 
+%
+This approach significantly enhances the controllability of video generation by anchoring the output to a specific initial frame, thereby garnering substantial interest within the research community.
+%
+Existing approaches, such as I2VGen-XL~\citep{zhang2023i2vgen}, SVD~\citep{blattmann2023svd}, and CogVideo~\citep{cogvideox}, extend T2V frameworks to I2V by channel-wise concatenation of the conditional latent representation with the noise latent. 
+%
+Building upon this paradigm, our \method-I2V model adopts a similar strategy, capitalizing on the robust prior knowledge embedded in our foundational T2V model to achieve high-quality I2V generation.
+
+
+\subsubsection{Model Design}
+
+
+We introduce an additional condition image as the first frame to control video synthesizing. 
+Specifically, we concatenate the condition image $I \in {R^{C\times 1\times H\times W}}$ with zero-filled frames along the temporal axis, and these guidance frames $I_{c} \in {R^{C\times T\times H\times W}}$ are compressed by \method-VAE into condition latent $z_{c} \in {R^{c\times t\times h\times w}}$  ($c=16$ denotes the latent channel, $t=1+(T-1)/4$, $h=H/8$, $w=W/8$). 
+Additionally, we introduce a binary mask $M \in \{0,1\}^{1\times T\times h\times w}$ where $1$ indicates the preserved frame and $0$ denotes the frames to be generated. 
+The spatial size of mask $M$ is consistent with condition latent $z_{c}$, but $M$ shares the same temporal length with the target video, which is then rearranged as shape of ${s\times t\times h\times w}$ where $s$ is temporal stride of \method-VAE. 
+The noise latent $z_t$, condition latent $z_c$, and rearranged mask $m $ are concatenated along the channel axis and then passed through the DiT model of \method. 
+Since the input of the I2V DiT model has more channels than T2V (\ie $2\times c + s$ v.s. $c$), an additional projection layer is employed, which is initialized with zero values.
+Moreover, we utilize the image encoder of CLIP~\citep{radford2021learning} to extract feature representations from the condition image, and the extracted features are projected by a three-layer multi-layer perceptron (MLP), which plays a role as global context. 
+The produced global context is then injected into the DiT model via decoupled cross-attention. 
+
+In practice, the aforementioned approach as illustrated in Fig.~\ref{fig:v2av2-i2v_pipeline} is extensible to other controllable generation tasks, such as first-last frame transformation and video continuation.
+The proposed masking mechanism explicitly delineates the input conditions and specifies the frames to be generated.
+%
+To optimize the efficacy of the masking strategy, we incorporate multiple tasks, \ie image-to-video generation, video continuation, first-last frame transformation, and random frame interpolation, into our unified framework. 
+%
+Specifically, we adopt the following training paradigm for the I2V model. 
+%
+During the joint training phase, we conduct unified pre-training of our mask-guided model across these diverse tasks. 
+%
+This phase facilitates the model's ability to discern which positions should be preserved and which should be generated, depending on the input content. 
+%
+Subsequently, in the fine-tuning stage, we concentrate on refining the model's performance on each individual task.
+
+
+
+\subsubsection{Dataset}
+
+
+During the joint training phase, we utilize the same training dataset employed for T2V pertaining.
+%
+This phase equips the model with the foundational capability to generate motion conditioned on reference images. 
+%
+In the fine-tuning phase, we curate task-specific datasets tailored to the unique characteristics of each individual task.
+
+
+\textbf{Image-to-video dataset}. In the early experiments, we found that when the first frame in the training data significantly differed from the video content, the model struggled to learn stable image-driven video generation. 
+%
+From this perspective, a smaller difference between the first frame and the video content in the training data is beneficial for model training. 
+We calculate the difference between the first frame and the video content based on SigLIP~\citep{zhai2023sigmoid} features. Specifically, we compute the cosine similarity between the features of the first frame and the mean of the features of the remaining frames, and then we retain only the videos with a similarity greater than a predefined threshold.
+
+
+\begin{figure}[t]  
+    \centering  
+    \includegraphics[width=0.99\textwidth]{./figures/i2v/i2v_framework.pdf}  
+    \caption{\method-I2V model framework. The mask mechanism enables the model to selectively focus on input frames such that the proposed framework demonstrates compatibility with video continuation and first-last frame transformation tasks.} 
+    \label{fig:v2av2-i2v_pipeline} % 
+\end{figure}
+
+
+\textbf{Video continuation dataset.} 
+Similarly, our findings also indicate that training on temporally consistent videos significantly improves the performance of video continuation tasks. 
+%
+To quantify the consistency between the initial and final segments of a video (\ie the first 1.5 seconds and the last 3.5 seconds), we compute the cosine similarity of their respective SigLIP features, followed by using the computed similarity scores to filter and select the required training dataset.
+
+\textbf{First-last frame transformation dataset.} Unlike the I2V task, the community places greater emphasis on the smooth transition between the initial and final frames in the mage transition task. To this end, we increase the proportion of data samples with significant transition between the first and last frames in the training dataset.
+
+\begin{figure}[htp]  
+    \centering  
+    \includegraphics[width=1.0\textwidth]{./figures/i2v/i2v_case_1.pdf}  
+    \caption{Videos generated by \method-I2V model. The results demonstrate that our I2V model effectively captures and replicates the dynamics of real-world scenes.} 
+    \label{fig:i2v_results_v1} % 
+\end{figure}
+
+
+\begin{figure}[htp]  
+    \centering  
+    \includegraphics[width=1.0\textwidth]{./figures/i2v/i2v_case_2.pdf}  
+    \caption{Videos generated by \method-I2V model. The results indicate that our I2V model can effectively animate diverse types of images into highly realistic and dynamic videos.} 
+    \label{fig:i2v_results_v2} 
+\end{figure}
+
+\subsubsection{Evaluation}
+
+The training of the I2V model, along with first-last frame transformation and video continuation, is structured into two stages. In the initial pre-training stage, we employ the same dataset as that used in the T2V task. 
+%
+Given the slightly larger number of frames involved in this stage, the image encoder branch is excluded, which is motivated by the need to maintain a strong alignment between textual input and visual output, ensuring that the model retains its sensitivity to nuanced textual semantics.
+%
+Upon the stabilization of the pre-training stage, the model has already manifested a variety of capabilities, including I2V generation, video continuation, and so on. This demonstrates the efficacy of the pre-training process in establishing a robust foundation for both spatial and temporal understanding.
+
+
+Our empirical observations reveal that relying solely on frame-level information is inadequate for achieving optimal performance in specific tasks, such as image-to-video generation, video continuation, and first-last frame transformation.
+
+This insight indicates that while the pre-trained model offers a foundational framework for frame-based video generation, it lacks the requisite contextual and semantic depth to fully capture the temporal consistency of dynamic video sequences, particularly when the number of conditioning frames is highly limited.
+
+To address this limitation, during the SFT stage, we incorporated an image encoder to extract image features through decoupled cross-attention~\citep{ye2023ip} like~\citep{i2vadapter}, providing global contextual information to enhance the model's capacities.
+%
+We conducted experiments based on two pre-trained checkpoints at 480p and 720p resolutions, covering the training of image-to-video generation, video continuation, and first-last frame transformation tasks.
+
+Similarly to human evaluation for our T2V model, we benchmark our I2V model against state-of-the-art techniques to provide a comprehensive comparison focusing on key aspects such as visual quality, motion quality, and matching. The results shown as Table~\ref{tab:i2v_win_rate_gap} demonstrate that our model performs favorably across all  dimensions evaluated. Fig.~\ref{fig:i2v_results_v1} and Fig.~\ref{fig:i2v_results_v2} present additional visualizations of our I2V model, offering a clear illustration of its superior performance in animating images into high-quality videos.
+
+
+\begin{table}[t]
+    \centering
+    \begin{tabular}{l| c c c c c}
+        % \toprule
+        & CN-TopA & CN-TopB & CN-TopC & CN-TopD & \textbf{All Rounds} \\ %\midrule
+        \shline
+        % Visual Quality
+        Visual Quality & \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.292); % 29.2%
+            \end{tikzpicture} 
+            29.2\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.608); % 60.8%
+            \end{tikzpicture} 
+            60.8\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.246); % 24.6%
+            \end{tikzpicture} 
+            24.6\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.556); % 55.6%
+            \end{tikzpicture} 
+            55.6\% & 
+            896 \\
+
+        % Motion Quality
+        Motion Quality & \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.217); % 21.7%
+            \end{tikzpicture} 
+            21.7\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.217); % 21.7%
+            \end{tikzpicture} 
+            \space 21.7\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.325); % 32.5%
+            \end{tikzpicture} 
+            32.5\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.670); % 67.0%
+            \end{tikzpicture} 
+            67.0\% & 
+            890 \\
+
+        % Matching
+        Matching & \begin{tikzpicture}
+            \draw[fill=red!60, draw=none] (0,0) rectangle (0.4,0.042); % -4.2%
+            \end{tikzpicture} 
+            -4.2\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.350); % 35.0%
+            \end{tikzpicture}
+            35.0\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.517); % 51.7%
+            \end{tikzpicture} 
+            51.7\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.722); % 72.2%
+            \end{tikzpicture} 
+            72.2\% & 
+            896 \\
+
+        % Overall Ranking
+        Overall Ranking & \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.108);
+            \end{tikzpicture} 
+            10.8\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.475); 
+            \end{tikzpicture} 
+            47.5\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.508);
+            \end{tikzpicture} 
+            50.8\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.816);
+            \end{tikzpicture} 
+            81.6\% & 
+            890 \\ 
+
+    \end{tabular}
+    \caption{Win rate gap of I2V models. The values in the table represent the proportion of instances in which the \method-I2V model was preferred in pairwise comparisons against other models, relative to the total number of comparisons conducted.}
+    \label{tab:i2v_win_rate_gap}
+\end{table}

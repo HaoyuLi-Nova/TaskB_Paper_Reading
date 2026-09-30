@@ -1,0 +1,100 @@
+
+
+\section{Interactivity Evaluation}
+\label{sec:evaluation}
+Despite progress, the prevailing evaluation benchmarks~\cite{zhang2021flow, xie2022vfhq, zhu2022celebv} for single-person talking head generation are inadequate for assessing natural interactions among characters.
+Although InterActHuman~\cite{wang2025interacthuman} introduces a comparable benchmark, its test set is limited to scenarios with only one speaker, which is not conducive to evaluating interactions among multiple characters.
+To fill this gap, we have curated a collection of videos featuring two distinct identities, sourced from the web for evaluation purposes.
+
+\subsection{Dataset Construction}
+We select interactive two-person videos to construct the video dataset, named \textit{InteractiveEyes}.
+Two clips of these videos are illustrated in~\cref{fig:interactivity}. 
+Each video is approximately 10 seconds in duration and showcases exactly two faces throughout the entire segment. 
+Furthermore, through a meticulous manual process, we segment the audio of each video to ensure that the majority of the videos capture scenes of both individuals engaging in \textit{speaking} and \textit{listening}, as well as a variety of rich eye interaction scenarios, as shown in~\cref{fig:time}. 
+We have also ensured that each video includes instances of mutual gaze and head movements to provide authentic references.
+
+\begin{figure}[t]
+    \centering
+\includegraphics[width=0.7\linewidth]{fig/time.pdf}
+    \caption{
+    Listening and speaking periods of each speaker.
+    }
+    \label{fig:time}
+\end{figure}
+
+\subsection{Proposed Interactivity Metric}
+In addition to this dataset, we introduce a novel metric, the eye-focused \textit{Interactivity}, designed to assess the natural interaction between speakers and listeners. 
+Since eye interaction is a fundamental and spontaneous behavior in conversational contexts, we use it as a key indicator of interactivity.
+Drawing inspiration from the Hand Keypoint Variance (HKV) metric employed in CyberHost~\cite{lin2025cyberhost}, we propose a quantitative evaluation of the interaction by tracking the motion amplitude of eye keypoints.
+
+To achieve this, we define $Motion$ on the sequence of face-aligned eye keypoints extracted from the generated frames, where $S$ denotes the frame sequence and $E$ the eye keypoints.
+The $Motion$ is calculated as follows
+\begin{equation}
+    Motion = \frac{1}{|S| - 1} \sum_{j=1}^{|S| - 1} \left( \frac{1}{|E|} \sum_{i=1}^{|E|} \vert E_{i,j+1} - E_{i,j}\vert \right).
+\end{equation}
+Here, $i$ and $j$ denote the eye keypoint index and the frame index, while \( E_{i,j} \) denotes eye keypoints present in each frame.
+This formula intuitively computes the displacement and rotation of the eye region.
+We then calculate the motion during listening periods. 
+The reason is, most generation methods perform well when activating the speaking subject, but the listening subject often appears rigid. 
+Therefore, evaluating during listening periods is more targeted and valuable.
+The lengths of the listening and speaking periods of each person are described in~\cref{fig:time}, denoted as \( L_1, L_2, L_3, L_4 \), respectively.
+To quantify the responsiveness of the generated avatars, we compute the average motion intensity during the listening phases $L_2$ and $L_3$:
+\begin{equation}
+\begin{aligned}
+\text{Interactivity} &= \frac{L_2 \cdot Motion_{L2} + L_3 \cdot Motion_{L3}}{L_2 + L_3}.
+\end{aligned}
+\end{equation}
+This metric measures the interactivity effectively in the generated multi-character videos. 
+% As the experimental results suggest, the proposed metric aligns well with human perception.
+As~\cref{fig:interactivity} suggests, the proposed metric aligns well with human perception: static or sluggish eye movements receive low $Motion$ scores, while head turns and eyebrow raises increase the score thus indicating higher interactivity.
+Moreover, to avoid misjudging abnormal eye movements, we implemented an exclusion algorithm detailed in the supplementary materials.
+
+
+\begin{table*}[t]
+    \centering
+    \small
+    \caption{Quantitative comparison with other competing methods on HDTF~\cite{zhang2021flow} and VFHQ~\cite{xie2022vfhq} benchmark.
+    Here, OmniHuman-1.5$^{*}$~\cite{jiang2025omnihuman} refers to its ``Master Mode'' version accessed via the JiMeng platform~\cite{jimeng_platform}, which currently does not support multi-person generation.
+    }
+    \begin{tabular}{ccccccccccc}
+        \toprule
+        \multirow{2}{*}{\textbf{Method}} & \multicolumn{2}{c}{\textbf{Supported Generation Scope}} & \multicolumn{4}{c}{\textbf{HDTF}} & \multicolumn{4}{c}{\textbf{VFHQ}} \\
+        \cmidrule(lr){2-3} \cmidrule(lr){4-7} \cmidrule(lr){8-11}
+        & \textbf{multi-person} & \textbf{body} & \textbf{Sync-C$\uparrow$} & \textbf{FID} & \textbf{FVD} & \textbf{ID$\uparrow$} & \textbf{Sync-C$\uparrow$} & \textbf{FID} & \textbf{FVD} & \textbf{ID$\uparrow$} \\
+        \midrule
+        AniPortrait~\cite{wei2024aniportrait} &  $\times$ & $\times$ & 3.44 & 18.74 & 241.84 & \underline{0.94} & 2.63 & 28.54 & 269.24 & \textbf{0.95} \\
+        FantasyTalking~\cite{wang2025fantasytalking} &  $\times$ & $\checkmark$ & 3.97 & 14.93 & 166.79 & 0.93 & 3.57 & 24.83 & 272.13 & \underline{0.94} \\
+        StableAvatar~\cite{tu2025stableavatar} &  $\times$ & $\checkmark$  & 4.11 & 14.67 & 166.44 & 0.91 & 3.53 & 22.91 & 275.73 & 0.88 \\
+        EchoMimic~\cite{chen2025echomimic} &  $\times$ & $\times$ & 5.23 & 61.53 & 381.55 & \textbf{0.95} & 4.87 & 58.72 & 486.75 & 0.86 \\
+        Hallo3~\cite{cui2025hallo3} & $\times$ & $\times$ & 7.53 & 17.12 & 195.61 & 0.91 & 6.32 & 41.26 & 371.24 & 0.91 \\
+        Sonic~\cite{ji2025sonic} &  $\times$ & $\times$ & 7.81 & 52.96 & 286.12 & \textbf{0.95} & 7.71 & 36.68 & 385.37 & 0.89 \\
+        OmniHuman-1.5$^{*}$~\cite{jiang2025omnihuman} &  $\times$ & $\checkmark$   & 7.23  & 35.26  & 173.23  & 0.90  & 7.67  & 35.36  & 283.39  & 0.90  \\
+        MuitiTalk~\cite{kong2025let} &  $\checkmark$ & $\checkmark$ & \underline{8.91} & \textbf{13.54} & \underline{162.58} & 0.93 &  \underline{7.77} & 24.25 & \textbf{243.66} & \underline{0.94} \\
+        \midrule
+        AnyTalker-1.3B & $\checkmark$ & $\checkmark$ & 6.85 & 14.47 & 218.01 & 0.91 & 5.81 & \underline{21.88} & \underline{267.08} & 0.91 \\
+        AnyTalker-14B & $\checkmark$ & $\checkmark$ & \textbf{9.05} & \underline{13.84} & \textbf{160.87} & \underline{0.94} & \textbf{7.79} & \textbf{20.99} & 290.73 & \underline{0.94} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:single-benchmark}
+\end{table*}
+
+\begin{table}[t]
+    \centering
+    \small
+    \caption{
+        Quantitative comparison with other competing methods on the multi-person benchmark, InteractiveEyes.
+    }
+    \begin{tabular}{ccccc}
+    \toprule
+    \textbf{Method} & \textbf{Interactivity$\uparrow$} & \textbf{Sync-C$^{*}$$\uparrow$} & \textbf{FVD} \\
+    \midrule
+    Ground Truth & 0.77 & 6.01 & 0 \\
+     \midrule
+    Bind-Your-Avatar~\cite{huang2025bind} & 0.45 & 3.03 & 695.58  \\
+    MuitiTalk~\cite{kong2025let} & 0.49 & \underline{6.88} & 500.03  \\
+    AnyTalker-1.3B & \underline{0.97} & 4.56 & \underline{467.84}  \\
+    AnyTalker-14B & \textbf{1.01} & \textbf{6.99} & \textbf{424.15}   \\
+    \bottomrule
+    \end{tabular}
+    \label{tab:multi-benchmark}
+\end{table}

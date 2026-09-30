@@ -1,0 +1,126 @@
+\subsubsection{Comparisons to Prior Work}
+\label{sec:t2v_main_results}
+\begin{table}[!t]
+    \centering
+    \begin{tabular}{cccccc}
+        \toprule
+         & \multicolumn{4}{c}{\OursVideo net win rate \vs. prior work} \\
+         & \RunwayGen & \LumaLabs & \Sora & \Kling & $\sigma$ \\
+         \midrule
+         Overall Quality & 35.02 & 60.58 & 8.23 & 3.87 & $\pm$5.07 \\
+         \midrule
+         Consistency & 33.1 & 42.14 & 8.22 & 13.5 & $\pm$4.08 \\
+         Motion Naturalness & 19.27 & 29.33 & 4.43 & 0.52 & $\pm$3.98 \\
+         Motion Completeness & -1.72  & 23.59 & 8.86 & -10.04 & $\pm$1.68 \\
+         \midrule
+         \faithfulnessFull & 10.45 & 12.23 & 17.72 & -1.99 & $\pm$3.74 \\
+         \midrule
+         Realness & 48.49 & 61.83 & 11.62 & 37.09 & $\pm$2.52 \\
+         Aesthetics & 38.55 & 48.19 & 6.45 & 26.88 & $\pm$4.84 \\
+         \bottomrule
+    \end{tabular}
+    \caption{\textbf{\OursVideo \vs prior work}.
+    The comparison uses either generated videos from the \textToVBenchmarkName prompt set (\RunwayGen, \LumaLabs, \Kling) or prompts from publicly released videos on their website (\Sora). A detailed summary of information from prior work is shown in~\cref{tab:t2v_competitors}. We measure the net win rate (win\% - loss\% of our model) which has a range of $[-100\%,100\%]$. To assess statistical significance, we perform an annotation variance analysis (\cref{appendix_sec:variance}), with the net win standard deviation, $\sigma$, indicated in the table above. A significant win/loss is identified when the net win rate is beyond 2$\sigma$ (95\% CI), a moderate win/loss within 1--2 $\sigma$ (68\% CI), and performance is considered on par within 1$\sigma$.
+    }
+    \label{tab:t2v_main_eval}
+\end{table}
+
+
+
+Where possible, we obtain non cherry picked generated videos from the \textToVBenchmarkName prompt set for the prior work methods, and compare to these using non cherry picked videos from \OursVideo for the same prompts.
+This includes the black-box commercial models that offer API access through their website: \RunwayGen~\citep{gen3}, \LumaLabs~\citep{luma}, \Kling~\citep{kling}.
+We also compare to closed source \textToV methods (\Sora), where our only option is to compare to them using the prompts and videos from their publicly released examples.
+Note that the publicly released videos for closed source methods are likely to be `best' representative samples obtained through cherry picking.
+Hence for fair comparison, we compare to \Sora by methodically manually choosing one video from five generated options from \OursVideo for each prompt.
+One additional challenge when comparing to prior work is that each method generates videos at different resolutions and aspect-ratios.
+We reduce annotator bias~\citep{emuvideo2023} by downsampling \OursVideo's videos for each comparison such that they match in these aspects.
+Full details on this postprocessing and the \Sora comparison can be found in~\cref{appendix_prior_work_details}.
+
+
+We compare \OursVideo to prior work for \textToV generation on different evaluation axes described in~\cref{T2V_model_evaluation}.
+The results are shown in~\cref{tab:t2v_main_eval}.
+We report the net win rate of our model, which can lie in the range $[-100,100]$.
+On overall quality, \OursVideo strongly outperforms \RunwayGen (35.02\%) and \LumaLabs with the net win rate beyond $2\sigma$.
+Our generations moderately net win over \Sora (8.23\%) (net win rate within 1-2 $\sigma$) and are on par with \Kling (3.87\%).
+Against \RunwayGen, \LumaLabs and \Sora, we see that \OursVideo either outperforms or is on par across all quality breakdown axes, including large net wins against \RunwayGen on motion naturalness (19.27\%) and frame consistency (33.1\%), against Sora on frame consistency (8.22\%) and motion completeness (8.86\%).
+These significant net wins demonstrate \OursVideo's ability to simulate the real world with generated videos that respect physics, with motion that is both reasonable in magnitude but consistent and without distortion.
+Against \Kling, we see that \OursVideo significantly net wins in frame consistency (13.5\%) but loses on motion completeness (-10.04\%).
+We note that this large motion completeness paired with poor frame consistency shows \Kling's tendency to occasionally generate unnaturally large motion with distortion.
+As indicated in \cref{sec:T2V_evaluation_axes}, motion completeness only evaluates the magnitude of motion in the video, regardless of distortion, fast motion, or being unnatural.
+
+On realness and aesthetics, \OursVideo significantly outperforms \RunwayGen, \LumaLabs and \Kling on both metrics, with 48.49\%, 61.83\% and 37.09\% net win rates on realness, respectively.
+Compared to \Sora, \OursVideo has a significant win on realness with 11.62\% net win rate beyond $2\sigma$ and a moderate win over \Sora on aesthetics with 6.45\% net win rate within 1--2 $\sigma$.
+
+This demonstrates \OursVideo's ability to generate photorealistic and visually compelling content.
+For text faithfulness, \OursVideo outperforms \Sora, \RunwayGen, \LumaLabs and is on par with \Kling.
+
+
+
+
+
+
+
+
+Several generated videos from \OursVideo are shown in~\cref{fig:t2v_qual_ours_figure}.
+\OursVideo is able to generate high quality videos for both natural prompts (see~\cref{fig:t2v_qual_ours_figure}) and out-of-distribution prompts describing fantastical scenes from outside of the training set distribution (see~\cref{fig:main_figure}).
+The generated videos contain complex motion, depicting detailed content over the video's duration \eg, a firefighter running into and then out of a burning forest or a puppy searching for, finding its owner, and continuing its quest (see~\cref{fig:t2v_qual_ours_figure}).
+
+Qualitative comparisons between \OursVideo and prior work are shown in~\cref{fig:t2v_qual_prior_work_4way_figure} and~\cref{fig:t2v_qual_prior_work_sora_figure}.
+As shown, \OursVideo generates realistic and high quality videos with natural-looking motion that is well aligned to the text prompt.
+\OursVideo generates objects and identities that are consistent over the entire duration of the video, and that obey the laws of physics.
+Differently, the prior work can struggle to generate videos that are simultaneously high quality and with good text-alignment.
+
+
+\input{figures/T2V_qualitative/t2v_qual}
+
+\input{figures/T2V_qualitative_prior_work_four_way/qual}
+
+\input{figures/T2V_qualitative_prior_work_sora/qual}
+
+\par \noindent \textbf{Correlation between validation loss and human evaluation.}
+In~\cref{fig:t2v_pt_eval_losses_and_eval}, we show the validation loss for \OursVideo as a function of pretraining steps and observe that it decreases smoothly.
+We take \pretrained checkpoints after every few thousand iterations and evaluate them in a pairwise comparison.
+We observe that the validation loss is well correlated with human evaluation results as the later checkpoints with lower validation loss perform better in the evaluations.
+This suggests that the \flowmatching validation loss can serve as a useful proxy for human evaluations during model development.
+
+
+
+
+
+\begin{figure}
+    \begin{minipage}[hb]{.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{figures/foundation_model/ms3_pretrain_losses.pdf}
+    \end{minipage}\hfill
+    \begin{minipage}[hb]{.69\textwidth}
+        \centering
+        \adjustbox{max width=\textwidth}{%
+        \begin{tabular}{ccC{2.1cm}C{2.1cm}C{2.1cm}C{2.1cm}C{2.1cm}}
+            \toprule
+            \multirow{3}{*}{\shortstack{Model A\\iterations}} & \multirow{3}{*}{\shortstack{Model B\\iterations}} & \multicolumn{5}{c}{Model A net win rate \vs model B}\\
+            & & Overall & Frame       & Motion       & Motion      & Text-\\
+            & & Quality & Consistency & Completeness & Naturalness & alignment\\
+            \midrule
+            15.6k & 10.2k & 16.0 & 9.0 & 4.67 & 7.66 & 5.67\\
+            19.2k & 15.6k & 13.66 & -0.67 & 5.34 & 5.66 & 3.34 \\
+            37k & 26.4k & 0.39 & -4.3 & 0.78 & -1.95 & 3.13 \\
+            59k & 54k & 6.33 & -1.33 & 8.34 & 3.0 & 8.0\\
+            \bottomrule
+        \end{tabular}}
+    \end{minipage}
+    \caption{\textbf{Validation loss correlates with human evaluations.}
+        Left: We plot the validation loss for the 768 px stage \textToIVShort \pretraining.
+        We decrease the learning rate whenever the validation loss plateaus.
+        Right: We observe that the validation loss is well correlated with human evaluation results of the corresponding checkpoints, especially for the text alignment and overall quality.
+        }
+    \label{fig:t2v_pt_eval_losses_and_eval}
+\end{figure}
+
+
+\noindent\textbf{Effect of finetuning.}
+We leverage supervised finetuning, described in~\cref{sec:t2v_post_training} to further improve the video generation quality.
+In~\cref{tab:t2v_pretrain_vs_finetune_1}, we compare the evaluation metrics between pre-trained model and finetuned models at 24 FPS with 10.6s video duration.
+We find that finetuning leads to a significant improvement on both the \qualityFull and \faithfulnessFull metrics.
+\input{tables/ablations_t2v_pretrain_vs_finetune.tex}
+
+

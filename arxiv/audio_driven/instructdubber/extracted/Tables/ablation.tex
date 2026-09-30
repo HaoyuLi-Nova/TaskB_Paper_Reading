@@ -1,0 +1,20 @@
+\begin{table}[!t]
+\centering
+\resizebox{1.0\linewidth}{!}{
+\begin{tabular}{c|cccc}
+    \hline
+    Methods & DD  & \small{EMO-SIM} (\%) $\uparrow$ & WER(\%)  & UTMOS $\uparrow$\\
+    \toprule
+    Visual Feature & 0.5030 & 69.51 & 10.54 & 3.37 \\
+    \midrule
+    w/ IDD  & \underline{0.4941} & 67.85 & \underline{9.97} & \underline{3.42}\\
+    w/ IEC  & 0.5046 & \underline{70.77} & 11.76 & 3.40 \\
+    \midrule
+    Full Model & \textbf{0.4933} & \textbf{70.94} & \textbf{9.79} & \textbf{3.44} \\
+    \bottomrule
+\end{tabular}}
+% \vspace{-0.2cm}
+\caption{Results of ablation study on each module.}
+\label{abl}
+% \vspace{-0.4cm}
+\end{table}

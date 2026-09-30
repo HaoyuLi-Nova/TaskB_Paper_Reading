@@ -1,0 +1,100 @@
+% \begin{table*}[t]
+%     \centering
+%     \renewcommand{\arraystretch}{1.2}
+%     \setlength{\tabcolsep}{4pt}
+    
+%     \definecolor{mygray}{gray}{0.9}
+    
+%     \newcommand{\rot}[1]{\rotatebox{90}{\makecell[c]{#1}}} 
+
+%     \caption{\reb{Quantitative comparison on human motion generation. Best results are highlighted in \textbf{bold}.}}
+%     \label{tab:motion_comparison}
+    
+%     \begin{tabular}{l|ccccc|ccc}
+%         % \toprule
+%         \Xhline{1.1pt}
+%         % 【修改2】第一行第一列留空（因为要在第二行向上合并）
+%          & \multicolumn{5}{c|}{\textit{Video Quality \& Video Consistency}} & \multicolumn{3}{c}{\textit{User Study}} \\
+%         \hline
+%         % 【修改3】将 \multirow 放在这一行，使用 {-2} 向上合并。
+%         % 因为这一行包含旋转文字，高度很高，放在这里能确保 Method 垂直居中。
+%         \multirow{-2}{*}{\textbf{}} & \rot{Aesthetic\\Quality} & \rot{Dynamic\\Degree} & \rot{Motion\\Smoothness} & \rot{Overall\\Consistency} & \rot{Temporal\\Flickering} & \rot{Prompt\\Following} & \rot{Pose\\Consistency} & \rot{Video\\Quality} \\
+%         \hline
+        
+%         % Text2Video-Zero & 57.63 & \textbf{100.00} & 79.65 & 23.94 & 76.57 & - & - & - \\
+%         ControlVideo & \textbf{65.4} & 25.0 & 97.3 & 25.2 & \textbf{96.8} & 46.1 & 77.4 & 56.2 \\
+%         Follow-Your-Pose & 48.8 & \textbf{100.0} & 90.1 & 26.1 & 88.0 & 50.9 & 79.2 & 42.1 \\
+%         VACE-14B & 60.2 & 75.00 & 98.6 & 26.4 & 97.3 & 79.2 & 82.4 & 66.9 \\
+%         Wan2.2-Animate-14B & 61.4 & 100.0 &  & - & - & - & - & - \\
+%         EchoMotion(Wan-5B) & 59.2 & \textbf{100.0} & 98.1 & 26.9 & 98.4 & 78.2 & 80.2 & 65.2 \\
+%         \Xhline{1.1pt}
+%         % \bottomrule
+%     \end{tabular}
+% \end{table*}
+
+% wo dynamic degree
+% \begin{table*}[t]
+%     \centering
+%     \renewcommand{\arraystretch}{1.2}
+%     \setlength{\tabcolsep}{4pt}
+    
+%     \definecolor{mygray}{gray}{0.9}
+    
+%     \newcommand{\rot}[1]{\rotatebox{90}{\makecell[c]{#1}}} 
+
+%     \caption{\reb{Quantitative comparison on human motion generation. Best results are highlighted in \textbf{bold}.}}
+%     \label{tab:mt2v_compare}
+    
+%     \begin{tabular}{l|cccc|ccc}
+%         % \toprule
+%         \Xhline{1.1pt}
+
+%          & \multicolumn{4}{c|}{\textit{Video Quality \& Video Consistency}} & \multicolumn{3}{c}{\textit{User Study}} \\
+%         \hline
+%         \multirow{-2}{*}{\textbf{}} & \rot{Aesthetic\\Quality}  & \rot{Motion\\Smoothness} & \rot{Overall\\Consistency} & \rot{Temporal\\Flickering} & \rot{Prompt\\Following} & \rot{Pose\\Consistency} & \rot{Video\\Quality} \\
+%         \hline
+        
+%         Text2Video-Zero & 57.6  & 79.7 & 23.9 & 76.6 & 44.2 & 70.1 & 40.9 \\
+%         % ControlVideo & \textbf{65.4}  & 97.3 & 25.2 & 96.8 & 46.1 & 77.4 & 56.2 \\
+%         Follow-Your-Pose & 48.8  & 90.1 & 26.1 & 88.0 & 50.9 & 79.2 & 42.1 \\
+%         VACE-14B & 60.2  & 98.6 & 26.4 & 97.3 & 79.2 & 82.4 & 66.9 \\
+%         Wan2.2-Animate-14B & 61.4  & 98.9 & 28.1 & \textbf{99.2} & - & \textbf{87.2} & \textbf{68.9} \\
+%         EchoMotion(Wan-5B) & 59.2  & \textbf{99.1} & 26.9 & 98.4 & 78.2 & 82.2 & 65.2 \\
+        
+%         \Xhline{1.1pt}
+%         % \bottomrule
+%     \end{tabular}
+% \end{table*}
+
+\begin{table*}[t]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{4pt}
+    
+    \definecolor{mygray}{gray}{0.9}
+    
+    \newcommand{\rot}[1]{\rotatebox{90}{\makecell[c]{#1}}} 
+    \newcommand{\ul}[1]{\underline{#1}}
+
+    \caption{\reb{Quantitative comparison on human motion generation. Best results are highlighted in \textbf{bold} and second-best results are \ul{underlined}.}}
+    \label{tab:mt2v_compare}
+    
+    % 请确保你的 tabular 定义和 multicolumn 定义是这样的
+    \begin{tabular}{l|cccc|ccc}
+        \Xhline{1.1pt}
+
+        % 这一行是关键，multicolumn 中没有多余的 |
+         & \multicolumn{4}{c|}{\textit{Video Quality}} & \multicolumn{3}{c}{\textit{User Study}} \\
+        \hline
+        \multirow{-2}{*}{\textbf{}} & \rot{Aesthetic\\Quality}  & \rot{Motion\\Smoothness} & \rot{Overall\\Consistency} & \rot{Temporal\\Flickering} & \rot{Prompt\\Following} & \rot{Pose\\Consistency} & \rot{Overall\\Quality} \\
+        \hline
+        
+        Text2Video-Zero & 57.6  & 79.7 & 23.9 & 76.6 & 44.2 & 70.1 & 40.9 \\
+        Follow-Your-Pose & 48.8  & 90.1 & 26.1 & 88.0 & 50.9 & 79.2 & 42.1 \\
+        VACE-14B & \ul{60.2}  & 98.6 & 26.4 & 97.3 & \textbf{79.2} & \ul{82.4} & \ul{66.9} \\
+        Wan2.2-Animate-14B & \textbf{61.4}  & \ul{98.9} & \textbf{28.1} & \textbf{99.2} & - & \textbf{87.2} & \textbf{68.9} \\
+        EchoMotion(Wan-5B) & 59.2  & \textbf{99.1} & \ul{26.9} & \ul{98.4} & \ul{78.2} & 82.2 & 65.2 \\
+        
+        \Xhline{1.1pt}
+    \end{tabular}
+\end{table*}

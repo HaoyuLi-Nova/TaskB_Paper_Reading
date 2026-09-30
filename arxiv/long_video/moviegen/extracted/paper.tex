@@ -1,0 +1,189 @@
+\documentclass[]{fairmeta}
+
+
+\usepackage[english]{babel}
+
+\usepackage{booktabs} %
+\usepackage{nicefrac} %
+
+\usepackage{xspace}
+
+\input{audio/macros}
+\input{notational_macros}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{wrapfig}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{algpseudocode}
+\usepackage{adjustbox}
+\usepackage{array}
+
+\crefname{section}{Section}{Sections}
+\Crefname{section}{Section}{Sections}
+\crefformat{section}{Section~#2#1#3}
+\crefformat{appendix}{Appendix~#2#1#3}
+\crefformat{table}{Table~#2#1#3}
+\crefformat{figure}{Figure~#2#1#3}
+\crefformat{equation}{Eq~#2#1#3}
+\newcommand{\rulesep}{\unskip\ \vrule\ }
+\newcolumntype{x}{>{\columncolor{Gray}}c}
+\newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+
+
+
+
+
+
+\title{\OURS: A Cast of Media Foundation Models}
+
+\author[1]{The \OURS team @ Meta}
+\affiliation[1]{A detailed contributor list can be found in the appendix of this paper.
+}
+
+
+
+\input{abstract}
+
+\date{October 4, 2024}
+
+\metadata[Blogpost]{\url{https://ai.meta.com/blog/movie-gen-media-foundation-models-generative-ai-video/}}
+
+\begin{document}
+
+\maketitle
+
+
+\section{Introduction}
+
+Imagine a blue emu swimming through the ocean.
+Humans have the astonishing ability to imagine such a fictional scene in great detail.
+Human imagination requires the ability to compose and predict various facets of the world.
+Simply imagining a scene requires composing different concepts while predicting realistic properties about motion, scene, physics, geometry, audio \etc.
+Equipping AI systems with such generative, compositional, and prediction capabilities is a core scientific challenge with broad applications.
+While Large Language Models (LLMs)~\citep{llama3,llama2,brown2020language,team2023gemini} aim to learn such capabilities with a text output space, in this paper we focus on media -- image, video, audio -- as the output space.
+We present \OURS, a cast of media generation foundation models.
+\OURS models can natively generate high fidelity images, video, and audio while also possessing the abilities to edit and personalize the videos as we illustrate in~\cref{fig:main_figure}.
+
+\input{figures/teaser/teaser}
+
+We find that scaling the training data, compute, and model parameters of a simple Transformer-based~\citep{vaswani2017attention} model trained with \flowmatching~\citep{flow-matching} yields high quality generative models for video or audio.
+Our models are \pretrained on internet scale image, video, and audio data.
+Our largest foundation \textToV generation model, \OursVideo, consists of 30B parameters, while our largest foundation \videoToA generation model, \OursAudio, consists of 13B parameters.
+We further post-train the \OursVideo model to obtain \OursPTV that can generate personalized videos conditioned on a person's face.
+Finally, we show a novel post-training procedure to produce \OursVideoEdit that can precisely edit videos.
+In conjunction, these models can be used to create realistic personalized HD videos of up to 16 seconds (at 16 FPS) and 48kHz audio, and the ability to edit real or generated videos.
+
+The \OURS cast of foundation models is state-of-the-art on multiple media generation tasks for video and audio.
+On \textToV generation, we outperform prior state-of-the-art, including commercial systems such as \RunwayGen~\citep{gen3}, \LumaLabs~\citep{luma}, \Sora~\citep{sora} on overall video quality as shown in~\cref{tab:t2v_main_eval}.
+Moreover, with \OursPTV and \OursVideoEdit we enable new capabilities on video personalization and precise video editing respectively, and both these capabilities are missing from current commercial systems.
+On both these tasks too, we outperform all prior work (\cref{tab:pt2v_main} and~\cref{tab:eval_video_editing_tgve}).
+Finally, \OursAudio, outperforms prior state-of-the-art, including commercial systems such as PikaLabs~\citep{pikalabs} and ElevenLabs~\citep{elevenlabs} for sound-effect generation (\cref{tab:eval_audio_main_ss_sfx}), music generation (\cref{tab:eval_audio_main_ms_sfx_music}), and audio extension.
+
+To enable future benchmarking, we publicly release two benchmarks ---\textToVBenchmarkName (Section~\ref{sec:t2v_eval_benchmark}), \OursAudioBench (Section~\ref{subsubsec:audio_gen_bench}).
+We also provide thorough details on model architectures, training, inference, and experimental settings which we hope will accelerate research in media generation models.
+
+
+\section{Overview}
+\input{overview}
+
+\section{Joint Image and Video Generation}
+\label{sec:image_video_model}
+\input{foundation_model/model}
+\input{foundation_model/pre_training}
+\input{foundation_model/post_training}
+\input{foundation_model/inference_efficiency}
+\input{foundation_model/evaluation}
+\input{foundation_model/experiments}
+\input{foundation_model/image_generation}
+
+
+
+\section{Video Personalization}%
+\label{sec:personalization}
+\input{personalization/method}
+\input{personalization/eval}
+\input{personalization/results}
+
+
+\section{Instruction-Guided Precise Video Editing}
+\label{sec:video_editing}
+\input{edit/editing}
+
+
+\section{Joint Sound Effect and Music Generation}
+\label{sec:audio_model}
+\input{audio/main}
+\input{audio/result}  %
+\input{audio/ablation}  %
+
+
+
+\section{Related work}
+\input{foundation_model/related_work}
+\input{personalization/background.tex}
+\input{edit/background.tex}
+
+\input{audio/related_work}
+
+\section{Conclusion}
+
+The \OURS cast of foundation models represents a significant improvement in \textToV generation, video personalization, video editing, as well as sound effect and music generation.
+We show that training such models by scaling data, training compute, and model size together leads to such significant improvements.
+We focus on curating high quality large scale data for \pretraining and relatively smaller scale but even higher quality data for finetuning.
+This general recipe works well for improving the quality of image, video, and audio generation.
+We introduce a new approach for equipping strong video foundation models with state-of-the-art video editing capabilities without relying on supervised video editing data. This is achieved through multi-task training on image editing and video generation, followed by two short fine-tuning stages: one on synthetic multi-frame editing data, and another on video editing via backtranslation.
+
+Despite these improvements, we observe that video generation models still suffer from issues -- artifacts in generated or edited videos around complex geometry, manipulation of objects, object physics, state transformations \etc
+Generated audio is sometimes out of synchronization when motions are dense (\eg, tap dance), visually small or occluded (\eg, footsteps), or when it requires finer-grained visual understanding (\eg, recognizing the guitar chords).
+It currently does not support voice generation either due to our design choices.
+Reliable benchmarking of media generation models is important for identifying such shortcomings and for future research.
+Having access to a few cherry picked generations or black box systems without clear details on model or data makes reliable comparisons hard.
+Along with details on models, data, and inference, we additionally release multiple non cherry picked generations and prompt sets to enable easy and reliable comparisons for future work.
+We also note that defining objective criteria evaluating model generations using human evaluations remains challenging and thus human evaluations can be influenced by a number of other factors such as personal biases, backgrounds \etc.
+While our models are trained separately for video and audio generation, developing models that can generate these modalities jointly is an important area of research.
+
+\input{safety.tex}
+
+
+\section*{Contributors and Acknowledgements}
+A large number of people at Meta worked to create \OURS.
+We list \textbf{core contributors} (people who worked on \OURS for at least $\nicefrac{2}{3}$rd of the runtime of the project), and \textbf{contributors} (people who worked on \OURS for at least $\nicefrac{1}{3}$rd of the runtime of the project).
+We list all contributors in alphabetical order of the first name.
+
+
+\subsection*{Core Contributors}
+Adam Polyak, Amit Zohar, Andrew Brown, Andros Tjandra, Animesh Sinha, Ann Lee, Apoorv Vyas, Bowen Shi, Chih-Yao Ma, Ching-Yao Chuang, David Yan, Dhruv Choudhary, Dingkang Wang, Geet Sethi, Guan Pang, Haoyu Ma, Ishan Misra, Ji Hou, Jialiang Wang, Kiran Jagadeesh, Kunpeng Li, Luxin Zhang, Mannat Singh, Mary Williamson, Matt Le, Matthew Yu, Mitesh Kumar Singh, Peizhao Zhang, Peter Vajda, Quentin Duval, Rohit Girdhar, Roshan Sumbaly, Sai Saketh Rambhatla, Sam Tsai, Samaneh Azadi, Samyak Datta, Sanyuan Chen, Sean Bell, Sharadh Ramaswamy, Shelly Sheynin, Siddharth Bhattacharya, Simran Motwani, Tao Xu, Tianhe Li, Tingbo Hou, Wei-Ning Hsu, Xi Yin, Xiaoliang Dai, Yaniv Taigman, Yaqiao Luo, Yen-Cheng Liu, Yi-Chiao Wu, Yue Zhao, Yuval Kirstain, Zecheng He, Zijian He
+
+\subsection*{Contributors}
+Albert Pumarola, Ali Thabet, Artsiom Sanakoyeu, Arun Mallya, Baishan Guo, Boris Araya, Breena Kerr, Carleigh Wood, Ce Liu, Cen Peng, Dimitry Vengertsev, Edgar Sch\"onfeld, Elliot Blanchard, Felix Juefei-Xu, Fraylie Nord, Jeff Liang, John Hoffman, Jonas Kohler, Kaolin Fire, Karthik Sivakumar, Lawrence Chen, Licheng Yu, Luya Gao, Markos Georgopoulos, Rashel Moritz, Sara K. Sampson, Shikai Li, Simone Parmeggiani, Steve Fine, Tara Fowler, Vladan Petrovic, Yuming Du
+
+\subsection*{Acknowledgements}
+Ahmad Al-Dahle, Ahnaf Siddiqui, Ahuva Goldstand, Ajay Ladsaria, Akash Jaiswal, Akio Kodaira, Andrew Treadway, Andrés Alvarado, Antoine Toisoul, Baishan Guo, Bernie Huang, Brandon Wu, Brian Chiang, Brian Ellis, Chao Zhou, Chen Fan, Chen Kovacs, Ching-Feng Yeh, Chris Moghbel, Connor Hayes, Daniel Ho, Daniel Lee, Daniel Li, Danny Trinh, David Kant, David Novotny, Delia David, Dong Li, Ellen Tan, Emory Lin, Gabriella Schwarz, Gael Le Lan, Jake Lately, Jeff Wang, Jeremy Teboul, Jiabo Hu, Jianyu Huang, Jiecao Yu, Jiemin Zhang, Jinho Hwang, Joelle Pineau, Jongsoo Park, Junjiao Tian, Kathryn Stadler, Laurence Rouesnel, Lindsey Kishline, Manohar Paluri, Matt Setzler, Max Raphael, Mengyi Shan, Munish Bansal, Nick Zacharov, Pasan Hapuarachchi, Peter Bi, Peter Carras, Philip Woods, Prash Jain, Prashant Ratanchandani, Ragavan Srinivasan, Rebecca Kogen, Ricky T. Q. Chen, Robbie Adkins, Rod Duenes, Roman Shapovalov, Ruihan Shan, Russ Maschmeyer, Shankar Regunathan, Shaun Lindsay, Sreeram R Chakrovorthy, Sudarshan Govindaprasad, Thai Quach, Tiantu Xu, Tom Monnier, Ty Toledano, Uriel Singer, Vlad Shubin, Wei Jiang, Will Seyfer, Xide Xia, Xinyue Zhang, Yael Yungster, Yang Liu, Yang Shu, Yangyang Shi, Yaron Lipman, Yash Mehta, Ye Jia, Zhaoheng Ni
+
+
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{assets/plainnat}
+\bibliography{refs}
+
+\newpage
+\beginappendix
+\phantomsection
+\addcontentsline{toc}{section}{Appendix}
+\renewcommand{\thesection}{\Alph{section}}
+\renewcommand{\thesubsection}{\Alph{section}.\arabic{subsection}}
+
+\input{appendix/model}
+\input{appendix/data}
+\input{appendix/evaluation}
+\input{appendix/result}
+
+\end{document}

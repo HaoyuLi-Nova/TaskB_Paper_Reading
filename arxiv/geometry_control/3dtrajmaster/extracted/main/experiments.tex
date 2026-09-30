@@ -1,0 +1,66 @@
+\section{Experiments}
+\subsection{Implementation Details}
+For input text prompts, we use a unified template: ``\textit{\{Entity 1\},..., and \{Entity N\} are moving in the \{Location\}.}" Here we set ``\{Location\}"  based on the respective 3D UE platform. We train 3DTrajMaster based on our internal video diffusion model for research purposes (see~\secref{subsec:videobackbone} for more details), which contains $\sim$ 1B parameters. The clipped training video and inference video are set to $384\times672$ resolutions. Each video segment is 5 seconds long. We utilize the Adam optimizer and train on a cluster of 8 NVIDIA H800 GPUs, with a learning rate of $5 \times 10^{-5}$ and a batch size of 8. The training process consisted of 50,000 steps for the domain adaptor and an additional 36,000 steps for the object injector. During inference, we set the DDIM steps as 50 and the CFG as 12.5. 
+
+\subsection{Baselines}
+
+We compare 3DTrajMaster with existing SOTA methods that are capable of customizing object motions: MotionCtrl~\citep{wang2024motionctrl}, Direct-a-Video~\citep{yang2024direct} and Tora~\citep{zhang2024tora}. We configure these baseline models using their best performance settings, based on their official open-sourced codebases.
+
+\subsection{Evaluation Metric}
+1) \textit{Trajectory accuracy}: Due to the absence of a pose estimator for open-world 4D objects, we limit our evaluation to only human objectives. Specifically, we utilize GVHMR~\citep{shen2024gvhmr} to estimate human poses $\{(\mathbf{R}^{est}_n,\mathbf{T}^{est}_n)\}_{n=1}^F$ and compare them with the input pose sequences $\{(\mathbf{R}^{gt}_n,\mathbf{T}^{gt}_n)\}_{n=1}^F$. We align the two trajectories at the first frame location. We follow CameraCtrl~\citep{he2024cameractrl} to estimate the rotation angle error \textbf{RotErr} and translation scale error \textbf{TransErr}, but take the average rather than the sum.
+2) \textit{Video quality}: We leverage standard metrics such as Frechét Video Distance (\textbf{FVD})~\citep{unterthiner2018towards}, Frechét Image Distance (\textbf{FID})~\citep{maximilian2020fid}, and CLIP Similarity (\textbf{CLIPSIM})~\citep{wu2021godiva} to assess the video appearance.
+
+\subsection{Evaluation Dataset}
+1) \textit{Pose Sequence}: We collect 44 novel pose templates, each comprising one or more object motions.
+2) \textit{Entity Description}: we use GPT to generate 20 novel human, 52 novel non-human descriptions, and 32 novel locations (refer to~\secref{subsec:evaluateprompt}), which are randomly assigned to poses to form 100 pairs (12 single-entity, 72 two-entity, and 16 three-entity each pair has one human entity).
+
+\subsection{Comparison}
+
+\noindent \textbf{Granularity Level.} As shown in~\tabref{tab:control_level}, 3DTrajMaster can customize object location and orientation in 3D space. In contrast, 2D motion representations such as points (MotionCtrl/Tora) and bounding box (Direct-a-Video), lack awareness of the z dimension. This ambiguity becomes more problematic when handling 3D occlusion. Besides, MotionCtrl and Tora integrate multiple entities into a single 2D feature, lacking the capability to correlate individual entities with their respective trajectories (see failure case in~\figref{fig:main_comparison}). When tested on multi-entity input, Direct-a-Video (a training-free paradigm) shows particularly weak results. Furthermore, 3DTrajMaster allows for diverse entities and backgrounds (see~\figref{fig:diverse_entity_bg}), and detailed control of entity inputs (see~\figref{fig:diffhuman}).
+
+\input{tab/control_level}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\linewidth]{figs/diverse_entity_bg.pdf}
+\vspace{-2em}
+\caption{\textbf{Diversity on Entity and Background.} 3DTrajMaster can control versatile entities (human, animal, car, robot, and even abstract natural force), while also generating diverse locations.}
+\label{fig:diverse_entity_bg}
+\end{figure*}
+
+\begin{figure*}[!h]
+\centering
+\includegraphics[width=\linewidth]{figs/diffhuman.pdf}
+\vspace{-2em}
+\caption{\textbf{Fine-grained Editing on Human Entity Input.} 3DTrajMaster supports modifications in attributes such as hair, clothing, figure size, and so on. (Please check more in~\figref{fig:supp_diffhuman})}
+\label{fig:diffhuman}
+\end{figure*}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figs/main_comparison.pdf}
+\caption{\textbf{Qualitative Comparison on Single/Multiple Entity Motion.} 3DTrajMaster outperforms all 2D baselines by modeling 6 DoF entity motion, which can better express the inherent 3D nature of motion. In the last figure, Tora mistakenly regards the background entity as the girl entity.}
+\label{fig:main_comparison}
+\vspace{-2em}
+\end{figure*}
+
+\input{tab/main_comparison}
+
+\noindent \textbf{Quantative \& Qualitative Results.} To align with the input requirement of MotionCtrl and Direct-a-Video, we project the 3D pose trajectories onto 2D space. For baselines, we simplify the entity description, such as changing ``a man with messy black hair, tall frame, a red shirt" to ``a man" or ``a man in red". Otherwise, they may fail to generate videos with detailed descriptions. As shown in~\figref{fig:main_comparison}, in single entity settings, 3DTrajMaster generates precise entity motion, such as a 180$^{\circ}$ turn-back and a continuous inward 90$^{\circ}$ turn-around. In contrast, Tora and Direct-a-Video produce simpler motions, merely shifting objects from left to right or top-right. In the multi-entity benchmark, 3DTrajMaster successfully handles 3D occlusions, such as a man walking in front of a zebra. Direct-a-Video, however, fails in overlapping regions with mixed man and zebra. We report metric results in~\tabref{tab:main_comparison}. It is not surprising that ours significantly outperforms all baselines. 
+
+\subsection{Ablation Study}
+
+\input{tab/ablation_main}
+
+\begin{figure*}[!ht]
+\centering
+\includegraphics[width=\linewidth]{figs/ablation_video_quality.pdf}
+\vspace{-1em}
+\caption{\textbf{Ablation Results on Domain Adaptor (upper) and Annealed Sampling (the bottom).} We provide more experiments in~\secref{subsec:optimialhyper} to choose suitable $\alpha$ and $T_c$ to improve video quality.}
+\label{fig:ablation}
+\end{figure*}
+
+\noindent \textbf{Improving Video Quality.} As illustrated in~\figref{fig:ablation} and~\tabref{tab:ablation_main}, without the video domain adaptor, the video quality deteriorates significantly, reverting to a purely UE-style appearance similar to the training set. Likewise, omitting the annealed sampling strategy results in a decline in video quality (see the beard of the lion and overall scene style). While the rotation accuracy drops slightly (0.277$\rightarrow$0.265), this is acceptable since there exist errors in evaluating open-world human poses.
+
+\noindent \textbf{Motion Fusion Design.} As shown in~\tabref{tab:ablation_main}, replacing gated self-attention with cross-attention fusion (w/ Cross-Attn. Fusion, here we use the entity-motion bonded feature $\mathbf{Z}^\mathbf{Pe}$ as the query) or placing the object injector after the 3D self-attention layer (w/ 3D Self-Attn.) results in a slight decline in both video quality and pose sequence accuracy.
+

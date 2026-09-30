@@ -1,0 +1,550 @@
+\begin{thebibliography}{76}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Alonso et~al.()Alonso, Jelley, Micheli, Kanervisto, Storkey, Pearce,
+  and Fleuret]{alonso2024diffusionworldmodelingvisual}
+E.~Alonso, A.~Jelley, V.~Micheli, A.~Kanervisto, A.~Storkey, T.~Pearce, and
+  F.~Fleuret.
+\newblock Diffusion for world modeling: Visual details matter in atari.
+\newblock In \emph{Thirty-eighth Conference on Neural Information Processing
+  Systems}.
+
+\bibitem[Bachmann et~al.(2025)Bachmann, Allardice, Mizrahi, Fini, Kar, Amirloo,
+  El-Nouby, Zamir, and Dehghan]{bachmann2025flextok}
+R.~Bachmann, J.~Allardice, D.~Mizrahi, E.~Fini, O.~F. Kar, E.~Amirloo,
+  A.~El-Nouby, A.~Zamir, and A.~Dehghan.
+\newblock {FlexTok}: Resampling images into 1d token sequences of flexible
+  length, 2025.
+
+\bibitem[Bansal et~al.(2024)Bansal, Bitton, Yarom, Szpektor, Grover, and
+  Chang]{bansal2024talc}
+H.~Bansal, Y.~Bitton, M.~Yarom, I.~Szpektor, A.~Grover, and K.-W. Chang.
+\newblock Talc: Time-aligned captions for multi-scene text-to-video generation.
+\newblock \emph{arXiv preprint arXiv:2405.04682}, 2024.
+
+\bibitem[Cai et~al.(2023)Cai, Li, Hu, Gan, and Han]{cai2023efficientvit}
+H.~Cai, J.~Li, M.~Hu, C.~Gan, and S.~Han.
+\newblock Efficientvit: Lightweight multi-scale attention for high-resolution
+  dense prediction.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision}, pages 17302--17313, 2023.
+
+\bibitem[Cai et~al.(2024)Cai, Cun, Li, Liu, Zhang, Zhang, Shan, and
+  Yue]{cai2024ditctrl}
+M.~Cai, X.~Cun, X.~Li, W.~Liu, Z.~Zhang, Y.~Zhang, Y.~Shan, and X.~Yue.
+\newblock Ditctrl: Exploring attention control in multi-modal diffusion
+  transformer for tuning-free multi-prompt longer video generation.
+\newblock \emph{arXiv preprint arXiv:2412.18597}, 2024.
+
+\bibitem[Chen et~al.(2025{\natexlab{a}})Chen, Mart{\'\i}~Mons{\'o}, Du,
+  Simchowitz, Tedrake, and Sitzmann]{chen2025diffusion}
+B.~Chen, D.~Mart{\'\i}~Mons{\'o}, Y.~Du, M.~Simchowitz, R.~Tedrake, and
+  V.~Sitzmann.
+\newblock Diffusion forcing: Next-token prediction meets full-sequence
+  diffusion.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  37:\penalty0 24081--24125, 2025{\natexlab{a}}.
+
+\bibitem[Chen et~al.(2025{\natexlab{b}})Chen, Lin, Yang, Lin, Zhu, Fan, Zhang,
+  Chen, Chen, Ma, Xiong, Wang, Pang, Kang, Xu, Jin, Liang, Song, Zhao, Xu, Qiu,
+  Li, Fei, Li, and Zhou]{chen2025skyreelsv2infinitelengthfilmgenerative}
+G.~Chen, D.~Lin, J.~Yang, C.~Lin, J.~Zhu, M.~Fan, H.~Zhang, S.~Chen, Z.~Chen,
+  C.~Ma, W.~Xiong, W.~Wang, N.~Pang, K.~Kang, Z.~Xu, Y.~Jin, Y.~Liang, Y.~Song,
+  P.~Zhao, B.~Xu, D.~Qiu, D.~Li, Z.~Fei, Y.~Li, and Y.~Zhou.
+\newblock Skyreels-v2: Infinite-length film generative model,
+  2025{\natexlab{b}}.
+\newblock URL \url{https://arxiv.org/abs/2504.13074}.
+
+\bibitem[Choromanski et~al.(2020)Choromanski, Likhosherstov, Dohan, Song, Gane,
+  Sarlos, Hawkins, Davis, Mohiuddin, Kaiser, et~al.]{choromanski2020rethinking}
+K.~Choromanski, V.~Likhosherstov, D.~Dohan, X.~Song, A.~Gane, T.~Sarlos,
+  P.~Hawkins, J.~Davis, A.~Mohiuddin, L.~Kaiser, et~al.
+\newblock Rethinking attention with performers.
+\newblock \emph{arXiv preprint arXiv:2009.14794}, 2020.
+
+\bibitem[Dalal et~al.(2025)Dalal, Koceja, Hussein, Xu, Zhao, Song, Han, Cheung,
+  Kautz, Guestrin, Hashimoto, Koyejo, Choi, Sun, and
+  Wang]{dalal2025oneminutevideogenerationtesttime}
+K.~Dalal, D.~Koceja, G.~Hussein, J.~Xu, Y.~Zhao, Y.~Song, S.~Han, K.~C. Cheung,
+  J.~Kautz, C.~Guestrin, T.~Hashimoto, S.~Koyejo, Y.~Choi, Y.~Sun, and X.~Wang.
+\newblock One-minute video generation with test-time training, 2025.
+\newblock URL \url{https://arxiv.org/abs/2504.05298}.
+
+\bibitem[Dao et~al.(2022)Dao, Fu, Ermon, Rudra, and
+  Ré]{dao2022flashattentionfastmemoryefficientexact}
+T.~Dao, D.~Y. Fu, S.~Ermon, A.~Rudra, and C.~Ré.
+\newblock Flashattention: Fast and memory-efficient exact attention with
+  io-awareness, 2022.
+\newblock URL \url{https://arxiv.org/abs/2205.14135}.
+
+\bibitem[Deng et~al.(2019{\natexlab{a}})Deng, Guo, Xue, and
+  Zafeiriou]{deng2019arcface}
+J.~Deng, J.~Guo, N.~Xue, and S.~Zafeiriou.
+\newblock Arcface: Additive angular margin loss for deep face recognition.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition}, pages 4690--4699, 2019{\natexlab{a}}.
+
+\bibitem[Deng et~al.(2019{\natexlab{b}})Deng, Guo, Zhou, Yu, Kotsia, and
+  Zafeiriou]{deng2020retinaface}
+J.~Deng, J.~Guo, Y.~Zhou, J.~Yu, I.~Kotsia, and S.~Zafeiriou.
+\newblock Retinaface: Single-stage dense face localisation in the wild,
+  2019{\natexlab{b}}.
+\newblock URL \url{https://arxiv.org/abs/1905.00641}.
+
+\bibitem[Dosovitskiy et~al.(2021)Dosovitskiy, Beyer, Kolesnikov, Weissenborn,
+  Zhai, Unterthiner, Dehghani, Minderer, Heigold, Gelly, Uszkoreit, and
+  Houlsby]{dosovitskiy2020image}
+A.~Dosovitskiy, L.~Beyer, A.~Kolesnikov, D.~Weissenborn, X.~Zhai,
+  T.~Unterthiner, M.~Dehghani, M.~Minderer, G.~Heigold, S.~Gelly, J.~Uszkoreit,
+  and N.~Houlsby.
+\newblock An image is worth 16x16 words: Transformers for image recognition at
+  scale.
+\newblock \emph{ICLR}, 2021.
+
+\bibitem[Fang et~al.(2020)Fang, Zhu, Zeng, Ma, and Wang]{fang2020perceptual}
+Y.~Fang, H.~Zhu, Y.~Zeng, K.~Ma, and Z.~Wang.
+\newblock Perceptual quality assessment of smartphone photography.
+\newblock In \emph{2020 IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, pages 3674--3683, 2020.
+\newblock \doi{10.1109/CVPR42600.2020.00373}.
+
+\bibitem[Gao et~al.(2024)Gao, Shi, Zhang, Wang, and
+  Xiao]{gao2024vidgptintroducinggptstyleautoregressive}
+K.~Gao, J.~Shi, H.~Zhang, C.~Wang, and J.~Xiao.
+\newblock Vid-gpt: Introducing gpt-style autoregressive generation in video
+  diffusion models, 2024.
+\newblock URL \url{https://arxiv.org/abs/2406.10981}.
+
+\bibitem[Gu et~al.(2025)Gu, Mao, and
+  Shou]{gu2025longcontextautoregressivevideomodeling}
+Y.~Gu, W.~Mao, and M.~Z. Shou.
+\newblock Long-context autoregressive video modeling with next-frame
+  prediction, 2025.
+\newblock URL \url{https://arxiv.org/abs/2503.19325}.
+
+\bibitem[HaCohen et~al.(2024)HaCohen, Chiprut, Brazowski, Shalem, Moshe,
+  Richardson, Levin, Shiran, Zabari, Gordon, et~al.]{hacohen2024ltx}
+Y.~HaCohen, N.~Chiprut, B.~Brazowski, D.~Shalem, D.~Moshe, E.~Richardson,
+  E.~Levin, G.~Shiran, N.~Zabari, O.~Gordon, et~al.
+\newblock Ltx-video: Realtime video latent diffusion.
+\newblock \emph{arXiv preprint arXiv:2501.00103}, 2024.
+
+\bibitem[Harvey et~al.(2022)Harvey, Naderiparizi, Masrani, Weilbach, and
+  Wood]{harvey2022flexiblediffusionmodelinglong}
+W.~Harvey, S.~Naderiparizi, V.~Masrani, C.~Weilbach, and F.~Wood.
+\newblock Flexible diffusion modeling of long videos, 2022.
+\newblock URL \url{https://arxiv.org/abs/2205.11495}.
+
+\bibitem[He et~al.(2022)He, Yang, Zhang, Shan, and Chen]{he2022latent}
+Y.~He, T.~Yang, Y.~Zhang, Y.~Shan, and Q.~Chen.
+\newblock Latent video diffusion models for high-fidelity long video
+  generation.
+\newblock \emph{arXiv preprint arXiv:2211.13221}, 2022.
+
+\bibitem[Henschel et~al.(2024)Henschel, Khachatryan, Hayrapetyan, Poghosyan,
+  Tadevosyan, Wang, Navasardyan, and Shi]{henschel2024streamingt2v}
+R.~Henschel, L.~Khachatryan, D.~Hayrapetyan, H.~Poghosyan, V.~Tadevosyan,
+  Z.~Wang, S.~Navasardyan, and H.~Shi.
+\newblock Streamingt2v: Consistent, dynamic, and extendable long video
+  generation from text.
+\newblock \emph{arXiv preprint arXiv:2403.14773}, 2024.
+
+\bibitem[Hong et~al.(2024)Hong, Liu, Wu, Zhai, Chang, Li, Lin, Lin, Wang, Yang,
+  Wu, and Wang]{hong2024slowfastvgenslowfastlearningactiondriven}
+Y.~Hong, B.~Liu, M.~Wu, Y.~Zhai, K.-W. Chang, L.~Li, K.~Lin, C.-C. Lin,
+  J.~Wang, Z.~Yang, Y.~Wu, and L.~Wang.
+\newblock Slowfast-vgen: Slow-fast learning for action-driven long video
+  generation, 2024.
+\newblock URL \url{https://arxiv.org/abs/2410.23277}.
+
+\bibitem[Hu et~al.(2024)Hu, Jiang, Chen, Han, Liao, Chang, and
+  Liang]{hu2024storyagent}
+P.~Hu, J.~Jiang, J.~Chen, M.~Han, S.~Liao, X.~Chang, and X.~Liang.
+\newblock Storyagent: Customized storytelling video generation via multi-agent
+  collaboration.
+\newblock \emph{arXiv preprint arXiv:2411.04925}, 2024.
+
+\bibitem[Huang et~al.(2022)Huang, Zhang, Heng, Shi, and Zhou]{huang2022real}
+Z.~Huang, T.~Zhang, W.~Heng, B.~Shi, and S.~Zhou.
+\newblock Real-time intermediate flow estimation for video frame interpolation.
+\newblock In \emph{Proceedings of the European Conference on Computer Vision
+  (ECCV)}, 2022.
+
+\bibitem[Huang et~al.(2024)Huang, He, Yu, Zhang, Si, Jiang, Zhang, Wu, Jin,
+  Chanpaisit, Wang, Chen, Wang, Lin, Qiao, and Liu]{huang2023vbench}
+Z.~Huang, Y.~He, J.~Yu, F.~Zhang, C.~Si, Y.~Jiang, Y.~Zhang, T.~Wu, Q.~Jin,
+  N.~Chanpaisit, Y.~Wang, X.~Chen, L.~Wang, D.~Lin, Y.~Qiao, and Z.~Liu.
+\newblock {VBench}: Comprehensive benchmark suite for video generative models.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition}, 2024.
+
+\bibitem[Jin et~al.(2024)Jin, Sun, Li, Xu, Xu, Jiang, Zhuang, Huang, Song, Mu,
+  and Lin]{jin2024pyramidal}
+Y.~Jin, Z.~Sun, N.~Li, K.~Xu, K.~Xu, H.~Jiang, N.~Zhuang, Q.~Huang, Y.~Song,
+  Y.~Mu, and Z.~Lin.
+\newblock Pyramidal flow matching for efficient video generative modeling,
+  2024.
+
+\bibitem[Katharopoulos et~al.(2020)Katharopoulos, Vyas, Pappas, and
+  Fleuret]{katharopoulos2020transformers}
+A.~Katharopoulos, A.~Vyas, N.~Pappas, and F.~Fleuret.
+\newblock Transformers are rnns: Fast autoregressive transformers with linear
+  attention.
+\newblock In \emph{International conference on machine learning}, pages
+  5156--5165. PMLR, 2020.
+
+\bibitem[Ke et~al.(2021)Ke, Wang, Wang, Milanfar, and Yang]{ke2021musiq}
+J.~Ke, Q.~Wang, Y.~Wang, P.~Milanfar, and F.~Yang.
+\newblock Musiq: Multi-scale image quality transformer, 2021.
+\newblock URL \url{https://arxiv.org/abs/2108.05997}.
+
+\bibitem[Kong et~al.(2024)Kong, Tian, Zhang, Min, Dai, Zhou, Xiong, Li, Wu,
+  Zhang, et~al.]{kong2024hunyuanvideo}
+W.~Kong, Q.~Tian, Z.~Zhang, R.~Min, Z.~Dai, J.~Zhou, J.~Xiong, X.~Li, B.~Wu,
+  J.~Zhang, et~al.
+\newblock Hunyuanvideo: A systematic framework for large video generative
+  models.
+\newblock \emph{arXiv preprint arXiv:2412.03603}, 2024.
+
+\bibitem[Li* et~al.(2025)Li*, Lin*, Zhang*, Cai, Li, Guo, Xie, Meng, Zhu, and
+  Han]{li2024svdquant}
+M.~Li*, Y.~Lin*, Z.~Zhang*, T.~Cai, X.~Li, J.~Guo, E.~Xie, C.~Meng, J.-Y. Zhu,
+  and S.~Han.
+\newblock Svdquant: Absorbing outliers by low-rank components for 4-bit
+  diffusion models.
+\newblock In \emph{The Thirteenth International Conference on Learning
+  Representations}, 2025.
+
+\bibitem[Li et~al.(2023)Li, Liu, Lian, Yang, Dong, Kang, Zhang, and
+  Keutzer]{li2023q}
+X.~Li, Y.~Liu, L.~Lian, H.~Yang, Z.~Dong, D.~Kang, S.~Zhang, and K.~Keutzer.
+\newblock Q-diffusion: Quantizing diffusion models.
+\newblock In \emph{ICCV}, 2023.
+
+\bibitem[Liu et~al.(2024)Liu, Zhang, Wang, Wei, Qiu, Zhao, Zhang, Ye, and
+  Wan]{liu2024timestep}
+F.~Liu, S.~Zhang, X.~Wang, Y.~Wei, H.~Qiu, Y.~Zhao, Y.~Zhang, Q.~Ye, and
+  F.~Wan.
+\newblock Timestep embedding tells: It's time to cache for video diffusion
+  model.
+\newblock \emph{arXiv preprint arXiv:2411.19108}, 2024.
+
+\bibitem[Long et~al.(2024)Long, Qiu, Yao, and
+  Mei]{long2024videostudiogeneratingconsistentcontentmultiscene}
+F.~Long, Z.~Qiu, T.~Yao, and T.~Mei.
+\newblock Videostudio: Generating consistent-content and multi-scene videos,
+  2024.
+\newblock URL \url{https://arxiv.org/abs/2401.01256}.
+
+\bibitem[Lu et~al.(2025)Lu, Liang, Zhu, and Yang]{lu2025freelong}
+Y.~Lu, Y.~Liang, L.~Zhu, and Y.~Yang.
+\newblock Freelong: Training-free long video generation with spectralblend
+  temporal attention.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  37:\penalty0 131434--131455, 2025.
+
+\bibitem[Luo et~al.(2023)Luo, Tan, Huang, Li, and Zhao]{luo2023latent}
+S.~Luo, Y.~Tan, L.~Huang, J.~Li, and H.~Zhao.
+\newblock Latent consistency models: Synthesizing high-resolution images with
+  few-step inference.
+\newblock \emph{arXiv preprint arXiv: 2310.04378}, 2023.
+
+\bibitem[Lv et~al.(2024)Lv, Si, Song, Yang, Qiao, Liu, and
+  Wong]{lv2024fastercache}
+Z.~Lv, C.~Si, J.~Song, Z.~Yang, Y.~Qiao, Z.~Liu, and K.-Y.~K. Wong.
+\newblock Fastercache: Training-free video diffusion model acceleration with
+  high quality.
+\newblock 2024.
+
+\bibitem[Oh et~al.(2024)Oh, Jeong, Kim, Byeon, Kim, Kim, and Kim]{oh2024mevg}
+G.~Oh, J.~Jeong, S.~Kim, W.~Byeon, J.~Kim, S.~Kim, and S.~Kim.
+\newblock Mevg: Multi-event video generation with text-to-video models.
+\newblock In \emph{European Conference on Computer Vision}, pages 401--418.
+  Springer, 2024.
+
+\bibitem[Qiu et~al.(2023)Qiu, Xia, Zhang, He, Wang, Shan, and
+  Liu]{qiu2023freenoise}
+H.~Qiu, M.~Xia, Y.~Zhang, Y.~He, X.~Wang, Y.~Shan, and Z.~Liu.
+\newblock Freenoise: Tuning-free longer video diffusion via noise rescheduling.
+\newblock \emph{arXiv preprint arXiv:2310.15169}, 2023.
+
+\bibitem[Ren et~al.(2025)Ren, Shen, Huang, Ling, Lu, Nimier-David, Müller,
+  Keller, Fidler, and Gao]{ren2025gen3c3dinformedworldconsistentvideo}
+X.~Ren, T.~Shen, J.~Huang, H.~Ling, Y.~Lu, M.~Nimier-David, T.~Müller,
+  A.~Keller, S.~Fidler, and J.~Gao.
+\newblock Gen3c: 3d-informed world-consistent video generation with precise
+  camera control, 2025.
+\newblock URL \url{https://arxiv.org/abs/2503.03751}.
+
+\bibitem[Ruhe et~al.(2024)Ruhe, Heek, Salimans, and Hoogeboom]{ruhe2024rolling}
+D.~Ruhe, J.~Heek, T.~Salimans, and E.~Hoogeboom.
+\newblock Rolling diffusion models, 2024.
+
+\bibitem[Schuhmann et~al.(2022)Schuhmann, Beaumont, Vencu, Gordon, Wightman,
+  Cherti, Coombes, Katta, Mullis, Wortsman, et~al.]{schuhmann2022laion}
+C.~Schuhmann, R.~Beaumont, R.~Vencu, C.~Gordon, R.~Wightman, M.~Cherti,
+  T.~Coombes, A.~Katta, C.~Mullis, M.~Wortsman, et~al.
+\newblock Laion-5b: An open large-scale dataset for training next generation
+  image-text models.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  35:\penalty0 25278--25294, 2022.
+
+\bibitem[Song et~al.(2025)Song, Chen, Simchowitz, Du, Tedrake, and
+  Sitzmann]{song2025history}
+K.~Song, B.~Chen, M.~Simchowitz, Y.~Du, R.~Tedrake, and V.~Sitzmann.
+\newblock History-guided video diffusion.
+\newblock \emph{arXiv preprint arXiv:2502.06764}, 2025.
+
+\bibitem[Song et~al.(2023)Song, Dhariwal, Chen, and
+  Sutskever]{song2023consistency}
+Y.~Song, P.~Dhariwal, M.~Chen, and I.~Sutskever.
+\newblock Consistency models.
+\newblock In \emph{ICML}, 2023.
+
+\bibitem[Su et~al.(2024)Su, Ahmed, Lu, Pan, Bo, and Liu]{su2024roformer}
+J.~Su, M.~Ahmed, Y.~Lu, S.~Pan, W.~Bo, and Y.~Liu.
+\newblock Roformer: Enhanced transformer with rotary position embedding.
+\newblock \emph{Neurocomputing}, 568:\penalty0 127063, 2024.
+
+\bibitem[Tan et~al.(2024)Tan, Yang, Liu, and Wang]{tan2024video}
+Z.~Tan, X.~Yang, S.~Liu, and X.~Wang.
+\newblock Video-infinity: Distributed long video generation.
+\newblock \emph{arXiv preprint arXiv:2406.16260}, 2024.
+
+\bibitem[Teed and Deng(2020)]{teed2020raft}
+Z.~Teed and J.~Deng.
+\newblock Raft: Recurrent all-pairs field transforms for optical flow, 2020.
+\newblock URL \url{https://arxiv.org/abs/2003.12039}.
+
+\bibitem[Valevski et~al.(2024)Valevski, Leviathan, Arar, and
+  Fruchter]{valevski2024diffusionmodelsrealtimegame}
+D.~Valevski, Y.~Leviathan, M.~Arar, and S.~Fruchter.
+\newblock Diffusion models are real-time game engines, 2024.
+\newblock URL \url{https://arxiv.org/abs/2408.14837}.
+
+\bibitem[Villegas et~al.(2022)Villegas, Babaeizadeh, Kindermans, Moraldo,
+  Zhang, Saffar, Castro, Kunze, and Erhan]{villegas2022phenaki}
+R.~Villegas, M.~Babaeizadeh, P.-J. Kindermans, H.~Moraldo, H.~Zhang, M.~T.
+  Saffar, S.~Castro, J.~Kunze, and D.~Erhan.
+\newblock Phenaki: Variable length video generation from open domain textual
+  description.
+\newblock \emph{arXiv preprint arXiv:2210.02399}, 2022.
+
+\bibitem[Wang et~al.(2025{\natexlab{a}})Wang, Ai, Wen, Mao, Xie, Chen, Yu,
+  Zhao, Yang, Zeng, Wang, Zhang, Zhou, Wang, Chen, Zhu, Zhao, Yan, Huang, Feng,
+  Zhang, Li, Wu, Chu, Feng, Zhang, Sun, Fang, Wang, Gui, Weng, Shen, Lin, Wang,
+  Wang, Zhou, Wang, Shen, Yu, Shi, Huang, Xu, Kou, Lv, Li, Liu, Wang, Zhang,
+  Huang, Li, Wu, Liu, Pan, Zheng, Hong, Shi, Feng, Jiang, Han, Wu, and
+  Liu]{wang2025wan}
+A.~Wang, B.~Ai, B.~Wen, C.~Mao, C.-W. Xie, D.~Chen, F.~Yu, H.~Zhao, J.~Yang,
+  J.~Zeng, J.~Wang, J.~Zhang, J.~Zhou, J.~Wang, J.~Chen, K.~Zhu, K.~Zhao,
+  K.~Yan, L.~Huang, M.~Feng, N.~Zhang, P.~Li, P.~Wu, R.~Chu, R.~Feng, S.~Zhang,
+  S.~Sun, T.~Fang, T.~Wang, T.~Gui, T.~Weng, T.~Shen, W.~Lin, W.~Wang, W.~Wang,
+  W.~Zhou, W.~Wang, W.~Shen, W.~Yu, X.~Shi, X.~Huang, X.~Xu, Y.~Kou, Y.~Lv,
+  Y.~Li, Y.~Liu, Y.~Wang, Y.~Zhang, Y.~Huang, Y.~Li, Y.~Wu, Y.~Liu, Y.~Pan,
+  Y.~Zheng, Y.~Hong, Y.~Shi, Y.~Feng, Z.~Jiang, Z.~Han, Z.-F. Wu, and Z.~Liu.
+\newblock Wan: Open and advanced large-scale video generative models.
+\newblock In \emph{arXiv}, 2025{\natexlab{a}}.
+
+\bibitem[Wang et~al.(2023{\natexlab{a}})Wang, Chen, Song, Ye, Liu, and
+  Li]{wang2023gen}
+F.-Y. Wang, W.~Chen, G.~Song, H.-J. Ye, Y.~Liu, and H.~Li.
+\newblock Gen-l-video: Multi-text to long video generation via temporal
+  co-denoising.
+\newblock \emph{arXiv preprint arXiv:2305.18264}, 2023{\natexlab{a}}.
+
+\bibitem[Wang and Agapito(2024)]{wang2024spann3r}
+H.~Wang and L.~Agapito.
+\newblock 3d reconstruction with spatial memory.
+\newblock \emph{arXiv preprint arXiv:2408.16061}, 2024.
+
+\bibitem[Wang et~al.(2025{\natexlab{b}})Wang, Zhang, Li, Tan, Pang, Du, Sun,
+  and Yang]{wang2025erroranalysesautoregressivevideo}
+J.~Wang, F.~Zhang, X.~Li, V.~Y.~F. Tan, T.~Pang, C.~Du, A.~Sun, and Z.~Yang.
+\newblock Error analyses of auto-regressive video diffusion models: A unified
+  framework, 2025{\natexlab{b}}.
+\newblock URL \url{https://arxiv.org/abs/2503.10704}.
+
+\bibitem[Wang et~al.(2020)Wang, Li, Khabsa, Fang, and Ma]{wang2020linformer}
+S.~Wang, B.~Z. Li, M.~Khabsa, H.~Fang, and H.~Ma.
+\newblock Linformer: Self-attention with linear complexity.
+\newblock \emph{arXiv preprint arXiv:2006.04768}, 2020.
+
+\bibitem[Wang et~al.(2023{\natexlab{b}})Wang, He, Li, Li, Yu, Ma, Li, Chen,
+  Chen, Wang, et~al.]{wang2023internvid}
+Y.~Wang, Y.~He, Y.~Li, K.~Li, J.~Yu, X.~Ma, X.~Li, G.~Chen, X.~Chen, Y.~Wang,
+  et~al.
+\newblock Internvid: A large-scale video-text dataset for multimodal
+  understanding and generation.
+\newblock In \emph{The Twelfth International Conference on Learning
+  Representations}, 2023{\natexlab{b}}.
+
+\bibitem[Weng et~al.(2023)Weng, Feng, Wang, Dai, Wang, Yin, Zhao, Qiu, Bao,
+  Yuan, Luo, Zhang, and Xiong]{park2021nerfies}
+W.~Weng, R.~Feng, Y.~Wang, Q.~Dai, C.~Wang, D.~Yin, Z.~Zhao, K.~Qiu, J.~Bao,
+  Y.~Yuan, C.~Luo, Y.~Zhang, and Z.~Xiong.
+\newblock Art•v: Auto-regressive text-to-video generation with diffusion
+  models.
+\newblock \emph{arXiv preprint arXiv:2311.18834}, 2023.
+
+\bibitem[Wu et~al.(2024)Wu, Siarohin, Menapace, Skorokhodov, Fang, Chordia,
+  Gilitschenski, and Tulyakov]{wu2024mind}
+Z.~Wu, A.~Siarohin, W.~Menapace, I.~Skorokhodov, Y.~Fang, V.~Chordia,
+  I.~Gilitschenski, and S.~Tulyakov.
+\newblock Mind the time: Temporally-controlled multi-event video generation.
+\newblock \emph{arXiv preprint arXiv:2412.05263}, 2024.
+
+\bibitem[Xi et~al.(2025)Xi, Yang, Zhao, Xu, Li, Li, Lin, Cai, Zhang, Li,
+  et~al.]{xi2025sparse}
+H.~Xi, S.~Yang, Y.~Zhao, C.~Xu, M.~Li, X.~Li, Y.~Lin, H.~Cai, J.~Zhang, D.~Li,
+  et~al.
+\newblock Sparse videogen: Accelerating video diffusion transformers with
+  spatial-temporal sparsity.
+\newblock \emph{arXiv preprint arXiv:2502.01776}, 2025.
+
+\bibitem[Xia et~al.(2025)Xia, Ling, Fu, Wang, Li, Xiao, and
+  Cui]{xia2025trainingfree}
+Y.~Xia, S.~Ling, F.~Fu, Y.~Wang, H.~Li, X.~Xiao, and B.~Cui.
+\newblock Training-free and adaptive sparse attention for efficient long video
+  generation, 2025.
+
+\bibitem[Xiao et~al.(2025)Xiao, Lan, Zhou, Ouyang, Yang, Zeng, and
+  Pan]{xiao2025worldmemlongtermconsistentworld}
+Z.~Xiao, Y.~Lan, Y.~Zhou, W.~Ouyang, S.~Yang, Y.~Zeng, and X.~Pan.
+\newblock Worldmem: Long-term consistent world simulation with memory, 2025.
+\newblock URL \url{https://arxiv.org/abs/2504.12369}.
+
+\bibitem[Xie et~al.(2024{\natexlab{a}})Xie, Chen, Chen, Cai, Tang, Lin, Zhang,
+  Li, Zhu, Lu, et~al.]{xie2024sana}
+E.~Xie, J.~Chen, J.~Chen, H.~Cai, H.~Tang, Y.~Lin, Z.~Zhang, M.~Li, L.~Zhu,
+  Y.~Lu, et~al.
+\newblock Sana: Efficient high-resolution image synthesis with linear diffusion
+  transformers.
+\newblock \emph{arXiv preprint arXiv:2410.10629}, 2024{\natexlab{a}}.
+
+\bibitem[Xie et~al.(2024{\natexlab{b}})Xie, Tang, Tan, Klein, Bissyand, and
+  Ezzini]{xie2024dreamfactory}
+Z.~Xie, D.~Tang, D.~Tan, J.~Klein, T.~F. Bissyand, and S.~Ezzini.
+\newblock Dreamfactory: Pioneering multi-scene long video generation with a
+  multi-agent framework.
+\newblock \emph{arXiv preprint arXiv:2408.11788}, 2024{\natexlab{b}}.
+
+\bibitem[Yang et~al.(2024)Yang, Zhan, Wang, Wang, Ge, Zheng, and
+  Jin]{yang2024synchronized}
+D.~Yang, C.~Zhan, Z.~Wang, B.~Wang, T.~Ge, B.~Zheng, and Q.~Jin.
+\newblock Synchronized video storytelling: Generating video narrations with
+  structured storyline.
+\newblock \emph{arXiv preprint arXiv:2405.14040}, 2024.
+
+\bibitem[Yin et~al.(2023)Yin, Wu, Yang, Wang, Wang, Ni, Yang, Li, Liu, Yang,
+  et~al.]{yin2023nuwa}
+S.~Yin, C.~Wu, H.~Yang, J.~Wang, X.~Wang, M.~Ni, Z.~Yang, L.~Li, S.~Liu,
+  F.~Yang, et~al.
+\newblock Nuwa-xl: Diffusion over diffusion for extremely long video
+  generation.
+\newblock \emph{arXiv preprint arXiv:2303.12346}, 2023.
+
+\bibitem[Yin et~al.(2024{\natexlab{a}})Yin, Gharbi, Park, Zhang, Shechtman,
+  Durand, and Freeman]{yin2024improved}
+T.~Yin, M.~Gharbi, T.~Park, R.~Zhang, E.~Shechtman, F.~Durand, and W.~T.
+  Freeman.
+\newblock Improved distribution matching distillation for fast image synthesis.
+\newblock \emph{arXiv preprint arXiv:2405.14867}, 2024{\natexlab{a}}.
+
+\bibitem[Yin et~al.(2024{\natexlab{b}})Yin, Gharbi, Zhang, Shechtman, Durand,
+  Freeman, and Park]{yin2024one}
+T.~Yin, M.~Gharbi, R.~Zhang, E.~Shechtman, F.~Durand, W.~T. Freeman, and
+  T.~Park.
+\newblock One-step diffusion with distribution matching distillation.
+\newblock In \emph{CVPR}, 2024{\natexlab{b}}.
+
+\bibitem[Yin et~al.(2024{\natexlab{c}})Yin, Zhang, Zhang, Freeman, Durand,
+  Shechtman, and Huang]{yin2024slow}
+T.~Yin, Q.~Zhang, R.~Zhang, W.~T. Freeman, F.~Durand, E.~Shechtman, and
+  X.~Huang.
+\newblock From slow bidirectional to fast causal video generators.
+\newblock \emph{arXiv preprint arXiv:2412.07772}, 2024{\natexlab{c}}.
+
+\bibitem[Yu et~al.(2024)Yu, Duan, Hur, Sargent, Rubinstein, Freeman, Cole, Sun,
+  Snavely, Wu, and Herrmann]{yu2024wonderjourney}
+H.-X. Yu, H.~Duan, J.~Hur, K.~Sargent, M.~Rubinstein, W.~T. Freeman, F.~Cole,
+  D.~Sun, N.~Snavely, J.~Wu, and C.~Herrmann.
+\newblock Wonderjourney: Going from anywhere to everywhere.
+\newblock In \emph{CVPR}, 2024.
+
+\bibitem[Yu et~al.(2025)Yu, Duan, Herrmann, Freeman, and Wu]{yu2025wonderworld}
+H.-X. Yu, H.~Duan, C.~Herrmann, W.~T. Freeman, and J.~Wu.
+\newblock Wonderworld: Interactive 3d scene generation from a single image.
+\newblock In \emph{CVPR}, 2025.
+
+\bibitem[Yu et~al.(2022)Yu, Luo, Zhou, Si, Zhou, Wang, Feng, and
+  Yan]{yu2022metaformer}
+W.~Yu, M.~Luo, P.~Zhou, C.~Si, Y.~Zhou, X.~Wang, J.~Feng, and S.~Yan.
+\newblock Metaformer is actually what you need for vision.
+\newblock In \emph{Proceedings of the IEEE/CVF conference on computer vision
+  and pattern recognition}, pages 10819--10829, 2022.
+
+\bibitem[Zhang et~al.(2024)Zhang, Huang, Zhang, Wei, Zhu, and
+  Chen]{zhang2024sageattention2}
+J.~Zhang, H.~Huang, P.~Zhang, J.~Wei, J.~Zhu, and J.~Chen.
+\newblock Sageattention2: Efficient attention with thorough outlier smoothing
+  and per-thread int4 quantization, 2024.
+\newblock URL \url{https://arxiv.org/abs/2411.10958}.
+
+\bibitem[Zhang et~al.(2025{\natexlab{a}})Zhang, Wei, Zhang, Zhu, and
+  Chen]{zhang2025sageattention}
+J.~Zhang, J.~Wei, P.~Zhang, J.~Zhu, and J.~Chen.
+\newblock Sageattention: Accurate 8-bit attention for plug-and-play inference
+  acceleration.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2025{\natexlab{a}}.
+
+\bibitem[Zhang et~al.(2025{\natexlab{b}})Zhang, Xiang, Huang, Wei, Xi, Zhu, and
+  Chen]{zhang2025spargeattn}
+J.~Zhang, C.~Xiang, H.~Huang, J.~Wei, H.~Xi, J.~Zhu, and J.~Chen.
+\newblock Spargeattn: Accurate sparse attention accelerating any model
+  inference, 2025{\natexlab{b}}.
+\newblock URL \url{https://arxiv.org/abs/2502.18137}.
+
+\bibitem[Zhang et~al.(2025{\natexlab{c}})Zhang, Chen, Su, Ding, Stoica, Liu,
+  and Zhang]{zhang2025sta}
+P.~Zhang, Y.~Chen, R.~Su, H.~Ding, I.~Stoica, Z.~Liu, and H.~Zhang.
+\newblock Fast video generation with sliding tile attention,
+  2025{\natexlab{c}}.
+
+\bibitem[Zhao et~al.(2024{\natexlab{a}})Zhao, Liu, Wang, Chen, Wang, Chen,
+  Zhang, and Shen]{zhao2024moviedreamer}
+C.~Zhao, M.~Liu, W.~Wang, W.~Chen, F.~Wang, H.~Chen, B.~Zhang, and C.~Shen.
+\newblock Moviedreamer: Hierarchical generation for coherent long visual
+  sequence.
+\newblock \emph{arXiv preprint arXiv:2407.16655}, 2024{\natexlab{a}}.
+
+\bibitem[Zhao et~al.(2024{\natexlab{b}})Zhao, Fang, Liu, Rui, Soedarmadji, Li,
+  Lin, Dai, Yan, Yang, et~al.]{zhao2024vidit}
+T.~Zhao, T.~Fang, E.~Liu, W.~Rui, W.~Soedarmadji, S.~Li, Z.~Lin, G.~Dai,
+  S.~Yan, H.~Yang, et~al.
+\newblock Vidit-q: Efficient and accurate quantization of diffusion
+  transformers for image and video generation.
+\newblock \emph{arXiv preprint arXiv:2406.02540}, 2024{\natexlab{b}}.
+
+\bibitem[Zheng et~al.(2025)Zheng, Huang, Liu, Zou, He, Zhang, Zhang, He, Zheng,
+  Qiao, and Liu]{zheng2025vbench2}
+D.~Zheng, Z.~Huang, H.~Liu, K.~Zou, Y.~He, F.~Zhang, Y.~Zhang, J.~He, W.-S.
+  Zheng, Y.~Qiao, and Z.~Liu.
+\newblock {VBench-2.0}: Advancing video generation benchmark suite for
+  intrinsic faithfulness.
+\newblock \emph{arXiv preprint arXiv:2503.21755}, 2025.
+
+\bibitem[Zhou et~al.(2025)Zhou, Yang, Yang, He, Peng, Qiu, Dai, Qiu, Luo, and
+  Liu]{zhou2025hitvideo}
+Z.~Zhou, Y.~Yang, Y.~Yang, T.~He, H.~Peng, K.~Qiu, Q.~Dai, L.~Qiu, C.~Luo, and
+  L.~Liu.
+\newblock Hitvideo: Hierarchical tokenizers for enhancing text-to-video
+  generation with autoregressive large language models.
+\newblock \emph{arXiv preprint arXiv:2503.11513}, 2025.
+
+\end{thebibliography}

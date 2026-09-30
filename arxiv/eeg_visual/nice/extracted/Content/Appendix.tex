@@ -1,0 +1,278 @@
+\subsection{Sanity Check}
+In this work, we perform 200-way zero-shot tasks.
+Here, we provide an experimental chance by shuffling pairs to compare with the ideal chance of 0.5\% in Table~\ref{tab:4}.
+The experimental chance is close to the ideal chance, and is significantly lower than the performance of the NICE model (\textit{p}\ \textless\ 0.001). 
+% In this study, we conducted 200-way zero-shot tasks and established an experimental chance level, as presented in Table~\ref{tab:1}, for comparison with the ideal chance level of 0.5\%. The experimental chance level closely aligns with the ideal chance level and is notably lower than the performance achieved by the NICE model (\textit{p}\ \textless\ 0.001).
+\label{sec:appendA0}
+\begin{table}[ht]
+  \caption{Chance level of the experiments}
+  \label{tab:4}
+  \small
+  % \scriptsize
+  \centering
+\begin{tabular}{lcc}
+   \toprule
+   Condition & Top-1 (\%) & Top-5 (\%) \\
+   \midrule
+   ideal chance & 0.5 & 2.5 \\
+   experimental chance & 0.3 & 2.3 \\
+   NICE & 13.8 & 39.5 \\
+   % in concepts & 11.5 & 34.9 \\
+   \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Better encoders}
+\label{sec:appendA1}
+
+The adaptability of the NICE framework extends to any other well-designed EEG or image encoders, as shown in Table~\ref{tab:3}.
+We further present results utilizing EVA-CLIP \cite{sun2023evaclip} pre-trained with LAION-2B as the image encoder in Table~\ref{tab:5}. The enhancements in both overall top-1 (\textit{p} < 0.001) and top-5 (\textit{p} < 0.01) accuracy are surprising.
+The results further show the potential of this task and hint at the consistency of large pre-trained models and brain responses.
+Beyond that, we recommend not solely focusing on overall performance, but the specific insight gained.
+\begin{table}[ht]
+  \caption{Overall accuracy (\%) with EVA-CLIP image encoder: top-1 and top-5}
+  \label{tab:5}
+  \centering
+  \Huge
+\resizebox{\linewidth}{!}{
+  \begin{tabular}{lcccccccccccccccccccccc}
+    \toprule
+    & \multicolumn{2}{c}{Subject 1} & \multicolumn{2}{c}{Subject 2} & \multicolumn{2}{c}{Subject 3} & \multicolumn{2}{c}{Subject 4} & \multicolumn{2}{c}{Subject 5} & \multicolumn{2}{c}{Subject 6} & \multicolumn{2}{c}{Subject 7} & \multicolumn{2}{c}{Subject 8} & \multicolumn{2}{c}{Subject 9} & \multicolumn{2}{c}{Subject 10} & \multicolumn{2}{c}{Ave} \\
+    \cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7} \cmidrule(r){8-9} \cmidrule(r){10-11} \cmidrule(r){12-13} \cmidrule(r){14-15} \cmidrule(r){16-17} \cmidrule(r){18-19} \cmidrule(r){20-21} \cmidrule(r){22-23}
+    % \cmidrule{2-23} 
+    Method & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 & top-1 & top-5 \\
+    \midrule
+    \textbf{NICE} & 17.8 & 44.2 & 14.6 & 39.4 & 19.1 & 48.9 & 20.8 & 52.2 & 11.3 & 36.9 & 19.1 & 48.7 & 21.0 & 49.5 & 26.9 & 59.5 & 16.0 & 45.2 & 20.3 & 51.7 & 18.7 & 47.6 \\  
+    \textbf{NICE - SA} & 17.1 & 45.4 & 15.3 & 44.2 & 17.4 & 49.0 & 22.1 & 52.0 & 15.6 & 42.4 & 21.1 & 50.5 & 23.4 & 52.5 & 26.3 & 58.8 & 18.3 & 49.1 & 22.1 & 53.5 & 19.9 & 49.7 \\
+    \textbf{NICE - GA} & 19.8 & 46.7 & 19.6 & 44.7 & 19.8 & 51.5 & 25.7 & 54.5 & 13.2 & 39.2 & 23.4 & 54.1 & 22.7 & 52.9 & 26.8 & 58.9 & 17.8 & 47.1 & 23.6 & 53.9 & \multicolumn{1}{>{\columncolor{green!10}}c}{21.2} & \multicolumn{1}{>{\columncolor{green!10}}c}{50.4} \\
+    \bottomrule
+  \end{tabular}}
+\end{table}
+
+\subsection{Comparison of Pre-training}
+\label{sec:appendA2}
+We employed pre-trained models as the image encoder for two reasons: 
+1) Pre-trained models like CLIP and ViT possess extensive feature extraction capabilities gained from large-scale training. 
+We sought to leverage these models to enhance the EEG model, trained on a smaller dataset. 
+2) Training the image encoder demands substantial computational resources. 
+In our current pre-trained setup, one GPU with 8GB memory yields a well-trained EEG encoder for one subject in 5 minutes.
+
+We conducted additional experiments without pre-trained image encoders in Table~\ref{tab:6}, training the randomly initialed image encoder and the EEG encoder simultaneously.
+ViT-B/16 and ResNet-50 were used as examples. 
+CLIP also relies on ViT-L, but with more layers than ViT-B (24 vs. 12), impeding completion. 
+In the scenario with non-pre-trained, we observed that although training loss reduced rapidly, validation loss demonstrated a weaker decline, which is a sign of limited generalization. 
+During testing, pre-trained ViT outperformed (\textit{p} < 0.01) non-pre-trained models. 
+Pre-trained ResNet decreased by 1.9\% (\textit{p} < 0.05) instead, hinting at avenues of refining the image encoder to enhance overall performance.
+But still, training the image encoder imposes a significant computational load. 
+We should mention that the decrease in computational cost actually comes from the freezing of the pre-trained image encoder and getting image features beforehand. 
+
+% Fine-tuning the pre-trained image model while training the EEG encoder may be another way to improve the overall performance.
+
+\begin{table}[h]
+  \caption{Comparison of pre-trained and non-pre-trained image encoders}
+  \label{tab:6}
+  \small
+  % \footnotesize
+  % \scriptsize
+  \centering
+  \begin{threeparttable}
+\begin{tabular}{lccccc}
+   \toprule
+   Image Enc & Top-1 (\%) & Top-5 (\%) & Params. & Memory & Time per subject \\
+   \midrule
+   ViT & 7.9 & 18.5 & 88.0 M & $\sim$154 G & $\sim$ 130 min \\
+   ViT* (frozen) & 12.1 & 29.4 & 1.8 M & $\sim$8 G & $\sim$5 min \\
+   ResNet & 8.8 & 17.3 & 25.3 M & $\sim$112 G & $\sim$60 min \\
+   ResNet* (frozen) & 6.9 & 11.8 & 1.8 M &  $\sim$8 G & $\sim$5 min \\
+   \bottomrule
+\end{tabular}
+      \begin{tablenotes}
+        \item[*]pre-trained ResNet-50 and ViT-B/16. The image features were obtained before training.  
+    \end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\subsection{Spatial Module Interpretation}
+\label{sec:appendA3}
+\begin{figure}[h]
+  \centering
+\includegraphics[width=1\linewidth]{Fig/Fig5.png}
+  \caption{(A) Grad-CAM for self-attention (SA) and graph attention (GA) modules of individual subjects and the average across subjects. 
+  (B) Attention weights of SA and GA with individual subjects and the average across subjects. 
+  The visualizations highlight the regions of interest, focusing on the temporal and occipital brain areas, which are known to be associated with visual processing.}
+  \label{fig:5}
+\end{figure}
+% \subsubsection{Features Captured by Spatial Modules}
+We provide Grad-CAMs and attention weights of all subjects in Fig.~\ref{fig:5}. 
+These visualizations show the alleviation of prefrontal region influence—often tied to cognitive behavior like workload and memory—by both SA and GA. 
+Intriguingly, GA focuses on the occipital region, integral to visual processing, across multiple subjects. 
+SA appears adept at capturing temporal region activities associated with high-level visual processing. 
+% In this way, we use the model interpretation to reversely illustrate that EEG responses can perceive brain activity on occipital and temporal areas, associated with object recognition.
+Our model interpretation demonstrates that EEG responses can capture and reveal brain activity in the occipital and temporal areas, which are strongly associated with object recognition processes. 
+This provides implicit evidence for the effectiveness of EEG-based object recognition, and further validates the plausibility of our approach.
+
+\subsection{Parameter Sensitivity}
+\label{sec:appendA4}
+The temperature parameter (\(\tau\)) in contrastive learning plays a crucial role in shaping the similarity distribution. 
+In our implementation, we optimized this temperature directly as a log-parameterized multiplicative scalar during training, similar to the CLIP model. 
+To explore the impact of temperature settings, we conducted a series of comparisons, and the results are presented in Table~\ref{tab:7}. These comparisons demonstrate the significant influence of temperature adjustments on the results.
+Besides, our pre-experiments help determine some conventional parameters such as batch size, decay, etc.
+
+\begin{table}[h]
+  \caption{Comparison of the temperature parameter in contrastive learning}
+  \label{tab:7}
+  \small
+  % \footnotesize
+  \centering
+\begin{tabular}{lccccccccc}
+   \toprule
+   Temperature & learnable & 0.001 & 0.005 & 0.01 & 0.03 & 0.05 & 0.1 & 0.5 \\
+   \midrule
+   Top-1 (\%) & 13.8 & 12.4 & 13.45 & 15.8 & 15.2 & 14.7 & 12.1 & 10.5 \\
+   signif. (p) & - & >.05 & >.05 & <.01 & <.01 & <.05 & <.01	& <.001 \\
+   \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{MEG Experiments}
+\label{sec:appendA5}
+
+We provided analysis on an additional MEG dataset \cite{hebart2023thingsdata} to corroborate the results on EEG data.
+The MEG dataset of four participants has 271 channels and more stable responses with a long stimulus duration of 500 ms followed by a blank screen of 1000\(\pm\)200 ms.
+There are 1854 concepts\(\times\)12 images\(\times\)1 repetitions in the training stage and 200 concepts\(\times\)1 image\(\times\)12 repetitions in the test stage.
+We discarded 200 test concepts from the training set to construct the zero-shot task.
+The MEG data were epoched into trials from 0 to 1000 ms after the stimuli onset.
+We used a band-pass filter of [0.1, 100] Hz and baseline correction after down-sampling to 200 Hz for preprocessing.
+We averaged all MEG repetitions of one image to ensure the signal-to-noise ratio.
+Note that the statistical analysis was not performed on the MEG dataset due to the few participants.
+\begin{table}[htpb]
+\caption{Overall accuracy (\%) of 200-way zero-shot classification and retrieval on MEG data}
+\label{tab:8}
+\small
+% \footnotesize
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}{clcccccccccc}
+    \toprule
+    & & \multicolumn{2}{c}{Sub 1} & \multicolumn{2}{c}{Sub 2} & \multicolumn{2}{c}{Sub 3} & \multicolumn{2}{c}{Sub 4} & \multicolumn{2}{c}{Ave} \\
+    \cmidrule(r){3-4} \cmidrule(r){5-6} \cmidrule(r){7-8} \cmidrule(r){9-10} \cmidrule(r){11-12} 
+    % \cmidrule{2-23} 
+    Task & Method & Top-1 & Top-5 & Top-1 & Top-5 & Top-1 & Top-5 & Top-1 & Top-5 & Top-1 & Top-5 \\
+    \midrule
+    \multirow{3}{*}{classification} 
+    & NICE & 6.9 & 20.5 & 15.3 & 37.1 & 12.3 & 35.0 & 5.8 & 21.1 & \textbf{10.1} & \textbf{28.4} \\
+    & w/ SA & 7.3 & 22.6 & 13.1 & 37.1 & 10.2 & 30.2 & 8.3 & 24.5 & 9.7 & 28.6 \\ 
+    & w/ GA & 6.4 & 23.4 & 16.2 & 40.8 & 14.0 & 38.9 & 6.4 & 25.2 & 10.8 & 32.1 \\
+    \midrule
+    \multirow{3}{*}{retrieval} 
+    & NICE & 9.6 & 27.8 & 18.5 & 47.8 & 14.2 & 41.6 & 9.0 & 26.6 & \textbf{12.8} & \textbf{36.0} \\
+    & w/ SA & 9.8 & 28.1 & 18.6 & 46.4 & 10.5 & 38.4 & 11.7 & 27.2 & 12.7 & 35.0 \\
+    & w/ GA & 8.7 & 30.5 & 21.8 & 56.6 & 16.5 & 49.7 & 10.3 & 32.3 & 14.3 & 42.3 \\
+    \bottomrule 
+\end{tabular}}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=1\linewidth]{Fig/Fig6.png}
+  \caption{Temporal, spatial, spectral analysis of MEG data. 
+  (A) Topographies of each 100 ms by averaging training trials. 
+  (B) Averaged accuracy with different time lengths.
+  (C) Averaged accuracy of different brain regions (not ablation here for clarity).
+  (D) Time-frequency maps of the occipital, temporal, and parietal data from one subject. 
+  (E) Averaged accuracy of different rhythms.}
+  \label{fig:6}
+\end{figure}	
+
+% \subsubsection{Classification and Retrieval}
+% \subsubsection{Temporal, Spatial, and Spectral Dynamics}
+Classification and retrieval tasks with the MEG dataset have been conducted with the NICE framework in Table~\ref{tab:8}. 
+A similar 200-way zero-shot classification showed above-chance performance on MEG data with an average top-1 accuracy of 10.1\% and top-5 accuracy of 28.4\%.
+Besides, we provided the results on a retrieval task, which meant directly using the stimulus images for matching templates instead of other images belonging to the concepts.
+The spatial module GA could still help with the results, but SA varied across individuals.
+It is worth noting that a more suitable encoder for extracting MEG features should help with the performance \cite{benchetrit2023brain}.
+Moreover, we roughly conducted the temporal, spatial, and spectral analysis of MEG data in Fig.~\ref{fig:6}.
+The results were similar to Fig.~\ref{fig:2}, while the temporal responses changed because of the longer stimuli duration.
+
+\subsection{EEG Encoder Comparison}
+\label{sec:appendA6}
+The residual connection \cite{he2016deepa} was used with SA and GA modules to stabilize the training procedure. 
+We compared the effect of the residual connection in Table~\ref{tab:9}. 
+It can be seen that it significantly helped GA in top-1 accuracy (p<0.01) but no significance for SA (p > 0.05). 
+
+The EEG encoder TSConv in our framework has a concise architecture consisting of basic temporal and spatial convolutional layers.
+We compared the details in Table~\ref{tab:10} because the design was similar to ShallowNet \cite{schirrmeister2017deepa}.
+The comparison encompassed several issues, including the kernel size, pooling order, and activation function.
+All three cases caused a significant effect on the top-1 accuracy compared to TSConv (p < 0.01). 
+Besides, we provided the number of parameters and the output dimension within different EEG encoders in Table~\ref{tab:11}.
+We believe that other well-designed EEG feature extractors can help us improve the performance in this framework.
+\begin{figure}[b]
+  \centering
+  \includegraphics[width=1\linewidth]{Fig/Fig7.png}
+  \caption{t-SNE visualization of four categories: animal, food, vehicle, and tool. 
+  (A) Visual feature distribution of the training and test sets.
+  (B) EEG feature distribution of the training and test sets.}
+  \label{fig:7}
+\end{figure}	
+
+\begin{table}[htpb]
+\caption{Residual connection comparison for spatial modules}
+\label{tab:9}
+\small
+% \footnotesize
+\centering
+\begin{tabular}{clcc}
+    \toprule
+    Module & Res & Top-1 (std) & Top-5 (std) \\
+    \midrule
+    \multirow{2}{*}{SA} 
+    & w/ res & 14.7 (2.3) & 41.7 (4.6) \\
+    & w/o res & 13.8 (2.8) & 39.6 (5.7) \\ 
+    \midrule
+    \multirow{2}{*}{GA} 
+    & w/ res & 15.6 (2.9) & 42.8 (5.5) \\
+    & w/o res & 10.1 (3.2) & 29.9 (5.3) \\
+    \bottomrule 
+\end{tabular}
+\end{table}
+
+\begin{table}[htpb]
+\caption{Comparison of the architecture of TSConv}
+\label{tab:10}
+\small
+\centering
+\begin{tabular}{lcc}
+    \toprule
+    Condition & Top-1 (std) & Top-5 (std) \\
+    \midrule
+    original ShallowNet & 7.9 (4.3) & 24.2 (9.3) \\
+    kernel size as ShallowNet & 9.9 (2.4) & 33.5 (5.4) \\ 
+    pooling order & 10.9 (3.0) & 34.3 (7.2) \\
+    ELU->ReLU & 11.0 (2.5) & 33.3 (6.6) \\
+    TSConv & 13.8 (3.3) & 39.5 (6.5) \\
+    \bottomrule 
+\end{tabular}
+\end{table}
+
+\begin{table}[htpb]
+\caption{Details of different EEG encoders}
+\label{tab:11}
+\small
+\centering
+\begin{tabular}{lcc}
+    \toprule
+    EEG encoder & Params & Out dim \\
+    \midrule
+    ShallowNet & 102.0 k & 440 \\
+    DeepNet & 303.3 k & 1400 \\ 
+    Conformer & 161.2 k & 1440 \\
+    EEGNet & 12.8 k & 1248 \\
+    TSConv & 102.0 k & 1440 \\
+    \bottomrule 
+\end{tabular}
+\end{table}
+
+\subsection{Features Distribution}
+\label{sec:appendA7}
+We plotted t-SNE \cite{maaten2008visualizinga} in Fig.~\ref{fig:7} to show the distribution variance between training and test sets with visual and EEG features separately, to be a supplement of the RSA in Fig.~\ref{fig:3}.
+Four categories, animal, food, vehicle, and tool, were selected for the visualization, which revealed why we could achieve zero-shot performance after training with rich data. 

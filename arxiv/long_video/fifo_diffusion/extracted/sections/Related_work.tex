@@ -1,0 +1,36 @@
+% !TEX root = ./../main.tex
+
+\section{Related work}
+\label{sec:related_work}
+This section discusses existing diffusion-based generative models for videos including long video generation techniques.
+
+\subsection{Video diffusion models}
+\label{subsec:vdm}
+Diffusion models, originally developed for high-quality image synthesis, have become a prominent approach in video generation~\citep{chen2023videocrafter1,ho2022video,singer2022make,zhou2022magic,wang2023modelscope}.
+VDM~\citep{ho2022video} modifies the structure of U-Net~\citep{ronneberger2015unet} and proposes a 3D U-Net architecture to incorporate temporal information for denoising. 
+On the other hand, Make-A-Video~\citep{singer2022make} employs a 1D temporal convolution layer following a 2D spatial convolutional layer to approximate 3D convolution.
+This design enables the model to capture visual-textual relationships by training spatial layers with image-text pairs before incorporating temporal context through 1D temporal layers. 
+Recently, \citep{peebles2023dit} introduce a transformer architecture,  known as DiT, for diffusion models.
+Additionally, several open-sourced text-to-video models have emerged~\citep{wang2023modelscope,chen2023videocrafter1,wang2023lavie,chen2024videocrafter2}, trained on large-scale text-image and text-video datasets.
+
+
+\subsection{Long video generation}
+\label{subsec:long_vdm}
+
+Long video generation approaches typically involve training models to predict future frames sequentially~\citep{voleti2022mcvd,harvey2022flexible,blattmann2023align, chen2023seine}. or generate a set of frames in a hierarchical manner~\citep{he2022latent,yin2023nuwa}.
+For instance, Video LDM~\citep{blattmann2023align} and MCVD~\citep{voleti2022mcvd} employ autoregressive techniques to sequentially predict frames given several preceding ones, while FDM~\citep{harvey2022flexible} and SEINE~\citep{chen2023seine} generalize masked learning strategies for both prediction and interpolation.
+Autoregressive methods are capable of producing indefinitely long videos in theory, but they often suffer from quality degradation due to error accumulation and limited temporal consistency across frames.
+Alternatively, NUWA-XL~\citep{yin2023nuwa} adopts a hierarchical approach, where a global diffusion model generates sparse key frames with local diffusion models filling in frames using the key frames as references. 
+However, this hierarchical setup requires batch processing, making it unsuitable for generating infinitely long videos. 
+
+There are a few training-free long video generation techniques.
+Gen-L-Video~\citep{wang2023genl} treats a video as overlapped short clips and introduces temporal co-denoising, which averages multiple predictions for one frame.
+FreeNoise~\citep{qiu2023freenoise} employs window-based attention fusion to sidestep the limited attention scope issue and proposes local noise shuffle units for the initialization of long video.
+FreeNoise requires memory proportional to the video length for the computation of cross, limiting its scalability for generating infinitely long videos.
+
+\subsection{Diffusion models with latents of different noise levels}
+Recent studies have adopted diffusion models for sequence generation by leveraging a sliding window approach with temporally varying noise levels~\citep{zhang2024tedi,ruhe2024rolling}.
+These methods train diffusion models from scratch to accommodate latents with different noise levels, addressing tasks such as motion generation~\citep{zhang2024tedi} and video prediction~\citep{ruhe2024rolling}. 
+However, training diffusion models from scratch introduces significant computational costs, especially for text-to-video generation tasks. 
+In contrast, our approach is a training-free inference technique based on the standard diffusion models, trained on latents with uniform noise, for sequence generation within the sliding window framework. 
+While \citep{ruhe2024rolling} is implemented with a nested loop to deal with two different axes corresponding to video frame index and diffusion time step, FIFO-Diffusion combines these two dimensions using a 1D queue, improving efficiency with a single loop.

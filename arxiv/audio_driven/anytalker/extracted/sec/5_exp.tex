@@ -1,0 +1,157 @@
+\section{Experiments}
+\label{sec:exp}
+%Comment
+
+
+%\subsection{Dataset}
+%\label{subsec:dataset}
+\noindent \textbf{Dataset.} 
+We expand single-person datasets~\cite{zhang2021flow, xie2022vfhq, cui2025hallo3, zhu2022celebv, chung2018voxceleb2} with internet-collected data, yielding roughly 1,000 hours for first-stage training, and also gather two-person conversation clips for the second-stage training, retaining only about 12 hours after filtering.
+Evaluations are conducted on two types of benchmarks: (i) standard talking-head benchmarks HDTF~\cite{zhang2021flow} and VFHQ~\cite{xie2022vfhq}, and (ii) our self-collected multi-person conversation dataset (head-and-body, both identities speak).  
+We then select 20 videos from each benchmark, rigorously ensuring that their identities do not appear in the training set.
+% Further details are provided in the supplementary material.
+
+%\subsection{Experiment Settings}
+\label{subsec:metric}
+
+\noindent \textbf{Implement Details.}
+To comprehensively evaluate our method, we train two models of different sizes: Wan2.1-1.3B-Inp and Wan2.1-I2V-14B~\cite{wan2025wan}, which serve as the foundational video diffusion models for our experiments. 
+In all stages, the text~\cite{raffel2020exploring}, audio~\cite{baevski2020wav2vec}, and image~\cite{radford2021learning} encoders, as well as the 3D VAE, remain frozen.
+The DiT main network, including the newly added AFCA layers, has all its parameters open for training. 
+Stage 1 pretrains at $2 \times 10^{-5}$ learning rate; stage 2 fine-tunes at $5 \times 10^{-6}$.
+All models are optimized with AdamW~\cite{loshchilov2017decoupled} on 32 NVIDIA H200 GPUs.
+% The 14B model is trained using 32 NVIDIA H200 GPUs.
+% In the first stage, the global batch size is set to 32, and the model is trained for 2.4M steps. 
+% In the second stage, the batch size is adjusted to 16, and the model is trained for an additional 50K steps.
+% The 1.3B model is trained using 8 NVIDIA H200 GPUs. 
+% The global batch size is maintained at 48 throughout training, and the total number of training steps matches that of the 14B model.
+
+\noindent \textbf{Evaluation Metrics.}
+For the single-person benchmark, we employ several commonly used metrics: the Fréchet Inception Distance (FID)~\cite{heusel2017gans} and the Fréchet Video Distance (FVD)~\cite{unterthiner2019fvd} to assess the quality of the generated data, Sync-C~\cite{chung2016out} to measure the synchronization between audio and lip movements, and ID similarity~\cite{deng2019arcface} calculated between the first frame and the remaining frames.
+
+For the multi-person benchmark, we evaluate from different dimensions. 
+The newly introduced metric, termed \textit{Interactivity}, serves as the primary metric for assessment. 
+For the FVD metric, the calculation is similar to that in the single-person benchmark. 
+For the Sync-C metric, we refine its calculation as Sync-C$^{*}$ to focus only on the lip synchronization during each character's speaking periods, thereby avoiding the influence of long listening segments on the final lip synchronization score, specifically,
+\begin{equation}
+\text{Sync-C}^{*} = \frac{L_1 \cdot \text{Sync-C}_{L1} + L_4 \cdot \text{Sync-C}_{L4}}{L_1 + L_4}.
+\end{equation}
+Here, $L_1$ and $L_4$ denotes the speaking phases depicted in~\cref{fig:time}.
+
+\noindent \textbf{Comparsion Methods.}
+We compare AnyTalker with several state-of-the-art talking video generation methods.
+For single-person generation, we compare with AniPortrait~\cite{wei2024aniportrait}, EchoMimic~\cite{chen2025echomimic}, Hallo3~\cite{cui2025hallo3}, Sonic~\cite{ji2025sonic}, FantasyTalking~\cite{wang2025fantasytalking}, StableAvatar~\cite{tu2025stableavatar}, OmniHuman-1.5~\cite{jiang2025omnihuman}, and MultiTalk~\cite{kong2025let}.
+For multi-person generation, we choose Bind-Your-Avatar~\cite{huang2025bind} and MultiTalk~\cite{kong2025let} for quantitative and qualitative comparison.
+
+
+\subsection{Comparison with SOTA methods}
+% In this section, we comprehensively evaluate AnyTalker's ability to achieve a perfect balance among lip synchronization, video quality, and multi-person interactivity through both qualitative and quantitative experiments.
+\noindent \textbf{Quantitative Comparison.}
+To begin with, we compare AnyTalker with several single-person generation methods to verify its excellent single-person driving capability. 
+The quantitative results are shown in~\cref{tab:single-benchmark}. 
+Despite not being specifically designed for driving talking faces, AnyTalker achieves the best or competitive results across all metrics. 
+Moreover, the 1.3B model of AnyTalker significantly outperforms AniPortrait~\cite{wei2024aniportrait}, EchoMimic~\cite{chen2025echomimic}, and StableAvatar~\cite{tu2025stableavatar} in terms of lip synchronization, even though they have a similar number of parameters. 
+These results demonstrate the excellent and comprehensive driving capabilities of the AnyTalker framework.
+
+Subsequently, we evaluate AnyTalker's ability to drive multiple IDs while maintaining both accurate lip synchronization and natural interactivity using the multi-person dataset, InteractiveEyes, described in~\cref{subsec:metric}, along with relevant metrics. 
+In this comparison, we contrast AnyTalker with the available open-source multi-person driving methods, MultiTalk~\cite{kong2025let} and Bind-Your-Avatar~\cite{huang2025bind}. 
+The results depicted in~\cref{tab:multi-benchmark} demonstrate that both the 1.3B and 14B models of AnyTalker achieve the best performance in terms of the \textbf{Interactivity} metric.
+Additionally, the 14B model achieves the best results across all metrics, thereby validating the effectiveness of our proposed training pipeline.  
+We further illustrate AnyTalker's capability to generate videos rich in interactivity through quantitative evaluation.
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{fig/qualitative.pdf}
+    \caption{
+    Qualitative comparison of multiple multi-person driving methods. 
+    With the same text prompt, reference images, and multiple audio streams as input, we compare the generation results of Bind-Your-Avatar, MultiTalk, and AnyTalker. 
+    The left case uses the input image from the InteractiveEyes dataset, while the right case uses the image produced by a text-to-image generative model~\cite{kolors}.
+    }
+    \label{fig:qualitative}
+\end{figure*}
+
+\noindent \textbf{Qualitative Comparsion.}
+We then select an authentic human input from the InteractiveEyes dataset and use an input generated by an AIGC mode~\cite{kolors}, both accompanied by corresponding text prompts and dual audio streams, to conduct a quantitative evaluation comparison using Bind-Your-Avatar~\cite{huang2025bind}, MultiTalk~\cite{kong2025let}, and AnyTalker. 
+As shown in~\cref{fig:qualitative}, AnyTalker generates more natural videos with eye and head interactions compared to the other methods. 
+MultiTalk exhibits weaker eye interaction, while Bind-Your-Avatar tends to produce more static expressions. 
+This trend further validates the effectiveness of the Interactivity metric proposed in~\cref{subsec:metric}. 
+AnyTalker not only generates natural, two-person interactive speaking scenarios but also scales well to multiple IDs, as demonstrated in~\cref{fig:teaser}, where it effectively handles interactions among four IDs.
+The qualitative results of the single-person benchmarks~\cite{zhang2021flow, xie2022vfhq} will be included in the supplementary material.
+
+
+\begin{table}[t]
+    \centering
+    \caption{
+        Ablation study about AnyTalker's components on the HDTF dataset using the 1.3B model.
+        ``Baseline'' denotes the model equipped solely with the basic audio attention layers. 
+        ``AFCA'' indicates the inclusion of the Audio-Face Cross Attention mechanism. 
+        ``Single'' indicates that authentic multi-person data is not utilized in this stage.
+    }
+    \small
+    \begin{tabular}{cccccc}
+        \toprule
+        \multirow{2}{*}{\textbf{Setting}} & \multicolumn{4}{c}{\textbf{Metrics}} \\
+        \cmidrule(lr){2-5}
+        & \textbf{Sync-C$\uparrow$} & \textbf{FID} & \textbf{FVD} & \textbf{ID$\uparrow$} \\
+        \midrule
+        Baseline & 5.42 & \textbf{13.01} & \underline{170.96} & \underline{0.90} \\
+        w/o AFCA & \underline{6.71} & 14.97 & 207.47 & 0.88 \\
+        w/o Mask Token & 5.84 & 14.81 & 193.78 & 0.89 \\
+        w/o Concatenated Data & 6.21 & \underline{14.73} & 202.01 & \textbf{0.91} \\
+        AnyTalker-1.3B (Single) & \textbf{6.97} & 15.58 & \textbf{166.27} & \textbf{0.91} \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:ab-component}
+\end{table}
+
+\subsection{Ablation Study}
+\label{subsec:ab}
+
+\noindent \textbf{Components.}
+We conduct ablation studies on the three important components mentioned in~\cref{fig:method}, including Audio-Face Cross Attention, Mask Token for attention output, and concatenated multi-person data.
+Starting from the full 1.3B model in the first stage, which utilizes only single-person data, we progressively remove the relevant components to evaluate their impact on lip synchronization, generation quality, and identity similarity in the generated videos. 
+% The results are shown in~\cref{tab:ab-component}. 
+% Each component plays a significant role in each evaluation dimension, especially the Concatenated Multi-Person Data, which greatly enhances lip movement accuracy. 
+The results in~\cref{tab:ab-component} show that every component plays a significant role, with concatenated multi-person data most beneficial to lip-movement accuracy.
+Although the completed model in the initial phase exhibits a marginally higher FID score compared to the Baseline model, we attribute this to the Baseline model's propensity for generating talking videos with minimal facial expressions or head movements. 
+Conversely, the completed model generates more dynamic actions, which inherently influence the FID calculation to some degree. 
+We regard this trade-off as a natural consequence of the model's design. Furthermore, the completed model demonstrates superior performance over the Baseline model across other evaluation metrics. 
+Crucially, the first-stage model already has the basic capability to drive multiple individuals, a feature that the Baseline model lacks.
+
+\begin{table}[t]
+    \centering
+    \small
+    \caption{
+        Ablation studies conducted on the InteractiveEyes dataset using the 1.3B model. 
+        ``RS'' denotes the use of authentic single-person data in the first stage. 
+        ``CM'' indicates concatenated multi-person data in the first stage. 
+        ``RM'' represents authentic multi-person data in the second stage.
+    }
+    \begin{tabular}{cccccc}
+        \toprule
+        \multicolumn{3}{c}{\textbf{Setting}} & \multicolumn{3}{c}{\textbf{Metrics}} \\
+        \cmidrule(lr){1-3} \cmidrule(lr){4-6}
+        \textbf{RS} & \textbf{CM} & \textbf{RM} & \textbf{Interactivity$\uparrow$}& \textbf{Sync-C$^{*}$$\uparrow$} & \textbf{FVD}  \\
+        \midrule
+        $\times$ & $\checkmark$ & $\times$ & 0.55 & 3.21 & 672.18  \\
+        $\checkmark$ & $\times$ & $\times$ & 0.47 & 4.13 & 475.31  \\
+        $\checkmark$ & $\checkmark$ & $\times$ & 0.58 & \textbf{4.89} & \textbf{393.86}  \\
+        \midrule
+        $\checkmark$ & $\times$ & $\checkmark$ & \underline{0.71} & 3.63 & 511.51 \\
+        $\checkmark$ & $\checkmark$ & $\checkmark$ & \textbf{0.97} & \underline{4.56} & \underline{467.84}  \\
+        \bottomrule
+    \end{tabular}
+    \label{tab:ab-data}
+\end{table}
+
+
+
+\noindent \textbf{Multi-Person Data.}
+Subsequently, we focus on multi-person data and conduct more targeted ablation experiments on the InteractiveEyes benchmark. 
+In the first stage, we create concatenated multi-person data using single-person data. As shown in~\cref{tab:ab-data}, models utilizing this concatenated data outperform those without it across all evaluation dimensions, especially in lip synchronization and interactivity, highlighting the role of concatenated data in learning multi-person speaking patterns. 
+It is worth noting that the results in the first row of the table also demonstrate the necessity of mixing single-person data in the first stage; otherwise, the generated results would be unstable.
+
+After fine-tuning with authentic multi-person data, models that use concatenated data in the first stage demonstrate even more superior performance, further proving their early adaptation to multi-person speaking patterns. 
+Although fine-tuning with authentic multi-person data leads to a slight decrease in lip synchronization, it significantly improves interactivity, which we consider a reasonable trade-off.
+

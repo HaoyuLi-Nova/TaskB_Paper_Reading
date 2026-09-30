@@ -1,0 +1,20 @@
+\paragraph{Zero-Redundant Communication Primitives.}\label{sec:magiattn_comm}
+
+
+
+The existing ring-style implementation uses point-to-point \texttt{send}/\texttt{recv} communication primitives, which cannot provide sufficient communication granularity, resulting in redundant communication. Take causal mask as an example, we analyze the redundant communication by recording the distribution of remote key-value ($\mathrm{KV}$) requests and their gradients ($\mathrm{dKV}$) under sparse attention masks. As shown in Fig~\ref{fig:ring-p2p-redundancy}, $\mathrm{KV}_0$ is required by all queries and should be sent to all devices via Broad-Cast in the forward pass, with $\mathrm{dKV}_0$ reduced via All-Reduce in the backward pass. In contrast, $\mathrm{KV}_7$ is only needed by its host device but still circulates through all devices, and this redundancy intensifies in varlen scenarios.
+
+
+
+To address this, we introduce two communication primitives: \texttt{group-cast} and \texttt{group-reduce}, which model the communication patterns of low-demand $\mathrm{KV}$ and $\mathrm{dKV}$ (Fig~\ref{fig:group-gather-reduce-all2allv}). For example, in the causal mask, $\mathrm{KV}_5$ on $\mathrm{rank}_2$ is required only by $\{\mathrm{Q}_6,\mathrm{Q}_7\}$ and should be sent exclusively to the target ranks $\{\mathrm{rank}_0, \mathrm{rank}_1\}$ via \texttt{group-cast}, while the partial $\mathrm{dKV}_5$ is collected and reduced back to $\mathrm{rank}_2$ via \texttt{group-reduce} accordingly.
+
+As no existing communication kernels support these primitives, we prototype them using \texttt{all-to-all-v} (Fig~\ref{fig:group-gather-reduce-all2allv}), achieving zero-redundant communication in both forward and backward passes. However, this approach introduces extra pre-/post-processing overhead, similar to (un)permutation in expert parallelism (EP)~\citep{gale2022megablocks}. While kernel fusion mitigates the overhead, a dedicated implementation of \texttt{group-cast} and \texttt{group-reduce} remains a key direction for future work.
+
+
+
+
+
+
+
+
+

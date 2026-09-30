@@ -1,0 +1,156 @@
+\tikzstyle{my-box}=[
+    rectangle,
+    draw=hidden-draw,
+    rounded corners,
+    text opacity=1,
+    minimum height=2em,
+    minimum width=5em,
+    inner sep=2pt,
+    align=center,
+    fill opacity=.5,
+    line width=0.8pt,
+]
+\tikzstyle{leaf}=[my-box, minimum height=2em,
+    fill=white!80, text=black, align=left,font=\normalsize,
+    inner xsep=2pt,
+    inner ysep=4pt,
+    line width=0.8pt,
+]
+\begin{figure*}[!t]
+    \centering
+    \resizebox{0.85\textwidth}{!}{
+        \begin{forest}
+            forked edges,
+            for tree={
+                grow=east,
+                reversed=true,
+                anchor=base west,
+                parent anchor=east,
+                child anchor=west,
+                base=left,
+                font=\large,
+                rectangle,
+                draw=hidden-draw,
+                rounded corners,
+                align=left,
+                minimum width=6em,
+                edge+={edgesgrey, line width=1pt},
+                s sep=20pt,
+                inner xsep=5pt,
+                inner ysep=5pt,
+                line width=0.8pt,
+                ver/.style={rotate=90, child anchor=north, parent anchor=south, anchor=center},
+            },
+            where level=1{text width=13em,font=\normalsize,}{},
+            where level=2{text width=10em,font=\normalsize,}{},
+            where level=3{text width=8.2em,font=\normalsize,}{},
+            where level=4{text width=8.2em,font=\normalsize,}{},
+            [
+                \textbf{Long-Video}\\\textbf{Generation}\\~(\S \ref{sec:taxonomy})
+                        , my-box, text width=11em
+                    [
+                    \textcolor{grapefruit}{\textbf{Keyframes-to-Video}}\\~(\S \ref{sec:arch-keyframe})
+                    [
+                        \textcolor{bluecolor}{\quad MovieAgent}~\cite{movieagent2025}{, }
+                        \textcolor{bluecolor}{\quad StoryDiffusion}~\cite{zhou2024storydiffusion}{, }\\
+                        \textcolor{bluecolor}{\quad KeyVID}~\cite{wang2025keyvid}{, }
+                        \textcolor{bluecolor}{\quad I2VGen-XL}~\cite{zhang2023i2vgenxl}{, }\\
+                        \textcolor{bluecolor}{\quad AutoStory}~\cite{liu2023autostory}{, }
+                        \textcolor{bluecolor}{\quad StableVideoDiffusion}~\cite{ho2023svd}{ }
+                        , leaf, text width=22em
+                    ]
+                ]
+                [
+                    \textcolor{orange}{\textbf{Discrete Temporal Chunks}}\\~(\S \ref{sec:arch-chunks})
+                    [
+                        \textcolor{bluecolor}{\quad MAGI-1}~\cite{teng2025magi1}{, }
+                        \textcolor{bluecolor}{\quad Ca2-VDM}~\cite{gao2024ca2vdm}{, }
+                        \textcolor{bluecolor}{\quad SEINE}~\cite{chen2023seine}{ }
+                        , leaf, text width=22em
+                    ]
+                ]
+                [
+                    \textcolor{magenta}{\textbf{High Compression}}\\~(\S \ref{sec:arch-compression})
+                    [
+                        \textcolor{bluecolor}{\quad FramePack}~\cite{zhang2025framepack}{, }
+                        \textcolor{bluecolor}{\quad LTX-Video}~\cite{hacohen2025ltxvideo}{, }\\
+                        \textcolor{bluecolor}{\quad Open-Sora Plan}~\cite{lin2024opensoraplan}{, }
+                        \textcolor{bluecolor}{\quad PyramidFlow}~\cite{jin2024pyramidflow}{ }
+                        , leaf, text width=22em
+                    ]
+                ]
+                [ 
+                    \textcolor{grass}{\textbf{Flattened 3D Space-Time}}\\\textcolor{grass}{\textbf{(One-Shot)}}\\~(\S \ref{sec:arch-one-shot})
+                    [
+                        \textcolor{grass}{\textbf{Foundational}}\\\textcolor{grass}{~(\S \ref{sec:arch-found})}
+                        [
+                            \textcolor{bluecolor}{\quad HunyuanVideo}~\cite{kong2024hunyuanvideo}{, }
+                            \textcolor{bluecolor}{\quad WAN2.1}~\cite{wan2025}{, }\\
+                            \textcolor{bluecolor}{\quad Open-Sora2.0}~\cite{peng2025opensora2}{, }
+                            \textcolor{bluecolor}{\quad VACE}~\cite{vace2025}{, }\\
+                            \textcolor{bluecolor}{\quad MAGVIT-v2}~\cite{yu2023magvitv2}{, }
+                            \textcolor{bluecolor}{\quad Lumiere}~\cite{bartal2024lumiere}{, }\\
+                            \textcolor{bluecolor}{\quad VideoDiffusionModels}~\cite{ho2022vdm}{ }
+                            , leaf, text width=20em
+                        ]
+                    ]
+                    [
+                        \textcolor{grass}{\textbf{Single-Subject}}\\\textcolor{grass}{\textbf{Personalization}}\\~(\S \ref{sec:arch-single})
+                        [
+                            \textcolor{bluecolor}{\quad MovieGen}~\cite{polyak2024moviegen}{, }
+                            \textcolor{bluecolor}{\quad Phantom}~\cite{liu2025phantom}{, }\\
+                            \textcolor{bluecolor}{\quad CogVideoX}~\cite{yang2024cogvideox}{, }
+                            \textcolor{bluecolor}{\quad DreamVideo}~\cite{gao2023dreamvideo}{, }\\
+                            \textcolor{bluecolor}{\quad AnimateDiff}~\cite{gu2023animatediff}{ }
+                                , leaf, text width=20em
+                        ]
+                    ]
+                    [
+                        \textcolor{grass}{\textbf{Multi-Subject}}\\\textcolor{grass}{\textbf{Personalization}}\\~(\S \ref{sec:arch-one-multi})
+                        [
+                            \textcolor{bluecolor}{\quad VideoAlchemist}~\cite{chen2025videoalchemist}{, }
+                            \textcolor{bluecolor}{\quad SkyReels-v2}~\cite{chen2025skyreelsv2}{, }\\
+                            \textcolor{bluecolor}{\quad ConceptMaster}~\cite{huang2025conceptmaster}{, }
+                            \textcolor{bluecolor}{\quad HunyuanCustom}~\cite{hu2025hunyuancustom}{ }
+                                , leaf, text width=20em
+                        ]
+                    ]
+                    [
+                        \textcolor{grass}{\textbf{Multi-Shot Narrative}}\\\textcolor{grass}{\textbf{Planning}}\\~(\S \ref{sec:arch-narrative})
+                        [
+                            \textcolor{bluecolor}{\quad Seedance}~\cite{gao2025seedance}{, }
+                            \textcolor{bluecolor}{\quad StepVideo}~\cite{huang2025stepvideo}{, }\\
+                            \textcolor{bluecolor}{\quad SkyReels-v2}~\cite{chen2025skyreelsv2}{ }
+                                , leaf, text width=20em
+                        ]
+                    ]
+                ]
+                [
+                    \textcolor{mint}{\textbf{Token-Stream}}\\\textcolor{mint}{\textbf{Autoregressive-Token}}\\~(\S \ref{sec:arch-token})
+                    [
+                        \textcolor{bluecolor}{\quad Loong}~\cite{wang2024loong}{, }
+                        \textcolor{bluecolor}{\quad VideoPoet}~\cite{singer2023videopoet}{ }
+                        , leaf, text width=22em
+                    ]
+                ]
+                [
+                    \textcolor{lavender}{\textbf{Closed Source}}\\~(\S \ref{sec:arch-closed})
+                    [ 
+                        \textcolor{bluecolor}{\quad Veo3}~\cite{deepmind2025veo3}{, }
+                        \textcolor{bluecolor}{\quad Pika 2.2}~\cite{pika1p5}{, }
+                        \textcolor{bluecolor}{\quad Kling2.1}~\cite{kling2p1}{, }\\
+                        \textcolor{bluecolor}{\quad Seedance}~\cite{gao2025seedance}{, }
+                        \textcolor{bluecolor}{\quad MovieGen}~\cite{polyak2024moviegen}{, }
+                        \textcolor{bluecolor}{\quad Sora}~\cite{openai2024sora}{, }\\
+                        \textcolor{bluecolor}{\quad Minimax Hailuo-02}~\cite{hailuo2025}{, }
+                        \textcolor{bluecolor}{\quad RunWay Gen3}~\cite{runwaygen3}{ }
+                        , leaf, text width=22em
+                    ]
+                ]
+            ]
+        \end{forest}
+    }
+    \caption{Architectural taxonomy of long-video generation methods. These trees were selected because together they span the key axes of temporal decomposition, compression, personalization scope, narrative structure, and openness that govern modern long-video synthesis.  \textcolor{grapefruit}{\textbf{(a) Keyframes-to-Video:}} two-stage generating images as keyframes followed by motion pipelines that scale to minute-long clips \textcolor{orange}{\textbf{(b) Discrete Temporal Chunks:}} constant-memory, parallel decoding of N-frame blocks \textcolor{magenta}{\textbf{(c) High Compression:}} heavy latent down-sampling for real-time, low-power inference \textcolor{grass}{\textbf{(d) Flattened 3D One-Shot:}} end-to-end full-tensor synthesis: 1. Foundational: joint spatiotemporal prior for fixed-length clips; 2. Single-Subject: adapters for identity consistency and faithful individual likeness; 3. Multi-Subject: dedicated per-entity fusion modules for coherent multi-character scenes; 4. Multi-Shot: shot-level segmentation for structured scene planning \textcolor{mint}{\textbf{(e) Token-Stream Autoregressive:}} unified text-video token decoding with maximal modality flexibility \textcolor{lavender}{\textbf{(f) Closed-Source:}} proprietary systems that set the current quality ceiling.
+    }
+    \label{fig:main-taxonomy}
+\end{figure*}

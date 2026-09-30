@@ -1,0 +1,21 @@
+\begin{abstract}
+% Abstract goes here.
+% Learning realistic talking related motion from audio remains a big challenge for single image face animation. 
+% Capturing a natural talking video is costly since human makes mistake. We consider to generate it through a single face image and a piece of speech audio. 
+Generating talking head videos through a face image and a piece of speech audio still contains many challenges. \ie, unnatural head movement, distorted expression, and identity modification. We argue that these issues are mainly because of learning from the coupled 2D motion fields. On the other hand, explicitly using 3D information also suffers problems of stiff expression and incoherent video.
+% Previous works have achieved great success on producing face motions of high quality
+% Previous works produce unnatural head movements or distorted faces from the entangled 2D motion fields. 
+% We propose a new method to learn the 3D-aware motions coefficients for single image talking face animation. 
+We present SadTalker, which generates 3D motion coefficients~(head pose, expression) of the 3DMM from audio and implicitly modulates a novel 3D-aware face render for talking head generation.
+To learn the realistic motion coefficients, we explicitly model the connections between audio and different types of motion coefficients individually. Precisely, we present ExpNet to learn the accurate facial expression from audio by distilling both coefficients and 3D-rendered faces. 
+% We achieve this by distilling the predicted expression coefficients from the real talking video.
+As for the head pose, we design PoseVAE via a conditional VAE to synthesize head motion in different styles. 
+% Our key observation is to learn the realistic 3D motion coefficients~(head pose and expression) of the 3DMM explicitly, and then, generating the talking head videos with the driven of these coefficients. % To learn the realistic motion coefficients, 
+% we propose PoseVAE and ExpNet relying on the coefficients of the reference image. Both ExpNet and PoseVAE learn the audio-visual correspondences by distilling the knowledge from the visual domain.
+Finally, the generated 3D motion coefficients are mapped to the unsupervised 3D keypoints space of the proposed face render, and synthesize the final video.
+% Finally, a novel semantic-guided render is proposed to produce the dense motions fields from 3DMM coefficients for final video generation. 
+We conducted extensive experiments to demonstrate the superiority of our method in terms of motion and video quality.
+
+\end{abstract}
+
+%. However, the head movement are often ignored in these approaches, which leads to unnatural talking animation. In this paper, we take a step forward on this problem, for the first time, enable realistic head motion and face expression generation. Precisely, for head pose, we design a VAE-based architecture taking into account audio and a initial head pose as a seed, to produce stylized head motion. For face expression, we leverage several lip-related perceptual losses to learn synchronized mouth shape from audio. Both motions are represented in 3DMM motion coefficients and generated in a disentangled fashion. We further propose a novel semantic-guided render to generate photo-realistic face animation. 

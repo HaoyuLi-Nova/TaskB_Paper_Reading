@@ -1,0 +1,87 @@
+\subsubsection{Ablations} %
+\label{sec:ablations_t2v}
+
+\input{tables/ablations_t2v}
+
+
+Here, we ablate the critical design decisions for \OursVideo.
+For all ablations described in this section, we use a simpler, smaller baseline training and model setup than used for the main results.
+We analyze the effect of each design decision quantitatively via text-to-video human evaluation on a subset of \textToVBenchmarkName containing 381 prompts, termed \textToVBenchmarkMiniName, and report results on text faithfulness and overall quality (see~\cref{T2V_model_evaluation}).
+For each ablation, every aspect of the model except for the design decision being tested is held constant for fair comparison.
+Next, we describe the simpler baseline setup followed by each ablation result.
+Unless described otherwise here, all other settings for the ablation experiments follow our $30$B model including text encoders, flow matching objective, image training set, \etc.
+
+\noindent\textbf{Baseline model setup for ablations.}
+We use a $5$B parameter version of \OursVideo trained to produce $352\times192$ videos of $4$ -- $8$s.
+We use the \taeShort described in~\cref{sec:tae}, which does $8\times$ compression across every spatio-temporal dimension to produce latents of shape $16 \times 24\times 44$.
+This smaller \OursVideo model has $32$ layers in the transformer with $3072$ embedding dimension and $24$ heads.
+
+\noindent\textbf{Baseline training setup for ablations.}
+We use a two-stage training pipeline: (1) \textToI pretraining; (2) \textToI and \textToV joint training.
+For simplicity, we used a smaller dataset of 21M videos, captioned with \llamaVideo $8$B, that have a constant landscape aspect ratio for video training.
+First, we train the model on the image dataset with a learning rate of $0.0003$, a global batch size of $9216$ on $512$ GPUs for $96$K iterations.
+Next, we perform joint \textToI and \textToV training with an iteration ratio of $0.02:1$ where the global batch size is $4096$ for images and $256$ for videos.
+We use a learning rate of 5e-5 and train for $100$K iterations.
+
+
+\noindent\textbf{Ablation Result - Training objective.}
+We compare the \flowmatching training objective to the diffusion training objective.
+Following~\citep{emuvideo2023}, we use the v-pred and zero terminal-SNR formulation of diffusion for training which is effective for video generation.
+As the human evaluation results in~\cref{tab:ablate_t2v_training_objective} show, \flowmatching leads to better generations both in terms of overall quality and text alignment while controlling for all other factors.
+Empirically, we also found this result to also hold across a range of model sizes and thus use \flowmatching to train our models.
+
+
+\noindent\textbf{Ablation Result - Effect of video captions.}
+As described in \ref{sec:pt-data}, our video generation model is trained using clips from real videos and \llamaVideo generated video clip captions.
+To assess the importance of video captions, we compare our \llamaVideo 8B video captioning model to an image-based captioning scheme also based on \llamaNoVersion.
+This image-based captioning model captions the first, middle, and last frame of the video clip and then uses \llamaNoVersion to rewrite these three image-based captions into a single video caption.
+We refer to this model as \llamaRewrite.
+We first compare the quality of the two captioning schemes with human evaluations based A/B testing.
+Human raters are asked to pick between two given captions for the same clip.
+\llamaVideo generated captions are preferred $67\%$ of the time while \llamaRewrite captions are only preferred $15\%$ of the time.
+We visually observe that the video captioning model is able to accurately describe more fine-grained details regarding movements in the video.
+These fine-grained details provide a stronger supervision signal for training the video generation model,
+significantly improving overall prompt alignment by $10.8\%$ (\cref{tab:ablate_t2v}),
+with most of the increase coming from motion alignment ($+10.7\%$) particularly on prompts that require ask for a high degree of motion in the output video ($+16.1\%$).
+
+\noindent\textbf{Ablation Result - Model architecture.}
+In our work, we choose a transformer architecture based on \llama (see~\cref{t2v_architecture_details}).
+We compare this to a Diffusion Transformer~\citep{dit} based model, which is commonly used in the media generation literature~\citep{dit,sora,ma2024latte}.
+The architecture differences between these two models can be seen in~\cref{tab:ablation_architecture_details}.
+As shown in~\cref{tab:ablate_t2v_architecture}, we find that our \llama based architecture significantly outperforms the Diffusion Transformer on both quality (18.6\%) and text-alignment (12.6\%).
+This significant result shows that the \llama architecture has an advantage over the commonly used DiT for media generation.
+Our goal with \OURS is to scale to large model sizes, and to the best of our knowledge we find no detailed examples in the literature of scaling the Diffusion Transformer to very large scales.
+This result demonstrates that we can confidently transition from the commonly used Diffusion Transformer to architectures more commonly used in LLMs such as \llama, the scaling behavior of which has been well documented~\citep{llama2,llama3}.
+
+\noindent\textbf{Ablation Result - Model scaling behavior.}
+To further understand the impact of our model architecture, we evaluate its scaling behavior. We experiment with four different instantiations of our model: 5B, 9B, 17B, and 30B. We train the 256px T2I stage for each of these models for varying amounts of compute, from $10^{22}$ to $1.7\times 10^{22}$ FLOPs. We use the same training data and hyperparameters as for the other ablation experiments for all models. We measure the validation loss for each compute budget for each model size, and plot it in~\cref{fig:ablation_scaling} (left). We fit the measured loss values using a second-degree polynomial, giving rise to the IsoFLOP curves shown in the figure. We identify the minimums of each parabola (represented in the figure using ``$\times$''), and refer to it as the compute-optimal model at the corresponding compute budget. We then plot these compute optimal models and corresponding compute budgets on~\cref{fig:ablation_scaling} (right). We overlay the scaling law for \llama~\citep{llama3} on this graph, and surprisingly, find that these optimal models align very closely with the \llama scaling law. We posit this scaling behavior of our model is likely due to the use of the \llama based transformer architecture. Most notably, this result suggests that \llama scaling laws may serve as a reasonable predictor of model sizes and compute budgets, even for media generation models.
+
+\begin{table}[t]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{cccccc}
+    \toprule
+     & Normalization & Normalization eps & Normalization Affine & Activation Function & Bias in FC layers \\
+    \midrule
+    \OURS & RMSNorm  & 1e-5 &  True & SwiGLU & No	\\
+    DiT & LayerNorm  & 1e-6 & False & SiLU & Yes  \\
+    \bottomrule
+    \end{tabular}}%
+    \caption{\textbf{Architecture differences between \OURS's \llama architecture and DiT.} All other hyperparameters remain equal for the architecture ablation.}
+    \label{tab:ablation_architecture_details}
+\end{table}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\textwidth]{figures/foundation_model/scaling.pdf}
+    \captionof{table}{\label{fig:ablation_scaling}
+    {\bf (Left) IsoFLOP curves} showing validation performance of different model sizes at different levels of compute. We compute the optimal model size for a given compute budget as the minima of the parabolas, represented using $\times$.
+    {\bf (Right) Comparison to \llama scaling law.} We plot the optimal model size against the compute budget. We also overlay the scaling law as estimated in \llama~\citep{llama3}. Surprisingly, we find that our data points
+    align very closely with the \llama scaling law, suggesting that it may serve as a reasonable predictor of model sizes and compute budgets, even for media generation models.
+    }
+\end{figure}
+
+
+
+
+

@@ -1,0 +1,25 @@
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=\linewidth]{figures/audio/MovieGen_Audio_Extension.pdf}
+    \caption{\textbf{\mvga{} extension diagram.} A user provides a video (\eg, 58s), and audio caption for each video chunk (\eg, 20s). Starting from the second chunk, the model takes not only the video chunk and the caption, but also a segment from the previously generated audio (\eg, the last 5s) in order to generate a new chunk that is coherent with the previous one.
+    }
+    \label{fig:audio_sys}
+\end{figure}
+
+In order to generate soundtracks for variable duration of videos, we build
+a single model that can perform both \textit{audio generation} given a video,
+and \textit{audio extension} given a video with partially generated audio.
+We aim to generate up to 30 seconds of audio in a single shot,
+and allow the model to utilize extension to generate audio of arbitrary lengths.
+\cref{fig:audio_sys} illustrates the process for long-form video generation.
+
+We enable audio extension by training the model to perform masked audio prediction,
+where the model predicts the audio target given the whole video and its surrounding audio.
+The surrounding audio can be empty (\ie, audio generation),
+before or after the target audio (\ie, audio extension in either direction),
+or around the target (\ie, audio infilling).
+Audio infilling is useful for fixing small segments that contains artifacts or unwanted sound effects.
+
+Lastly, for sound design purposes, users would often want to specify what and how acoustic events should be added to the video,
+such as deciding what on-screen sounds to emphasize, what off-screen sounds to add, whether there is background music, and what style to generate for the music.
+To provide users more control, we enable text prompting.

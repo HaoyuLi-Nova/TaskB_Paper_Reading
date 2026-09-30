@@ -1,0 +1,66 @@
+
+\clearpage
+\setcounter{page}{1}
+\maketitlesupplementary
+
+\section{EEG Data Preprocessing}
+
+In this section, we introduce the details of EEG preprocessing pipeline. During data acquisition, static 3D image and dynamic 3D video stimuli were preceded by a marker to streamline subsequent data processing. 
+The continuous EEG recordings were subsequently preprocessed using MNE \cite{gramfort2013meg}. The data were segmented into fixed-length epochs (1s for static stimuli and 6s for dynamic stimuli), time-locked to stimulus onset, with baseline correction achieved by subtracting the mean signal amplitude during the pre-stimulus period. The signals were downsampled from 1000 Hz to 250 Hz, and a bandpass filter (0.1–100 Hz) was applied in conjunction with a 50 Hz notch filter to mitigate noise. To normalize signal amplitude variability across channels, multivariate noise normalization was employed \cite{guggenmos2018multivariate}. Consistent with established practices \cite{li2024visual}, two stimulus repetitions were treated as independent samples during training to enhance learning, while testing involved averaging across four repetitions to improve the signal-to-noise ratio, following principles similar to those used in Event-Related Potential (ERP) analysis \cite{sur2009event}.
+
+\section{Evaluation Metrics for Reconstruction Benchmark}
+
+To assess the quality of the generated outputs, we adopt the N-way, top-K metric, a standard approach in 2D image decoding \cite{li2024visual,chen2024cinematic,chen2023seeing}. For 2D image evaluation, a pre-trained ImageNet1K classifier is used to classify both the generated images and their corresponding ground truth images. Similarly, we utilize data from Objaverse \cite{deitke2023objaverse} to pre-train a PointNet++ model \cite{qi2017pointnet++}. To ensure classifier reliability, the network is trained on all Objaverse data with category labels, excluding the test set used in our study. The point cloud data corresponding to the 3D objects is sourced from \cite{xu2023pointllm}. During evaluation, both the generated point clouds and their corresponding ground truth point clouds are classified using the trained network. The results are then analyzed to confirm whether the reconstructed object is correctly identified within the top K categories among N selected.
+For the efficiency of evaluation, we utilize data from the first five subjects to train and evaluate the reconstruction model.
+Moreover, a distinct feature of the diffusion model is its dependence on initialization noise, which can influence the generated outputs. We perform five independent inferences for each object and compute the average N-way, top-K metric across these runs. Additionally, to capture the potential best-case performance, we identify the optimal result based on the classifier's predicted scores across the five inferences and compute the N-way, top-K metric. 
+
+\section{Analysis of Individual Difference}
+
+\begin{figure}[t]
+  \centering
+  \begin{subfigure}{0.9\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figure/cls-all-v3.pdf} 
+    \caption{Object Classification}
+    \label{fig_areas1}
+  \end{subfigure}
+
+  \begin{subfigure}{0.85\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{figure/color-all-v3.pdf}
+    \caption{Color Classification}
+    \label{fig_areas2}
+  \end{subfigure}
+  \caption{The results of individual analysis. (a) presents the top-1 and top-5 accuracies for the object classification task across 12 subjects, while (b) depicts the top-1 and top-2 accuracies for the classification task. The \textcolor{blue}{blue} line in each panel indicates chance-level performance, and the \textcolor{red}{red} line represents the average performance across all subjects. }
+  \label{fig_individual}
+  \vspace{-0.4cm}
+\end{figure}
+
+\begin{figure*}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{figure/picture_result_suppl_v3.pdf} 
+    \caption{More results reconstructed by Neuro-3D with different samplings trials, and the corresponding ground truth. The sampling variations arise either from results obtained across different subjects or from inference outputs of the diffusion model for the same subject using distinct noise initializations.}
+    \label{fig-more}
+\end{figure*}
+
+We present the performance variability across individuals on two classification tasks, as illustrated in Fig. \ref{fig_individual}. On both tasks, individual performance consistently exceeds chance level, demonstrating that EEG signals encode visual perception information and that our method effectively extracts and utilizes this information for decoding. Notably, performance varies across tasks for the same individual. For instance, participant $S12$ performs significantly below average in object classification but achieves above-average results in color classification, suggesting distinct neural mechanisms underlying the processing of different visual attributes and their representation in EEG signals.
+
+Furthermore, it has been widely confirmed that EEG signal has substantial individual variations \cite{gibson2022eeg,saha2020intra,huang2023discrepancy}. As shown in Fig. \ref{fig_individual}, significant differences are observed between individuals performing the same task, particularly in object classification, where $S03$ and $S11$ exhibit superior performance, while $S08$, $S09$ and $S12$ fall markedly below average. Similar variability is observed in the color classification, albeit to a lesser extent. These results verify the pronounced inter-subject differences in EEG signals and highlight a critical challenge for cross-subject EEG visual decoding, where performance remains suboptimal. Addressing this variability is a key focus for future research.
+\vspace{-0.1cm}
+\section{More Reconstructed Samples}
+\vspace{-0.1cm}
+Additional reconstructed results alongside their corresponding ground truth point clouds are presented in Fig. \ref{fig-more}. The proposed Neuro-3D framework exhibits robust performance, effectively capturing semantic categories, shape details, and the overall color of various objects.
+\vspace{-0.1cm}
+\section{Analysis of Failure Cases}
+\vspace{-0.1cm}
+Fig. \ref{fig-failure} illustrates representative failure cases, categorized into two principal types: inaccuracies in detailed shape prediction and semantic reconstruction errors. Despite these limitations, certain features of the stimulus objects, including shape contours and color information, are partially preserved in the displayed reconstructed images. 
+These shortcomings primarily arise from the inherent challenges of the low signal-to-noise ratio and limited spatial resolution of EEG signals, which constrain the performance of 3D object reconstruction. Addressing these issues presents a promising direction for future improvement.
+
+\newpage
+\vspace{0.2cm}
+\begin{figure}[!h]
+	\centering
+	\includegraphics[width=1.0\columnwidth]{figure/fail_case-v2.pdf} 
+	\caption{Failure cases. (a) highlights reconstructions with significant loss of fine details, while (b) demonstrates several instances of incorrect semantic category prediction.}
+	\label{fig-failure}
+\end{figure}

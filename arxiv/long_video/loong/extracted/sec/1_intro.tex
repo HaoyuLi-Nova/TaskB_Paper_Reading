@@ -1,0 +1,36 @@
+\section{Introduction}
+
+
+\vspace{-10pt}
+
+Over the past few years, video generation models, including diffusion-based ones~\cite{video-diffusion-models,gen1_paper,make-a-video,bar2024lumiere,MakePixelsDance,girdhar2023emu,zhou2022magicvideo,wang2024magicvideo} and language model based approaches~\cite{yan2021videogpt,kondratyuk2023videopoet}, have shown impressive results in generating short videos of a few seconds.
+%However, most previous approaches fail to generate content-rich and dynamic long videos on the scale of several minutes.
+To capture more comprehensive content, it is desirable to generate long videos with consistent appearance, larger motion dynamics, and natural scene transitions.
+Despite recent works~\cite{wang2023gen_L,streamingt2v,openai2024sora} to generate long videos with diffusion-based video generators, generating content-rich long videos on the scale of minutes remains largely underexplored and challenging.
+
+
+Autoregressive large language models (LLMs) have shown remarkable success in generating long and coherent text sequences~\cite{radford2018improving, radford2019language, gpt3, reid2024gemini, touvron2023llama, touvron2023llama2}, demonstrating their ability to capture long-range dependencies and complex temporal patterns. 
+Inspired by the success of autoregressive LLMs in other modalities and their flexibility in unifying various modalities and tasks, recent works~\cite{yan2021videogpt,kondratyuk2023videopoet} have explored autoregressive language models for video generation.
+Those approaches map videos into discrete tokens and use text tokens as conditioning to generate the video tokens by next-token prediction with decoder-only transformers.
+State-of-the-art autoregressive LLM-based video generator~\cite{kondratyuk2023videopoet} can generate high-quality 2-second short video clips and iteratively extend to 10-second coherent videos.
+
+Despite demonstrating the ability of long sequence generation in NLP and being explored for short video generation, the potential of LLMs to generate minute-level, content-rich, and dynamic videos remains unexplored. In natural language processing, LLMs can be trained on long sequences and extended beyond the training length. However, we empirically observe that either training autoregressive LLMs on long video sequences or extending short video generators to generate long videos leads to unsatisfactory performance for minute-level video generation. A question arises: \textbf{\textit{What restricts the capability of autoregressive language models for generating long videos?}}
+
+
+
+We hypothesize that the main obstacles are the large redundancy and strong inter-frame dependency among video tokens.
+%Compared with text, video tokens exhibit stronger inter-frame dependencies. 
+The video tokens of the current frame depend heavily on the tokens of the previous frames, leading to two challenges for long video generation:
+(1) \textbf{\textit{Imbalanced loss during training.}} When trained with the next-token prediction objective, predicting early-frame tokens from text prompts is much more difficult than predicting late-frame tokens based on the ground-truth tokens of previous frames. The imbalanced difficulty levels of tokens lead to imbalanced loss during training. The issue becomes more severe as the video length increases, where the accumulated loss of many easy tokens largely surpasses the loss of a few difficult tokens and dominates the gradient direction.
+(2) \textbf{\textit{Error accumulation during inference.}} While the model predicts the next token conditioned on previous \textit{ground-truth} tokens during training, it has to predict the next token conditioned on previous \textit{predicted} tokens during inference. This training-inference discrepancy leads to error accumulation during inference. Because of the strong inter-frame dependency among video tokens and the large number of video tokens, such error accumulation is non-negligible and causes visual quality degradation for long video inference.
+
+
+In this work, we propose \textbf{\ours}, aiming to unleash the power of autoregressive language models to generate long videos in the scale of minutes. 
+Our autoregressive LLM-based video generator consists of two components: a video tokenizer that compresses videos into sequences of discrete video tokens, and an autoregressive LLM that models the unified sequence of text tokens followed by video tokens through next-token prediction.
+To mitigate the problem of imbalanced loss for long video training, we introduce a progressive short-to-long training strategy that gradually increases the training video length. We further propose loss re-weighting for early frames to prevent the model from being dominated by many easy tokens in the late frames. Moreover, we investigate inference strategies, including the video token re-encoding and sampling strategy, to further extend the video length by iteratively generating the next frames conditioned on previously generated frames. In order to enable training and inference with longer videos, we adopt low-resolution videos for the LLM-based video generator, and leverage a super-resolution and refinement module to further enhance the resolution and fine-grained details of the generated long videos.
+
+
+
+
+
+In summary, we propose \ours, a novel autoregressive LLM-based video generator that can generate content-rich, coherent, and dynamic long videos in the scale of minutes. Based on our observations and analysis of the issues that limit the power of LLMs for long video generation, we propose progressive short-to-long training with a loss weighting scheme to enable model training on 10-second videos. We further investigate inference strategies to extend the 10-second videos to minute-level videos by autoregressive generation strategies designed for long video inference. Our model demonstrates its ability in generating minute-level long videos through extensive experiments.

@@ -1,0 +1,20 @@
+\begin{table}[htb!]
+\centering
+\small
+\begin{tabular}{c|c|c|c|c}
+\toprule
+\multirow{2}{*}{\makecell[l]{\textbf{VAE}}}     & \multirow{2}{*}{\makecell[l]{\textbf{PSNR}}} & \multirow{2}{*}{\makecell[c]{\textbf{Params}\\\textbf{(M)}}} &  \multirow{2}{*}{\makecell[c]{\textbf{Avg Encode Time}\\\textbf{(ms)}}} & \multirow{2}{*}{\makecell[c]{\textbf{Avg Decode Time}\\\textbf{(ms)}}} \\ & & & &
+\\
+\midrule
+OpenSoraPlan-1.2~\citep{lin2024open} & 28.39         & 239       & 51.08           & 17.48                        \\ 
+CogVideoX~\citep{cogvideox}        & 35.99         & 216        &  40.19        & 142.96                        \\ 
+HunyuanVideo~\citep{kong2024hunyuanvideo}     & 37.27         & 246        &  124.39        & 47.11                        \\ 
+StepVideo~\citep{ma2025step}        & 33.75         & 499          &  30.47      & 18.12                         \\ 
+Wan2.1~\citep{wang2025wan}           & 35.95         & 127        &   51.91       & 79.43                        \\ 
+Ours             & 36.55         & 614         &  36.68       & 12.28                        \\
+\bottomrule
+\end{tabular}
+\vspace{0.5em}
+\caption{Comprehensive comparison of our VAE with other open-source approaches. Thanks to the optimized inference support of transformers, our VAE achieves the fastest decode speed under identical hardware conditions, despite having the largest model size.}
+\label{tab:vae_compare}
+\end{table}

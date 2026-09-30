@@ -1,0 +1,154 @@
+\section{UniVerse-1}
+
+\subsection{Preliminary}
+\label{sec:preliminary}
+
+% Our model is constructed upon the foundations of the Wan2.1 (1.3B parameters)~\cite{wan2025wan} text-to-video model and the Ace-step (3.5B parameters)~\cite{gong2025ace} music generation model. We will briefly introduce their respective architectures.
+
+% \LHC{
+Our model is constructed upon the foundations of the Wan2.1 (1.3B parameters)~\cite{wan2025wan} text-to-video model and the Ace-step (3.5B parameters)~\cite{gong2025ace} music generation model. Before delving into technical details, we will briefly introduce their respective architectures.
+% }
+
+
+% Wan2.1 is composed of three primary components: a 3D Variational Autoencoder (VAE), an umT5~\cite{chung2023unimax} text encoder, and a Diffusion Transformer (DiT). The 3D VAE compresses an input video of shape $(3, T, H, W)$ into a latent representation of shape $(16, T/t, H/h, W/w)$, where the temporal and spatial downsampling factors are $t=4$ and $h=w=8$, respectively. Prior to being input to the DiT, this latent tensor is patchified using a kernel of $(1, 2, 2)$, and the resulting tokens serve as the input sequence. The umT5 model encodes the text prompt, and its embeddings are injected into the DiT via cross-attention to condition the generation. The model is trained to predict the velocity, which is used in the denoising step to recover the clean latent. Finally, the 3D VAE's decoder reconstructs this latent into the final video.
+
+% \LHC{
+\textbf{Wan2.1 model.} Wan2.1 is composed of three primary components: a 3D Variational Autoencoder (VAE), an umT5~\cite{chung2023unimax} text encoder, and a Diffusion Transformer (DiT). The 3D VAE compresses an input video of shape $(3, T, H, W)$ into a latent representation of shape $(16, T/t, H/h, W/w)$, where the temporal and spatial downsampling factors are $t=4$ and $h=w=8$, respectively. Prior to being input to the DiT, this latent tensor is patchified using a kernel of $(1, 2, 2)$, and the resulting tokens serve as the input sequence. The umT5 model encodes the text prompt, and its embeddings are injected into the DiT via cross-attention to condition the generation. The model is trained to predict the velocity, which is used in the denoising step to recover the clean latent. Finally, the decoder of 3D VAE reconstructs this latent into the final video.
+% }
+
+% Ace-step consists of a Music-DCAE (Deep Compression Autoencoder)~\cite{chen2024deep}, an umT5 text encoder, a lyric encoder, a speaker encoder, and a DiT. The raw audio waveform is first converted into a mel spectrogram. The Music-DCAE then encodes the input spectrogram of shape $(8, T, F)$ into a latent representation of shape $(8, T/t, F/f)$, with downsampling factors $t=f=8$. This latent is subsequently patchified using a kernel of $(16, 1)$ to produce the input tokens for the DiT. Conditional control is provided by three sources: the umT5 encoder for the music style prompt, the lyric encoder for the lyrics, and the speaker encoder for the speaker ID. These three embeddings are concatenated along the channel dimension and injected into the DiT via cross-attention. The model predicts the velocity to obtain the clean latent, which the Music-DCAE's decoder reconstructs into a mel spectrogram. A HiFiGAN vocoder~\cite{liao2024fish} is then used to convert this spectrogram into the final audio waveform.
+
+% \LHC{
+\textbf{Ace-step model.} Ace-step consists of a Music-DCAE (Deep Compression Autoencoder)~\cite{chen2024deep}, a umT5 text encoder, a lyric encoder, a speaker encoder, and a DiT. The raw audio waveform is first converted into a mel spectrogram. The Music-DCAE then encodes the input spectrogram of shape $(8, T, F)$ into a latent representation of shape $(8, T/t, F/f)$, with downsampling factors $t=f=8$ along the temporal and frequency axes. This latent is subsequently patchified using a kernel of $(16, 1)$ to produce the input tokens for the DiT. Conditional control is provided by three sources: the umT5 encoder for the music style prompt, the lyric encoder for the lyrics, and the speaker encoder for the speaker ID. These three embeddings are concatenated along the channel dimension and injected into the DiT via cross-attention. The model predicts the velocity to obtain the clean latent, which the Music-DCAE's decoder reconstructs into a mel spectrogram. A HiFiGAN vocoder~\cite{liao2024fish} is then used to convert this spectrogram into the final audio waveform.
+% }
+
+% The learning objective for both of the aforementioned models is \textit{Flow Matching}~\cite{lipman2022flow}. This framework trains a neural network, $v_\theta$, to predict a velocity field that transports samples from a simple source distribution, $p_0$ (e.g., Gaussian noise), to a complex target data distribution, $p_1$. Specifically, these models leverage Conditional Flow Matching. Given a noise sample $x_0 \sim p_0$ and a data sample $x_1 \sim p_1$, a simple linear interpolation path is defined for time $t$:
+% $$
+% x_t = (1-t)x_0 + t x_1
+% $$
+% The target velocity vector along this path is constant: $u_t = x_1 - x_0$. The model $v_\theta(x_t, t, c)$, conditioned on $c$, is trained to predict this vector by minimizing the following L2 loss:
+% $$
+% \mathcal{L}_{\text{FM}} = \mathbb{E}_{t \sim U(0,1), x_0 \sim p_0, x_1 \sim p_1} \left[ \| v_\theta((1-t)x_0 + t x_1, t, c) - (x_1 - x_0) \|^2 \right]
+% $$
+% This objective directly trains the model to learn the vector field that maps noise to data, which can lead to more stable and efficient training compared to traditional score-matching objectives.
+
+
+% \LHC{
+\textbf{Base model pre-training.} The learning objective for both of the aforementioned models is \textit{Flow Matching}~\cite{lipman2022flow}. This fashion trains a neural network, $v_\Theta(\cdot, t, c)$, to predict a velocity field that transports samples from a simple source distribution, $p_0$ (\textit{e.g.}, Gaussian noise), to a complex target data distribution, $p_1$. Specifically, these models leverage Conditional Flow Matching. Given a noise sample $x_0 \sim p_0$ and a data sample $x_1 \sim p_1$, a simple linear interpolation path is defined for time $t$:
+\begin{equation}
+    x_t = (1-t)x_0 + t x_1.
+\end{equation}
+The target velocity vector along this path is constant: $u_t = x_1 - x_0$. The model $v_\Theta(x_t, t, c)$, conditioned on $c$, is trained to predict this vector by minimizing the following L2 loss:
+$$
+\mathcal{L}_{\text{FM}} = \mathbb{E}_{t \sim U(0,1), x_0 \sim p_0, x_1 \sim p_1} \left[ \| v_\theta((1-t)x_0 + t x_1, t, c) - (x_1 - x_0) \|^2 \right].
+$$
+This objective directly trains the model to learn the vector field that maps noise to data, which leads to more stable and efficient training compared to traditional score-matching objectives.
+% }
+
+\subsection{Data Curation}
+We curated a large-scale, high-quality dataset from a diverse range of sources to train our model. The primary component was sourced from YouTube, encompassing content such as music variety shows, classical music performances, cooking tutorials, public speeches, interviews, vlogs, and demonstrations of tool usage. This was supplemented with cinematic movie clips and high-quality stock footage from Pexels. To further bolster the audio modality, we also incorporated the widely-used VGGSound and AudioSet datasets.
+
+For our self-collected data (YouTube, Pexels, and movie clips), we implemented a rigorous multi-stage filtering pipeline to ensure data quality and relevance:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Audio-Visual Pre-screening} Videos lacking an audio track were immediately discarded.
+    \item \textbf{Quality Control} We filtered out content based on technical specifications: resolution below $1080p$, a bitrate-to-resolution ratio under $600$, and a DOVER~\cite{wu2023exploring} aesthetic quality score below $0.6$.
+    \item \textbf{Temporal Coherence} PySceneDetect\footnote{https://github.com/Breakthrough/PySceneDetect} was applied to segment videos, and any resulting clip shorter than $5$ seconds was removed to ensure meaningful duration.
+    \item \textbf{Audio Activity Detection} To eliminate silent segments, we analyzed each audio track for metrics such as volume, energy, and zero-crossing rate.
+    \item \textbf{Speech Content Verification} Whisper~\cite{radford2023robust} was used to detect the presence of human speech. Clips without speech were retained as general audio-visual data. If speech was present, it proceeded to the next step.
+    \item \textbf{Human Face Detection} For clips identified as containing speech, a second verification step was performed: we detected for the presence of a human face~\cite{deng2020retinaface}. If no face was found, the clip was discarded. If a face was present, we employed SyncNet~\cite{chung2016out} to verify the audio-visual correspondence (lip-sync). Only clips with a SyncNet confidence score above a threshold of $2.0$ were retained and explicitly labeled as containing speech content.
+\end{itemize}
+
+
+For the VGGSound and AudioSet data, a simplified process was used where we either performed scene detection or segmented clips based on their existing timestamps, retaining only those longer than $5$ seconds.
+
+Following this comprehensive curation process, our final dataset comprises $7,685$ hours of data. This is categorized into three subsets: $1,187$ hours of verified speech-centric content, $3,074$ hours of general-purpose audio-video data, and $3,422$ hours from VGGSound and AudioSet primarily used for bolstering audio-specific training.
+
+\subsection{Online Data Annotation}
+Conventional offline annotation methods, where captions are pre-generated for entire videos, present a significant challenge for training generative models. During training, fixed-length clips are randomly sampled from these videos, often creating a temporal and semantic misalignment between the sampled clip and the global, pre-existing caption. This issue is particularly acute in the context of joint audio-video generation, where the temporal synchronization between an acoustic event and its description is critical. Even minor temporal shifts can render an audio annotation invalid.
+
+To overcome these limitations, we propose and implement an Online Data Annotation Pipeline. This pipeline operates as a dedicated server process that runs concurrently with training. It dynamically fetches raw video, processes clips in real-time to generate precisely aligned data-annotation pairs, and populates a shared buffer. The main training process then acts as a consumer, fetching these ready-to-use data tuples, ensuring that every training instance is perfectly synchronized.
+
+The online processing for each data tuple involves the following steps:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Temporal Sampling} A fixed-length segment (e.g., $5$ seconds) is randomly extracted from a source video, yielding corresponding video and audio streams.
+    \item \textbf{Multi-modal Annotation} The extracted audio-video clip is immediately passed to our annotation module for captioning.
+    \item \textbf{Text and Video Encoding} The generated text prompts (for video, audio, and speech) are encoded. Concurrently, the video clip is encoded into a spatio-temporal latent representation using the 3D VAE.
+    \item \textbf{Audio Encoding} The audio stream is converted to a mel spectrogram and subsequently encoded into a latent representation by the Music-DCAE~\cite{chen2024deep}.
+\end{itemize}
+
+The core of our pipeline is the multi-modal annotation step (Step $2$), which proceeds as follows:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Speech Transcription} Whisper~\cite{radford2023robust} is employed to perform Automatic Speech Recognition (ASR) on the sampled audio, yielding the raw speech content.
+    \item \textbf{Structured Multimodal Captioning} We construct a structured prompt that incorporates the transcribed speech. This prompt, along with the audio and video streams of the clip, is fed into the QWen2.5-Omni~\cite{xu2025qwen2} multimodal model. QWen2.5-Omni is specifically instructed to output three distinct, aligned annotations for the clip: the verified speech content, a descriptive video caption, and a caption for the ambient audio.
+\end{itemize}
+
+This online, just-in-time process guarantees that every training instance consists of video and audio latents that are perfectly synchronized in time and semantically consistent with their corresponding textual annotations, thereby eliminating the data misalignment problem inherent in offline methods.
+
+\begin{figure}[t!]
+  % \vspace{-1em}
+  \centering
+  \includegraphics[width=\linewidth]{figures/universe_final_version4_compressed.pdf}
+  \caption{\textbf{Architecture of UniVerse-1.} (a) Overall architecture. The architectural foundation of UniVerse-1 is realized through a stitching of experts methodology. This approach deeply integrates the pre-trained Wan2.1 video model and the Ace-step audio model. (b) Fused block. The fusion is implemented at a granular, block-by-block level, where each block in the Wan architecture is deeply fused with its corresponding block in the Ace-step architecture.}
+  \label{fig:archi}
+\end{figure}
+
+
+\begin{figure}[t!]
+  % \vspace{-1em}
+  \centering
+  \includegraphics[width=\linewidth]{figures/universe_attn.pdf}
+  \caption{\textbf{Revised attention of UniVerse-1.} (a) Self attention of video branch, with additional mel tokens as input. (b) Cross attention of video branch, with additional mel tokens as input. (c) Cross attention of mel branch, with addition video tokens as input.}
+  \label{fig:attn}
+\end{figure}
+
+\subsection{Method}
+The overall architecture of our method is depicted in Fig.~\ref{fig:archi}. We introduce several targeted modifications to the input stages of the original Wan2.1 and Ace-step models to facilitate bimodal integration and control.
+For the video component (Wan2.1), we enable conditioning on a reference image. During the forward process, the first frame of the noisy video latent is replaced with the corresponding clean latent representation of the provided reference image.
+For the audio component (Ace-step), we perform two adjustments. First, to ensure temporal alignment with the video's 25 frames-per-second (fps) rate, the input mel spectrograms are processed at a 25.6 kHz sampling rate instead of the original 44.1 kHz. Second, to generalize the model beyond speaker-specific generation, we have removed the speaker encoder and its corresponding input from the architecture.
+
+\subsubsection{Stitching of experts} We introduce a novel framework, termed ``Stitching of experts'', for integrating specialized, pre-existing models for video and audio synthesis. This approach is designed to preserve the generative capabilities of each unimodal expert while simultaneously enabling fine-grained, bidirectional interaction between them at the level of individual layer blocks. To enhance training efficiency and leverage the powerful priors of these pre-trained models, we apply the stitching technique to the Wan2.1 and Ace-step models at the transformer block level. This process results in a unified, dual-stream architecture where each block co-processes information from both the video and audio modalities, functioning akin to a Mixture-of-Experts (MoE) layer. \\
+As illustrated in Fig~\ref{fig:archi}. b), we facilitate bidirectional cross-modal communication within each block. Specifically, the hidden states from the video stream, following its self-attention module, are injected into the audio stream's cross-attention module. Conversely, the hidden states from the audio stream, following its linear attention module, are reciprocally injected into the video stream's self-attention and cross-attention module. To ensure consistent feature scaling, the hidden states from both streams are jointly passed through a shared LayerNorm layer before injected into video stream's attention.\\
+Prior to injection, the cross-modal hidden states are passed through a two-layer linear adapter for feature space alignment. In the video stream, for instance, features from the audio branch are projected using dedicated key ($k_{proj}$) and value ($v_{proj}$) layers~\ref{fig:attn}(a). A frame-by-frame cross-attention is then performed with the queries from the video stream to ensure alignment between the video and audio. Within each stream's respective cross-attention mechanism(shown in ~\ref{fig:attn}(b) and ~\ref{fig:attn}(c)), the conditioning signal from the other modality is projected using dedicated key ($k_{proj}$) and value ($v_{proj}$) layers. These new key-value pairs are then concatenated with the original text-derived key-value pairs along the context dimension, thereby enriching the conditioning information with cross-modal context.
+\subsubsection{Layer Interpolation} A key challenge in stitching the Wan2.1 and Ace-step models is the architectural mismatch in their depth, as they possess a different number of transformer blocks. To reconcile this disparity, we introduce a \textbf{layer interpolation technique}.
+This method involves first calculating the difference in the number of layers. We then strategically insert new blocks at uniform intervals into the shallower of the two models until their depths align. Crucially, the parameters for each new block are initialized by linearly interpolating the weights of its immediately adjacent (bracketing) layers. This initialization strategy effectively bridges the architectural gap while ensuring a smooth performance trajectory during training, thereby mitigating the risk of training instability and severe performance oscillations.
+\subsubsection{Training Loss}
+In addition to the primary Flow Matching objective (Sec.~\ref{sec:preliminary}), we incorporate two additional loss functions.
+\paragraph{Semantic Alignment Loss}
+For the audio modality, we employ a \textbf{Semantic Similarity Loss} ($\mathcal{L}_{\text{SSL}}$), a technique consistent with Ace-step, to enhance the semantic fidelity of the generated audio. This loss operates by aligning an intermediate feature representation, $h_{\text{audio}}$, extracted from the audio stream of our fused block at a specific layer $L$ ($L=12$ in our configuration). This internal representation is aligned against target features derived from two expert, pre-trained audio models:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{MERT}(Music Encoder Representations from Transformers)~\cite{li2023mert}, which provides a general musical representation, $h_{\text{mert}}$, with a dimensionality of 1024 x $T_m$ (at a 75 Hz frame rate).
+    \item \textbf{mHuBERT}(multilingual HuBERT)~\cite{boito2024mhubert}, which provides a speech-centric representation, $h_{\text{mHuBERT}}$, with a dimensionality of 768 x $T_h$ (at a 50 Hz frame rate).
+\end{itemize}
+
+To compute this loss, the intermediate feature $h_{\text{audio}}$ is first processed by two separate projection heads ($\pi_{\text{MERT}}$ and $\pi_{\text{mHuBERT}}$) and temporally interpolated to match the dimensionality and sequence length of $h_{\text{MERT}}$ and $h_{\text{mHuBERT}}$, respectively. The semantic similarity loss is then defined as the negative cosine similarity, encouraging the model's internal representations to align with those of the expert models:
+$$
+\mathcal{L}_{\text{SSL}} = \frac{1}{2} (\text{cosineSim}(h'_{\text{audio}}, h'_{\text{MERT}}) + \text{cosineSim}(h'_{\text{audio}}, h'_{\text{mHuBERT}}))
+$$
+where $h'$ denotes the temporally aligned representations.
+
+\paragraph{Low Quality Data Loss Strategy} 
+
+The AudioSet and VGGSound datasets, while offering rich auditory diversity, are characterized by low visual fidelity. To leverage their strong audio content without corrupting the video generation quality, we employ a conditional loss scheme.
+Specifically, the Flow Matching loss for the video modality ($\mathcal{L}_{\text{FM-video}}$) is only computed for samples originating from these two datasets when the diffusion timestep \textit{t} exceeds an empirically determined threshold. We set this threshold to $\tau = 800$ (out of 1000 total timesteps). This strategy is predicated on the principle that at high noise levels (i.e., for $t > \tau$), the model learns to capture coarse, low-frequency features of the video, such as general motion and structure, which are less affected by the poor visual quality. By excluding the loss calculation at lower noise levels, we prevent the model from overfitting to the high-frequency visual artifacts and noise present in these datasets. The loss for video modality is:
+$$
+\mathcal{L}_{\text{FM-video}} = \left\{
+\begin{array}{rcl}
+\mathcal{L}_{\text{FM}}(x_1, x_0, t) & & if ~~ x_1 \in \Theta ~~ or ~~ (x_1 \in \zeta ~~ and ~~ t > 800)\\
+0~~~~~~~~~ & & else
+\end{array} \right.
+$$
+where $x_0 \sim p_0$ is noise sample, $x_1 \sim p_1$ is data sample, $\zeta$ is data subset include vggSound and audioset, $\Theta$ is data subset exclude vggSound and audioset. The final training objective is a weighted sum of the flow matching and semantic alignment losses:
+$$
+\mathcal{L} = \mathcal{L}_{\text{FM-video}} + \mathcal{L}_{\text{FM-mel}} + \lambda_{SSL}\cdot\mathcal{L}_{\text{SSL}}
+$$
+where $\mathcal{L}_{\text{SSL}}$ is a hyperparameter controlling the influence of the SSL guidance, empirically set to $1.0$ according to Ace-step.
+
+\subsection{Independent Noise Sampling Strategy}
+
+Our empirical investigation reveals a critical sensitivity of multi-modal diffusion models to the pseudo-random number generation process. When a single, fixed random seed is used to initialize a training run, the noise tensors for the video (${\epsilon}_v$) and audio (${\epsilon}_a$) modalities are sampled sequentially from the same deterministic PRNG sequence. Due to the deterministic nature of the underlying algorithm (Linear Congruential method), this sequential sampling introduces a spurious structural correlation between the two noise tensors, which can be expressed as ${\epsilon}_a = f({\epsilon}_v)$. This violates the critical assumption that the noise vectors are statistically independent.
+
+The model inadvertently learns this spurious correlation as a shortcut during training. Consequently, during inference, any alteration to the sampling of ${\epsilon}_v$, such as a change in video resolution or duration, propagates through the PRNG's state and alters the structure of the subsequently sampled ${\epsilon}_a$. This mismatch with the learned correlation results in a significant degradation of the audio generation quality.
+
+To address this, we propose an \textbf{Independent Noise Sampling Strategy}. This approach isolates the noise generation for each modality by employing separate and independently seeded PRNG instances. This method effectively breaks the deterministic correlation, ensuring the noise vectors are statistically independent. As a result, the model becomes robust to variations in inference-time conditions, mitigating the issue of performance degradation.
+

@@ -1,0 +1,56 @@
+\section{Related Work}
+
+% \subsection{Video Autoregressive Models}
+% Autoregressive models have shown their superiority in video generation in recent years~\cite{weissenborn2019scaling, rakhimov2020latent, yan2021videogpt, wu2021godiva, wu2021n}. Earlier models generate videos in a pixel-by-pixel manner\cite{weissenborn2019scaling}. With the emergence of "discretize-and-generate" framework in image generation~\cite{ramesh2021zero, ding2021cogview}, a similar framework is now widely adopted in video generation due to its advantages in both efficiency and quality. Specifically, \cite{rakhimov2020latent, yan2021videogpt, wu2021godiva, wu2021n} use VQ-VAE (or VQ-GAN) to discretize video frames into token sequence, and use Transformer Decoder to autoregressive generate the discrete tokens. 
+
+% \begin{comment}
+% 没有引fb那篇
+% \end{comment}
+
+% Among them, Latent Video Transformer~\cite{rakhimov2020latent} conducts video generation on condition of several given past frames. VideoGPT ~\cite{yan2021videogpt} generates video unconditionally or on condition of action category. GODIVA~\cite{wu2021godiva} and NUWA~\cite{wu2021n}extend video generation task to open-domain text-to-video generation, the same task as in CogVideo, which is faced with significant challenges in semantic relevance between input text and output video. Previous works generate frames or frame blocks one by one in a chronological order, but it has deficiency in maintaining semantics relevance compared to our multi-frame-rate hierarchical training, as we analyze before and is verified by both machine and human evaluation. 
+
+% \subsection{Cross-Model General Language Model}
+% General Language Model (GLM)~\cite{du2021all} is first proposed in NLP to unify auto-encoding, autoregressive and encoder-decoder models by changing mask prediction into block-wise autoregressive generation. Specifically, GLM groups token sequence into unidirectional and bidirectional attention region, and append all unidirectional regions after bidirectional ones. Tokens bidirectional region can attend to all other tokens in the same region, while tokens in unidirectional region can attend to all tokens in bidirectional region and previous tokens in unidirectional region. Thus GLM is able to exploit bidirectional attention while remaining autoregressive generation ability in unidirectional region. Recently, Cross-Model General Language Model (CogLM)~\cite{ding2022cogview2} applies GLM to cross-model setting, and optimizes it for image generation by changing attention mask instead of switching region order.
+
+
+\subsection{Video Generation}
+Video generation is a long-standing research topic. Most previous works 
+%mainly 
+focus on the next-frame prediction task --- forecasting the future frames based on the first video frame. Early works, e.g. CDNA~\cite{finn2016unsupervised} and PredRNN~\cite{wang2017predrnn}, leverage deterministic methods to directly predict the next frame via CNNs or RNNs.
+% Deterministic methods that directly model the tractable density with networks such as CNNs and RNNs are widely used. \cite{finn2016unsupervised} predicts motions with ConvLSTM as basic block.
+% PredRNN~\cite{wang2017predrnn} uses Spatiotemporal LSTM unit to model spatial and temporal representations in a unified memory cell. 
+However, these deterministic models are unable to capture the stochastic temporal patterns and synthesize coherent complex scenes. 
+%The g
+Generative models, especially  Generative Adversarial Networks~\cite{goodfellow2014generative} (GANs), begin to dominate the area
+%. These generative models 
+as they can perform unconditional or class-conditional video synthesis without the first frames. 
+% With the emergence of Generative Adversarial Network (GAN), 
+VGAN~\cite{vondrick2016generating} is the first one
+%proposed to 
+to use GAN for video generation. It decomposes video to a static background and a moving foreground, and then generates them with 2D and 3D convolutional networks respectively. TGAN\cite{saito2017temporal} proposes to separately generate the temporal latent variables and spatial information, and MoCoGAN~\cite{tulyakov2018mocogan} similarly decomposes the latent space into context and motion subspaces. DIGAN~\cite{yu2022generating} applies implicit neural representations for video encoding. 
+Recently, text-to-video generation emerges as a promising direction. The framework of VQVAE~\cite{van2017neural} and autoregressive transformers~\cite{vaswani2017attention,brown2020language} quickly becomes the mainstream method~\cite{wu2021godiva, wu2021n, ge2022long}. \citet{ho2022video} proposes video diffusion model along with a gradient method recently for text-to-video generation. The previous methods are basically trained on a specific dataset, e.g. UCF-101~\cite{soomro2012ucf101}, making the trained model domain-specific. 
+Moreover, most of these models are not publicly available. 
+
+\subsection{Autoregressive Transformer}
+Recent years have witnessed the autoregressive transformer emerging as a powerful generative model. The autoregressive models 
+%are always 
+become the most prevalent framework for text generation~\cite{sutskever2011generating}. With its prominent capacity of fitting, transformer~\cite{vaswani2017attention} gradually becomes the standard neural structure for text generation. 
+One milestone is GPT-3~\cite{brown2020language}.
+%trains a milestone model in NLP, GPT-3.
+% Generative Pre-Training model (GPT)~\cite{brown2020language} have revolutionized natural language processing by its surprising ability on few-shot language understanding and natural language generation. 
+In computer vision,~\citet{van2017neural} 
+first proposes to train a VQVAE to compress the image into a sequence of tokens from a learned dictionary, which can be efficiently handled by autoregressive models. VQ-GAN~\cite{esser2020taming} learns a more semantic-aware dictionary for unconditional image generation.  
+In the text-to-image generation, pretrained autoregressive transformers such as DALL-E~\cite{ramesh2021zero} and CogView~\cite{ding2021cogview} have shown 
+%great 
+superiority in open-domain image generation. Besides the pure GPT-style generation, 
+%recently 
+CogView2~\cite{ding2022cogview2} proposes a new language model CogLM for infilling in the image generation.
+
+Recent autoregressive transformers~\cite{rakhimov2020latent, yan2021videogpt, wu2021godiva, wu2021n} have also shown their superiority in video generation. 
+% Earlier works, e.g. Video Transformer\cite{weissenborn2019scaling}, generate videos in a pixel-by-pixel manner. With the emergence of "discretize-and-generate" framework in image generation~\cite{ramesh2021zero, ding2021cogview}, a similar framework is widely adopted in video generation due to its advantages on both efficiency and quality. 
+% Specifically,  use VQ-VAE~\cite{van2017neural} (or VQ-GAN~\cite{esser2020taming}) to discretize video frames into token sequence, and use Transformer Decoder to autoregressive generate the discrete tokens.
+Among them, GODIVA~\cite{wu2021godiva} and NÜWA~\cite{wu2021n} focus on the open-domain text-to-video generation.
+%, with the same goal but much smaller than CogVideo. 
+However, they simply generate frames or frame blocks one by one in a chronological order, and may suffer from poor text-video alignment (Cf. \S~\ref{sec:intro}). 
+
+% Despite its advantages, autoregressive Transformer such as GPT has restricted modeling capability due to its unidirectional attention. To fully exploit bidirectional context modeling while remain the ability of autoregressive generation, \cite{ding2022cogview2} proposes Cross-Modal general Language Model (CogLM). 

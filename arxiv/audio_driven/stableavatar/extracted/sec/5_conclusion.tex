@@ -1,0 +1,6 @@
+\section{Conclusion}
+\label{sec:conclusion}
+In this paper, we proposed StableAvatar, a video diffusion transformer with dedicated modules for training and inference to synthesize infinite-length high-quality avatar videos.
+StableAvatar first utilized off-the-shelf models to gain audio embeddings. To overcome the scarcity of audio priors of diffusion backbones, StableAvatar introduced an Audio Adapter to refine audio embeddings.
+In inference, to further enhance lip synchronization with audio, StableAvatar introduced an Audio Native Guidance Mechanism to replace conventional Classify-Free-Guidance. To improve the long video's smoothness, StableAvatar further proposed a dynamic weighted sliding-window strategy.
+Experimental results across various datasets demonstrated the superiority of our model in producing infinite-length high-quality avatar videos.

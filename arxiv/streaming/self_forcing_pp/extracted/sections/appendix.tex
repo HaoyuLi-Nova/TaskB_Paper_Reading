@@ -1,0 +1,182 @@
+\section{Appendix}
+
+\subsection{Detailed evaluation results for all dimensions}
+Due to limited space, we only report VBench aggregated metrics in~\cref{tab:main,tab:main_more} in the main text. Here we show the full evaluated data for each dimension in~\cref{tab:detailed_results}.
+
+\input{detailed_table_data/detailed_results}
+
+
+
+
+
+\textbf{Implementation details} We adopt the same base model Wan2.1-T2V-1.3B~\citep{wan2025} as Causvid and Self-Forcing, which is later converted into an autoregressive model as describe above. The model is initialized with sampled 16K ODE training trajectories by optimizing the loss in~\cref{eq:ode}. We use the same filtered and LLM-extended version of VidProM~\citep{wang2024vidprom} as Self-Forcing for training. In the training phase, since we utilize backward noise initialization, thus we don't need real data for training. We utilize the same Wan2.1-T2V-1.3B as the teacher model.
+
+\textbf{Training details}
+Self-Forcing++ is trained with a training batch size of 8. The hyperparameters are mostly adopted from Self-Forcing such as the denoising steps of 1000,750,500 and 250 with a generator learning rate of $2e^{-6}$ and critic learning rate of $4e^{-7}$. The generator and critic update ratio is 5. AdamW optimizer is used for both generator and critic both with $\beta_1=0$ and $\beta_2=0.999$. Our rolling KV cache window size is 21 latent frames in all cases except ablation study. The model is updated with EMA starting at 200 epochs. We have also inspected the version without EMA which can also generate long high quality videos but the EMA version performs better. Our method can already generate consistent high quality long videos such as videos up to 4minute 15 seconds before GPRO, in the ablation study, we show that it's possible to further boost the model's performance with properly designed rewards.
+
+
+\subsection{Adding noise to context window}
+As demonstrated in~\cref{tab:main}, methods such as MAGI-1~\citep{teng2025magi} and SkyReels-V2~\citep{chen2025skyreels}, which rely on variable noisy context injection following a predefined schedule~\citep{chen2024diffusion}, are insufficient to mitigate error accumulation when rolling to long videos. To further investigate its effect on methods, we conduct an experiment where noise is manually injected into the KV cache to explicitly simulate the effect of accumulated errors over extended sequences. Specifically, before adding any query or key to the KV cache, we inject random Gaussian noise into them. While this strategy yields a slight improvement in both image quality and visual stability compare to the original Self-Forcing, it nonetheless fails to prevent substantial degradation in long-horizon video generation which can be seen in~\cref{fig:ablation_study}.
+\input{ablation_study/attn_window_and_noise_figure}
+
+
+\subsection{More Background}
+\label{sec.appendix.dmd}
+Video diffusion models are typically trained to denoise along a fixed noise schedule, which makes video generation computationally expensive. A common strategy to reduce this cost is to distill the model into a few-step generator, using approaches such as Distribution Matching~\citep{yin2024one,yin2024improved,luo2025learning} and Consistency Model~\citep{song2023consistency,wang2024phased}. In line with CausVid and Self-Forcing, we also adopt DMD to distill the original bidirectional model into a few-step model, which can be viewed as minimizing the reverse KL divergence between the student and teacher models, as formulated in~\cref{eq:dmd}.
+\begin{equation}
+\begin{aligned}
+\nabla_{\theta}\mathcal{L}_{\mathrm{DMD}}
+&= \mathbb{E}_{t}\!\Bigl[
+      \nabla_{\theta}\operatorname{KL}\!\left(
+         p_{\mathrm{fake},t}\,\Vert\, p_{\mathrm{real},t}
+      \right)
+   \Bigr] \\
+&= -\,\mathbb{E}_{t}\!\Biggl[
+      \int\!\Bigl(
+         s_{\mathrm{real}}\!\left(\Phi(G_{\theta}(z),t),t\right)
+         - s_{\mathrm{fake}}\!\left(\Phi(G_{\theta}(z),t),t\right)
+      \Bigr)\,
+      \frac{dG_{\theta}(z)}{d\theta}\,dz
+   \Biggr].
+\end{aligned}
+\label{eq:dmd}
+\end{equation}
+
+After the model is distilled into few-step form, it is converted into an autoregressive model by introducing causal attention. The conversion is carried out by sampling ODE trajectories from the teacher and training the autoregressive model on these trajectories. This stage functions as a warm-up phase, distinct from the main training procedure described below. The ODE training process is formally expressed in~\cref{eq:ode}.
+
+\begin{equation}
+\mathcal{L}_{\mathrm{ode}}
+= \mathbb{E}_{\mathbf{x},t}\!\left[
+    \left\|
+       G_{\phi}\!\left(\{\mathbf{x}_{t_i}^{(i)}\}_{i=1}^N,\;\{t_i\}_{i=1}^N\right)
+       - \{\mathbf{x}_{\mathrm{teacher}}^{(i)}\}_{i=1}^N
+    \right\|^2
+\right].
+\label{eq:ode}
+\end{equation}
+
+
+\subsection{Improving Long-Term Smoothness via GRPO}
+\label{appendix.sec.grpo}
+Following the discussion in the main text, here we show the general form of GRPO which can be written as:
+\begingroup
+% \setlength{\abovedisplayskip}{2pt}
+% \setlength{\belowdisplayskip}{2pt}
+% \setlength{\abovedisplayshortskip}{2pt}
+% \setlength{\belowdisplayshortskip}{2pt}
+\begin{equation}
+\footnotesize
+\mathcal{J}(\theta) = 
+\mathbb{E}_{\{o_i\}_{i=1}^G \sim \pi_{\theta_{\mathrm{old}}}(\cdot|c)}
+\mathbb{E}_{a_{t,i}\sim \pi_{\theta_{\mathrm{old}}}(\cdot|s_{t,i})}
+\Biggl[
+\frac{1}{G}\sum_{i=1}^G \frac{1}{T}\sum_{t=1}^T 
+\min\Bigl(\rho_{t,i} A_i, \,
+\mathrm{clip}(\rho_{t,i}, 1-\epsilon, 1+\epsilon) A_i\Bigr)
+\Biggr],
+\label{eq:grpo}
+\end{equation}
+\endgroup
+where $\rho_{t,i} = \tfrac{\pi_{\theta}(a_{t,i}\,|\,s_{t,i})}{\pi_{\theta_{\mathrm{old}}}(a_{t,i}\,|\,s_{t,i})}$ is the importance weight, 
+$\pi_{\theta}(a_{t,i}|s_{t,i})$ denotes the policy function for output $o_i$ at time step $t$ whose value can be computed according to~\cref{eq:perturbation}, $\epsilon$ is a clipping hyper-parameter, and $A_i$ is the advantage computed across a generation group. The advantage is computed across a group of $G$ outputs as:
+\begin{equation}
+A_i = \frac{r_i - \mathrm{mean}(\{r_1, r_2, \dots, r_G\})}{\mathrm{std}(\{r_1, r_2, \dots, r_G\})}.
+\label{eq:advantage}
+\end{equation}
+
+In order to generate adopt our model for GRPO, we inject Gaussian noise at each non-terminal step according to the noise scheduler. The probability of the final generated video can be formulated as below.
+\begin{equation}
+\begin{aligned}
+\footnotesize
+\log p(x_{1:N})
+&= \sum_{n=1}^{N} \log p\!\left(x_n \mid x_{<n}\right) \\
+&= \sum_{n=1}^{N} \sum_{t=1}^{T} \sum_{i=1}^{D}
+\left[
+-\frac{\big(x^{(n)}_{t,i} - (1-\sigma_t)\,x^{(n)}_{0,i}\big)^{2}}{2\sigma_t^{2}}
+- \log \sigma_t
+- \tfrac{1}{2}\log(2\pi)
+\right],
+\end{aligned}
+\end{equation}
+where $x^{(n)}_{0,i}$ is computed following~\cref{eq:perturbation} conditioned on the previously generated samples $x_{<n}$, $D$ denotes the latent dimension size, $T$ is the number of non-terminal sampling steps, and $N$ is the total number of autoregressive steps.
+
+
+\subsubsection{Temporal Repetition}
+As highlighted in RIFLEx~\citep{zhao2025riflex}, one of the primary challenges in long video generation is \textit{temporal repetition}, where videos begin to cycle with fixed, recurring patterns. In contrast, autoregressive approaches such as Self-Forcing~\citep{huang2025self} and our method, which rely exclusively on the KV cache to produce new frames, are less prone to this failure mode. To quantify this, we adopt the \textit{NoRepeat Score} introduced in RIFLEx and report the results in~\cref{tab:no_repeat_score}.  
+
+% in preamble:
+% \usepackage{wrapfig}
+% \usepackage{booktabs}
+% \usepackage{adjustbox} % optional, for max-width fitting
+
+\begin{wraptable}{r}{0.5\textwidth} % {l} for left, {r} for right
+\vspace{-\baselineskip}              % tighten vertical gap (optional)
+\centering
+\caption{NoRepeat scores ($\uparrow$) across different methods, computed following RIFLEx. The RIFLEx score reported here corresponds to its best published result and serves only as a reference.}
+\label{tab:no_repeat_score}
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{ccccccc}
+\toprule
+RIFLEx & Nova & MAGI-1 & SkyReels-V2 & CausVid & Self-Forcing & Ours \\
+\midrule
+ 89.0 & 67.19 & 73.44 & 95.31 & 92.97 & 100.0 & 98.44 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{wraptable}
+
+
+From~\cref{tab:no_repeat_score}, we observe that NOVA, MAGI-1 and CausVid are more susceptible to repeated temporal patterns when extended to long videos. In contrast, methods that generate solely from the KV cache such as Self-Forcing and ours achieve stronger resistance to temporal repetition without requiring recomputation or overlapping frames.
+
+
+
+
+\subsection{Evaluation with gemini-2.5-pro and manually verification}
+\label{appendix.sec.gemini}
+We present several representative results with Gemini-2.5-Pro on 50-second videos generated by our method and by baseline methods, as shown in~\cref{fig:eval_with_gemini_astronaut,fig:eval_with_gemini_papercraft}. None of the baselines sustain high quality at this length, and each displays distinct failure modes. CausVid consistently shows pronounced over-exposure even within its trained 5-second horizon, which worsens as the video progresses until motion collapses entirely. Self-Forcing suffers from severe error accumulation, leading to global darkening and stagnation. MAGI-1 initially avoids over-exposure, likely due to its reliance on diffusion forcing, but rapidly deteriorates into heavy over-exposure and structural collapse. SkyReels-V2, as seen in~\cref{fig:eval_with_gemini_papercraft}, generally preserves structure but exhibits moderate to severe over-exposure, resembling CausVid’s failure pattern.
+
+As further illustrated in~\cref{fig:eval_with_gemini_astronaut,fig:eval_with_gemini_papercraft} and on our project page \href{https://self-forcing-plus-plus.github.io/}{self-forcing-plus-plus.github.io}
+, all baselines demonstrate systematic breakdown in long-video generation that state-of-the-art MLLMs readily detect. To ensure alignment with human judgment, we conducted manual verification: 20 randomly sampled MovieGen videos were independently annotated by two authors, and the averaged scores were compared with Gemini-2.5-Pro. For 50-second sequences, Spearman’s rank correlation reached 100\% for the top three methods and 94.2\% across all six baselines. Similar results are observed for the 75-second and 100-second videos, where the generation quality of baseline methods further declines.
+
+Overall, our method achieves sustained long-term visual stability. Methods trained with diffusion forcing, such as SkyReels-V2 and MAGI-1, rank next, followed by CausVid, which maintains structure only under severe exposure. Both Self-Forcing and NOVA degrade to comparable low levels.
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{gemini-examples/gemini-examples-astronaut.pdf}
+    \caption{Example evaluation using Gemini-2.5-pro on the results generated by our method, CausVid and Self-Forcing for prompt ``An astronaut runs on the surface of the moon, the low angle shot shows the vast background of the moon, the movement is smooth and appears lightweight.''. Gemini-2.5-Pro is tasked to rate the whole video with thinking and output reasoning first before outputting the final rating.}
+    \label{fig:eval_with_gemini_astronaut}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\linewidth]{gemini-examples/gemini-examples-papercraft.pdf}
+    \caption{Example evaluation using Gemini-2.5-pro on the results generated by our method, CausVid and Self-Forcing for prompt ``A gorgeously rendered papercraft world of a coral reef, rife with colorful fish and sea creatures.''. Gemini-2.5-Pro is tasked to rate the whole video with thinking and output reasoning first before outputting the final rating.}
+    \label{fig:eval_with_gemini_papercraft}
+\end{figure}
+
+
+The prompt we use for evaluating is as following: 
+\begin{evolbox}{1.0}
+You are tasked with rating the exposure stability of a video. Assign a score according to the following scale: \\
+
+0: Catastrophic Exposure. Nearly the entire frame is either blown out (pure white) or crushed (pure black), rendering the scene unreadable. \\
+
+1: Severe Exposure Failure. Large portions of the frame are dominated by over-exposure or under-exposure, substantially impairing visibility. \\
+
+2: Noticeable Exposure Problems. Persistent clipping is present in highlights or shadows. Significant areas lose detail, though the frame remains viewable. \\
+
+3: Moderate Exposure Issues. Over-exposed highlights or under-exposed shadows occur but are limited in extent or duration. \\
+
+4: Minor Exposure Flaws. Small regions are occasionally too bright or too dark, but these do not meaningfully disrupt overall visibility. \\
+
+5: Well-Exposed. Balanced lighting across the frame. No distracting over-exposure or darkening; both highlights and shadows retain detail. \\
+
+Do not claim that the observations in any video are of a specific artistic style or scene transitions unless the prompt explicitly states so. The prompt for generating the video is as follows: \\
+
+First, provide a brief explanation of your reasoning, describing the observed exposure characteristics. Then, state your final score according to the scale.
+\end{evolbox}
+
+\subsection{Discussion of Diffusion Forcing vs Autoregressive} Both diffusion forcing such as SkyReels and MAGI and autoregressive models with clean context such as Self-Forcing and ours can generate long videos. Diffusion forcing works by keeping a large number of frames in the current stage and apply different noise level for different frames. Thus, it naturally comes with better long term memory. However, such as long term memory comes at the cost of training instability as the number of different noise level combinations can be extremely huge due to the nature of diffusion models which needs multiple step denoising. Thus methods such as StreamDiT~\citep{kodaira2025streamdit} has opted to distill the model first to limit the number of combinations which reduces the tranining instability. However, as the resutls shown in our work~\cref{tab:main,tab:main_more,tab:detailed_results} that a context with variable noises it not absolutely required to achieve long horizon generation with little quality degradation. As shown in our ablation study, the model is gradually learns to generate long videos with increased training budget even without using long video training set. We hope our work can help the community with generating better and more consistent long videos.
+
+
+\subsection{More Visualizations}
+Please checkout our demo page for more videos at \href{https://self-forcing-plus-plus.github.io/}{https://self-forcing-plus-plus.github.io/}

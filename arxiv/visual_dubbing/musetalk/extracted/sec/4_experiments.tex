@@ -1,0 +1,232 @@
+\section{Experiments}
+\label{sec:experiments}
+% In this section, we first detail the implementation of our experiments. We then conduct a quantitative evaluation, comparing our method's performance against state-of-the-art approaches using the HDTF~\cite{zhang2021flow} and VFHQ~\cite{xie2022vfhq} benchmarks.
+% Next, we present qualitative results to demonstrate the visual fidelity of MuseTalk's synthetic outputs. 
+% Finally, we perform ablation studies to assess the contributions of individual components to MuseTalk's overall performance.
+
+\begin{table*}[t]
+\begin{center}
+\begin{tabular}{lcccccccc}
+\toprule
+\multirow{2}{*}{\bf Method} & \multirow{2}{*}{\bf Type} & \multicolumn{3}{c}{\bf HTDF} & \multicolumn{3}{c}{\bf VFHQ} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8}
+& & \multicolumn{1}{c}{FID } & \multicolumn{1}{c}{CSIM $\uparrow$} & \multicolumn{1}{c}{LSE-C $\uparrow$} & \multicolumn{1}{c}{FID } & \multicolumn{1}{c}{CSIM $\uparrow$} & \multicolumn{1}{c}{LSE-C $\uparrow$} \\
+\midrule
+Wav2Lip~\cite{prajwal2020lip} & GAN & 11.55 & 0.84 & 7.42 & 14.99 & 0.82 & 5.84 \\
+VideoRetalking~\cite{cheng2022videoretalking} & GAN & 11.29 & 0.80 & 7.59 & 15.83 & 0.79 & 6.13 \\
+DI-Net~\cite{zhang2023dinet} & GAN & 6.94 & 0.80 & 5.96 & 15.03 & 0.71 & 3.37 \\
+IP-LAP~\cite{zhong2023identity} & GAN & 10.16 & \textbf{0.86} & 4.47 & 10.95 & \textbf{0.85} & 3.88 \\
+% V-express~\cite{wang2024v} & Diffusion & – & – & – & – & – & – \\
+LatentSync~\cite{li2024latentsync} & Diffusion & 8.41 & 0.84 &\textbf{7.90} & 9.89 & 0.82 & \textbf{6.79} \\
+SyncLab~\cite{sync_so_projects} & – & 10.85 & \textbf{0.86} & 6.37 & 9.85 & \textbf{0.85} & 5.22 \\
+\midrule
+Ground Truth & – & 0.00 & 1.00 & 7.73 & 0.00 & 1.00 & 6.93 \\
+\midrule
+MuseTalk & GAN & \textbf{6.52} & \textbf{0.86} & 6.53 & \textbf{7.07} & \textbf{0.85} & 4.77 \\
+\bottomrule
+\end{tabular}%
+\end{center}
+\caption{Performance metrics for HDTF~\cite{zhang2021flow} and VFHQ~\cite{xie2022vfhq}.  
+We omit the face restoration procedure from the original methods for fair comparison.    
+SyncLab~\cite{sync_so_projects} is a commercial software with unknown technical details.
+The best results are highlighted in \textbf{bold}.
+}
+\label{tab:performance}
+\end{table*}
+
+\subsection{Experimental Setup}
+\paragraph{Model Architecture.}
+MuseTalk's implementation adopts the pre-trained VAE model and the multimodal U-Net architecture from Latent Diffusion~\cite{rombach2022high}. 
+For the audio encoder, we opt for the lightweight Whisper-Tiny model~\cite{radford2023robust}, which provides effective audio feature extraction. The audio features are integrated into the U-Net through cross-attention layers after undergoing reshaping and reorganization to match the required dimensions.
+
+\paragraph{Training Details.}
+We use 8 NVIDIA H20 GPUs for training.
+In the Facial Abstract Pretraining stage, the model is trained with loss function \(\mathcal{L}_{\text{stage1}}\) (described in~\cref{loss:stage1}) for 200,000 steps using the batch size of 32 per GPU. 
+The AdamW optimizer~\cite{loshchilov2017fixing} with a learning rate of \(2 \times 10^{-5}\) is employed. This stage costs 60 hours.
+
+During the Lip-Sync Adversarial Finetuning stage, the model undergoes further refinement with the loss function \(\mathcal{L}_{\text{stage2}}\) (described in~\cref{loss:stage2}) for additional 20,000 steps. 
+The parameter \(N\) in \(\mathcal{L}_{\text{sync}}\) (described in~\cref{loss:syncloss}) is set to 16, and the batch size per GPU is reduced to 2 to accommodate the increased computational demands of the adversarial training. The learning rate is adjusted to \(5 \times 10^{-6}\) to facilitate fine-grained updates. This finetuning stage completes in approximately 30 hours.
+The loss hyper-parameters are set as follows: $\lambda_{vgg}=0.01$, $\lambda_{adv}=0.1$, $\lambda_{sync}=0.05$.
+
+\paragraph{Dataset Preparation.}
+We collected publicly available talking head datasets~\cite{zhang2021flow, xie2022vfhq}. 
+To ensure high-quality data, we employed a rigorous data filtering pipeline. 
+The final dataset spans approximately \textbf{24} hours in total duration. Details of the data filtering process are provided in the supplementary materials.
+For evaluation, we randomly selected 26 videos from HDTF and 10 videos from VFHQ, using the remainder for training. All videos were segmented into clips for both training and testing phases. For preprocessing, we detected faces in each frame as Regions of Interest (ROIs), which were subsequently cropped and resized to \(256 \times 256\) pixels. The parameter \(k\) in the IFS was set to \(50\%\) of the video length.
+The input size of discriminator \(\mathcal D_{lip}\) is set to $64\times128$.
+
+During testing, we adopted a protocol mirroring real-world scenarios, where the video and audio inputs are sourced independently, and the reference image is extracted from the current frame. This unpaired evaluation protocol aligns with that used by Wav2Lip~\cite{prajwal2020lip} and VideoRetalking~\cite{cheng2022videoretalking}, ensuring a fair comparison.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[scale=0.45]{image/fig_qualitative}
+\caption{
+Qualitative comparisons on HDTF~\cite{zhang2021flow} (left) and VFHQ~\cite{xie2022vfhq} (right). 
+The first two rows show the input video frames and the lips corresponding to the audio.  
+The arrow shows the lip movement trend (zoom in for finer details). Additional video results are provided in the supplementary materials.
+}
+\label{results_sota}
+\end{figure*}
+
+\paragraph{Evaluation Metrics.}
+The experiments are designed to assess the method's visual fidelity, identity preservation, and lip synchronization capabilities. 
+To evaluate visual quality, we use the Frechet Inception Distance (FID)~\citep{heusel2017gans}, which measures the similarity between generated and real image distributions, providing a robust metric for visual fidelity without ground-truth talking videos.
+Identity preservation is evaluated using cosine similarity (CSIM) between the identity embeddings~\cite{deng2019arcface} of the source and generated images. Lip synchronization is evaluated using lip-sync-error confidence (LSE-C)~\citep{prajwal2020lip}.
+
+\paragraph{Compared Baselines.}
+We benchmark MuseTalk against a range of SOTA video dubbing approaches.
+For fair comparison, we omit the face restoration~\cite{wang2021towards} procedure if required in the original methods.
+Each of them representing distinct technical advancements in the field:
+(1) \textbf{Wav2Lip}~\citep{prajwal2020lip}: Pioneering work using a robust lip-sync discriminator for realistic synchronization;
+(2) \textbf{VideoRetalking}~\citep{cheng2022videoretalking}: Three-stage pipeline for high-quality lip synchronization;
+(3) \textbf{DI-Net}~\citep{zhang2023dinet}: Dual-encoder framework with facial action units for photo-realistic and emotion-consistent talking face videos;
+(4) \textbf{IP-LAP}~\cite{zhong2023identity}: Two-stage framework combining Transformer-based landmarks with multi-reference alignment for identity preservation;
+(5) \textbf{LatentSync}~\cite{li2024latentsync}: Integrates pixel-space SyncNet into latent diffusion for efficient, high-fidelity lip-sync generation;
+(6) \textbf{SyncLab}~\cite{sync_so_projects}: Commercial software for lip-syncing models, focusing on cutting-edge AI video solutions.
+
+\subsection{Quantitative Evaluation}
+\paragraph{Benchmark.} 
+Table~\ref{tab:performance} presents the quantitative analysis on the HDTF and VFHQ datasets. 
+MuseTalk demonstrates superior performance, achieving the lowest FID scores (\textbf{6.52} on HDTF and \textbf{7.07} on VFHQ) and the highest CSIM scores (\textbf{0.86} on HDTF and \textbf{0.85} on VFHQ),  outperforming existing methods. 
+While its LSE-C scores are slightly lower than some competitors, MuseTalk strikes a remarkable balance between visual fidelity and lip-synchronization accuracy.
+
+Analyzing the baseline methods, Wav2Lip~\cite{prajwal2020lip} and VideoRetalking~\cite{cheng2022videoretalking} exhibit relatively lower visual quality, as evidenced by their higher FID scores (e.g., 11.55 vs. 6.52 on HDTF for MuseTalk). This discrepancy stems from their training on downscaled face regions (96 × 96 pixels), which compromises image clarity. In contrast, DI-Net~\cite{zhang2023dinet} achieves the second-lowest FID score on HDTF (6.94) through its deformation-based approach, which effectively preserves high-frequency texture details. However, its identity preservation capability is notably limited, as reflected in its subpar CSIM score (0.80 on HDTF and 0.71 on VFHQ). This weakness arises from its reliance on random reference image sampling, which introduces redundancy and hinders natural lip movements, ultimately affecting its LSE-C performance.
+
+Among GAN-based approaches, IP-LAP~\cite{zhong2023identity} stands out with the highest CSIM score (\textbf{0.86}) on HDTF, showcasing exceptional identity preservation. However, it suffers from low visual quality and lip-synchronization capabilities.
+Turning to diffusion models, LatentSync~\cite{li2024latentsync} achieves the best LSE-C score (\textbf{7.90} on HDTF), indicating superior lip-synchronization capabilities. However, its non-real-time nature limits its practicality for real-world applications. In contrast, MuseTalk runs in real-time, achieving 30 FPS at a 256×256 resolution on an NVIDIA V100 GPU with preloaded data.
+
+In summary, MuseTalk is the most balanced solution, achieving great performance across multiple metrics while maintaining real-time capabilities. Its lip-sync accuracy is on par with that of the commercial software SyncLab~\cite{sync_so_projects}.
+% This makes it particularly suitable for video dubbing tasks where both visual fidelity and temporal accuracy are critical.
+
+\paragraph{User Study.}
+To assess the quality of lip synchronization, human judgment is relied upon. A user study was conducted to further evaluate the performance of our proposed method. For this study, dubbed videos were created by different methods using 36 unsynced audio-video pairs from the HDTF datasets and the VFHQ datasets. 
+Ten participants were asked to rate each video based on visual quality, identity consistency, and lip-sync accuracy. They were provided with a five-point scale (with 1 being the lowest and 5 being the highest) for their evaluations. A total of 360 ratings were collected.
+
+In the subjective evaluation, method names were hidden and videos were randomly shuffled to ensure unbiased assessment. Annotators saw labels like 
+``Method 1'' and ``Method 2'' without knowing their specific methods, and the same label across different pairs did not correspond to the same method. This ensured fairness and prevented bias.
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+\multicolumn{1}{l}{\bf Method} & \multicolumn{1}{c}{\bf VQ$\uparrow$} & \multicolumn{1}{c}{\bf IC$\uparrow$} & \multicolumn{1}{c}{\bf LSQ$\uparrow$} \\
+\midrule
+
+Wav2Lip~\cite{prajwal2020lip}    & 2.19 & 3.07 & 2.70 \\
+VideoRetalking~\cite{cheng2022videoretalking}   & 3.35 & 3.14 & 3.58 \\
+DINet~\cite{zhang2023dinet}    & 2.92 & 2.40 & 2.57 \\
+LatentSync~\cite{li2024latentsync} & 3.71 & 3.93 & \bf{4.07}\\
+SyncLab~\cite{sync_so_projects} & 3.87 & 3.71 & 3.49 \\
+MuseTalk  & \bf{4.26} & \bf{4.15} & 3.77 \\
+\bottomrule
+\end{tabular}
+
+\caption{User Study. The best results are shown in \textbf{bold}. VQ: Visual Quality; IC: Identity Consistency; LSQ: Lip-Sync Quality.}
+\label{user-study}
+\end{center}
+\end{table}
+As indicated in~\cref{user-study}, the majority of participants awarded higher scores to MuseTalk in terms of visual quality, lip-sync quality, and identity consistency. More visualization can be found in the supplementary materials.
+
+\subsection{Qualitative Evaluation}
+Two illustrative examples are included in~\cref{results_sota}. 
+Wav2Lip~\cite{prajwal2020lip} often produces synthesized mouth regions that appear blurry. 
+VideoRetalking~\cite{cheng2022videoretalking} results in jagged artifacts around the lip area and overly smooths the face region. 
+DI-Net~\cite{zhang2023dinet} induces noticeable changes in the subject's identity within the generated results. 
+IP-LAP~\cite{zhong2023identity} maintains identity relatively well but generates inconsistent lip movements. 
+LatentSync~\cite{li2024latentsync} and SyncLab~\cite{sync_so_projects} generate clear facial and dental details but require longer computation times compared to other methods. 
+In contrast, MuseTalk achieves a better balance in lip movement consistency, identity preservation, and efficiency.
+
+
+
+\subsection{Ablation Studies}
+\label{subsec:exp-ab}
+\paragraph{Informative Frame Sampling.}
+We tested various values of \( k \) across different percentages (25\%, 50\%, and 75\%) of the total candidate frames to identify its optimal value. The results are shown in~\cref{ablation-IFS}, highlighting the effects of different \( k \) values on overall performance.
+
+As seen in the table, the IFS strategy achieves peak performance when \( k \) is set to 50\% of the candidate frames. Specifically, the Fréchet Inception Distance (FID) reaches its minimum at 6.52, indicating the smallest discrepancy between generated and real images, and thus the highest image quality. Meanwhile, the Cosine Similarity (CSIM) reaches its maximum at 0.86, reflecting the highest similarity between generated and real images. Additionally, the LSE-C value is maximized at 6.53, further confirming the superior performance of the IFS strategy under this setting. 
+In contrast, random sampling yields significantly inferior results, with an FID of 9.24, a CSIM of 0.79, and an LSE-C of 4.41. 
+
+% \begin{figure}[t]
+% \centering
+% \includegraphics[width=\linewidth]{ICCV2025-Author-Kit-Feb/imageSup/supp_DMS.pdf}
+% \caption{
+% Lip generated by different Dynamic Margin Sample settings.
+% Zoom in to view details.
+% }
+% \label{fig:margin_results}
+% \end{figure}
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\multicolumn{1}{c}{\bf Sampling strategy}  & \multicolumn{1}{c}{\bf FID}  & \multicolumn{1}{c}{\bf CSIM$\uparrow$} & \multicolumn{1}{c}{\bf LSE-C$\uparrow$}  \\
+\midrule
+Random & 9.24 & 0.79 & 4.41 \\
+IFS (k=25\%) & 8.31 & 0.83 & 2.94 \\
+IFS (k=50\%)  & \textbf{6.52} & \textbf{0.86} & \textbf{6.53} \\
+IFS (k=75\%)  & 11.22 & 0.72 & 3.27 \\
+\bottomrule
+\end{tabular}
+\caption{Ablation study for sampling method on HDTF~\cite{zhang2021flow} benchmark.
+The best results are shown in \textbf{bold}.}
+\label{ablation-IFS}
+\end{center}
+\end{table}
+
+\paragraph{Dynamic Margin Sampling.}
+Dynamic Margin Sampling (DMS) generates random margins for the chin-to-boundary distance from a normal distribution \( \mathcal{N}(\mu, \sigma) \) within one standard deviation. We investigate two critical design choices: (1) the optimal margin magnitude and (2) whether to share margins between reference (\( I_{\text{ref}}^{t} \)) and source (\( I_{s}^{t} \)) images. These choices significantly affect lip generation quality.
+
+To explore these factors, we evaluated three configurations: 
+(i) a margin drawn from \( \mathcal{N}(20, 20) \) with independent margins for each image; 
+(ii) a margin drawn from \( \mathcal{N}(10, 10) \) with shared margins between the reference and source images; and 
+(iii) a margin drawn from \( \mathcal{N}(10, 10) \) with independent margins for each image.
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+\multicolumn{1}{l}{\bf DMS setting}  & \multicolumn{1}{c}{\bf FID}  & \multicolumn{1}{c}{\bf CSIM$\uparrow$} & \multicolumn{1}{c}{\bf LSE-C$\uparrow$}  \\
+\midrule
+ \( \mathcal N(20,20) \) + idp margin & 11.95 & 0.81 & 5.78 \\
+ \( \mathcal N(10,10) \) + shared margin & \textbf{6.43} & 0.85 & 4.95 \\
+ \( \mathcal N(10,10) \) + idp margin  & 6.52 & \textbf{0.86} & \textbf{6.53} \\
+\bottomrule
+\end{tabular}
+\caption{Ablation study for different DMS settings on HDTF~\cite{zhang2021flow} benchmark.
+The ``idp'' means independent.}
+\label{ablation-DMS}
+\end{center}
+\end{table}
+
+Table~\ref{ablation-DMS} shows that the larger margin setting (i) achieves lower FID and CSIM scores. 
+This is because the highly variable margins force the model to focus more on background information, making it difficult to accurately determine the chin position and resulting in numerous artifacts in the generated images. 
+The margin-sharing setting (ii) degrades lip accuracy because when the margins of \(I_{\text{ref}}^{t}\) and \(I_{s}^{t}\) are identical, the model can infer the mouth shape of \(I_{\text{gt}}^{t}\) based on the nose position, thereby reintroducing information leakage (described in~\cref{fig:fig_DMS}). 
+The configuration (iii) achieves optimal performance by adopting a more moderate margin that effectively addresses information leakage without compromising FID and CSIM scores.
+
+We use the optimal setting identified from these experiments for all evaluations described in~\cref{sec:experiments}.
+
+% \begin{table}[t]
+% \begin{center}
+% \begin{tabular}{lccc}
+% \toprule
+% \multicolumn{1}{l}{\bf Training Data}  & \multicolumn{1}{c}{\bf FID}  & \multicolumn{1}{c}{\bf CSIM$\uparrow$} & \multicolumn{1}{c}{\bf LSE-C$\uparrow$}  \\
+% \midrule
+% With Proprietary Data & \textbf{6.52} & 0.8593 &  \textbf{6.53} \\
+% Without Proprietary Data & \ 6.53 &  \textbf{0.8635} & 6.22 \\
+% \bottomrule
+% \end{tabular}
+% \caption{Evaluation of MuseTalk with and without proprietary data on HDTF~\cite{zhang2021flow} benchmark.
+% The best results are shown in \textbf{bold}.
+% }
+% \label{tab:proprietary-data}
+% \end{center}
+% \end{table}
+
+% \paragraph{Proprietary Data.}
+% We used a proprietary dataset during training. 
+% To evaluate MuseTalk more fairly, we retrained the model using only the publicly available HDTF~\cite{zhang2021flow} and VFHQ~\cite{xie2022vfhq} datasets, excluding our proprietary dataset. 
+% We evaluated the model on the HDTF dataset. From~\cref{tab:proprietary-data}, we can see that the proprietary data slightly improved the LSE-C score but led to minor drops in FID and CSIM. 
+% This is because the proprietary dataset contains many Asian identities, while HDTF primarily consists of Caucasian identities.
+% More details about the proprietary dataset are provided in the supplementary materials.

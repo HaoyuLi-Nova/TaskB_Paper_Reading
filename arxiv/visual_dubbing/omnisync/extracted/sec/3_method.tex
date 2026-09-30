@@ -1,0 +1,159 @@
+\vspace{-0.5em}
+\section{Method}
+
+\subsection{Overview}
+In this section, we present OmniSync, a universal lip synchronization framework designed for diverse visual content (Fig. \ref{fig:pipe}). Our approach comprises three key components: 1) a mask-free training paradigm that eliminates dependency on reference frames and explicit masks, 2) a flow-matching-based progressive noise initialization strategy for enhanced inference stability, and 3) dynamic spatiotemporal Classifier-Free Guidance (CFG) that optimizes lip sync while preserving facial details. The following subsections provide comprehensive explanations of each component.
+
+
+\begin{figure*}
+\vspace{-1em}
+\begin{center}
+   \includegraphics[width=1.\linewidth]{imgs/omnisync-pipeline-0516v2_compressed.pdf}
+\end{center}
+\vspace{-1em}
+   \caption{\textbf{Overview of OmniSync.} A mask-free training paradigm employs timestep-dependent sampling to predict the lip-synchronized targets $V_{ab}$. During inference, progressive noise initialization and dynamic spatiotemporal CFG ensure consistent head pose and precise lip synchronization.
+}
+\label{fig:pipe}
+\vspace{-1em}
+\end{figure*}
+
+\subsection{Mask-Free Training Paradigm}
+Traditional lip synchronization methods~\cite{prajwal2020lip,zhang2024musetalk} rely on masked-frame inpainting, isolating the mouth region before generating content based on audio input. Despite their prevalence, these approaches produce boundary artifacts and struggle with identity preservation. Crucially, they require explicit face detection and alignment—techniques that fail with stylized characters and non-human entities.
+
+An alternative approach is direct frame editing, which aims to transform frames according to target audio without relying on masks or references. However, this approach requires perfectly paired training data with identical head poses and identity—differing only in lip movements. Such paired data is extremely rare and would severely restrict the model's generalizability to diverse visual results.
+
+To address these limitations, we leverage the progressive denoising characteristic of diffusion models, introducing a novel training strategy that varies data sampling based on diffusion timesteps. This allows for stable learning without requiring perfectly paired examples. Our goal is to learn a conditional generation process mapping $(V_{cd}, A_{ab}) \mapsto V_{ab}$ through iterative denoising, where $V$ represents video frames and $A$ represents audio.
+
+
+We employ Flow Matching~\cite{lipman2022flow} as our training objective. Given an input video segment $V_{cd}$ from frames $c$ to $d$, and a target audio segment $A_{ab}$ from frames $a$ to $b$, our model generates the corresponding video segment $V_{ab}$ via the diffusion process:
+
+\vspace{-1em}
+\begin{equation}
+x_{t-1} = \text{DiT}(x_t, V_{cd}, A_{ab}, t),
+\end{equation}
+\vspace{-1em}
+
+where $x_t$ represents the noised version of target video $V_{ab}$ at timestep $t$, and DiT denotes our diffusion transformer, which predicts the denoised state at timestep $t-1$.
+
+The CFM loss used for training is defined as:
+
+\begin{equation}
+\mathcal{L}_{CFM}(\theta) = \mathbb{E}_{t,x_t,V_{cd},A_{ab},V_{ab}}\left[\|v_\theta(x_t, V_{cd}, A_{ab}, t) - u_t(x_t|V_{ab})\|_2^2\right],
+\end{equation}
+
+where $v_\theta(x_t, V_{cd}, A_{ab}, t)$ is the learned velocity field predicted by DiT with conditioning on input video $V_{cd}$ and target audio $A_{ab}$, $u_t(x_t|V_{ab})$ is the conditional velocity field typically defined as $u_t(x_t|V_{ab}) = (V_{ab} - x_t)/(1 - t)$ for the linear interpolation path $x_t = (1 - t)x_0 + tV_{ab}$.
+
+
+\textbf{Timestep-Dependent Sampling Strategy.}
+A critical insight in our approach is recognizing that the diffusion process can be decomposed into distinct phases, each with different learning requirements. Specifically, early timesteps focus on generating fundamental facial structure, including pose and identity information; middle timesteps primarily generate lip movements driven by audio; while late timesteps refine identity details and textures. To capitalize on this natural progression, we utilize different datasets for distinct timesteps.
+
+For early timesteps (approximately $t \approx T$), responsible for generating overall facial structure, we employ pseudo-paired data from controlled laboratory settings. These samples maintain nearly identical pose information, with variations only in lip movements, providing stable learning signals for structural features and ensuring pose alignment between input and output.
+
+For middle and late timesteps, we transition to more diverse data, sampling from arbitrary videos. During middle timesteps, the model learns to generate lip shapes guided by audio input, whereas in late timesteps (approximately $t \approx 0$), it focuses on refining identity details and ensuring texture consistency. This timestep-dependent training strategy can be formalized as:
+
+\begin{equation}
+p(V_{cd}, V_{ab}|t) = 
+\begin{cases}
+p_{\text{pseudo-paired}}(V_{cd}, V_{ab}) & \text{if } t > t_{\text{threshold}}, \\
+p_{\text{arbitrary}}(V_{cd}, V_{ab}) & \text{otherwise}.
+\end{cases}
+\end{equation}
+\vspace{-0.5em}
+
+Here, $p_{\text{pseudo-paired}}$ indicates sampling from controlled datasets with minimal pose variations, while $p_{\text{arbitrary}}$ signifies sampling from our diverse collection of videos.
+The conditional generation process can be expressed mathematically as:
+
+\vspace{-1em}
+\begin{equation}
+p_\theta(V_{ab}|V_{cd}, A_{ab}) = \int p_\theta(V_{ab}|x_0)p_\theta(x_0|V_{cd}, A_{ab})dx_0,
+\end{equation}
+\vspace{-1em}
+
+where $ p_\theta(V_{ab}|x_0) $ represents the mapping from the fully denoised state to the output video, and $ p_\theta(x_0|V_{cd}, A_{ab}) $ captures the relationship between input conditions and the denoised state. Here, $ x_0 $ refers to the completely denoised latent representation (at timestep $ t=0 $).
+
+This progressive training approach aligns well with the natural learning progression of diffusion models. By providing appropriate training signals at each stage, we enable stable learning even without perfectly paired data, allowing our model to generalize effectively to diverse real-world scenarios while maintaining identity consistency.
+\vspace{-0.3em}
+\subsection{Progressive Noise Initialization}
+\vspace{-0.3em}
+Standard diffusion-based generation~\cite{tian2024emo} typically begins from random noise (timestep $T$) and progressively denoises toward the final output (timestep $0$). However, this approach often results in subtle but noticeable pose misalignments between generated content and original video frames, creating undesirable boundary artifacts and compromising identity preservation.
+
+The fundamental issue lies in error accumulation during the early stages of diffusion. Even minor deviations in early timesteps—when basic facial structure is being formed—can lead to significant misalignments in the final output. This problem is relevant for lip synchronization, where the goal is to modify only speech-relevant regions while maintaining perfect spatial consistency elsewhere.
+To address this challenge, we introduce a flow-matching-based progressive noise initialization strategy that transforms the traditional diffusion process.
+
+\textbf{Flow-Matching Noise Initialization.}
+Rather than starting the diffusion process from random noise at timestep $T$, we initialize from original video frames with a controlled level of noise. This simulates an intermediate state in the diffusion trajectory, corresponding to a normalized parameter $\tau$. The initialization is performed by adding this controlled noise to the original video frame:
+
+\vspace{-0.5em}
+\begin{equation}
+x_{\text{init}} = \text{FM}_{\text{add}}(V_{\text{source}}, \tau) = (1-\tau)V_{\text{source}}+ \tau\epsilon,
+\label{eq:fm_add}
+\end{equation}
+\vspace{-0.5em}
+
+
+where $x_{\text{init}}$ is the initial noised state derived using the parameter $\tau$, $V_{\text{source}}$ is the source video frame, and $\epsilon \sim \mathcal{N}(0, I)$ is random noise. Let $t_{\text{start}}$ be the discrete timestep corresponding to this initialization point ($T$ is the total number of diffusion steps, and $\tau \in [0,1]$).
+
+This initialization strategy provides two significant advantages. First, it bypasses the early stages of diffusion (from $T$ down to $t_{\text{start}}$) where general facial structure is formed. This ensures that head pose and global structure are directly inherited from the source frame. Second, it reduces computational requirements by performing denoising only for the remaining steps, from $t_{\text{start}}$ down to $0$.
+
+
+The complete progressive denoising process can be expressed as:
+
+\vspace{-0.5em}
+\begin{equation}
+x_{t} = \begin{cases}
+x_{\text{init}} & \text{if } t = t_{\text{start}}, \\
+\text{DiT}(x_{t+1}, V_{\text{source}}, A_{\text{target}}, t+1) & \text{if } t_{\text{start}} > t \geq 0,
+\end{cases}
+\label{eq:progressive_denoising}
+\end{equation}
+\vspace{-0.5em}
+
+
+where $A_{\text{target}}$ is the target audio used to guide the denoising process, and $t$ here represents discrete diffusion timesteps.
+
+This approach effectively creates a two-stage process: (1) initialization using the flow-matching-inspired noise addition (Eq.~\ref{eq:fm_add}) to reach a state equivalent to timestep $t_{\text{start}}$, and (2) guided denoising from $t_{\text{start}}$ to 0 that focuses on modifying mouth regions according to the target audio while preserving the overall facial structure, identity features, and head pose from the source frame. By skipping the early noisy stages where basic structures form, we maintain spatial consistency while allowing sufficient flexibility for precise mouth region modifications.
+
+\vspace{-0.3em}
+\subsection{Dynamic Spatiotemporal Classifier-Free Guidance}
+\vspace{-0.3em}
+
+Audio-driven lip synchronization faces a fundamental challenge: audio signals provide relatively weak conditioning compared to visual cues~\cite{wang2024v}. Standard Classifier-Free Guidance (CFG)~\cite{ho2022classifier} can enhance audio conditioning, but applying uniform guidance across spatial and temporal dimensions creates an unavoidable dilemma: higher guidance scales produce more accurate lip sync but introduce texture artifacts, while lower scales preserve visual fidelity but yield less precise lip movements.
+
+To resolve this tension, we introduce Dynamic Spatiotemporal Classifier-Free Guidance (DS-CFG), a novel approach that provides fine-grained control over the generation process across both spatial and temporal dimensions. Our method applies varying guidance strengths to different regions of the frame and different stages of the diffusion process, achieving an optimal balance between lip synchronization accuracy and overall visual quality.
+
+\textbf{Spatially-Adaptive Guidance.}
+The key insight for spatial adaptation is that audio information primarily affects the mouth region, while other facial areas should remain largely unchanged. We implement this through a Gaussian-weighted spatial guidance matrix that concentrates guidance strength around speech-relevant regions:
+
+\vspace{-1em}
+\begin{equation}
+\mathbf{G}_{\text{spatial}}(x, y) = \omega_{\text{base}} + (\omega_{\text{peak}} - \omega_{\text{base}}) \cdot \exp\left(-\frac{(x - x_m)^2 + (y - y_m)^2}{2\sigma^2}\right)
+\end{equation}
+\vspace{-1em}
+
+where $(x_m, y_m)$ represents the mouth center, $\sigma$ controls the spread of the Gaussian distribution, $\omega_{\text{base}}$ is the baseline guidance strength applied to non-mouth regions, and $\omega_{\text{peak}}$ is the peak strength applied at the mouth center. This spatial adaptation ensures that audio conditions strongly influence lip and surrounding regions while minimally affecting other facial features.
+
+
+\textbf{Temporally-Adaptive Guidance.}
+We observe that audio conditioning plays different roles at different stages of the diffusion process. In early diffusion timesteps, strong guidance helps establish correct lip shapes, while in later stages, excessive guidance can disrupt fine texture details. To address this, we implement a temporally decreasing guidance schedule:
+
+\vspace{-1em}
+\begin{equation}
+\omega(t) = \omega_{\text{peak}} \cdot \left(\frac{t}{T}\right)^{\gamma}
+\end{equation}
+\vspace{-1em}
+
+where $t$ is the current diffusion timestep, $T$ is the total number of timesteps, $\omega_{\text{peak}}$ is the maximum guidance scale, and $\gamma$ controls the decay rate,  with a value of 1.5.
+This temporal adaptation ensures strong guidance during early and middle diffusion stages when coarse structures are formed, gradually reducing influence during later stages when fine details and textures are refined.
+
+\textbf{Unified Dynamic Spatiotemporal CFG.}
+Combining both spatial and temporal adaptations, our DS-CFG approach modifies the standard CFG formulation to:
+
+\vspace{-1em}
+\begin{equation}
+\hat{\epsilon}_\theta(x_t, c, t) = \epsilon_\theta(x_t, \emptyset, t) + \mathbf{G}_{\text{spatial}} \cdot \omega(t) \cdot (\epsilon_\theta(x_t, c, t) - \epsilon_\theta(x_t, \emptyset, t))
+\end{equation}
+\vspace{-1em}
+
+where $\epsilon_\theta(x_t, c, t)$ and $\epsilon_\theta(x_t, \emptyset, t)$ are the noise predictions with and without conditioning, respectively.
+
+Through this DS-CFG, our method achieves precise control over the generation process, effectively addressing the weak audio signal problem in audio-driven generation.

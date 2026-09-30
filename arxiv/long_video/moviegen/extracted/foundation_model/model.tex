@@ -1,0 +1,370 @@
+
+
+We train a single joint foundation model, \OursVideo, for the text-to-image and the text-to-video tasks.
+Given a text prompt as input, our foundation model generates a video consisting of multiple RGB frames as output.
+We treat images as a single frame video, enabling us to use the same model to generate both images and videos.
+Compared to video data, paired image-text datasets are easier to scale with diverse concepts and styles~\citep{ho2022imagen,emuvideo2023} and thus joint modeling of image and video leads to better generalization.
+Our training recipe is illustrated in~\cref{fig:overview_t2v_recipe}.
+We perform our training in multiple stages for training efficiency.
+We first pretrain our model only on low-resolution 256 px images followed by joint \pretraining on low-resolution images and videos, and high-resolution joint training.
+We finetune the model on high quality videos to improve the generations.
+Additionally, we add capabilities such as personalization and editing by post-training.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.9\linewidth]{figures/foundation_model/training_steps.pdf}
+  \caption{\textbf{Training recipe for \OursVideo.}
+  We first pre-train our model for the \textToI task followed by joint \textToI and \textToV \pretraining at increasingly higher spatial resolutions~(\cref{sec:image_video_model}).
+  We finetune the model on high aesthetic and motion quality videos to improve our video generations.
+  We also add additional capabilities like personalization~(\cref{sec:personalization}) and video-to-video editing~(\cref{sec:video_editing}).
+  }
+  \label{fig:overview_t2v_recipe}
+\end{figure}
+
+For improved training and inference efficiency, we perform generation in a spatio-temporally compressed latent space.
+Towards this, we train a single temporal autoencoder model (\taeShort) to map both RGB images and videos into a spatio-temporally compressed latent space, and vice-versa.
+We encode the user-provided text prompt using pre-trained text-encoders to obtain text prompt embeddings, which are used as conditioning for our model.
+We use the \flowmatching training objective~\citep{flow-matching} to train our generative model.
+Taking sampled noise and all provided conditioning as input, our generative model produces an output latent.
+This is passed through the \taeShort decoder to map it back to the pixel space and produce an output image or video.
+We illustrate the overview of the joint image and video generation pipeline in~\cref{fig:t2v_full}.
+
+\begin{figure}[t!]
+  \includegraphics[width=\linewidth]{figures/foundation_model/overview.pdf}
+  \vspace{-7mm}
+  \caption{\textbf{Overview of the joint image and video generation pipeline.}
+  We train our generative model on a spatio-temporally compressed latent space, which is learned via a temporal autoencoder model (\taeShort).
+  User-provided text prompts are encoded using pre-trained text-encoders, and used as conditioning.
+  Our generative model takes sampled Gaussian noise and all provided conditioning as input, and generates an output latent, which is decoded to an output image or video using the \taeShort decoder.
+  }
+  \label{fig:t2v_full}
+\end{figure}
+
+We focus on simplicity when making design choices for all components in our foundation model, including the training objective, backbone architecture, and spatio-temporal compression using the \taeShort.
+These choices, which include using the \llama~\citep{llama3} backbone architecture for the joint image-video generation model, allow us to confidently scale the model size while allowing for efficient training.
+Our largest $30$B parameter model can directly generate video at different aspect ratios (\eg, \texttt{1:1}, \texttt{9:16}, \texttt{16:9}), of multiple lengths (4 -- 16 seconds) at $768\times 768$ px resolution (scaled appropriately based on the aspect ratio).
+Our \upsampler can further increase the spatial resolution to produce a video in full HD 1080p resolution.
+
+
+Next, we describe the model architecture, pretraining and finetuning procedures for the foundation \OursVideo model.
+
+
+
+
+\subsection{Image and Video Foundation Model}
+\label{sec:t2v_model}
+We describe the key components of the \OursVideo model---the spatio-temporal autoencoder (\taeShort), the training objective for image and video generation, model architecture, and the model scaling techniques we use in our work.
+
+
+\subsubsection{\tae (\taeShort)}
+\label{sec:tae}%
+
+For the purposes of efficiency, we encode the RGB pixel-space videos and images into a learned spatio-temporally compressed latent space using a \tae (\taeShort), and learn to generate videos in this latent space.
+Our \taeShort is based on a variational autoencoder~\citep{kingma2013auto} and compresses the input pixel space video $\bv$ of shape ${\vTime\times3\times\vHeight\times\vWidth}$ to a continuous-valued latent $\bx$ of shape ${\zTime\times\zChannels\times\zHeight\times\zWidth}$, where $\zTime<\vTime$, $\zHeight<\vHeight$, $\zWidth<\vWidth$.
+In our implementation, we compress the input $8\times$ across each of the spatio-temporal dimensions, \ie, $\vTime/\zTime = \vHeight/\zHeight = \vWidth/\zWidth = 8$.
+This compression reduces the overall sequence length of the input to the Transformer backbone, enabling the generation of long and high-resolution video at native frame rates.
+This choice also allows us to forego frame-interpolation models commonly used in prior work~\citep{emuvideo2023,singer2023makeavideo,ho2022imagen}, thereby simplifying our model.
+
+
+\par \noindent \textbf{\taeShort architecture.}
+We adopt the architecture used for image autoencoders from~\citep{rombach2021highresolution} and `inflate' it by adding temporal parameters: a 1D temporal convolution after each 2D spatial convolution and a 1D temporal attention after each spatial attention.
+All temporal convolutions use symmetrical replicate padding.
+Temporal downsampling is performed via strided convolution with stride of 2, and upsampling by nearest-neighbour interpolation followed by convolution.
+Downsampling via strided convolution means that videos of any length are able to be encoded (notably including images, which are treated as single-frame videos) by discarding spurious output frames as shown in~\cref{fig:tae_up_down}.
+Similar to~\citep{dai2023emu}, we find that increasing the number of channels in the latent space $\bx$ improves both the reconstruction and the generation performance.
+We use $\zChannels=16$ in this work.
+We initialize the spatial parameters in the \taeShort using a pre-trained image autoencoder, and then add the temporal parameters to inflate the model as described above.
+After inflation, we jointly train the \taeShort on both images and videos, in a ratio of 1 batch of images to 3 batches of videos.
+
+\begin{figure}[t!]
+\includegraphics[width=0.97\linewidth]{figures/foundation_model/TAE.pdf}
+\vspace{-2mm}
+\caption{\textbf{Variable length video encoding and decoding using the \taeShort.}
+The \taeShort encoder encodes $\vTime$ frames in the RGB pixel space to $\lceil\vTime/8\rceil$ latent frames.
+The \taeShort decoder then decodes to $8 \times \lceil\vTime/8\rceil$ real frames, and any spurious frames ($8 \times \lceil\vTime/8\rceil - \vTime$) are discarded.
+}
+\label{fig:tae_up_down}
+\end{figure}
+
+
+\noindent \textbf{Improvements to the training objective.}
+We find that the standard training objective used in~\citep{rombach2021highresolution} leads to a `spot' artifact in the decoded pixel-space videos, as shown in~\cref{fig:tae_black_spot}.
+On further inspection, we found that the model produced latent codes with high norms (`latent dots') in certain spatial locations, which when decoded led to `spots' in the pixel space.
+We hypothesize that this is a form of shortcut learning, where the model learns to store crucial global information in these high-norm latent dots.
+A similar phenomenon has been documented in~\citep{darcet2023vision}, where the authors discovered that vision Transformers can produce high-norm latent tokens, and also in~\citep{karras2024analyzing}, where they found that eliminating global operators such as group norms resolves the issue.
+
+\begin{figure}[b!]
+  \centering
+  \begin{tabular}{C{0.45\linewidth}C{0.45\linewidth}}
+    \multicolumn{2}{c}{\includegraphics[width=0.9\linewidth,trim={0 2.5cm 0cm 0},clip]{figures/foundation_model/tae_latent_dot.pdf}} \\
+    (a) Spot artifact & (b) Latent dot
+  \end{tabular}%
+  \vspace{-2mm}
+  \captionof{figure}{\textbf{Spot artifact and corresponding latent dot.} (a) Frame from a generated video displaying a spot artifact in the top left corner, (b) Visualization of a TAE feature channel, where the corresponding latent dot is visible.}
+  \label{fig:tae_black_spot}
+  \end{figure}
+
+
+Rather than change the model architecture, we opt to add a term to the loss which penalizes the model for encoding latent values which are far from the mean.
+Concretely, given an input latent $\bx$, our outlier penalty loss (OPL) is given by
+\begin{equation} \label{eqn:tae_outlier_loss}
+      \mathcal{L}_{\text{OPL}}\left(\bx, r\right) = \frac{1}{\zHeight\zWidth}\sum_{i=1}^H\sum_{j=1}^W \text{max}\left(\left\|\bx_{i,j} - \text{Mean}\left(\bx\right)\right\|-r\left\|\text{Std}\left(\bx\right)\right\|, 0\right),
+\end{equation}
+where $r$ is a scaling factor which denotes how far outside of the standard deviation a latent value needs to be to be penalized.
+For images, equation \eqref{eqn:tae_outlier_loss} is used as-is; for videos, $\zTime$ is rolled into the batch dimension.
+Adding $\mathcal{L}_{\text{OPL}}$ to the typical variational autoencoder losses (reconstruction, discriminator, and perceptual) removes the dot artifacts.
+In practice, we set $r=3$ and a large loss weight ($1e5$) for the outlier loss.
+
+
+
+
+
+
+
+
+\noindent \textbf{Efficient inference using temporal tiling.}
+Encoding and decoding high resolution long videos, \eg, up to $1024 \times 1024$ px and $256$ frames na\"ively is not feasible due to memory requirements.
+To facilitate inference with large videos, we divide both the input video and latent tensor into tiles along the temporal dimension, encode and/or decode each tile, and stitch the result together at the output.
+When tiling, it is possible to include some overlap between tiles, with an additional weighted blend between adjacent tiles when stitching tiles back together.
+Overlapping and blending can be applied to both the encoder and decoder, and has the effect of removing boundary artifacts at the cost of additional computation.
+In practice, we use a tile size of 32 raw frames (or 4 latent frames), tile without overlap in the encoder, and tile with overlap of 16 raw frames (or 2 latent frames) in the decoder.
+For blending, we use a linear combination between frames $i$ and $i+1$, $x^j_\text{blend}=\sum_j^N\left[w^jx_i^j+\left(1-w^j\right)x^j_{i+1}\right]$, where $j$ is indexed over the $N$ overlapping frames, and $w^j=j/N$.
+~\cref{fig:tae_tiling} shows the basic flow of tiled inference.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.75\linewidth]{figures/foundation_model/tae_tiling_2.pdf}
+\caption{\textbf{Tiled inference using the TAE.} An input video is split across the time dimension into uniform tiles, with optional overlap. Each tile is sent through the model forward pass. If overlap was used, a linearly weighted blend is performed during reconstruction.}
+\label{fig:tae_tiling}
+\end{figure}
+
+
+\subsubsection {Training Objective for Video and Image Generation}
+\label{sec:t2v_training_objective}
+We use the Flow Matching~\citep{flow-matching,albergo2023building,liu2023flow} framework to train our joint image and video generation model.
+Flow Matching generates a sample from the target data distribution by iteratively changing a sample from a prior distribution, \eg, Gaussian.
+At training time, given a video sample in the latent space $\bx_{1}$, we sample a \timestep $\FMTime \in [0, 1]$, and a `noise' sample $\bx_{0} \sim \mathcal{N}(0, 1)$, and use them to construct a training sample $\bx_{\FMTime}$.
+The model is trained to predict the velocity $\bv_{\FMTime} = \dfrac{d\bx_{\FMTime}}{d\FMTime}$ which teaches it to `move' the sample $\bx_{\FMTime}$ in the direction of the video sample $\bx_{1}$.
+
+While there are numerous ways to construct $\bx_{\FMTime}$, in our work, we use simple linear interpolation or the optimal transport path~\citep{flow-matching}, \ie,
+\begin{equation*}
+  \bx_{\FMTime} = \FMTime~\bx_{1} + (1 - (1-\sigma_{\mathrm{min}})\FMTime)~\bx_{0},
+\end{equation*}
+where $\sigma_{\mathrm{min}}=10^{-5}$.
+Thus, the ground truth velocity can be derived as
+\begin{equation*}
+  \begin{split}
+    \bv_{\FMTime} &= \dfrac{d\bx_{\FMTime}}{d\FMTime} \\
+    &= \bx_{1} - (1-\sigma_{\mathrm{min}}) \bx_{0}.
+  \end{split}
+\end{equation*}
+Denoting the model parameters by $\theta$ and text prompt embedding $\bp$, we denote the predicted velocity as $u(\bx_{\FMTime}, \bp, \FMTime)$.
+The model is trained by minimizing the mean squared error between the ground truth velocity and model prediction,
+\begin{equation}
+  \label{eq:fm}
+  \mathbb{E}_{\FMTime, \bx_0, \bx_1, \bp}\|u(\bx_{\FMTime}, \bp, \FMTime; \theta) - \bv_t\|^2.
+\end{equation}
+As in prior work~\citep{sd3}, we sample $\FMTime$ from a logit-normal distribution where the underlying Gaussian distribution has zero mean and unit standard deviation.
+
+
+\par \noindent \textbf{Inference.}
+At inference, we first sample $\bx_{0}\sim \mathcal{N}(0, 1)$ and then use an ordinary differential equation (ODE) solver to compute $\bx_{1}$ using the model's estimated values for $\dfrac{d\bx_{\FMTime}}{d\FMTime}$.
+In practice, there are multiple design choices in the exact ODE solver configuration, \eg, first or higher order solvers, step sizes, tolerance, \etc that affect the runtime and precision of the estimated $\bx_{1}$.
+We use a simple first-order Euler ODE solver with a unique discrete set of $\FMDiscreteMaxTimeSteps$ \timesteps tailored to our model, as described in~\cref{sec:linear_quad_sampler}.
+
+
+
+\par \noindent \textbf{Signal-to-noise ratio.}
+The \timestep $\FMTime$ controls the signal-to-noise (SNR) ratio, and our simple interpolation scheme for constructing $\bx_{\FMTime}$ ensures zero SNR when $\FMTime=0$.
+This ensures that, during training, the model receives pure Gaussian noise samples and is trained to predict the velocity for them.
+Thus, at inference, when the model receives pure Gaussian noise at $\FMTime=0$ it can make a reasonable prediction.
+
+Most video generation models~\citep{ho2022imagen,emuvideo2023,Blattmann2023AlignYL,singer2023makeavideo} are trained using the diffusion formulation~\citep{pmlr-v37-sohl-dickstein15,Ho2020DenoisingDP,ho2022imagen}.
+Recent work~\citep{emuvideo2023,lin2024common} shows that choosing the right diffusion noise schedules with a zero terminal signal-to-noise ratio is particularly important for video generation.
+Standard diffusion noise schedules do not ensure a zero terminal SNR, and thus need to be modified for video generation purposes.
+As noted above, our \flowmatching implementation naturally ensures zero terminal SNR.
+Empirically, we found that \flowmatching was more robust to the exact choice of noise schedules and it outperforms diffusion losses (see~\cref{sec:ablations_t2v}).
+Thus, we adopt \flowmatching for its simplicity and high performance.
+
+\subsubsection {Joint Image and Video Generation Backbone Architecture} \label{t2v_architecture_details}%
+As discussed in~\cref{sec:tae}, we perform generation in a learned latent space representation of the video.
+This latent code is of shape $\zTime\times\zChannels\times\zHeight\times\zWidth$.
+To prepare inputs for the Transformer backbone, the video latent code is first `patchified' using a 3D convolutional layer~\citep{dosovitskiy2020image} and then flattened to yield a 1D sequence.
+The 3D convolutional layer uses a kernel size of $\kTime\times\kHeight\times\kWidth$ with a stride equal to the kernel size and projects it into the same dimensions as needed by the Transformer backbone.
+Thus, the total number of tokens input to the Transformer backbone is $\zTime\zHeight\zWidth/(\kTime\kHeight\kWidth)$.
+We use $\kTime=1$ and $\kHeight=\kWidth=2$, \ie, we produce $2\times2$ spatial patches.
+
+We use a factorized learnable positional embedding to enable arbitrary size, aspect ratio, and video length~\citep{dehghani2024patch} inputs to the Transformer.
+Absolute embeddings of $D$ dimensions can be denoted as a mapping $\phi(i): [0, \mathrm{maxLen}] \rightarrow \mathbb{R}^{D}$
+where $i$ denotes the absolute index of the patch.
+We convert the `patchified' tokens, \ie, output of the 3D convolutional layer, into separate embeddings $\phiHeight$, $\phiWidth$ and $\phiTime$ of spatial $\heightSmall$, $\widthSmall$, and temporal $\timeSmall$ coordinates.
+We define $\zHeight_{max}$, $\zWidth_{max}$, and $\zTime_{max}$ as the maximum sequence length ($\mathrm{maxLen}$) for each dimension, which correspond to the maximum spatial size and video length of the patchified inputs.
+We calculate the final positional embeddings by adding all the factorized positional embeddings together.
+Finally, we add the final positional embeddings to the input for all the Transformer layers.
+Compared with adding the positional embeddings to the first layer only, adding to all layers can effectively reduce the distortion and morphing artifacts, especially in the temporal dimension.
+
+We build our Transformer backbone by closely following the Transformer block used in the \llama~\citep{llama3} architecture.
+We use RMSNorm~\citep{zhang2019root} and SwiGLU~\citep{shazeer2020glu} as in prior work.
+We make three changes to the \llama Transformer block for our use case of video generation using \flowmatching:
+\begin{enumerate}
+  \item To incorporate text conditioning based on the text prompt embedding $\bp$, we add a cross-attention module between the self-attention module and the feed forward network (FFN) to each Transformer block. We leverage multiple different text encoders due to their complementary strengths, as explained in the following section, and simply concatenate their embeddings in a single sequence to construct $\bp$.
+  \item We add adaptive layer norm blocks to incorporate the \timestep $\FMTime$ to the Transformer, as used in prior work~\citep{dit}.
+  \item We use full bi-directional attention instead of causal attention used in language modeling.
+\end{enumerate}
+
+
+We intentionally keep the design of our backbone simple and similar to LLMs, specifically \llama.
+This design choice allows us scale the model size and training, as discussed in~\cref{sec:t2v_impl_scaling}, using similar techniques as used in LLMs.
+Empirically, we find that our architecture design performs on par or better than specialized blocks used in prior work~\citep{balaji2022ediffi,sd3} while being more stable to train across a range of hyperparameters such as model size, learning rate, and batch size.
+We list the key hyperparameters for our largest model in~\cref{tab:t2v_hyperparameters} and illustrate the Transformer block in~\cref{fig:moviegen_sharding} with details of feature dimensions in a number of key places of our Transformer backbone.
+
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{cccccc}
+  \toprule
+  Layers & Model Dimension & FFN Dimension & Attention Heads & Activation Function & Normalization	\\
+  \midrule
+  48 & 6144 & 16384 & 48 & SwiGLU & RMSNorm \\
+  \bottomrule
+  \end{tabular}%
+  \caption{\textbf{Architecture hyperparameters for the \OursVideo 30B parameter foundation model.} Our model architecture is a Transformer~\citep{vaswani2017attention} and we closely follow the \llama~\citep{llama3} design space.
+  Our model contains 30B parameters in the Transformer itself without including the the text embedding models, \taeShort, \etc.
+  }
+  \label{tab:t2v_hyperparameters}
+  \end{table}
+
+\subsubsection{Rich Text Embeddings and Visual-text Generation} %
+\label{sec:t2v_text_encoder}
+We use pre-trained text encoders to convert the input text prompt $\prompt$ into a text embedding $\bp$, which we use as conditioning input for the video generation backbone.
+We use a combination of UL2~\citep{tay2022ul2}, ByT5~\citep{xue2022byt5}, and Long-prompt MetaCLIP as text encoders to provide both semantic-level and character-level text understanding for the backbone.
+The Long-prompt MetaCLIP model is obtained by finetuning the MetaCLIP text encoder~\citep{xu2023demystifying} on longer text captions to increase the length of input text tokens from $77$ to $256$.
+We concatenate the text embeddings from the three text encoders after adding separate linear projection and LayerNorm layers to project them into the same 6144 dimension space and normalize the embeddings.
+The UL2 and Long-prompt MetaCLIP text encoders provide prompt-level embeddings with different properties---UL2 is trained using massive text-only data and potentially provides strong text reasoning abilities in its features;
+Long-prompt MetaCLIP provides text representations that are aligned with visual representations that are beneficial for cross-modal generation.
+The character-level ByT5 encoder is only used to encode visual text, \ie, the part of the text prompt that may explicitly ask for a character string to be generated in the output.
+
+
+\noindent \textbf{Controlling the FPS.}
+We use FPS conditioning to control the length of the generated videos by pre-appending the sampling FPS value of each training video to the input text prompt (\eg, ``FPS-16''). During pre-training, we sample video clips at their original FPS with minimum of 16 FPS. In finetuning, we sample clips at two fixed FPS values of 16 and 24.
+
+
+
+
+
+
+
+\subsubsection{Spatial Upsampling} \label{sec:spatial_upsampler}
+We use a separate \upsampler model to convert our $768$ px videos to full HD (1080p) resolution.
+This lowers the overall computational cost for high resolution generation, since the base \textToV model processes fewer tokens.
+
+As shown in~\cref{fig:t2v_upsampler}, we formulate spatial upsampling as a video-to-video generation task, that generates a HD output video conditioned on a lower-resolution input video.
+The low-resolution video is first spatially upsampled using bilinear interpolation in the pixel space to the desired output resolution.
+Next, the video is converted to the latent space using a VAE. We use a frame-wise VAE for the upsampler to improve pixel sharpness.
+Finally, a latent space model generates the latents of a HD video, conditioned on the latents of the corresponding low-resolution video.
+The resulting HD video latents are subsequently decoded into pixel space frame-wise using the VAE decoder.
+
+
+\noindent\textbf{Implementation details.}
+Our \upsampler model architecture is a smaller variant (7B parameters) of the \textToV Transformer initialized from a \textToI model trained at 1024 px resolution, allowing for better utilization of high-resolution image data. %
+The \upsampler is trained to predict the latents of a video which are then decoded frame-wise using the VAE's decoder.
+Similar to~\citep{emuvideo2023}, the encoded video is concatenated channel-wise with the generation input and is fed to the \upsampler Transformer.
+The additional parameters at the input, due to concatenation, are zero initialized~\citep{singer2023makeavideo,emuvideo2023}.
+We train our \upsampler on clips of 14 frames at 24 FPS on $\sim$400K HD videos.
+We apply a second-order degradation~\citep{wang2021real} process to simulate complex degradations in the input and train the model to produce HD output videos.
+At inference time, we will use our \upsampler on videos that have been decoded with the \taeShort.
+To minimize this potential train-test discrepancy, we randomly substitute the second-order degradation with artifacts produced by the \taeShort.
+Due to the strong input conditioning, \ie, the low-resolution video, we observed that the model produces good outputs with as few as $20$ inference steps.
+This simple architecture can be used for various multiples of super resolution; however, we train a $2\times$ spatial super-resolution model for our case.
+Similar to \taeShort tiling (\cref{sec:tae}), we upsample videos using a sliding window approach with a window size of 14 and an overlap of 4 latent frames.
+
+
+
+
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\linewidth]{figures/upsampler/overview.pdf}
+
+\caption{\textbf{Overview of the \upsampler.} Our upsampler is a conditional video-to-video model that upsamples the $768$ px video to full HD $1080$p.
+First, the input $768$ px video is bilinearly upsampled to HD and then encoded to the latent space of an image encoder.
+The video latents are concatenated with noise, and denoised using a trained transfomer. Finally, the denoised latents are passed to the image decoder to produce the upsampled video.
+}
+\label{fig:t2v_upsampler}
+\end{figure}
+
+
+
+
+\noindent \textbf{Improved temporal consistency with Multi-Diffusion.}
+Memory constraints prohibit us from training the \upsampler on longer video durations. As a result, during inference, we upsample videos in a sliding window fashion resulting in noticeable inconsistencies at the boundaries.
+To prevent this, we leverage MultiDiffusion~\citep{bar2023multidiffusion}, a training-free optimization that ensures consistency across different generation processes bound by a common set of constraints.
+Specifically, we use a weighted average of the latents from overlapping frames in each denoising step, facilitating the exchange of information across consecutive windows to enhance temporal consistency in the output.
+
+
+
+
+
+
+\subsubsection{Model Scaling and Training Efficiency}
+\label{sec:t2v_impl_scaling}
+
+We describe the key details that allow us to scale and efficiently train the \OursVideo 30B parameter foundation model.
+In the following section, we will (1) outline hardware and infrastructure details, (2) compare and contrast our training setup to state-of-the-art LLMs~\citep{llama2,llama3}, and (3) discuss model parallelism methods used for \OursVideo.
+
+
+
+
+
+\noindent \textbf{Infrastructure.}
+We trained the media generation models using up to 6,144 H100 GPUs, each running at 700W TDP and with 80GB HBM3, using Meta’s Grand Teton AI server platform~\citep{grand_teton}.
+Within a server there are eight GPUs which are uniformly connected via NVSwitches. Across servers GPUs are connected via 400Gbps RoCE RDMA NICs.
+Training jobs are scheduled using MAST~\citep{choudhury2024mast}, Meta's global-scale training scheduler.
+
+\noindent \textbf{Comparison with Large Language Models.}
+LLMs use structured causal attention masks to enforce token causality, unlike the full bi-directional attention used in \OursVideo. This causal masking can be leveraged to provide approximately a 2$\times$ speedup compared to attention without the causal mask while also reducing peak memory requirements~\citep{dao2023flashattention2}.
+
+Secondly, state-of-the-art LLMs such as \llama~\citep{llama3} use Grouped-Query Attention (GQA) instead of Multi-head Attention (MHA), which reduces the number of $K$-, $V$-heads and thus the total dimension of the key and value projections. This results in a reduction in FLOPs and tensor memory size while also improving memory bandwidth utilization.
+Furthermore, autoregressive LLMs gain additional inference time benefits through the use of GQA due to a reduction in their $K,V$-cache size.
+In part due to the non-autoregressive design of \OursVideo, we do not explore this architectural design choice and leave it for future work.
+
+Similar to current LLMs like \llama, our training is divided into stages of varying context lengths, where our context length varies depending on the spatial resolution (256 px or 768 px). For 768 px training this results in a context length of $\sim$73K tokens ($768\times768$ px video with 256 frames, compressed $8\times8\times8$ through the \taeShort, and $2\times2\times1$ through patchification).
+But unlike LLMs which are trained at shorter context lengths for the majority of the training budget, the majority of our training FLOPs are expended on long-context 768 px training (see~\cref{tab:t2v_pt_recipe}). Due to the quadratic nature of self-attention, which is at the heart of a Transformer block, scaling to very large context lengths requires immense computation (FLOPs). This makes it even more important to optimize our training setup for long-context training.
+
+
+\noindent \textbf{Model Parallelism.}
+Our large model size and extremely long-context lengths necessitate the use of multiple parallelisms for efficient training. We employ 3D parallelism to support model-level scaling across three axes: number of parameters, input tokens, and dataset size, while also allowing horizontal scale-out to more GPUs. We utilize a combination of fully sharded data parallelism \citep{rajbhandari2020zeromemoryoptimizationstraining,ren2021zerooffloaddemocratizingbillionscalemodel,zhao2023pytorch}, tensor parallelism \citep{shoeybi2019megatron,narayanan2021efficient}, sequence parallelism \citep{li2021sequence,korthikanti2023reducing}, and context parallelism~\citep{liu2023ring,nvidia_cp}.
+
+In the following, we describe different parallelisms and how they are utilized in different parts of our Transformer backbone (as illustrated in \cref{fig:moviegen_sharding}).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=1.0\linewidth,]{figures/foundation_model/moviegen_sharding_fig.pdf}
+
+  \caption{\textbf{\OursVideo Transformer backbone and model parallelism applied.}
+  Left: we illustrate the Transformer backbone and color-code different model parallelizations used to shard our 30B model (described in~\cref{sec:t2v_impl_scaling}).
+  Right: Feature dimensions in a number of key steps during the most expensive stage of \OursVideo training, processing 768 px video inputs with a per-sample sequence length of 73K tokens.
+  }
+  \label{fig:moviegen_sharding}
+  \end{figure}
+
+\begin{itemize}
+  \item \textbf{Tensor-parallelism (TP)} shards the weights of linear layers either along columns or rows, and results in each GPU involved in the sharding performing \textit{tp-size} less work (FLOPs) and generating \textit{tp-size} less activations for column-parallel shards and consuming \textit{tp-size} less activations for row-parallel shards. The cost of performing such a sharding is the addition of all-reduce communication overheads in both the forward (row-parallel) and backward (column-parallel) passes.
+
+  \item \textbf{Sequence-parallelism (SP)} builds upon TP to also allow the sharding of the input over the sequence dimension \textit{for layers which are replicated and in which each sequence element can be treated independently.} Such layers, \eg, LayerNorm, would otherwise perform duplicate compute and generate identical (and thus replicated) activations across the TP-group.
+
+  \item \textbf{Context-parallelism (CP)} enables a \textit{partial} sharding over the sequence dimension for the \textit{sequence-dependent softmax-attention operation}. CP leverages the insight that for any given \mbox{\textit{(source (context), target (query))}} sequences pair, \textit{softmax-attention is only sequence-dependent over the context and not the query}. Therefore in the case of self-attention where the input source and target sequences are identical, CP allows the attention computation to be performed with only an all-gather for the $K$ and $V$ projections (instead of $Q$, $K$, and $V$) in the forward pass, and a reduce-scatter for their associated gradients in the backward.
+
+  Additionally, due to the separation of behavior between the $Q$ and $K,V$ projections, the performance of CP is variable not only in the context length, but also the size of the context dimension.
+  A consequence of this is the differentiation of scaling performance and overhead characterstics for CP between \OursVideo and state-of-the-art LLMs, such as \llama, which use GQA and thus generate smaller $K,V$ tensors to be communicated (\eg, 8$\times$ smaller for \llama 70B).
+
+  \item \textbf{Fully Sharded Data Parallel (FSDP)} shards the model, optimizer and gradients across all data-parallel GPUs, synchronously gathering and scattering parameters and gradients throughout each training step.
+\end{itemize}
+
+
+\noindent \textbf{Overlapping Communication and Computation.}
+While parallelism techniques can enable training large sequence Transformer models by partitioning FLOP and memory demands across GPUs, their direct implementation can introduce overheads and inefficiencies.
+We build an analytical framework to model compute and communication times that allows us identify duplicated activations that require inter-GPU communication, and thus design a highly optimized model parallel solution.
+Our new custom implementation of model parallelization, written in PyTorch and compiled into CUDAGraphs, achieves strong activation memory scaling and minimizes exposed communication time.
+We provide more details on our optimized training setup in~\Cref{app:t2v_impl_scaling_additional}.

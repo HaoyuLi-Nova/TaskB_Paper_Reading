@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\caption{Talking-head comparison on HDTF test set. Sync-C (confidence, $\uparrow$) and Sync-D (distance, ) measure lip-audio synchronization via SyncNet. E-FID measures expression quality. FID measures visual quality.
+Baseline numbers are from~\cite{kong2025multitalk}.}
+\label{tab:whoistalking}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lcccc}
+\toprule
+Method & Sync-C $\uparrow$ & Sync-D  & E-FID  & FID  \\
+\midrule
+AniPortrait~\cite{wei2024aniportrait} & 3.09 & 10.94 & 1.32 & 32.83 \\
+Hallo3~\cite{cui2025hallo3} & 6.55 & 8.49 & 1.12 & 33.98 \\
+Sonic~\cite{ji2025sonic} & 8.35 & 6.43 & 1.22 & 29.53 \\
+MultiTalk~\cite{kong2025multitalk} & \textbf{8.54} & \textbf{6.69} & 1.00 & 24.01 \\
+\midrule
+\textbf{Ours} & 4.50 & 10.31 & \textbf{0.18} & \textbf{12.31} \\
+\bottomrule
+\end{tabular}
+\end{table}

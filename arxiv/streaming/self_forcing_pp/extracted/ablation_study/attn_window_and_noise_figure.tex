@@ -1,0 +1,116 @@
+\begin{figure}[ht]
+    \centering
+
+    % ===================== Time labels at top =====================
+    \begin{minipage}[b]{0.02\textwidth} % keep empty to align with rotated labels column
+    \end{minipage}%
+    \begin{minipage}[b]{0.96\textwidth}
+        \centering
+        \begin{subfigure}[b]{0.19\textwidth}\centering t=0s\end{subfigure}\hfill
+        \begin{subfigure}[b]{0.19\textwidth}\centering t=10s\end{subfigure}\hfill
+        \begin{subfigure}[b]{0.19\textwidth}\centering t=20s\end{subfigure}\hfill
+        \begin{subfigure}[b]{0.19\textwidth}\centering t=30s\end{subfigure}\hfill
+        \begin{subfigure}[b]{0.19\textwidth}\centering t=50s\end{subfigure}
+    \end{minipage}
+
+    \vspace{0.6em}
+
+    % ===================== Drone View: Big Sur Cliffs =====================
+    \begin{subfigure}[b]{\textwidth}
+        \centering
+
+        % Row 0: MAGI-1
+        \begin{minipage}[b]{0.02\textwidth}
+            \rotatebox{90}{\ \ Attn-9}
+        \end{minipage}%
+        \begin{minipage}[b]{0.96\textwidth}
+            \centering
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_9_train_21_ema_extracted_frames/drone/frame_000.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_9_train_21_ema_extracted_frames/drone/frame_001.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_9_train_21_ema_extracted_frames/drone/frame_002.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_9_train_21_ema_extracted_frames/drone/frame_003.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_9_train_21_ema_extracted_frames/drone/frame_005.jpg}
+            \end{subfigure}
+        \end{minipage}
+
+        % Row 1: CausVid
+        \begin{minipage}[b]{0.02\textwidth}
+            \rotatebox{90}{\ \ Attn-12}
+        \end{minipage}%
+        \begin{minipage}[b]{0.96\textwidth}
+            \centering
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_12_train_21_ema_extracted_frames/drone/frame_000.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_12_train_21_ema_extracted_frames/drone/frame_001.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_12_train_21_ema_extracted_frames/drone/frame_002.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_12_train_21_ema_extracted_frames/drone/frame_003.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_12_train_21_ema_extracted_frames/drone/frame_005.jpg}
+            \end{subfigure}
+        \end{minipage}
+
+        % Row 2: Self Forcing
+        \begin{minipage}[b]{0.02\textwidth}
+            \rotatebox{90}{\ \ Attn-15}
+        \end{minipage}%
+        \begin{minipage}[b]{0.96\textwidth}
+            \centering
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_15_train_21_ema_extracted_frames/drone/frame_000.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_15_train_21_ema_extracted_frames/drone/frame_001.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_15_train_21_ema_extracted_frames/drone/frame_002.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_15_train_21_ema_extracted_frames/drone/frame_003.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/local_attn_15_train_21_ema_extracted_frames/drone/frame_005.jpg}
+            \end{subfigure}
+        \end{minipage}
+         % Row 2: Self Forcing
+        \begin{minipage}[b]{0.02\textwidth}
+            \rotatebox{90}{Noisy-KV}
+        \end{minipage}%
+        \begin{minipage}[b]{0.96\textwidth}
+            \centering
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/add_noise_to_context_ema_extracted_frames/drone/frame_000.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/add_noise_to_context_ema_extracted_frames/drone/frame_001.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/add_noise_to_context_ema_extracted_frames/drone/frame_002.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/add_noise_to_context_ema_extracted_frames/drone/frame_003.jpg}
+            \end{subfigure}\hfill
+            \begin{subfigure}[b]{0.19\textwidth}
+                \includegraphics[width=\linewidth]{ablation_study/add_noise_to_context_ema_extracted_frames/drone/frame_005.jpg}
+            \end{subfigure}
+        \end{minipage}
+    \end{subfigure}
+
+    \caption{Ablation study for various methods of mitigating error accumulation. Here is one visualization of generated 50-second video for prompt: ``Drone view of waves crashing against the rugged cliffs along Big Sur’s garay point beach...''}
+    \label{fig:ablation_study}
+\end{figure}

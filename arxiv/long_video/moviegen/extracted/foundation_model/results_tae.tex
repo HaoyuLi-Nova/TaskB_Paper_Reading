@@ -1,0 +1,111 @@
+\subsubsection{TAE Results}
+\label{sec:tae_results}
+We present here results and ablations from important design decisions for the temporal autoencoder (TAE).
+For evaluation, we report the reconstructed peak signal-to-noise ratio (PSNR), structural similarity (SSIM)~\citep{wang2004image}, and Fr\'echet Inception distance (FID)~\citep{heusel2017gans} of video clips split from the training set, with 2s, 4s, 6s, and 8s duration, each with 200 examples.
+We also measure the same metrics on a validation split of the image training set.
+For video reconstruction evaluation, metrics are averaged over video frames.
+
+\noindent\textbf{Qualitative Results.}
+We show sample reconstructions from our \taeShort in~\cref{fig:tae_examples} with frames from the original video and the reconstruction after the \taeShort encoder and decoder.
+We observe that the \taeShort can reconstruct the video frames while preserving visual detail.
+The \taeShort reconstruction quality decreases for high frequency spatial details in images and video frames, and fast motion in videos.
+When both high frequency spatial details and large motion are present in a video, this can lead to a loss in detail, as can be seen in the examples in~\cref{fig:tae_examples}, where fine details are smoothed out in the reconstruction.
+
+\begin{figure}[t!]
+  \centering
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{figures/foundation_model/cat_sbs.png}
+  \end{subfigure}
+  \begin{subfigure}[b]{0.49\textwidth}
+      \centering
+      \includegraphics[width=1\linewidth]{figures/foundation_model/forest_sbs.png}
+  \end{subfigure}
+  \caption{\textbf{Real (left) and \taeShort reconstructed (right) videos.} The \taeShort compresses the video by a factor of $8\times$ across each of the three spatiotemporal dimensions.
+  We observe that the reconstructions from the \taeShort maintain visual detail present in the original videos. %
+    }
+  \label{fig:tae_examples}
+\end{figure}
+
+\noindent\textbf{Quantitative metrics.}
+\cref{tab:tae_main_results} compares our \taeShort against a baseline frame-wise autoencoder that does not perform any temporal compression.
+Our baseline also produces a 8 channel latent space as is standard for autoencoders used for frame-wise encoding in prior work~\citep{sdvideo,emuvideo2023}.
+On video data, we observe that the \taeShort achieves a competitive performance to the frame-wise encoder while achieving a $8\times$ higher temporal compression.
+On images, the \taeShort outperforms the frame-wise model, an improvement that can be attributed to the increased channel size of the latent (8 \vs 16)~\citep{dai2023emu}.
+
+\begin{table}[t!]
+    \centering
+    \begin{tabular}{ccccccc}
+        \toprule
+         & \multicolumn{3}{c}{Video (512 px)} & \multicolumn{3}{c}{Image (512 px)} \\
+         & $\text{SSIM}\uparrow$ & $\text{PSNR}\uparrow$ & $\text{FID}\downarrow$ & $\text{SSIM}\uparrow$ & $\text{PSNR}\uparrow$ & $\text{FID}\downarrow$  \\
+         \midrule
+         Frame-wise AE & 0.9348 & 34.11 & 0.9352 & 0.8877 & 30.83 & 1.7588 \\
+        \taeShort
+         & 0.9093 & 32.25 & 1.4872 & 0.9231 & 32.16 & 0.2873 \\
+         \bottomrule
+    \end{tabular}
+    \caption{\textbf{\taeShort reconstruction metrics comparison} between an frame-wise autoencoder and our \taeShort model. We observe that the \taeShort achieves comparable performance to a frame-wise autoencoder for video reconstruction while achieving a $8\times$ higher compression.}
+    \label{tab:tae_main_results}
+\end{table}
+
+
+
+\subsubsection{TAE Ablations}
+
+We now perform a series of ablation experiments for the design choices in training our \taeShort model.
+
+\noindent \textbf{Baseline setting for ablations.}
+For simplicity, we use a \taeShort model with a smaller $4\times$ compression ratio that produces a 8-channel latent space.
+
+
+\noindent\textbf{2.5D \vs 3D attention \& convolutions.}
+We compare using 2.5D, \ie, 2D spatial attention/convolutions followed by 1D temporal attention/convolutions to using 3D spatiotemporal attention/convolutions in the \taeShort.
+In~\cref{tab:tae_3d_ablation}, we observe that the 3D spatiotemporal attention leads to slightly better reconstruction metrics.
+However, we found that this improvement was not large enough to justify the larger memory and compute costs associated with a fully 3D model compared to a 2.5D model.
+Thus, we use 2.5D for our \taeShort.
+
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{ccccccc}
+        \toprule
+         & \multicolumn{3}{c}{Video (256 px)}\\
+         & $\text{SSIM}\uparrow$ & $\text{PSNR}\uparrow$ & $\text{FID}\downarrow$   \\
+         \midrule
+         \taeShort 2.5D & 0.845 & 28.51 & 3.678\\
+         \taeShort 3D & 0.852 & 28.80 & 4.715\\
+         \bottomrule
+    \end{tabular}
+    \caption{\textbf{Comparing \taeShort models with 2.5D \vs 3D convolutions and attentions.} We observe that while the 3D models perform slightly better than the 2.5D models, the gap in performance between the two models is small.
+    }
+    \label{tab:tae_3d_ablation}
+\end{table}
+
+\noindent\textbf{Effect of outlier penalty loss.}
+We ablate the effect of adding the outlier penalty loss (OPL) from~\cref{sec:tae}. The addition of this loss removes the artifacts from generated and reconstructed videos as seen in~\cref{fig:tae_black_spot}, and improves reconstruction performance.
+We first train a baseline model without OPL for 50K iterations.
+We then finetune this model with OPL for 10K iterations and compare it to a baseline finetuned without OPL for 20K iterations.
+The results, summarized in~\cref{tab:tae_opl_ablation}, suggest that OPL finetuning improves the reconstruction for both images and videos.
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{ccccccc}
+        \toprule
+         & \multicolumn{3}{c}{Video (512 px)} & \multicolumn{3}{c}{Image (512 px)} \\
+         & $\text{SSIM}\uparrow$ & $\text{PSNR}\uparrow$ & $\text{FID}\downarrow$ & $\text{SSIM}\uparrow$ & $\text{PSNR}\uparrow$ & $\text{FID}\downarrow$  \\
+         \midrule
+         \taeShort w/o OPL finetune & 0.897 & 31.11 & 1.389 & 0.845 & 28.25 & 0.568 \\
+         \taeShort w/ OPL finetune & 0.910 & 31.93 & 1.241 & 0.862 & 29.26 & 0.614 \\
+         \bottomrule
+    \end{tabular}
+    \caption{\textbf{Effect of OPL on \tae reconstructions}. We evaluate the effect of OPL finetuning on the reconstruction quality and observe that OPL improves both image and video metrics.}
+    \label{tab:tae_opl_ablation}
+\end{table}
+
+
+
+
+
+
+
+

@@ -1,0 +1,100 @@
+\section{Experiments}
+% \textbf{Implementation Details}
+Following the data construction pipeline detailed in Section 3, we meticulously filtered data from the OpenHumanViD~\cite{OpenHumanVid} dataset and integrated it with our self-constructed internal talking head dataset to form our comprehensive training set.
+
+% We developed and trained our audio-driven human video generation models based on two existing video foundation models: Wan2.1-14B and Wan2.1-1.3B, which we respectively refer to as Vita-Actor-16B and Vita-Actor-1.5B. 
+We constructed the audio-driven human video generation model on Wan-14B referred to as Wan-S2V-14B.
+% Recognizing that the Wan-1.3B model performs suboptimally on complex human movements, our primary objective for training Vita-Actor-1.5B was to address video generation specifically for talking head scenarios, as opposed to broader cinematic or complex drama scenes. To achieve this, we further refined our training set by selecting data that featured small motion amplitudes, focusing exclusively on talking head contexts for the training of our Vita-Actor-1.5B model. 
+
+In comprehensive comparisons against existing state-of-the-art audio-driven video generation models, both quantitative metrics and visual results consistently demonstrate that our method surpasses current approaches in terms of expressiveness and the realism of generated content.
+% Furthermore, we explored additional applications of Vita-Actor. Our experiments revealed that a simple application of global noise to the base video during inference enables video lip-sync editing. Additionally, we investigated applying a face mask to the audio cross-attention module during inference, thereby achieving audio-driven character animation in multi-person scenarios.
+
+\subsection{Qualitative Evaluation}
+
+\textbf{Comparison with SOTA}
+
+A comparative study was conducted between our method and two existing DiT-based audio-driven video generation models, Ominihuman proposed by \cite{ominihuman} and Hunyuan-Avatar proposed by ~\cite{hu2025HunyuanVideo-Avatar}, revealing the superior capabilities of our approach. Figure~\ref{fig:comparison} illustrates these findings: Hunyuan-Avatar struggles with facial distortion and identity shifts during large-scale movements, while our model excels at maintaining identity consistency even amidst highly dynamic motion. Additionally, Ominihuman's generated results are characterized by very small motion amplitudes, often closely resembling the reference image's static pose. Our model, conversely, is capable of generating a significantly wider range of motion, thus offering enhanced diversity in output.
+
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[scale=0.16]{content/pic/comparison.png}
+\caption{Qualitative comparison of generated human videos. The leftmost column displays the reference image. Hunyuan-Avatar (top row) often suffers from facial distortions and inconsistent identity during large movements. Ominihuman (middle row) typically generates results with a limited range of motion, largely adhering to the pose of the reference image. In contrast, our method (bottom row) achieves superior performance in both motion dynamics and identity consistency.}
+\label{fig:comparison}
+\end{figure*}
+
+
+% \textbf{Complex Scenarios Generation}
+
+\textbf{Consistency of Long Term Generation}
+
+Compared to previous methods that typically generate short, isolated video clips focused on solo speaking scenarios, film-grade video generation demands long-term consistency across multiple generated clips, e.g motion, camera movement and identity preservation. 
+Our method utilizes FramePack to encode more motion frames, enabling the model to capture long-term temporal dependencies and, intuitively, achieve better preservation of coherent temporal information.
+
+As shown in ~\ref{fig:long_term}, when generating a scene in which the target is required to maintain consistent motion (e.g., a train moving in a coherent direction), OmniHuman fails to preserve the motion trend across multiple clips, while our method successfully maintains consistency in both the direction and speed of the train.
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\textwidth]{content/pic/long_term.png}
+\caption{
+Qualitative comparison of motion preservation performance between our method and OmniHuman.}
+\label{fig:long_term}
+\end{figure*}
+
+When continuing to generate a new video clip following previously generated ones, the prior clips are used as motion frames. By utilizing FramePack to encode a larger number of motion frames, our method not only preserves the overall motion trend but also helps maintain element identity across clips. For instance, as shown in ~\ref{fig:long_term2}, the generated character picks up a piece of paper that visually matches the one from the previous clip. In contrast, without FramePack, the appearance of the same object may drift significantly.
+
+\begin{figure*}[htbp]
+\centering
+\includegraphics[width=\textwidth]{content/pic/long_term2.png}
+\caption{
+Maintaining item identity across consecutive video clips.}
+\label{fig:long_term2}
+\end{figure*}
+
+% \textbf{Multi-character}
+
+% As shown in ~\ref{fig:audio_pipe}, the audio features are aligned with latent tokens on a per-frame basis. This design provides the benefit of enabling fine-grained control over how audio influences each video frame. Specifically, for every frame, a mask could be applied to regulate the spatial regions where the audio features affect the frame. In other words, it allows us to control which characters in the current frame are driven by the audio signal, as shown in ~\ref{fig:multi}.
+
+% \begin{figure*}[htbp]
+% \centering
+% \includegraphics[width=\textwidth]{content/pic/multi.png}
+% \caption{
+% Audio mask assignment for multiple speakers during inference.}
+% \label{fig:multi}
+% \end{figure*}
+
+
+% \textbf{Video Lip-sync Editing}
+
+\subsection{Quantitative Evaluation}
+
+We conduct quantitative comparisons on the EMTD dataset proposed by \cite{echomimicv2},which primarily consists of solo-talking videos, evaluating several open-source audio-animation methods. This includes EchoMimicV2, developed by~\cite{echomimicv2}, and MimicMotion from \cite{mimicmotion2024}. Both of these approaches rely on pre-extracted pose sequences to animate images. Additionally, we compare our work with EMO2, introduced by \cite{emo2}, which employs a two-stage process: generating partial hand motion from audio and subsequently animating the character using both the audio and the generated motion. We also include recent audio-driven DIT-based methods in our comparisons, such as FantasyTalking \cite{Wang2025FantasyTalkingRT} and Hunyuan-Avatar.
+
+To demonstrate the superiority of our proposed method, we evaluate the models using several metrics. We employ Fréchet Inception Distance (FID)~\cite{fid}, SSIM~\cite{ssim}, and PSNR~\cite{psnr} to assess the quality of the generated frames. Fréchet Video Distance (FVD)~\cite{fvd} is used to gauge the overall coherence of the generated videos. To evaluate identity consistency, we calculate the cosine similarity (CSIM) between the facial features of the reference image and the generated video frames. We also utilize Sync-C, as proposed by~\cite{syncnet}, to assess the synchronization quality between lip movements and audio signals. Furthermore, we measure Hand Keypoint Confidence (HKC) to evaluate the quality of hand representation in generated frames, while Hand Keypoint Variance (HKV) serves as an indicator of the richness of hand motion. Additionally, EFID proposed by~\cite{tian2025emo} is adopted to quantitatively assess the divergence in expressions between the synthesized videos and those in the ground truth dataset.
+
+As illustrated in~\ref{tab:quantitative_comp}, our method surpasses the others in terms of frame quality, as indicated by improved image metrics (FID, SSIM, PSNR). Additionally, it demonstrates a clear advantage in video quality assessment, with a lower FVD score. In terms of detail generation, our approach produces clearer and more accurate hand shapes, as reflected by the higher HKC score. Furthermore, it generates more vivid and diverse hand motions, indicated by a higher HKV value.
+It is worth noting that EMO2 achieves highest HKC and HKV scores. This can be attributed to the fact that EMO2 generates frames conditioned on pre-generated motion sequences, allowing for better control over hand motion diversity. Moreover, the use of MANO contributes to its superior performance in HKC compared to other methods. On the other hand, HY-Avatar tends to produce characters with "poker-face" expressions, which results in a higher EFID compared to other methods.
+
+% As illustrated in~\ref{tab:quantitative_comp}, "w/o motion gen" denotes that our model utilizes the pose sequence from the ground truth instead of the motion generation results, compared to EchoMimicV2 and MimicMoton, the results demonstrate an advantage in video quality assessment, as evidenced by the lower FVD. Additionally, our method outperforms others in terms of frame quality, as indicated by improved image quality (FID, SSIM, PSNR) scores. Compared "w/o motion gen" with other validation sets, using the original pose as a driver will naturally make the generated results consistent with GT, thereby improving the quality metrics of images and videos, however, higher HKV denotes that our model could generate more diverse motion sequence. Meanwhile, our models have the ability to maintain the identity proved by the CSIM. Lower EFID proved that our model could generate more lively facial expressions. Besides, as illustrated in~\ref{fig:quality_emtd}, our model could generate hands with clear structure and logical interaction.
+
+\begin{table*}[tb]
+  \centering
+  \caption{Quantitative comparisons with SOTA.}
+  \label{tab:quantitative_comp}
+  \setlength{\tabcolsep}{2pt}
+  \begin{tabularx}{\textwidth}{l>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X>{\centering\arraybackslash}X}
+    \toprule
+    Method & FID & FVD & SSIM$\uparrow$ & PSNR$\uparrow$ & \small{Sync-C}$\uparrow$ & EFID & HKC$\uparrow$ & HKV$\uparrow$ & CSIM$\uparrow$ \\
+    \midrule
+    EchoMimicV2 & 33.42 & 217.71 & 0.662 & 18.17 &  4.44 &  1.052 & 0.425 & 0.150 & 0.519 \\
+    MimicMotion& 25.38 & 248.95 & 0.585 & 17.15 &  2.68 &  0.617 & 0.356 & 0.169 & 0.608 \\
+    EMO2 & 27.28 & {129.41} & 0.662 & 17.75 &  4.58 &  {0.218} & 0.553 & {0.198} & {0.650} \\
+    FantasyTalking & 22.60 & 178.12 & \text{0.703} & 19.63 & 3.00 &  0.366 & 0.281 & 0.087 & 0.626 \\
+    HY-Avatar & 18.07 & 145.77 & 0.670 & 18.16 & {4.71} & 0.7082 & 0.379 & 0.145 & 0.583 \\
+    Ours & 15.66 & 129.57 & 0.734 & {20.49} & 4.51 & 0.283 & {0.435} & 0.142 & 0.677 \\
+    \bottomrule
+  \end{tabularx}
+\end{table*}
+
+% \textbf{Comparison on Efficiency bwteen 1.3B and 14B models }
+

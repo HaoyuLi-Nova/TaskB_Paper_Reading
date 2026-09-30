@@ -1,0 +1,53 @@
+\begin{table*}[!t]
+  \centering
+
+  \resizebox{1.0\linewidth}{!}
+  {
+
+    \begin{tabular}{c|cccc|ccc|cccc}
+    \hline
+    % Setting & & \multicolumn{6}{c|}{Dub 1.0} & \multicolumn{3}{c}{Dub 2.0} \\ 
+    % \hline
+    
+    Benchmark & \multicolumn{4}{c|}{V2C2Chem} & \multicolumn{3}{c|}{V2C2GRID} & \multicolumn{4}{c}{GRID2V2C} \\
+    \midrule
+    Methods 
+    & DD  
+    & \small{EMO-SIM} (\%) $\uparrow$
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$   
+    & DD  
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$   
+    & DD  
+    & \small{EMO-SIM} (\%) $\uparrow$
+    & WER (\%) 
+    & \small{UTMOS} $\uparrow$     \\
+    \midrule
+    GT  & 0.0000 & 100.00 & 3.85 & 4.18 & 0.0000 & 22.41 & 3.94 & 0.0000 & 100.00 & 25.55 & 2.26\\
+    % GT Mel + Vocoder & 100.00 & 25.55  & 2.26 & 99.96 & 0.00 & 0.00 & 100.00 & 22.55 & 2.26\\
+    \midrule
+    Speak2Dub & 0.5334 & 57.21 & \underline{10.23} & 2.66 & 0.3258 & 64.31 & 2.91 & 0.5506 & 36.96 & 65.82 & 2.52 \\
+    StyleDubber & 0.4721 & 67.03 & 18.63 & 2.26 & 0.3380 & 77.97 & 2.58 & 0.5397 & 39.92 & 70.32 & 1.93 \\
+    DeepDubber* & 0.5041 & 52.37 & 25.51 & 2.53 & 0.3995 & 51.16 & 2.31 & 0.5756 & \underline{56.42} & \underline{35.88} & 2.03 \\
+    ProDubber & \underline{0.4649} & \underline{68.21} & 10.32 & \underline{3.62} & \underline{0.3146} & \underline{25.67} & \underline{3.55} & \underline{0.5367} & 51.60 & 41.27 & \underline{2.73} \\
+    \midrule
+    Ours & \textbf{0.4565} & \textbf{70.34} & \textbf{8.42} & \textbf{3.71} & \textbf{0.3103} & \textbf{23.49} & \textbf{3.61} & \textbf{0.5261} & \textbf{57.09} & \textbf{19.56} & \textbf{2.85} \\
+    \bottomrule
+    \end{tabular}
+    }
+      % \vspace{-0.2cm}
+\caption{
+  % \color{blue}
+  Results on zero-shot movie dubbing across three major benchmarks. 
+  For example, V2C2GRID indicates that using the checkpoint trained on the V2C-Animation dataset to directly dub the video clip from GRID dataset without any fine-tuning.
+  % Note the DeepDubber* XXXX, (同时在多个数据集上进行了训练. ps,有训练优势)
+  Note that the official checkpoint of DeepDubber* is trained jointly on multiple datasets, including V2C-Animation and GRID, and therefore exhibits identical performance across various zero-shot settings and as reported in Table~\ref{Ori_result}.
+  % no benchmark-specific checkpoint is available. As a result, its performance under various zero-shot dubbing settings remains consistent with the in-domain dubbing results reported in Table~\ref{Ori_result}.
+  % The * denotes that the official checkpoint is trained on multiple datasets, including V2C-Animation and GRID, and therefore exhibits identical performance across various zero-shot settings and as reported in Table~\ref{Ori_result}.
+  }
+  % $\uparrow(\downarrow)$ denotes the higher (lower) value is better.
+  % We follow the official code of pre-train HiFi-GAN and the extraction method of mel-spectrogram.
+  \label{cross_1}%
+  % \vspace{-0.2cm}
+\end{table*}%

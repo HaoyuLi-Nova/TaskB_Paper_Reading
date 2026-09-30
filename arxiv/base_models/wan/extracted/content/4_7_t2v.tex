@@ -1,0 +1,268 @@
+\begin{table}[!t]
+\centering
+\renewcommand{\arraystretch}{1.3} 
+\small
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l|ccccccc}
+\textbf{ \method-Bench Dimension} & \textbf{CNTopB} &  \textbf{Hunyuan} & \textbf{Mochi} & \textbf{CNTopA} & \textbf{Sora}& \textbf{\method 1.3B} & \textbf{\method 14B} \\
+\shline
+Large Motion Generation & 0.405  & 0.413	 & 0.420 & 0.284 & \textbf{0.482} & \underline{0.468} & 0.415 \\
+Human Artifacts & 0.712 & 0.734	 & 0.622 & \textbf{0.833} & \underline{0.786} & 0.707  & 0.691 \\
+Pixel-level Stability & 0.977  & \textbf{0.983} & \underline{0.981} & 0.974 & 0.952 & 0.976 & 0.972 \\
+ID Consistency & \underline{0.940} & 0.935 & 0.930 & 0.936 & 0.925 & 0.938  & \textbf{0.946} \\
+Physical Plausibility & 0.836  & 0.898 & 0.728 & 0.759 & \underline{0.933}& 0.912 & \textbf{0.939} \\
+Smoothness & 0.765  & 0.890 & 0.530 & 0.880 & \textbf{0.930}& 0.790 & \underline{0.910} \\
+% \hline
+Comprehensive Image Quality & 0.621 & 0.605 & 0.530 & \textbf{0.668} & \underline{0.665} & 0.596 & 0.640 \\
+Scene Generation Quality & 0.369  & 0.373 & 0.368 & \underline{0.386} & \textbf{0.388} & 0.385  & \underline{0.386} \\
+Stylization Ability & \textbf{0.623}  & 0.386 & 0.403 & 0.346 & \underline{0.606} & 0.430 & 0.328 \\
+Single Object Accuracy & \textbf{0.987} & 0.912 & 0.949 & 0.942 & 0.932& 0.930  & \underline{0.952} \\
+Multiple Object Accuracy & 0.840  & 0.850 & 0.693 & \underline{0.880} & \textbf{0.882} & 0.859 & 0.860 \\
+Spatial Position Accuracy & \underline{0.518} & 0.464 & 0.512 & 0.434 & 0.458 & 0.476 & \textbf{0.590} \\
+Camera Control & 0.465  & 0.406 & \textbf{0.605} & \underline{0.529} & 0.380 & 0.483 & 0.527 \\
+Action Instruction Following & \textbf{0.917} & 0.735 & \underline{0.907} & 0.783 & 0.721 & 0.844 & 0.860 \\
+\textbf{Weighted Score} & 0.690 & 0.673 & 0.639 & 0.693 & \underline{0.700}  & 0.689 & \textbf{0.724} \\
+\end{tabular}
+}
+\caption{Performance comparison of commercial and open-source models using \method-Bench.}
+\label{tab:model_performance}
+\end{table}
+
+
+\subsection{Evaluation}
+\label{sec:t2v-results}
+
+\subsubsection{Metrics and Results}
+
+\textbf{Baselines and metrics.} As of the time of writing, there are numerous comparative competitors in the market, including commercial models such as Kling \citep{kuaishou2024kling}, Hailuo \citep{minimax2024hailuo}, Sora \citep{openaisora2024}, Runway \cite{runway2024gen3} and Vidu \citep{shengshu2024vidu}, as well as open-source models like Mochi \citep{genmo2024mochi}, CogVideoX \citep{cogvideox} and Hunyuan \citep{kong2024hunyuanvideo}. In this section, we compare our model with the commercial and open-source models that have been evaluated through benchmarks and received relatively positive user feedback.
+
+\textbf{Quantitative results.} We collected 1,035 samples for each candidate model using \method-Bench prompts and conducted fair evaluations by scoring the models with \method-Bench. The evaluation focused on three key metrics: dynamic quality, image quality, and instruction-following accuracy. We rank the performance of the different generation models by calculating total scores weighted according to human preferences (Sec.~\ref{hf-align}). The results in Table \ref{tab:model_performance} indicate that \method outperforms existing commercial and open-source models.
+
+
+
+\textbf{Qualitative results.} As illustrated in the Fig.~\ref{fig:t2v_results}, \method~effectively generates diverse, high-quality videos directly from textual descriptions. \method~excels at synthesizing dynamic scenes involving large-scale, complex movements, as well as scenarios reflecting physical interactions. Moreover, it adeptly handles various artistic styles and consistently produces cinematic-quality visuals. Additionally, \method~demonstrates robust multilingual text-generation capabilities, integrating Chinese and English texts into animations and giving rise to movie-level textual effects.
+
+\begin{figure}[htp]  
+    \centering  
+    \includegraphics[width=1.0\textwidth]{./figures/t2v/T2V_New.pdf}  
+    \caption{Results of the \method-T2V. Our model excels at generating complex motions, creative transitions, cinematic-quality videos, and accurately produces both Chinese and English text.} 
+    \label{fig:t2v_results} % 
+\end{figure}
+
+
+\textbf{Human evaluation.} We design over 700 evaluation tasks, which are annotated by more than 20 individuals and assessed by four key dimensions: alignment, image quality, dynamic quality, and overall quality.
+The results in Table~\ref{tab:t2v_win_rate_gap} demonstrate that in the T2V task, the \method 14B model consistently excels across all visual quality dimensions, indicating its superior performance.
+
+
+\begin{table}[t]
+    \centering
+    \begin{tabular}{l c c c c c}
+        \toprule
+        & CN-TopA & CN-TopB & CN-TopC & Runway & \textbf{All Rounds} \\ \midrule
+        
+        Visual Quality & \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.306); % 30.6%
+            \end{tikzpicture} 
+            30.6\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.159); % 15.9%
+            \end{tikzpicture} 
+            15.9\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.278); % 27.8%
+            \end{tikzpicture} 
+            27.8\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.481); % 48.1%
+            \end{tikzpicture} 
+            48.1\% & 
+            5710 \\
+
+        Motion Quality & \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.161); % 16.1%
+            \end{tikzpicture} 
+            16.1\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.097); % 9.7%
+            \end{tikzpicture} 
+            \space 9.7\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.149); % 14.9%
+            \end{tikzpicture} 
+            14.9\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.403); % 40.3%
+            \end{tikzpicture} 
+            40.3\% & 
+            5785 \\
+
+        Matching & \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.460); % 46.0%
+            \end{tikzpicture} 
+            46.0\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.579); % 57.9%
+            \end{tikzpicture}
+            57.9\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.567); % 56.7%
+            \end{tikzpicture} 
+            56.7\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.691); % 69.1%
+            \end{tikzpicture} 
+            69.1\% & 
+            5578 \\
+
+        % Overall Ranking
+        Overall Ranking & \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.440); % 44.0%
+            \end{tikzpicture} 
+            44.0\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.440); % 44.0%
+            \end{tikzpicture} 
+            44.0\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.489); % 48.9%
+            \end{tikzpicture} 
+            48.9\% & 
+            \begin{tikzpicture}
+            \draw[fill=teal!60, draw=none] (0,0) rectangle (0.4,0.676); % 67.6%
+            \end{tikzpicture} 
+            67.6\% & 
+            5560 \\ 
+
+        \bottomrule
+    \end{tabular}
+    \footnotesize
+    \\
+    \textit{*} The table displays the proportion of instances in which the \method~14B model outperformed other models in pairwise comparisons, relative to the total number of comparisons.
+    \caption{Win rate gap of T2V.}
+    \label{tab:t2v_win_rate_gap}
+\end{table}
+
+
+% \begin{table}[ht]
+% \centering
+% \begin{tabular}{ l| c c c c c }
+% % \hline
+% \textbf{} & \textbf{Wan 14B} & \textbf{Mochi} & \textbf{Hunyuan} & \textbf{CNTopA} & \textbf{CNTopB} \\ 
+% \shline
+% Win Rate & 0.59 & 0.32 & 0.40 & 0.57 & 0.51 \\ 
+% \end{tabular}
+% \caption{Pairwise comparison win rate.}
+% \label{tab:arena_win_rate}
+
+% \end{table}
+
+
+\textbf{\method in public leaderboard.}
+\method has demonstrated state-of-the-art performance on the VBench leaderboard \citep{2023VBench}, a widely used evaluation approach for video generation task. 
+The VBench employs a multidimensional assessment architecture that decomposes video quality evaluation into 16 distinct, human-aligned dimensions spanning aesthetic quality, motion smoothness, and semantic coherence. 
+
+
+Our analysis focuses on two model variants: the 14B parameter \method 14B and the \method 1.3B variant (shown in Table~\ref{tab:vbench_res}). The \method 14B model achieves a benchmark-leading performance with an aggregate score of 86.22\%, including 86.67\% in visual quality and 84.44\% in semantic consistency, significantly outperforming competitors like OpenAI's Sora and MiniMax's Hailuo. The efficient \method 1.3B variant also remains competitive, scoring 83.96\% and surpassing commercial models such as HunyuanVideo \citep{kong2024hunyuanvideo} and Kling 1.0 \citep{kuaishou2024kling}, as well as the open-sourced CogVideoX1.5-5B \citep{cogvideox}.
+\begin{table}[h]
+    \centering
+    \small
+    \renewcommand{\arraystretch}{1.3} 
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{@{}l|ccc@{}}
+        Model Name & Quality Score & Semantic Score & Total Score \\  
+        \shline
+        MiniMax-Video-01 \citep{minimax2024hailuo} & 84.85\% & 77.65\% & 83.41\% \\
+        Hunyuan (Open-Source Version) \citep{kong2024hunyuanvideo} & 85.09\% & 75.82\% & 83.24\% \\
+        Gen-3 (2024-07) \citep{runway2024gen3} & 84.11\% & 75.17\% & 82.32\% \\
+        CogVideoX1.5-5B (5s SAT prompt-optimized) \citep{cogvideox} & 82.78\% & 79.76\% & 82.17\% \\
+        Kling (2024-07 high-performance mode) \citep{kuaishou2024kling}& 83.39\% & 75.68\% & 81.85\% \\  
+        Sora \citep{openaisora2024} & 
+        \underline{85.51\%} & 79.35\% & \underline{84.28\%} \\
+        \method 1.3B & 84.92\% & \underline{80.10\%} & 83.96\% \\
+        \method 14B (2025-02-24) & \textbf{86.67\%} & \textbf{84.44\%} & \textbf{86.22\%} \\
+    \end{tabular}
+    }
+    \caption{Model performance scores on Vbench.}
+    \label{tab:vbench_res}
+
+\end{table}
+
+\subsubsection{Ablation Study}
+\label{subsubsec:ablation}
+
+We provide ablation studies of key modules within our model design to offer insights into the overall architecture's contributions. Experiments are conducted on 1.3B version for rapid evaluation.
+
+\textbf{Ablation on adaptive normalization layers.} Given the substantial parameter load of adaptive normalization layers~ \citep{perez2018film} (adaLN) in DiT~ \citep{dit}, we explore whether focusing on parameter volume in adaLN or increasing the depth of the network layers is more effective. To adjust the parameter volume, we follow the setup from PixArt~ \citep{chen2023pixartalpha} to study whether to share adaLN or not. In the non-shared configuration, each block’s scale and shift parameters are predicted by a block-specific MLP that takes as input the time embedding. Instead, the shared AdaLN configuration (referred to as AdaLN-single in PixArt) computes a single set of global parameters, which involves predicting scale and shift values, in the first block, which are then shared across all blocks. This sharing significantly reduces the number of parameters.
+
+We evaluate four configurations: (i) Full-shared-adaLN-1.3B: This is our original model, where adaLN is fully shared across all 30 attention blocks.
+(ii) Half-shared-adaLN-1.5B: AdaLN is shared in the first 15 attention blocks while not for the remaining blocks. This results in a 1.5B model with an increase of 0.2B parameters.
+(iii) Full-shared-adaLN-1.5B (extended): AdaLN is shared across all attention blocks, but the model depth is increased to 35 layers, keeping the 1.5B parameter count.
+(iv) Non-shared-AdaLN-1.7B: AdaLN is not shared across any blocks, and the model depth remains at 30 layers, resulting in a 1.7B model.
+We maintain other parameters unchanged and train the models from scratch to perform text-to-image task for 200,000 steps (i.e., the first stage of our text-to-video training), with the global batch size of 1536. For comparison, we measure performance using the L2 loss between generated images and real images in the latent space during the training stage, with smaller training loss indicating better convergence.
+
+
+\begin{figure}[t]  
+    \scriptsize
+    \centering  
+    \includegraphics[width=0.7\textwidth]{figures/t2v/ablation_adaLN.png}  
+    \caption{Training loss curve with different configurations.} 
+    \label{fig:ablation_adaln}  
+\end{figure}
+
+As presented in Fig.~\ref{fig:ablation_adaln}, the Full-shared-AdaLN-1.3B model, with fewer parameters, results in a slightly higher training loss compared to others. When comparing Half-shared-AdaLN-1.5B and Full-shared-AdaLN-1.5B, which have the same parameter count, Full-shared-AdaLN-1.5B consistently achieves the lowest training loss. This suggests that focusing on model depth rather than the parameters in AdaLN leads to better performance. Additionally, the Non-shared-AdaLN-1.7B model, despite having more parameters, does not outperform the Full-shared-AdaLN-1.5B and further supports this idea.
+Therefore, we adopt the fully shared AdaLN design to effectively reduce parameter count while preserving performance.
+
+
+\textbf{Ablation on text encoder.} We select three text encoders that can handle bilingual inputs: umT5~ \citep{chung2023unimax} (5.3B), Qwen2.5-7B-Instruct~ \citep{qwen2.5}, and GLM-4-9B~ \citep{glm2024chatglm}. The T5 series has been a popular choice in video generation models~ \citep{genmo2024mochi,cogvideox}, while the latter two encoders excel in language understanding, especially among all LLM models under 10B parameters. For this ablation, we keep other settings unchanged and train a text-to-image task with a global size of 1536.
+Text embeddings are derived from the second-to-last layers of Qwen2.5-7B-Instruct and GLM-4-9B.
+We measure the training loss as shown in Fig.~\ref{fig:ablation_textenc}.
+
+
+\begin{wraptable}{r}{0.3\textwidth}
+\setlength{\leftmargini}{-50pt}
+\setlength{\tabcolsep}{10pt}
+\warptablestyle{6pt}{1.4}
+\centering
+\begin{tabular}{l| c c }
+Model & VAE & VAE-D \\
+\shline
+10k steps & \textbf{42.60} & 44.21 \\
+15k steps & \textbf{40.55} & 41.16 \\
+\end{tabular}
+\caption{FID scores () of VAE and VAE-D.}
+\label{tab:ablation_vae_fid}
+\end{wraptable}
+%
+Compared to other powerful LLM-based encoders, umT5 demonstrates superior text embedding performance. Notably, HunyuanVideo~ \citep{kong2024hunyuanvideo} highlights that decoder-only LLMs use causal attention whereas umT5 adopts bidirectional attention, making it suitable for diffusion models.
+Following HunyuanVideo's strategy, we incorporate a bidirectional token refiner as an adapter layer. We apply this setup to both Qwen2.5-7B-Instruct and GLM-4-9B, but the training losses and visualizations still show umT5 performing most favorably. Further, we compare umT5 with a pre-trained Multimodal Large
+Language Model, i.e., Qwen-VL-7B-Instruct~\citep{qwenvl}.
+As shown in Table~\ref{tab:ablation_textenc_fid}, using the second-to-last layer’s features from Qwen-VL results in comparable generation performance to umT5, but with a larger model size.
+
+
+\begin{figure}[!t]  
+    \scriptsize
+    \centering  
+    \includegraphics[width=0.7\textwidth]{figures/t2v/ablation_text.png}  
+    \caption{Training loss curve with different text encoders.} 
+    \label{fig:ablation_textenc}  
+\end{figure}
+
+
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5} 
+\setlength{\tabcolsep}{15pt} 
+\resizebox{\textwidth}{!}{
+\begin{tabular}{l| c c c }
+Models & umT5 & Qwen-VL-7B (last layer) & Qwen-VL-7B (second last layer) \\
+\shline
+FID() & 43.01 & 43.72 & \textbf{42.91} \\
+\end{tabular}
+}
+\caption{FID scores for different text encoders. The ``last layer'' and ``second last layer'' refer to the text features extracted from the last and second last layers of the encoder, respectively.}
+\label{tab:ablation_textenc_fid}
+\end{table}
+
+
+\textbf{Ablation on autoencoder.} In addition to our VAE, we design a variant called VAE-D, where the reconstruction loss is replaced by a diffusion loss. We adopt both the pre-trained VAE and VAE-D on the text-to-image generation task for 150,000 training steps until achieving convergence. We measure the FID scores at both 100,000 and 150,000 steps. As shown in Table~\ref{tab:ablation_vae_fid}, VAE model consistently achieves lower FID compared to VAE-D.

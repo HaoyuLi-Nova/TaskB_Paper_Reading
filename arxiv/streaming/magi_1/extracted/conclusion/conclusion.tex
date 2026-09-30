@@ -1,0 +1,36 @@
+
+\section{Conclusion}
+\magi introduces a scalable chunk-wise autoregressive diffusion framework for high-fidelity video synthesis. By progressively denoising fixed-length segments under strict causal constraints, it enables real-time, streaming-compatible generation with fixed computational overhead regardless of video length. The architecture builds upon a Transformer backbone enhanced with block-causal and parallel attention modules, and is supported by a distributed attention mechanism and a highly efficient training strategy for handling ultra-long contexts.
+
+A key contribution lies in its unified design: \magi supports text-to-video, image-to-video, and video continuation tasks without requiring task-specific modifications, all under a shared training objective. Through chunk-wise text conditioning, it further achieves fine-grained semantic control across long-form video generation. A shortcut distillation strategy significantly reduces the number of diffusion steps required for inference, improving efficiency while maintaining temporal consistency and sample quality.
+
+Empirical results on VBench-I2V and Physics-IQ benchmarks demonstrate that \magi outperforms existing large-scale video diffusion models in prompt adherence, physical plausibility, and temporal coherence. Taken together, these contributions establish \magi as a robust and extensible foundation for autoregressive video synthesis—offering both state-of-the-art performance and a fertile ground for future advancements in modularity, controllability, and multi-modal reasoning.
+
+
+
+\section{Limitation and Future Work}
+
+While \magi demonstrates strong generation quality and low-latency inference via chunk-wise autoregressive denoising, its current architecture remains tightly coupled. Specifically, a single large decoder-style Transformer is tasked with both (1) high-level temporal context fusion—integrating static conditioning signals with progressively noisier visual inputs—and (2) low-level denoising, which requires accurate reconstruction of fine-grained visual details. This conflation of heterogeneous objectives introduces several technical limitations:
+
+\begin{itemize}
+    \item \textbf{Inference latency bottleneck}: The same large model is repeatedly invoked across all denoising steps, even when only minor refinements are required. This leads to inefficient utilization of compute, especially in streaming settings where low-latency frame delivery is critical.
+    \item \textbf{Optimization conflict}: Jointly optimizing global semantic planning and pixel-level restoration within a single model exacerbates objective interference, often leading to suboptimal scaling behavior.
+    \item \textbf{Limited controllability}: The monolithic architecture constrains the insertion of auxiliary control signals—such as confidence-based guidance modulation, or dynamic temporal constraints—due to entangled latent pathways and overlapping functional scopes.
+\end{itemize}
+
+Thus, a decoupled design that structurally separates high-level semantic reasoning from low-level visual synthesis is worth exploring. Looking ahead, as video generation evolves from producing isolated clips to constructing long-form content with coherent narratives, we anticipate a convergence between video generation and understanding. In this closed-loop setting, the quality of generated content will increasingly depend on the model’s capacity to understand video content, making understanding the key bottleneck. Although we are still far from this frontier, we believe that a modular architecture represents a crucial step toward closing the loop between video understanding and generation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

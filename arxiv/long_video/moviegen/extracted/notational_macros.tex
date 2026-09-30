@@ -1,0 +1,150 @@
+\newcommand{\OURS}{\textsc{Movie Gen}\xspace} %
+\newcommand{\Ours}{\OURS} %
+\newcommand{\OursAudio}{\textsc{Movie Gen Audio}\xspace} %
+\newcommand{\OursVideo}{\textsc{Movie Gen Video}\xspace} %
+\newcommand{\OursPTV}{\textsc{Personalized Movie Gen Video}\xspace} %
+\newcommand{\OursVideoEdit}{\textsc{Movie Gen Edit}\xspace}
+\newcommand{\OursVideoEditBench}{Movie Gen Edit Bench\xspace}
+\newcommand{\textToVBenchmarkName}{Movie Gen Video Bench\xspace}
+\newcommand{\textToVBenchmarkMiniName}{Movie Gen Video Bench-Mini\xspace}
+\newcommand{\OursAudioBench}{Movie Gen Audio Bench\xspace}
+\newcommand{\OursAudioBenchSGen}{SGen\xspace}
+\newcommand{\OursAudioBenchSReal}{SReal\xspace}
+\newcommand{\OursAudioBenchMGen}{MGen\xspace}
+\newcommand{\CAVTPShort}{CAVTP\xspace}
+\newcommand{\IB}{ImageBind\xspace}
+\newcommand{\IBShort}{IB\xspace}
+\newcommand{\Suno}{External API\xspace}
+
+
+\newcommand{\TAEone}{\href{https://drive.google.com/file/d/1GacG_e9Y5vx1L7vFQy2IhoshXO63XzRb/view?usp=drive_link}{1}}
+\newcommand{\TAEtwo}{\href{https://drive.google.com/file/d/16c4ngm5bQ5qo0XA8AM4yftCYinOrnu57/view?usp=drive_link}{2}}
+\newcommand{\TAEthree}{\href{https://drive.google.com/file/d/1phqJme62UAPgKG7xz1_vRJEL6G8Dh2ft/view?usp=drive_link}{3}}
+
+\definecolor{blue300}{HTML}{A4D8FF}
+
+\newcommand{\TextToV}{Text-to-Video\xspace}
+\newcommand{\textToV}{text-to-video\xspace}
+\newcommand{\imageToV}{image-to-video\xspace}
+\newcommand{\imageToVShort}{I2V\xspace}
+\newcommand{\ImageToV}{Image-to-Video\xspace}
+
+\newcommand{\textToVShort}{T2V\xspace}
+\newcommand{\TextToI}{Text-to-Image\xspace}
+\newcommand{\textToI}{text-to-image\xspace}
+\newcommand{\videoToA}{video-to-audio\xspace}
+\newcommand{\textToIShort}{T2I\xspace}
+\newcommand{\textToIVShort}{T2I/V\xspace}
+\newcommand{\textImageToVShort}{(T+I)2V\xspace}
+\newcommand{\textToImageToVShort}{T2I2V\xspace}
+\newcommand{\taeShort}{TAE\xspace}
+\newcommand{\tae}{Temporal Autoencoder\xspace}
+\newcommand{\upsampler}{Spatial Upsampler\xspace}
+
+\newcommand{\px}{px\xspace}
+\newcommand{\flowmatching}{Flow Matching\xspace}
+\newcommand{\timeschedule}{t-schedule\xspace}
+\newcommand{\llamaNoVersion}{LLaMa\xspace}
+\newcommand{\llama}{LLaMa3\xspace}
+\newcommand{\llamatwo}{LLaMa2\xspace}
+\newcommand{\llamaVideo}{LLaMa3-Video\xspace}
+\newcommand{\llamaRewrite}{LLaMa3-FramesRewrite\xspace}
+
+\newcommand{\quality}{Quality\xspace}
+\newcommand{\qualityFull}{Visual quality\xspace}
+\newcommand{\faithfulness}{Alignment\xspace}
+\newcommand{\faithfulnessFull}{Text-alignment\xspace}
+\newcommand{\qualityShort}{Q\xspace}
+\newcommand{\faithfulnessShort}{A\xspace}
+\newcommand{\timestep}{time-step\xspace}
+\newcommand{\timesteps}{time-steps\xspace}
+\newcommand{\pretraining}{pre-training\xspace}
+\newcommand{\pretrained}{pre-trained\xspace}
+\newcommand{\Pretraining}{Pre-training\xspace}
+
+\newcommand{\EmuVideo}{Emu-Video\xspace}
+\newcommand{\Sora}{OpenAI Sora\xspace}
+\newcommand{\LumaLabs}{LumaLabs\xspace}
+\newcommand{\Kling}{Kling1.5\xspace}
+\newcommand{\RunwayGen}{Runway Gen3\xspace}
+
+\newcommand{\Flux}{Flux.1\xspace}
+\newcommand{\Dalle}{OpenAI Dall-E 3\xspace}
+\newcommand{\MJ}{Midjourney V6.1\xspace}
+\newcommand{\Ideogram}{Ideogram V2\xspace}
+
+\newcommand{\bigO}{$\mathcal{O}$}
+\newcommand{\videoDataSize}{\bigO(100)M\xspace} %
+\newcommand{\imageDataSize}{\bigO(1)B\xspace}
+
+
+\newcommand{\viewAsVideoNote}{Figure best viewed in video.\xspace}
+
+
+
+\newcommand{\beps}{\bm{\epsilon}}
+\newcommand{\bI}{\mathbf{I}}
+\newcommand{\bx}{\mathbf{X}}
+\newcommand{\FMTime}{t}
+\newcommand{\FMDiscreteMaxTimeSteps}{N}
+
+\newcommand{\bv}{\mathbf{V}}
+\newcommand{\bvin}{\mathbf{V}_\text{in}}
+\newcommand{\bvout}{\mathbf{V}_\text{out}}
+\newcommand{\bframe}{\mathbf{F}}
+\newcommand{\bframeedit}{\mathbf{O}}
+\newcommand{\bi}{\mathbf{I}}
+\newcommand{\bc}{\mathbf{c}}
+\newcommand{\vTime}{T'}
+\newcommand{\vHeight}{H'}
+\newcommand{\vWidth}{W'}
+\newcommand{\iTime}{T_{p}}
+\newcommand{\timeSmall}{t}
+\newcommand{\heightSmall}{h}
+\newcommand{\widthSmall}{w}
+\newcommand{\bz}{\mathbf{Z}} %
+\newcommand{\zTime}{T}
+\newcommand{\zHeight}{H}
+\newcommand{\zWidth}{W}
+\newcommand{\zChannels}{C}
+\newcommand{\kTime}{k_{\timeSmall}}
+\newcommand{\kHeight}{k_{\heightSmall}}
+\newcommand{\kWidth}{k_{\widthSmall}}
+\newcommand{\phiTime}{\phi_{\timeSmall}}
+\newcommand{\phiHeight}{\phi_{\heightSmall}}
+\newcommand{\phiWidth}{\phi_{\widthSmall}}
+\newcommand{\prompt}{p} %
+\newcommand{\bp}{\mathbf{P}} %
+\newcommand{\be}{\mathbf{E}} %
+\newcommand{\berev}{\mathbf{E}_\text{rev}}
+
+\newcommand{\videoModel}{f_{v}}
+
+
+
+\newcommand{\fixme}[1]{{\color{red} \textbf{#1}}}
+
+
+
+
+\makeatletter
+\DeclareRobustCommand\onedot{\futurelet\@let@token\@onedot}
+\def\@onedot{\ifx\@let@token.\else.\null\fi\xspace}
+
+\def\eg{\emph{e.g}\onedot} \def\Eg{\emph{E.g}\onedot}
+\def\ie{\emph{i.e}\onedot} \def\Ie{\emph{I.e}\onedot}
+\def\cf{\emph{cf}\onedot} \def\Cf{\emph{Cf}\onedot}
+\def\etc{\emph{etc}\onedot} \def\vs{\emph{vs}\onedot}
+\def\wrt{w.r.t\onedot} \def\dof{d.o.f\onedot}
+\def\iid{i.i.d\onedot} \def\wolog{w.l.o.g\onedot}
+\def\etal{\emph{et al}\onedot}
+
+
+\newcommand{\dummyfig}[1]{
+  \centering
+  \fbox{
+    \begin{minipage}[c][0.33\textheight][c]{0.5\textwidth}
+      \centering{#1}
+    \end{minipage}
+  }
+}

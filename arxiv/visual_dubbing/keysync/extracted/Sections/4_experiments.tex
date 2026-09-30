@@ -1,0 +1,20 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Datasets}
+
+We train our model on three widely used audiovisual datasets: HDTF~\cite{hdtf}, CelebV-HQ~\cite{zhu2022celebvhq}, and CelebV-Text~\cite{yu2022celebvtext}. While HDTF is a carefully curated dataset, CelebV-Text and CelebV-HQ prioritize quantity and include many low-quality videos, instances where the speaker is out of frame, and abrupt cuts. To address these issues, we implement a curation and preprocessing pipeline that we use to refine the contents of CelebV-Text and CelebV-HQ, and then combined them with HDTF for training. This pipeline is described in detail in the supplementary material.
+
+For evaluation, we focus on the cross-sync task, the primary use case for lip-sync models, where the input audio comes from a different video than the one being generated. We randomly select 100 test videos from CelebV-Text, CelebV-HQ, and HDTF and swap their audio tracks. Additionally, to ensure consistency with prior works, we also report reconstruction results for the same 100 videos.
+
+
+\subsection{Evaluation metrics}
+\label{sec:metrics}
+
+For evaluation, we rely on a set of no-reference metrics, as we found they correlate better with human perception, particularly in the cross-sync task. For image quality, we use CMMD~\cite{cmmd}, an improved version of FID, along with a version of TOPIQ~\cite{topiq} trained on a facial dataset from~\cite{pyiqa}. However, we found that these methods do not effectively capture image blurriness. To address this, we incorporate a common blurriness evaluation method: the variance of Laplacian (VL)~\cite{laplacian}. For video quality and temporal consistency, we use FVD~\cite{fvd}. Additionally, we introduce LipLeak, a new metric for leakage detection, and rely on LipScore~\cite{keyface} to evaluate lip synchronization, which has been shown to be more effective than the offset and confidence scores produced by the commonly used SyncNet model~\cite{Prajwal}. Further details are provided in the supplementary material.
+
+\paragraph{LipLeak} While leakage is a known issue in lip-sync models, there is currently no direct method to quantify it. We propose a simple yet effective evaluation approach based on feeding silent audio and non-silent video into the model. Given the silent audio, it can be assumed that any frame where the mouth is open is the result of expression leakage from the non-silent input video. To this end, we assess leakage by computing the proportion of time the mouth is open using the mouth aspect ratio (MAR)~\cite{mouthopen}. MAR is defined as the ratio between the vertical distance between the upper and lower lip landmarks and the horizontal distance between the corner lip landmarks. By applying an empirically determined threshold (set to 0.25) to distinguish open-mouth states, we obtain a quantitative measure of lip movement leakage. This ratio provides a direct measure of a model’s susceptibility to lip movement leakage, hence we denote it as LipLeak.
+
+\subsection{User study}
+
+While the metrics above offer an objective evaluation, they do not always align with human perception. To address this, we conduct a user study where participants compare randomly selected video pairs based on lip synchronization, temporal coherence, and visual quality. We then rank the performance of each model using the Elo rating system~\cite{elo1978rating}, and apply bootstrapping~\cite{chiang2024chatbot} for robustness. Further details are provided in the supplementary material.

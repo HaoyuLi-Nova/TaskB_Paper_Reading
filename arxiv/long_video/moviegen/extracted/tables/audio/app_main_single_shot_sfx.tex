@@ -1,0 +1,67 @@
+\begin{table}[h]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{lll cc ccc}
+    \toprule
+    \multirow{4}{*}{Dataset} & \multirow{4}{*}{Baseline} & \multirow{4}{*}{Type} & \multicolumn{2}{c}{Subjective} & \multicolumn{3}{c}{Objective} \\
+    \cmidrule(lr){4-5} \cmidrule(lr){6-8}
+    & & & \multicolumn{2}{c}{TA Align} & Quality & VA Align & TA Align \\
+    & & & Recall (\%) $\uparrow$ & Precision (\%) $\uparrow$ & AQual $\uparrow$ & IB $\uparrow$ & CLAP $\uparrow$ \\
+    \midrule
+    \multirow{9}{*}{\shortstack[c]{\OursAudioBenchSReal SFX}}
+    & Diff-Foley        & V2A  & - & - & 5.68 & 0.28 & 0.36* \\
+    & FoleyCraft        & V2A  & - & - & 6.03 & 0.31 & 0.35* \\
+    & VTA-LDM           & V2A  & - & - & 5.97 & 0.30 & 0.35* \\
+    & Seeing\&Hearing   & V2A  & - & - & 5.21 & 0.38 & 0.33* \\
+    & Seeing\&Hearing   & TV2A & \meanci{63.0}{6.7} & \meanci{56.6}{6.5} & 5.70 & 0.34 & 0.47\\
+    & PikaLabs          & V2A  & - & - & 6.45 & 0.18 & 0.28* \\
+    & PikaLabs          & TV2A & \meanci{64.5}{7.7} & \meanci{62.4}{8.3} & 6.69 & 0.21 & 0.43\\
+    & ElevenLabs        & T2A  & \meanci{82.1}{5.9} & \meanci{78.8}{6.6} & 6.53 & 0.24 & 0.54\\
+    \cmidrule{2-8}
+    & \OursAudio        & TV2A & \meanci{84.7}{4.8} & \meanci{75.5}{5.0} & 6.76 & 0.38 & 0.51\\
+    \midrule
+    \multirow{9}{*}{\shortstack[c]{\OursAudioBenchSGen SFX}}
+    & Diff-Foley        & V2A  & - & - & 5.48 & 0.18 & 0.17*\\
+    & FoleyCraft        & V2A  & - & - & 6.03 & 0.24 & 0.25*\\
+    & VTA-LDM           & V2A  & - & - & 6.03 & 0.22 & 0.25*\\
+    & Seeing\&Hearing   & V2A  & - & - & 5.21 & 0.38 & 0.27*\\
+    & Seeing\&Hearing   & TV2A & \meanci{72.3}{3.8} & \meanci{67.2}{3.8} & 5.49 & 0.37 & 0.42 \\
+    & PikaLabs          & V2A  & - & - & 6.18 & 0.16 & 0.26*\\
+    & PikaLabs          & TV2A & \meanci{63.0}{4.6} & \meanci{68.7}{5.1} & 6.20 & 0.18 & 0.41 \\
+    & ElevenLabs        & T2A  & \meanci{71.0}{3.8} & \meanci{68.7}{3.9} & 6.39 & 0.19 & 0.45 \\
+    \cmidrule{2-8}
+    & \OursAudio        & TV2A & \meanci{73.9}{3.7} & \meanci{71.8}{3.8} & 6.47 & 0.34 & 0.46 \\
+    \bottomrule
+    \end{tabular}}
+    \caption{
+        \textbf{Additional sound effect generation subjective and objective evaluations.} This table reports additional metrics on the \OursAudioBenchSReal and \OursAudioBenchSGen SFX benchmarks. TA and VA are abbreviations for text-audio and video-audio respectively. We put ``*'' on CLAP results when text is not used at inference.
+    }
+    \label{tab:app_eval_audio_main_ss_sfx}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{lll ccc}
+    \toprule
+    \multirow{4}{*}{Dataset} & \multirow{4}{*}{Baseline} & \multirow{4}{*}{Type} & \multicolumn{3}{c}{Objective} \\
+    \cmidrule(lr){4-6}
+    & & & Quality & VA Align & TA Align \\
+    & & & AQual $\uparrow$ & IB $\uparrow$ & CLAP $\uparrow$ \\
+    \midrule
+    \multirow{7}{*}{\shortstack[c]{\OursAudioBench SFX}}
+    & Diff-Foley        & V2A  & 5.26 & 0.21 & 0.19*\\
+    & FoleyCraft        & V2A  & 5.73 & 0.25 & 0.24*\\
+    & VTA-LDM           & V2A  & 5.74 & 0.22 & 0.17*\\
+    & Seeing\&Hearing   & V2A  & 5.21 & 0.37 & 0.25*\\
+    & Seeing\&Hearing   & TV2A & 5.52 & 0.33 & 0.43 \\
+    & ElevenLabs        & T2A  & 6.17 & 0.20 & 0.47 \\
+    \cmidrule{2-6}
+    & \OursAudio        & TV2A & 6.39 & 0.36 & 0.45 \\
+    \bottomrule
+    \end{tabular}}
+    \caption{
+        \textbf{Sound effect generation objective evaluation on \OursAudioBench.} TA and VA are abbreviations for text-audio and video-audio respectively. We put ``*'' on CLAP results when text is not used at inference. Similar trends as in \cref{tab:eval_audio_main_ss_sfx,tab:app_eval_audio_main_ss_sfx} are observed.
+    }
+    \label{tab:app_eval_audio_main_ss_sfx_audiobench}
+\end{table}

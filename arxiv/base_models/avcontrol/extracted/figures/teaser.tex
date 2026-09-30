@@ -1,0 +1,49 @@
+\begin{figure*}[t]
+\centering
+\newcommand{\timg}[1]{\includegraphics[width=\tcw]{figures/images/teaser_columns/#1.jpg}}%
+\newcommand{\tcol}[2]{\begin{minipage}[t]{\tcw}\centering\timg{#1}\\[-5pt]{\tiny #2}\end{minipage}}%
+\newlength{\tcw}\setlength{\tcw}{0.175\textwidth}%
+%
+% --- Row 1 ---
+\begin{minipage}[t]{0.555\textwidth}
+\centering{\scriptsize\textbf{Spatial Controls}}\\[-8pt]
+\rule{\linewidth}{0.3pt}\\[1pt]
+\tcol{canny}{Canny}\hfill\tcol{pose}{Pose}\hfill\tcol{depth}{Depth}
+\end{minipage}%
+\hspace{0.02\textwidth}%
+\begin{minipage}[t]{0.36\textwidth}
+\centering{\scriptsize\textbf{Camera Control}}\\[-8pt]
+\rule{\linewidth}{0.3pt}\\[1pt]
+\tcol{from_image}{From Image}\hfill\tcol{from_video}{From Video}
+\end{minipage}%
+%
+\vspace{8pt}
+%
+% --- Row 2 ---
+\begin{minipage}[t]{\tcw}
+\centering{\scriptsize\textbf{Motion}}\\[-8pt]
+\rule{\linewidth}{0.3pt}\\[1pt]
+\tcol{sparse_tracking}{Sparse Tracking}
+\end{minipage}%
+\hspace{0.02\textwidth}%
+\begin{minipage}[t]{0.36\textwidth}
+\centering{\scriptsize\textbf{Editing}}\\[-8pt]
+\rule{\linewidth}{0.3pt}\\[1pt]
+\tcol{cut_on_action}{Cut-on-Action}\hfill\tcol{inpainting}{Inpainting}
+\end{minipage}%
+\hspace{0.02\textwidth}%
+\begin{minipage}[t]{\tcw}
+\centering{\scriptsize\textbf{Audio-Visual}}\\[-8pt]
+\rule{\linewidth}{0.3pt}\\[1pt]
+\tcol{who_is_talking}{Who Is Talking}
+\end{minipage}%
+\hspace{0.02\textwidth}%
+\begin{minipage}[t]{\tcw}
+\centering{\scriptsize\textbf{Audio Only}}\\[-8pt]
+\rule{\linewidth}{0.3pt}\\[1pt]
+\tcol{intensity_to_waveform}{Intensity$\to$Waveform}
+\end{minipage}%
+%
+\caption{AVControl trains each control modality as a lightweight LoRA. Each column shows control input (top) and generated output (bottom), covering spatial controls, camera trajectory, motion, editing, and audio-visual generation.}
+\label{fig:teaser}
+\end{figure*}

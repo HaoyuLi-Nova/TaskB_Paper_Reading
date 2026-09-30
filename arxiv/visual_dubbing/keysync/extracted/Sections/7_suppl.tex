@@ -1,0 +1,338 @@
+\clearpage
+\setcounter{page}{1}
+\maketitlesupplementary
+\appendix
+
+\section{Datasets}
+
+
+
+\subsection{Curation and preprocessing}
+
+When working with in-the-wild datasets such as CelebV-HQ~\cite{zhu2022celebvhq} and CelebV-Text~\cite{yu2022celebvtext}, we observed that a significant portion of the data is of suboptimal quality. Common issues include visible hands, camera movement, editing artifacts, and occlusions. Additionally, some samples exhibit lower resolution than advertised. Examples of these issues are illustrated in Figure~\ref{fig:bad_examples}. During training, we found that such videos negatively impacted model performance because their visual content correlates poorly with the corresponding audio. To address these challenges, we developed a data curation pipeline comprising the following steps:
+
+\begin{itemize}
+\item Extract videos at 25 FPS and single-channel audio at 16 kHz.
+\item Discard low-quality videos based on HyperIQA~\cite{Su_2020_CVPR_hyperiqa} scores below 0.4. Each video’s score is computed as the average of nine evaluations: selecting the first, middle, and last frames, each evaluated on three random crops.
+\item Detect and segment scenes using \href{https://github.com/Breakthrough/PySceneDetect}{PySceneDetect}.
+\item Remove clips without active speakers using Light-ASD~\cite{Liao_2023_CVPR_lightSDA} indicated by the score below 0.75.
+% \item Estimate facial landmarks and poses~\cite{facealign}, and discard video segments with excessive head rotation - more than 30 degrees. Then, crop videos around the face region throughout all frames.
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{Images/supp/bas_examples.pdf}
+    \caption{\textbf{Examples of problematic videos in CelebV-HQ and CelebV-Text.}}
+    \label{fig:bad_examples}
+\end{figure}
+
+\subsection{Data statistics}
+
+Table~\ref{tab:dataset} describes the training/evaluation data used in this paper, specifying the number of speakers, videos, average video duration, and total duration for each dataset. Additionally, to illustrate the impact of our data curation pipeline, we present Table~\ref{tab:uncleaned_dataset}, which details the statistics of the datasets before curation. Overall, we discard roughly 75\,\% of the original videos. Please note that CelebV-HQ and CelebV-Text videos were split into shorter chunks during pre-processing, hence the higher video count in Table~\ref{tab:dataset}.
+%Comparing the two tables highlights the substantial reduction in low-quality data, demonstrating the effectiveness of our preprocessing approach.
+
+
+\begin{table}[ht]
+\centering
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lrrrr}
+\toprule
+Dataset         & \# Speakers & \# Videos & \multicolumn{2}{c}{Duration} \\ \cmidrule(lr){4-5}
+                &             &           & Avg. (sec.) & Total (hrs.)  \\ \midrule
+HDTF~\cite{hdtf}       &   264       &   318    &    139.08      &       12     \\
+CelebV-HQ~\cite{zhu2022celebvhq} &   3,\,668    &  12,\,000  &      4.00       &        13    \\
+CelebV-Text~\cite{yu2022celebvtext} & 9,\,109    &   75,\,307 &        6.38      &       130    \\
+\bottomrule
+\end{tabular}
+}
+\caption{\textbf{Data statistics after curation and pre-processing.}}
+\label{tab:dataset}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lrrr}
+\toprule
+Dataset         & \# Videos & \multicolumn{2}{c}{Duration} \\ \cmidrule(lr){3-4}
+                &                        & Avg. (sec.) & Total (hrs.)  \\ \midrule
+HDTF~\cite{hdtf}         &   318    &    139.08      &       12     \\
+CelebV-HQ~\cite{zhu2022celebvhq}    &  35,\,666  &      6.86       &        68    \\
+CelebV-Text~\cite{yu2022celebvtext}   &   70,\,000 &       14.35      &       279    \\
+\bottomrule
+\end{tabular}
+}
+\caption{\textbf{Data statistics before curation.}}
+\label{tab:uncleaned_dataset}
+\end{table}
+
+
+\section{Implementation details}
+
+\paragraph{Code}
+
+The code and model weights will be released upon acceptance.
+
+\paragraph{Hyperparameters \& Training Configuration}
+
+
+% detailing all hyperparameters (lambda,...)
+
+% % Add also how much occlusion handling adds compute (adds 0.17s/frame)
+
+We summarize all the hyperparameters of our pipeline in Table~\ref{tab:model_params}. The weights of the U-Net and VAE are initialized from SVD~\cite{blattmann2023stablevideodiffusionscaling}. The interpolation model undergoes more training steps because its task differs more significantly from the original task of SVD.
+
+\begin{table}[ht]
+\centering
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{lc}
+\toprule
+Hyperparameter                & Value \\ \midrule
+Keyframe sequence length ($T$)       & 14       \\
+Keyframe spacing ($S$)               & 12       \\
+Interpolation sequence length ($S$)  & 12       \\
+Keyframe training steps              & 60,\,000   \\
+Interpolation training steps         & 120,\,000 \\
+Training batch size                  & 32             \\
+Optimizer                            & AdamW          \\
+Learning rate                        & $1 \times 10^{-5}$ \\
+Warmup steps                        & 1,\,000          \\
+Inference steps                      & 10       \\
+GPU used                             & NVIDIA A100    \\
+Video frame rate & 25 \\
+Audio sample rate & 16,\,000 \\
+Resolution & $512 \times 512$  \\
+Pixel loss weighting ($\lambda_2$) & 1 \\
+Audio condition drop rate for CFG~\cite{Ho2022ClassifierFreeDG}            & 20\,\%                \\
+Identity condition drop rate for CFG~\cite{Ho2022ClassifierFreeDG}        & 10\,\%                 \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Default model hyperparameters and training configurations.}}
+\label{tab:model_params}
+\end{table}
+
+
+\section{LipLeak}
+
+We introduce LipLeak as part of our evaluation pipeline for measuring expression leakage. The first step in computing LipLeak is to calculate the mouth aspect ratio (MAR) from facial landmarks, as illustrated in Figure~\ref{fig:lipleak_supp}. This ratio quantifies the vertical openness of the mouth relative to its width, increasing as the mouth opens wider. Since LipLeak is based on a ratio, it's a a scale-invariant measure, and allows for consistent evaluation across different video resolutions and face sizes. To determine whether the mouth is open or closed, we define a threshold for the MAR. In our case, we select a threshold of 0.25, as any MAR below this value consistently represents a closed mouth based on visual inspection of several samples.
+
+To assess the sensitivity of LipLeak to threshold selection, we analyze how the metric behaves when the threshold is varied linearly (Figure~\ref{fig:lipleak_thresh}). The results show a continuous decrease in LipLeak as the threshold increases. This predictable behavior is essential, as it ensures that LipLeak can serve as a reliable and interpretable metric for evaluating mouth leakage across different conditions. A well-behaved metric should exhibit smooth variations with respect to its parameters, preventing erratic jumps or inconsistencies that could compromise its usability in quantitative evaluations.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{Images/supp/mouth_mar_comparison.pdf}
+    \caption{\textbf{LipLeak measurement example.}}
+    \label{fig:lipleak_supp}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{Images/supp/our_model_lipleak.pdf}
+    \caption{\textbf{LipLeak as a function of the MAR threshold.}}
+    \label{fig:lipleak_thresh}
+\end{figure}
+
+\section{Occlusion handling}
+
+We propose a method to handle occlusions at inference time, eliminating the need for model retraining to apply our technique. This makes our approach highly flexible and adaptable across different methods. Figure~\ref{fig:occlusions_others} illustrates the application of our occlusion handling technique to several existing methods:
+\begin{itemize}
+    \item \textbf{DiffDub~\cite{DiffDub} and Diff2Lip~\cite{diff2lip}:} Our approach works out of the box, seamlessly handling occlusions without requiring modifications.
+    \item \textbf{LatentSync~\cite{latentsync}:} Since this method employs a fixed mask, the model has never been exposed to variations in masking. As a result, it struggles to adapt to the new mask patterns introduced by our occlusion-handling technique, highlighting a key drawback of using a rigid masking approach.
+    \item \textbf{IP\_\,LAP~\cite{Zhong_2023_CVPR}:} This model generates the mouth region separately through an audio-to-landmark module. Consequently, the occlusion mask has no direct effect, and the mouth is generated on top of the occlusion.
+    \item \textbf{TalkLip~\cite{talklip}:} At first glance, TalkLip appears to function without occlusion handling. However, it achieves this by concatenating frames from the original video to generate new frames. This shortcut enables occlusion handling but comes at the cost of significant expression leakage, as evidenced by its very high LipLeak score in Table~\ref{tab:metrics_comparison}.
+\end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{Images/supp/occlusions_others_supp.pdf}
+    \caption{\textbf{Effectiveness of Occlusion Handling Across Different Methods.}}
+    \label{fig:occlusions_others}
+\end{figure}
+
+\section{User study results}
+
+To ensure that the objective metrics presented in Table~\ref{tab:metrics_comparison} align with human perception, we conduct a user study to evaluate model performance in terms of lip synchronization, overall coherence, and image quality. Participants are presented with pairs of videos and asked to select the one they preferred based on these criteria. The video pairs are randomly sampled from the pool of models listed in Table~\ref{tab:metrics_comparison} to ensure a fair and unbiased comparison. A total of 1,\,000 pairwise comparisons were collected, providing a robust dataset for evaluating human preferences. Figure~\ref{fig:scree_user} shows a screenshot of the user study interface, illustrating the evaluation setup.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{Images/supp/screen_user_study.pdf}
+\caption{\textbf{User study interface.} Participants were shown side-by-side videos and asked to select the preferred one based on lip synchronization, coherence, and quality.}
+\label{fig:scree_user}
+\end{figure}
+
+
+\paragraph{Elo ratings}
+
+To assess the relative performance of different models in our evaluation framework, we employ the Elo rating system~\cite{elo1978rating}, a widely used method for ranking competitors based on pairwise comparisons. The Elo rating system assigns scores to models based on their performance in direct comparisons, updating their ratings dynamically as more results are collected.
+
+We evaluate Elo ratings in two distinct settings:
+\begin{itemize}
+    \item \textbf{Reconstruction setting (Figure~\ref{fig:elo_recons}):} In this scenario, we compare videos are generated using the same audio as in the original video.
+    \item \textbf{Cross-Synchronization Setting (Figure~\ref{fig:elo_cross}):} In this scenario, we compare videos generated using a different audio from the original video.
+\end{itemize}
+
+In both cases, our model consistently outperforms competing methods, achieving higher Elo ratings. This demonstrates its superior ability to generate high-quality, accurately synchronised lip movements, both in the reconstruction and cross-synchronization tasks.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{Images/supp/elo_ratings_reconstruction.pdf}
+\caption{\textbf{Elo ratings in the reconstruction setting.} Higher ratings indicate better performance in generating videos with original audio as input.}
+\label{fig:elo_recons}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{Images/supp/elo_ratings_cross.pdf}
+\caption{\textbf{Elo ratings in the cross-sync setting.} Higher ratings indicate better performance in generating videos with different audio from input.}
+\label{fig:elo_cross}
+\end{figure}
+
+\paragraph{Elo rating distributions}
+
+To better understand the distribution and variance of model rankings, we analyse the overall Elo ratings across all evaluated models. Figure~\ref{fig:elo_hist} presents a histogram of Elo scores, illustrating how models are ranked relative to each other. A well-separated distribution suggests clear performance differences between models, whereas overlapping scores indicate models with similar performance levels. Our model achieves the highest Elo ratings, forming a well-defined peak that highlights its superior performance. In contrast, baseline models display varying degrees of separation, with some exhibiting significant overlap, suggesting closer competition and comparable performance in certain cases.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{Images/supp/elo_rating_histograms.pdf}
+\caption{\textbf{Distribution of Elo ratings across all evaluated models.} This histogram illustrates the spread of Elo scores, highlighting performance gaps or clustering amongst different models.}
+\label{fig:elo_hist}
+\end{figure}
+
+
+
+\paragraph{Win rates}
+
+Beyond Elo ratings, we compute win rates to assess how often each model outperforms others in pairwise comparisons. The win rate matrix in Figure~\ref{fig:elo_win} provides a detailed overview of direct matchups, where each cell represents the percentage of times one model wins against another. This analysis helps identify dominant models and potential inconsistencies in ranking. Our model consistently outperforms competing approaches, achieving a minimum win rate of 69\,\% and a maximum of 94\,\%. These results indicate a strong and reliable performance advantage over alternative methods.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{Images/supp/win_rates_matrix.pdf}
+\caption{\textbf{Win rate matrix for pairwise model comparisons.} Each cell represents the proportion of matchups where one model outperforms another, offering insight into head-to-head performance.}
+\label{fig:elo_win}
+\end{figure}
+
+
+\section{Additional ablations}
+
+% Maybe add ablation on clean vs non clean data if time. Maybe also talk about the guidance and which param is best
+
+% Maybe an additional experiment showing results with only HDTF???
+
+\paragraph{Guidance}
+
+Guidance plays a crucial role in the performance of diffusion models~\cite{dhariwal2021diffusionmodelsbeatgans, ho2020ddpm}. In our case, we use a modified version of Classifier-Free Guidance (CFG)~\cite{Ho2022ClassifierFreeDG}, which applies separate scaling factors to the audio and identity conditions. Specifically, our guidance function is defined as follows:
+\begin{equation} \label{eq:D_function}
+        z = z_{\emptyset} + w_{\text{id}} \cdot (z_{\text{id}} - z_{\emptyset}) + w_{\text{aud}} \cdot (z_{\text{id \& aud}} - z_{\text{id}}),
+\end{equation}
+where:
+\begin{itemize}
+    \item $w_{\text{aud}}$ and $w_{\text{id}}$ are the guidance scales for audio and identity, respectively.
+    \item $z_{\emptyset}$ represents the model output when all conditions are set to 0.
+    \item $z_{\text{id}}$ is the output when only the identity condition is applied.
+    \item $z_{\text{id \& aud}}$ is the output when both audio and identity conditions are applied.
+\end{itemize}
+
+
+By separating the audio and identity guidance conditions, we enable more control over the generated videos, ultimately leading to improved performance. Experimentally, we found that setting $w_{\text{aud}}=5$ and $w_{\text{id}}=2$ yields the best results. This configuration achieves a 29.73\,\% improvement in LipScore, significantly enhancing lip synchronization accuracy. While this comes at a 14.75\,\% increase in CMMD and a minor 2.80\,\% increase in FVD, the overall perceptual quality remains strong, making this trade-off highly beneficial for generating realistic and synchronized videos. We summarize these results in Table~\ref{tab:guidance_table}, demonstrating the effectiveness of our approach compared to standard CFG.
+
+\begin{table}[ht]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Guidance     &        CMMD & FVD & LipScore $\uparrow$  \\ \midrule
+CFG      &  \textbf{0.061}  &  \textbf{200.71}   & 0.37  \\
+\rowcolor{Gray!40} Ours ($w_{\text{aud}}=5$, $w_{\text{id}}=2$)   & 0.070 & 206.32 & \textbf{0.48}  \\
+\bottomrule
+\end{tabular}}
+\caption{\textbf{Guidance ablation} in the cross-sync setting.}
+\label{tab:guidance_table}
+\end{table}
+
+\paragraph{Losses}
+
+We present an ablation on the impact of applying a pixel loss in addition to the diffusion loss in Table~\ref{tab:pixel_table}. Our findings indicate that adding a $L_2$ loss in pixel space leads to a slight improvement in image and video quality while maintaining the same level of lip synchronization. However, contrary to the findings in \cite{keyface}, we did not find that adding an additional LPIPS pixel loss benefits the model. Instead, it causes the mouth region to deviate too much from the rest of the image, as illustrated in Figure~\ref{fig:lpips}. This discrepancy arises because facial animation is a different task from lip synchronization, with the latter being more closely related to an inpainting task rather than full facial reconstruction.
+
+\begin{table}[ht]
+\centering
+% \resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Loss     &        CMMD & FVD & LipScore $\uparrow$  \\ \midrule
+No pixel loss      &  0.075  &  215.71   & \textbf{0.48}  \\
+\rowcolor{Gray!40} $L_2$  & \textbf{0.070} & \textbf{206.32} & \textbf{0.48}  \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{Pixel loss ablation} in the cross-sync setting.}
+\label{tab:pixel_table}
+\end{table}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{Images/supp/lpips.pdf}
+\caption{\textbf{Examples of inconsistent mouth regions obtained by training with an additional LPIPS pixel loss.}}
+\label{fig:lpips}
+\end{figure}
+
+\section{Limitations}
+
+To assess the limitations of our approach, we construct a small dataset consisting of seven identities, where each individual recites the same two sentences at five different angles: 0°, 20°, 45°, 70°, and 90°, as illustrated in Figure~\ref{fig:example_angles}. This setup allows us to systematically evaluate how the model performs under varying viewpoint conditions.
+
+We present the results of TOPIQ~\cite{topiq} with respect to the angle in Figure~\ref{fig:results_edge}. We use TOPIQ because it is a no-reference image quality metric that does not require a large ground-truth dataset for direct comparison, making it more practical than FID or FVD, which rely on reference distributions that may be skewed or incomplete across extreme angles. Additionally, unlike variance of Laplacian (VL), which only captures blurriness, TOPIQ provides a more comprehensive measure of perceptual quality degradation, including semantic distortions that become more pronounced at oblique head poses. The results indicate that all approaches exhibit performance degradation as the angle increases. This is a key limitation of our model, which is also observed across baseline methods. This decline in performance can be attributed to the inherent biases in our training datasets, which predominantly contain frontal faces. As a result, the model struggles to infer occluded or unseen facial regions when presented with extreme head poses. One potential solution is to provide identity frames from multiple viewpoints during training, allowing the model to learn a more comprehensive facial representation. However, this would require extesnsive new data collection and further investigation, and is therefore left for future work.
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{Images/supp/facetopic_angle_analysis.pdf}
+\caption{\textbf{Impact of head pose on model performance.}}
+\label{fig:results_edge}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\linewidth]{Images/supp/angles.pdf}
+\caption{\textbf{Examples of generated videos at different angles.}}
+\label{fig:example_angles}
+\end{figure}
+
+\section{Additional qualitative results}
+
+We present additional qualitative results in Figure~\ref{fig:qualitative_supp_extra}. As reported in the main paper, our model demonstrates better alignment with the target lips while also achieving higher image quality compared to other methods. Additionally, we evaluate our model’s ability to handle non-human faces in Figure~\ref{fig:qualitative_non_human}. We find that KeySync produces plausible lip-synced animations, while competing models fail to accurately reconstruct mouth details, particularly in the first two identities, as they deviate significantly from typical human facial structures. This highlights our model’s superior adaptability in handling out-of-distribution (OOD) scenarios.
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=\linewidth]{Images/supp/quali_comp_supp_better_compression.pdf}
+    \caption{\textbf{Additional qualitative comparison.}}
+    \label{fig:qualitative_supp_extra}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=\linewidth]{Images/supp/quali_comp_non_human_v2.pdf}
+    \caption{\textbf{Qualitative comparison on non-human ids.}}
+    \label{fig:qualitative_non_human}
+\end{figure*}
+
+To better assess the effectiveness of our approach, we provide a series of videos as part of the supplementary material. These videos are categorized as follows:
+\begin{itemize}
+\item \textbf{Side-by-side comparisons:} Showcasing our method against other approaches in both reconstruction and cross-sync settings.
+\item \textbf{Silent videos:} Highlighting expression leakage within the same video, demonstrating how different models handle silent audio.
+\item \textbf{Occlusion cases:} Also included in the same video, presenting situations where parts of the face are obstructed, illustrating the robustness of our approach.
+\item \textbf{Multilingual examples:} Evaluating the model’s performance across different languages to assess generalization.
+\item \textbf{Out-of-distribution examples:} Testing our model on non-human identities, demonstrating its adaptability to non-human faces.
+\item  \textbf{Examples at different angles:} Analyzing the model’s performance under varying head poses, highlighting its ability to handle different viewpoints as well as its limitations.
+\item \textbf{Additional cross-sync videos:} Providing a more extensive evaluation of our model’s cross-sync capabilities across various conditions.
+\end{itemize}
+
+These supplementary videos offer a comprehensive visual demonstration of our method’s performance across a wide range of conditions.
+
+
+\section{Ethical Considerations and Social Impact}
+
+\paragraph{User study}
+Our study includes a user evaluation where participants compare video outputs for lip synchronization, image quality, and coherence. All participants provided informed consent, and their responses were collected anonymously. No personally identifiable information or sensitive data were gathered, ensuring compliance with ethical research guidelines.
+
+\paragraph{Model}
+Lip-sync generation has numerous beneficial applications, including enhanced video dubbing, accessibility tools for hearing-impaired individuals, and improvements in digital content creation. However, we acknowledge that such technology can also be misused, particularly in the context of deepfake generation, which poses risks related to misinformation, identity fraud, and unethical content manipulation. To mitigate potential misuse, we emphasize that our approach is developed with a focus on fair use cases and is intended strictly for research purposes. 
+
+\paragraph{Datasets}
+We rely on publicly available datasets that were originally collected and published by external researchers. We adhere to the terms and ethical guidelines set by the dataset creators. 

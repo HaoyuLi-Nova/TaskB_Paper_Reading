@@ -1,0 +1,44 @@
+
+\subsubsection{Distributed Packing and Padding}\label{sec:train_infra_pnp}
+
+
+
+Due to the integrity constraints of video data and the variability in video lengths and resolutions, we adopt a Packing and Padding (PnP) strategy~\citep{sirluk2024efficient, kundu2024enhancingtrainingefficiencyusing} to batch video samples in a way that minimizes excessive padding and reduces unnecessary computational overhead in distributed training scenarios. Moreover, the data composition is frequently adjusted during the training of \magi (See Sec.~\ref{sec:data_adjustment}), and to accommodate such flexibility, we employ an online PnP strategy instead of a offline approach.
+
+The core idea of PnP is to efficiently utilize GPU resources by concatenating multiple short sequences into a batch while minimizing redundant filling. The offline formulation of this problem aligns with the classic bin-packing problem: given a set of input samples, the goal is to pack them into a set of bins, each with a fixed capacity \texttt{max\_length}, while minimizing overall unused space. Although this problem is NP-complete, it can be efficiently approximated in practice using the First-Fit Decreasing (FFD)~\citep{dosa2007tight} greedy algorithm.
+
+In our online setting, we must process streaming data inputs while ensuring compatibility with the 3D parallelism strategy employed during training. To this end, we reformulate the problem as follows: given M candidate samples, we aim to pack them into N bins of size \texttt{max\_length}, minimizing overall space waste. Here, M denotes the size of the candidate pool with M $\gg$ N; N must be divisible by the \texttt{DP\_SIZE}; and \texttt{max\_length} must be divisible by \texttt{TP\_SIZE}$\times$\texttt{CP\_SIZE}.
+
+In practice, we extend the FFD algorithm with custom heuristics to support efficient online packing under these constraints. This approach enables us to achieve a $99\%$ capacity utilization rate and the differences between different DP groups can be neglected, thus substantially reducing computational overhead during training.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

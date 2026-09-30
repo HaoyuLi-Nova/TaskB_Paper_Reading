@@ -1,0 +1,29 @@
+\input{figures/teaser}
+
+Controlling the generation process of video and audio models is essential for practical creative applications.
+However, the space of possible controls is vast: different modalities carry different types of information, and the same input (such as a mask) can have entirely different meanings depending on the context.
+Rather than attempting to build a single monolithic system that handles all control types, we propose AVControl, a flexible and easily extendable framework that can be rapidly adapted to new modalities, whether standard controls like depth and pose or specialized ones such as rendering Blender previews for real-time game engines (Figure~\ref{fig:teaser}).
+We build on LTX-2~\cite{hacohen2026ltx2}, a joint audio-visual DiT that natively generates synchronized video and audio, making it a natural backbone for multimodal control.
+
+The range of controls extends well beyond spatially-aligned ControlNet-style~\cite{zhang2023controlnet} modalities like depth, pose, and canny edges.
+We may wish to control camera motion from a single image, or re-render an existing video at a new trajectory while preserving scene dynamics.
+When audio is also considered, the space grows further: adapting acoustics to a text-described environment, synchronizing video with a reference audio track, and more.
+
+Our approach draws inspiration from In-Context LoRA (IC-LoRA)~\cite{huang2024iclora}, where a LoRA is trained on an image model to generate composite images, such as paired images side-by-side, with a learned relationship between the panels. At inference time, one half serves as the conditioning input while the other is generated via inpainting.
+However, for structural controls such as depth, this approach fails to faithfully follow the conditioning signal (Figure~\ref{fig:canvas_vs_concat}). We hypothesize that the large spatial distance between semantically corresponding positions in the concatenated layout weakens their interaction in the attention layers.
+We therefore adopted an approach inspired by Flux Kontext~\cite{batifol2025fluxkontext}, providing the reference on a parallel ``canvas,'' i.e., where additional tokens in the attention layers are processed alongside the generation target.
+The challenge with this parallel layout is that the model must distinguish reference tokens from generation tokens. Flux Kontext~\cite{batifol2025fluxkontext} addresses this by introducing a new Rotary Position Embedding (RoPE)~\cite{su2021rope} dimension, which requires learning entirely new positional relationships from extensive compute and large-scale curated paired data. For video, the data cost is even more prohibitive, as temporally aligned multi-view video pairs are substantially harder to curate at scale than image pairs.
+Our formulation avoids both costs. LTX-2~\cite{hacohen2026ltx2} assigns a unique per-token timestep, so the model inherently distinguishes clean reference tokens from noised generation tokens (see Section~\ref{sec:method}). The only trainable component is a minimal LoRA adapter~\cite{hu2022lora} on the frozen joint audio-visual backbone. Unlike methods that require new architectural components, this minimal formulation enables faithful video structural control where direct extensions of prior methods fail.
+Moreover, because reference and target interact through self-attention, the reference influence can be continuously modulated at inference time globally or locally -- a capability unavailable to channel-concatenation methods.
+
+Because each control modality is a lightweight, independently trained LoRA, this design enables easy extension to new controls without retraining existing ones. Unlike monolithic methods such as VACE~\cite{jiang2025vace}, which train all controls jointly, adding a new control, whether a neural renderer for Blender meshes (Section~\ref{sec:modalities}) or a speech-to-ambient audio transformation (Section~\ref{sec:av}), requires only a small dataset and a short training run. The total training budget across all 13 trained modalities is ${\sim}$55K steps, less than one third of VACE's 200K-step training run.
+
+To accelerate inference, we further propose a small-to-large control grid that reduces the reference canvas resolution for sparse controls such as camera parameters.
+
+\vspace{0.5em}
+\noindent To summarize, our contributions are:
+\begin{itemize}
+    \item A compute- and data-efficient framework for training per-modality control LoRAs on a parallel canvas, enabling faithful video structural control and fine-grained inference-time strength modulation.
+    \item A diverse set of independently trained control modalities, from spatially-aligned controls and camera trajectory to audio-visual applications, demonstrating the framework's flexibility.
+    \item A small-to-large control grid training strategy that reduces the reference canvas resolution for spatially sparse modalities, lowering latency without sacrificing control fidelity.
+\end{itemize}

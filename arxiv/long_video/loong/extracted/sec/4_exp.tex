@@ -1,0 +1,172 @@
+\section{Experiments}
+\label{exp}
+
+
+\subsection{Implementation Details}
+\label{sec:4.1}
+
+\textbf{Model Architecture.} Our video generation model follows the same architecture    as LLaMA~\cite{touvron2023llama}, with the model size ranging from 700M to 7B parameters. We train the models from scratch, without using any text-pretrained weights. The vocabulary consists of 32,000 tokens for text, 8,192 tokens for video, and 10 special tokens, resulting in a total vocabulary size of 40,202. 
+% \ZJ{We may also mention the training details of Video tokenizer?}
+For the video tokenizer, we attempt to reproduce the architecture of MAGVIT2~\cite{yu2023language}, which is a causal 3D CNN structure that separately models the first frame of the video. The model compresses the spatial dimensions (width and height) by a factor of 8 and the temporal dimension by a factor of 4.  We utilize the Clustering Vector Quantization (CVQ)~\cite{Zheng_2023_CVQ} method for quantization, as it achieves a higher codebook usage ratio compared to the original Vector Quantization (VQ)\cite{esser2020taming, VQ_VAE_paper} approach. The video tokenizer has a total of 246M parameters. 
+%3D CNN, parameter number 
+
+\textbf{Training.}
+Our models are trained on 100M text-image pairs filtered from the combination of the CC12M~\cite{sharma2018conceptual} and LAION-2B~\cite{schuhmann2022laion} datasets, as well as the WebVid-10M~\cite{Bain21} video training set and 5.5M video clips filterd from HDVG~\cite{videofactory}. The training process follows the progressive strategy described in Sec.~\ref{sec:3.2}. We first pre-train the model on the combined image dataset for 200k iterations, followed by joint training on images and 17-frame video clips from the combined video dataset for another 200k iterations with a batch size of 512. We then jointly train on 65 frames (covering 10 seconds) for 100k iterations with a batch size of 256. The $\lambda$ is set to 1.0 for the weighted loss of Eq.~\eqref{eq:eq2}. In each stage, we use AdamW optimizer with a base learning rate of 1.0e-4. The learning rate is scheduled using a linear warmup for the first 10,000 iterations, followed by a cosine annealing decay until reaching the maximum iteration count. For the training of the tokenizer, we also use a progressive approach on the same dataset, increasing the video length from 1 to 17 to 65 frames while maintaining a resolution of $128 \times 128$, with a batch size of 64 and training for 400k iterations.
+
+\textbf{Inference.}
+During inference, our model first generates the initial 65 frames based on the text prompt. We then use the last 5 predicted frames as conditions for video extension. The classifier-free guidance ratio is set to 7.5.
+
+
+\subsection{Ablation Study}
+In this section, we conduct ablation studies to evaluate the effectiveness of our main design choices. Unless otherwise specified, we use the 3B model with an output spatial resolution of $128\times 128$, without any super-resolution  and refinement module. To reduce computational cost, we train the models for half the number of iterations compared to the full setting described in Sec.~\ref{sec:4.1}. Due to the lack of a general long video generation benchmark, we build a custom one by selecting the top-1000 longest clips from the WebVid~\cite{Bain21} validation set and slicing each to 27 seconds, the duration of the shortest among them. We employ two commonly used video generation metrics on this benchmark: Fréchet Video Distance (FVD)\cite{unterthiner2018towards} and Video-Text Matching (VTM) score calculated by CLIP (ViT-L/14)\cite{CLIP_paper}. 
+% It is worth noting that these metrics serve as references, and human evaluation should be considered a more accurate quality assessment of the generated videos. 
+We use the text prompt sets from prior works~\cite{bar2024lumiere,girdhar2023emu,imagen_video,make-a-video,openai2024sora} to generate videos for visualization. 
+
+\textbf{Model Scaling.}
+Scalability is an important characteristic of LLMs. To study scaling behavior of our model, we evaluate performance of the models with different sizes. Tab.~\ref{tab:scaling} presents the quantitative results of our models with 700M, 3B and 7B parameters using the same number of iterations on the custom benchmark. We observe that larger models achieve better FVD and VTM scores, demonstrating the scalability of model size for our approach.  
+
+\begin{wraptable}{r}{0.35\textwidth}
+    \vskip -0.2in
+    \centering
+    \caption{\textbf{Model Size Scalability of \Ours.} 
+    The performance improves as the model size increases.
+    }
+    \begin{tabular}{@{}lcc@{}}
+    \toprule
+     & $\mathrm{FVD}_{\mathrm{I3D}}$↓  &$\mathrm{VTM}_{\mathrm{c}}$↑\\
+    \midrule
+    700M & 633 & 21.5 \\
+    3B & 572 & 22.8 \\
+    7B & \textbf{432} & \textbf{24.1} \\
+    \bottomrule
+    \end{tabular}
+    \label{tab:scaling}
+\end{wraptable}
+
+
+
+
+\textbf{Progressive Training with Loss Re-weighting.}
+To validate the effectiveness of our proposed training strategy, we compare the models trained with and without our proposed strategies. Both models are pre-trained on images and then trained on videos. Fig.~\ref{fig:train} (top row) shows the generated frames of model trained by a single training stage without our proposed strategy. It is clear that the videos generated by the directly-trained models suffer from significant object appearance degradation, losing much of the structure information. In contrast, videos generated by the model trained with the proposed approach effectively preserve the appearance details.
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figs/train_abla.pdf}
+    \vskip -0.1in
+    \caption{\textbf{Effectiveness of the Progressive Training with Loss Re-weighting.} We sample 4 frames from the 17 earlier frames of the video generation results, to show the performance of models trained with or without our training strategy. The top row shows results of the model trained directly on long video, the appearance of objects degrades largely. The bottom row shows the results model trained with our proposed training approach, the appearance preserves effectively. 
+    }
+    \vskip -0.15in
+    \label{fig:train}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figs/infer_abla2.pdf}
+    \vskip -0.1in
+    \caption{\textbf{Effectiveness of Token Re-encoding during Video Extension.} For each sample, the left two images show the results before the extension process, and the right two images show the results after extension. Without token re-encoding, the extension fails to generate visually consistent content. 
+    }
+    \vskip -0.2in
+    \label{fig:tokenrealign}
+\end{figure}
+
+\begin{wrapfigure}{r}{0.45\textwidth} 
+    \vskip -0.15in
+    \includegraphics[width=\linewidth]{figs/sample.pdf}
+    % \vskip -0.05in
+       \caption{\textbf{Study on Sampling Strategies.} Results of three different inference sampling strategies. Greedy decoding produces stable results but lacks diversity between frames. Multinomial sampling generates more dynamic and diverse content but with lower quality. Top-$k$ sampling achieves a balance between stability and diversity. $k$ is set to 50 in this experiment. 
+    }
+    % \vskip -0.05in
+    \label{fig:sample}
+
+\end{wrapfigure}
+
+\textbf{Video Token Re-encoding.} Fig.~\ref{fig:tokenrealign} illustrates the importance of token re-encoding during the video extension process.  
+Without proper token re-encoding, the model fails to maintain visual consistency when extending the video, resulting in abrupt changes in appearance and content. In contrast, by employing our token re-encoding technique, the extended frames seamlessly continue the video with coherent visual style and content.
+
+
+
+\textbf{Sampling Strategy for Inference.}
+We compare three sampling strategies when predicting each token: greedy decoding ($k=1$), top-$k$ sampling, and multinomial sampling from the whole vocabulary ($k$ equals video token vocabulary size). As shown in Fig.~\ref{fig:sample}, greedy decoding generates stable results but lacks diversity, while multinomial sampling produces more dynamic content at the cost of quality. Top-$k$ sampling ($k=50$) balances stability and diversity. A smaller $k$ value prioritizes stability, resulting in less diverse motion, while a larger $k$ allows for more dynamic and varied content at the risk of introducing instability. In the process of video extension, selecting an appropriate $k$ value is crucial for maintaining consistency and mitigating error accumulation over longer sequences.
+\subsection{Quantitative Results}
+
+\begin{table}[h]
+    \centering
+    % \vskip -0.15in
+    \caption{\textbf{Comparison of zero-shot text-to-short-video generation on the MSRVTT benchmark}}
+    \label{tab:short_sota}
+    \begin{small}
+    \resizebox{1.0\textwidth}{!}{ 
+    \begin{tabular}{@{}lcccccc@{}}
+    \toprule
+    Model & CogVideo\cite{hong2022cogvideo} & MagicVideo\cite{zhou2022magicvideo} & ModelScopeT2V\cite{Modelscope} & Show-1\cite{zhang2023show1} & VideoPoet\cite{kondratyuk2023videopoet} & \Ours \\
+    \midrule
+    CLIPSIM & 0.2631 & - & 0.2930 & 0.3072 & 0.3049 & 0.2903 \\
+    FVD & 1294 & 998 & 550 & 538 & 213 & 274 \\
+    \bottomrule
+    \end{tabular}
+    }
+    \end{small}
+    \vskip -0.1in
+\end{table}
+
+
+
+
+
+
+\textbf{Zero-shot Text to Short Video Generation.}
+Although our approach is not specifically designed for short video generation, we compare our performance on the MSR-VTT dataset~\cite{xu2016msr} using CLIP similarity (CLIPSIM)~\cite{wu2021godiva} and FVD~\cite{unterthiner2018towards} metrics, evaluated on 16 frames. As shown in Tab.~\ref{tab:short_sota}, our FVD score is the second-best, only slightly behind VideoPoet~\cite{kondratyuk2023videopoet} (pretrained). However, our CLIPSIM score is lower compared to some other methods, which can be attributed to the fact that our approach is trained from scratch without utilizing any pre-trained text weights. In contrast, methods with higher CLIPSIM scores, such as VideoPoet, leverage pre-trained language models like T5~\cite{2020t5} for text encoding, while diffusion-based methods often employ CLIP~\cite{CLIP_paper} text embeddings, which are already trained on the CLIP dataset. Despite not using pre-trained text models, our method still achieves competitive performance, demonstrating its effectiveness in capturing the semantic relationship between text and video.
+
+
+
+\begin{wrapfigure}{r}{0.35\textwidth} 
+   \vskip -0.15in
+    \includegraphics[width=\linewidth]{figs/user_study_v4.pdf}
+    % \vskip -0.15in
+    \caption{\textbf{User Study on 1-min videos.} Comparison with the StreamingT2V on SVD model. Our model is more preferred by human raters in terms of both visual text match and content consistency. }
+    \label{fig:user study}
+    % \vskip 0.15in
+\end{wrapfigure}
+\textbf{User Study on Long Video Generation.} We conduct a user study to compare our method with StreamingT2V~\cite{streamingt2v}, a state-of-the-art open-sourced long video generation method built on Stable Video Diffusion~\cite{SVD}. We use 50 text prompts from prior works~\cite{bar2024lumiere,girdhar2023emu,imagen_video,make-a-video} to generate 1-min videos. In the study, users are presented with 2 videos generated by the two models, conditioned on the same text. They are asked to choose the preferred video based on visual text matching and content consistency. The videos are presented randomly, and users are not informed about the models. We collect 440 responses. As shown in Fig.~\ref{fig:user study}, our model outperforms StreamingT2V in both content consistency (win rate 0.83 vs. 0.125) and visual text matching (win rate 0.65 vs. 0.19).
+
+
+
+
+\subsection{Visualization Results}
+\label{sec:exp_visualization}
+
+Fig.~\ref{fig:vis_res} illustrates the video frames generated by our model under various text-to-video generation scenarios.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figs/application3.pdf}
+    % \vskip -0.1in
+    \caption{\textbf{Generated Videos from \Ours across Various Text-to-video Scenarios.} Our model demonstrates diversity and quality across various text-to-video tasks, including short video, long video, and dense text-to-long video generation. The results exhibit rich details, smooth transitions, and strong semantic alignment with input descriptions.
+    }
+    \vskip -0.3in
+    \label{fig:vis_res}
+\end{figure}
+
+
+
+\textbf{Text to Short Video.} In the top row of the figure, we show sample of short video generation. As shown in the figure, our approach has the capability to generate short videos with rich details and high fidelity while maintaining strong alignment with the given text descriptions.
+
+
+
+\textbf{Text to Long Video.} The second row shows frames sampled from a long video generated by our model, conditioned on a concise text description. This sample demonstrate that our approach can generate long videos containing diverse content and larger dynamic changes compared to short video generation, while maintaining semantic alignment with the given text.
+
+
+
+\textbf{Dense Text to Long Video.} Although not explicitly trained on dense captions, our model can effectively adapt to dense text video generation in a zero-shot manner. As illustrated in the last row of Fig.~\ref{fig:vis_res}, the generated long video depicts rich content that corresponds to the detailed descriptions, including multiple characters, weather, scenery, and building information. However, we observe that the generated images appear slightly blurry. We attribute this to the low resolution of our transformer's output, which may result in blurriness when generating highly detailed content. 
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1.0\textwidth]{figs/tokenizer.pdf}
+    % \vskip -0.1in
+    \caption{\textbf{Reconstructed Videos by Our Tokenizer.}  Each group represents a distinct video sequence, with the top row displaying the original frames and the bottom row presenting the corresponding reconstructions. Despite a high compression ratio of 256, our tokenizer effectively preserves fine details and natural, coherent motion in the reconstructed videos.
+    }
+    % \vskip -0.2in
+    \label{fig:tokenizer}
+\end{figure}
+
+In Fig.~\ref{fig:tokenizer}, we also present a visualization of the videos reconstructed by our tokenizer. We use videos selected from the WebVid valiation dataset~\cite{Bain21} (not used for training). The original video frames are in the top row of each group, and the reconstructed videos of our tokenizer are shown in the bottom row. Despite achieving a high compression ratio of approximately 256 ($8\times8\times4$), our tokenizer effectively preserves the fine-grained details of the original frames, and also maintains natural and coherent motion along the temporal dimension.

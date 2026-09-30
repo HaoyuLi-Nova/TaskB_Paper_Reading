@@ -1,0 +1,1078 @@
+%
+
+\newcommand{\modelfig}{
+\begin{figure}
+\includegraphics[width=0.45\textwidth]{img/modelfig}
+\caption{\label{fig:modelfig} Our models}
+\end{figure}
+}
+
+\newcommand{\figloctoscore}{
+\begin{figure}\centering
+\includegraphics[width=0.45\textwidth]{img/loctoscore}
+\caption{\label{fig:loctoscore} CLIP and FID for various location of the
+  logit normal sampler and for various sampler settings.}
+\end{figure}
+}
+
+\newcommand{\fignormalizedvalloc}{
+\begin{figure}\centering
+\includegraphics[width=0.45\textwidth]{img/normalizedvalloc}
+\caption{\label{fig:loctoscore} Normalized validation loss over timestep $t$
+  for logit normal sampler with different location parameters.}
+\end{figure}
+}
+
+\newcommand{\fignormalizedvalscale}{
+\begin{figure}\centering
+\includegraphics[width=0.45\textwidth]{img/normalizedvalscale}
+\caption{\label{fig:loctoscore} Normalized validation loss over timestep $t$
+  for logit normal sampler with centered location and different scales.}
+\end{figure}
+}
+
+\newcommand{\modesampler}{
+\begin{figure}
+\includegraphics[width=0.495\textwidth]{img/dists/modesampler}
+\caption{\label{fig:modesampler} The mode sampler}
+\end{figure}
+}
+
+\newcommand{\logitsampler}{
+\begin{figure}
+\includegraphics[width=0.495\textwidth]{img/dists/lnsampler}
+\caption{\label{fig:logitsampler} The logit-normal sampler}
+\end{figure}
+}
+
+\newcommand{\archstraining}{
+\begin{figure*}[t!]
+\includegraphics[width=0.32\textwidth]{img/archs/val_loss_level_6.png}
+\includegraphics[width=0.32\textwidth]{img/archs/clip_scores_sampler_default_ema_True.png}
+\includegraphics[width=0.32\textwidth]{img/archs/fid_scores_sampler_default_ema_True.png}
+\caption{\label{fig:archstraining} 
+\textbf{Training dynamics of model architectures.} 
+Comparative analysis of  \emph{DiT},  \emph{CrossDiT},  \emph{UViT}, and \modelname on CC12M, focusing on validation loss, CLIP score, and FID. 
+Our proposed \modelname performs favorably across all metrics. \vspace{-1em}
+}
+\end{figure*}
+}
+
+
+\newcommand{\archstrainingsqueezed}{
+\setlength{\tabcolsep}{-2pt}
+\begin{figure}
+\begin{tabular}{cc}
+\includegraphics[width=0.5\linewidth,valign=m]{img/archs_squeezed/val_loss_level_avg.jpg} &
+\includegraphics[width=0.5\linewidth,valign=m]{img/archs_squeezed/clip_fid_sampler_default_ema_True.jpg}
+\end{tabular}
+\caption{\label{fig:archstraining}\textbf{Training dynamics of model architectures.} 
+Comparative analysis of  \emph{DiT},  \emph{CrossDiT},  \emph{UViT}, and \modelname on CC12M, focusing on validation loss, CLIP score, and FID. 
+Our proposed \modelname performs favorably across all metrics.}
+\vspace{-1em}
+\end{figure}
+
+}
+
+
+\newcommand{\aefidstudy}{
+\begin{figure}\centering
+\includegraphics[width=0.45\textwidth]{img/fid_ae_study.png}
+\caption{\label{fig:aefidstudy} FID scores after training flow models with different sizes (parameterized via their depth) on the latent space of different autoencoders (4 latent channels, 8 channels and 16 channels) as discussed in \Cref{sec:improvedae}. As expected, the flow model trained on the 16-channel autoencoder space needs more model capacity to achieve similar performance. At depth $d=22$, the gap between 8-chn and 16-chn becomes negligible. We opt for the 16-chn model as we ultimately aim to scale to much larger model sizes.}
+\end{figure}
+}
+
+\newcommand{\tsamplers}{
+\begin{figure*}
+  \begin{center}%
+    \includegraphics[width=0.45\linewidth]{img/dists/modesampler}%
+    \hfil%
+    \includegraphics[width=0.45\linewidth]{img/dists/lnsampler}%
+  \end{center}
+  \caption{The mode (left) and logit-normal (right) distributions that we
+  explore for biasing the sampling of training timesteps.}
+  \label{fig:tsamplers}
+\end{figure*}
+}
+
+\newcommand{\dropthememb}{
+\begin{figure}[h]
+\centering
+%
+\setlength{\tabcolsep}{1pt}
+\begin{tabular}{cc}
+\toprule
+ %
+ %
+ %
+ \textit{All text-encoders} & \textit{w/o T5~\citep{raffel2019exploring}}\\
+\midrule
+ \includegraphics[width=.485\linewidth]{img/embedder_drop/burger_all_3.jpg}&
+ \includegraphics[width=.485\linewidth]{img/embedder_drop/burger_no_t5_3.jpg} \\[-2pt]
+\multicolumn{2}{c}{\tiny``A burger patty, with the bottom bun and lettuce and tomatoes. "COFFEE" written on it in mustard''} \\
+ \midrule
+ \includegraphics[width=.485\linewidth]{img/embedder_drop/monkey_all_3.jpg}&
+ \includegraphics[width=.485\linewidth]{img/embedder_drop/monkey_not5_3.jpg} \\[-2pt]
+\multicolumn{2}{c}{\tiny``A monkey holding a sign reading "Scaling transformer models is awesome!''} \\
+\midrule
+\includegraphics[width=.485\linewidth]{img/embedder_drop/ferrel_all_3.jpg}&
+\includegraphics[width=.485\linewidth]{img/embedder_drop/ferrel_not5_3.jpg} \\ 
+\multicolumn{2}{c}{\parbox[b]{.97\linewidth}{\centering\tiny``A mischievous ferret with a playful grin squeezes itself into a
+large glass jar, surrounded by colorful candy. The jar sits on
+a wooden table in a cozy kitchen, and warm sunlight filters
+through a nearby window''}} \\
+\bottomrule
+  \vspace{-1.75em}
+\end{tabular}
+\caption{\label{fig:embedder_dropping} \textbf{Impact of T5.} We observe T5 to
+  be important for complex prompts e.g. such involving a high degree of detail
+  or longer spelled text (rows 2 and 3). For most prompts, however, we find
+  that removing T5 at inference time still achieves competitive
+  performance.}
+\vspace{-1.0em}
+\end{figure}
+}
+
+\newcommand{\tabglobalrank}{
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lccc}\toprule
+& \multicolumn{3}{c}{rank averaged over} \\ \midrule
+variant & all & 5 steps & 50 steps \\ \midrule
+rf/lognorm(0.00, 1.00) & \s1.54 & \s1.25 & \s1.50 \\
+rf/lognorm(1.00, 0.60) & \s2.08 & \s3.50 & \s2.00 \\
+rf/lognorm(0.50, 0.60) & \s2.71 & \s8.50 & \s1.00 \\
+%
+rf/mode(1.29) & \s2.75 & \s3.25 & \s3.00 \\
+rf/lognorm(0.50, 1.00) & \s2.83 & \s1.50 & \s2.50 \\
+eps/linear & \s2.88 & \s4.25 & \s2.75 \\
+%
+%
+rf/mode(1.75) & \s3.33 & \s2.75 & \s2.75 \\
+%
+%
+rf/cosmap & \s4.13 & \s3.75 & \s4.00 \\
+%
+%
+edm(0.00, 0.60) & \s5.63 & 13.25 & \s3.25 \\
+rf & \s5.67 & \s6.50 & \s5.75 \\
+%
+%
+%
+%
+%
+v/linear & \s6.83 & \s5.75 & \s7.75 \\
+%
+%
+%
+%
+%
+%
+edm(0.60, 1.20) & \s9.00 & 13.00 & \s9.00 \\
+v/cos & \s9.17 & 12.25 & \s8.75 \\
+%
+%
+%
+%
+%
+edm/cos & 11.04 & 14.25 & 11.25 \\
+%
+%
+%
+%
+%
+edm/rf & 13.04 & 15.25 & 13.25 \\
+%
+%
+%
+%
+%
+%
+%
+%
+edm(-1.20, 1.20) & 15.58 & 20.25 & 15.00 \\
+%
+%
+%
+%
+%
+%
+%
+%
+%
+\bottomrule
+\end{tabular}
+\vspace{-0.75em}
+\caption{\label{tab:globalranking}
+\textbf{Global ranking of variants.}
+For this ranking, we apply non-dominated sorting averaged over EMA and non-EMA weights, two datasets and different sampling settings.}
+\end{table}
+}
+
+\newcommand{\tablowsteprank}{
+\begin{table}[!ht]
+    \centering
+    \caption{Non-dominated sorting of variants averaged over two sampler
+    settings with 5 steps and two datasets.}
+    \begin{tabular}{lr}
+        variant & average rank \\ \midrule
+        rf/lognorm\_0.00\_1.00 & 1.25 \\
+        (rf/lognorm\_0.50\_1.00) & 1.50 \\
+        %
+        %
+        rf/mode\_1.75 & 2.75 \\
+        %
+        %
+        (rf/mode\_1.29) & 3.25 \\
+        %
+        rf/cosmap & 3.75 \\
+        eps/linear & 4.25 \\
+        %
+        %
+        %
+        v/linear & 5.75 \\
+        rf/mode\_0.00 & 6.50 \\
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        v/cos & 12.25 \\
+        edm/edm\_0.60\_1.20 & 13.00 \\
+        %
+        %
+        edm/cos & 14.25 \\
+        %
+        %
+        edm/edmrf & 15.25 \\
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        edm/edm\_-1.20\_1.20 & 20.25 \\
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+    \end{tabular}
+\end{table}
+}
+\newcommand{\tabhighsteprank}{
+  \begin{table}[!ht]
+    \centering
+    \caption{Non-dominated sorting of variants averaged over two sampler
+    settings with 50 steps and two datasets.}
+    \begin{tabular}{lr}
+        variant & average rank \\ \midrule
+        rf/lognorm\_0.50\_0.60 & 1.0 \\
+        %
+        (rf/lognorm\_0.00\_1.00) & 1.5 \\
+        %
+        %
+        %
+        eps/linear & 2.75 \\
+        rf/mode\_1.75 & 2.75 \\
+        (rf/mode\_1.29) & 3.00 \\
+        edm/edm\_0.00\_0.60 & 3.25 \\
+        %
+        %
+        rf/cosmap & 4.00 \\
+        %
+        %
+        %
+        %
+        rf/mode\_0.00 & 5.75 \\
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        v/linear & 7.75 \\
+        %
+        %
+        v/cos & 8.75 \\
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        edm/cos & 11.25 \\
+        %
+        %
+        %
+        %
+        edm/edmrf & 13.25 \\
+        %
+        %
+        %
+        %
+        edm/edm\_-1.20\_1.20 & 15.00 \\
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+        %
+    \end{tabular}
+\end{table}
+}
+
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+
+\newcommand{\tabsota}{
+\begin{table}[t]
+\centering
+\begin{tabular}{lcccc} \toprule
+& \multicolumn{2}{c}{ImageNet} & \multicolumn{2}{c}{CC12M} \\ 
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+variant & CLIP & FID & CLIP & FID \\ \midrule
+rf                     & 0.247	           & \s49.70             & 0.217             & \s94.90 \\
+edm(-1.20, 1.20)	   & 0.236	           & \s63.12             & 0.200             & 116.60 \\
+eps/linear	           & 0.245	           & \s48.42             & 0.222             & \textit{\s90.34} \\
+v/cos	               & 0.244	           & \s50.74             & 0.209             & \s97.87 \\
+v/linear	           & 0.246	           & \s51.68             & 0.217             & 100.76 \\ \midrule
+rf/lognorm(0.50, 0.60) & \textbf{0.256}	   & \s80.41             & \underline{0.233} & 120.84 \\
+rf/mode(1.75)          & \textit{0.253}    & \textbf{\s44.39}    & 0.218             & \s94.06 \\
+rf/lognorm(1.00, 0.60) & \underline{0.254} & 114.26            & \textbf{0.234}    & 147.69 \\
+rf/lognorm(-0.50, 1.00)& 0.248             & \s\underline{45.64} & 0.219             & \s\textbf{89.70} \\ \midrule
+rf/lognorm(0.00, 1.00) & 0.250             & \textit{\s45.78}    & \textit{0.224}    & \s\underline{89.91} \\ \bottomrule
+\end{tabular}
+\vspace{-0.75em}
+\caption{\label{tab:tabsota} 
+\textbf{Metrics for different variants.}
+FID and CLIP scores of different variants with
+25 sampling steps. We highlight the \textbf{best}, \underline{second best},
+and \textit{third best} entries.}
+\end{table}
+}
+
+\newcommand{\figqualitativescaleparti}{
+  \begin{figure*}
+    \centering
+    \small
+\begin{tabular}{c@{\hspace{3pt}}c@{\hspace{3pt}}c@{\hspace{3pt}}c}
+  \includegraphics[width=.23\linewidth,valign=m]{img/scale_parti/000034.jpg}
+  &
+  \includegraphics[width=.23\linewidth,valign=m]{img/scale_parti/000042.jpg}
+  &
+  \includegraphics[width=.23\linewidth,valign=m]{img/scale_parti/000049.jpg}
+  &
+  \includegraphics[width=.23\linewidth,valign=m]{img/scale_parti/000127.jpg}\\
+  \multirow{3}{*}{
+    \parbox[b]{.23\linewidth}{\centering \tiny ``A raccoon wearing formal clothes, wearing a tophat and holding a cane. The raccoon is holding a garbage bag. Oil painting in the style of abstract cubism.''}
+    }
+    &
+    \multirow{3}{*}{
+    \parbox[b]{.23\linewidth}{\centering \tiny ``A bowl of soup that looks like a monster made out of plasticine''}
+    }
+    &
+    \multirow{3}{*}{
+    \parbox[b]{.23\linewidth}{\centering \tiny ``Two cups of coffee, one with latte art of a heart. The other has latte art of stars.''}
+    }
+    &
+    \multirow{3}{*}{
+    \parbox[b]{.23\linewidth}{\centering \tiny ``A smiling sloth is wearing a leather jacket, a cowboy hat, a kilt and a bowtie. The sloth is holding a quarterstaff and a big book. The sloth is standing on grass a few feet in front of a shiny VW van with flowers painted on it. wide-angle lens from below.''}
+    }\\
+    &&& \\
+    &&& \\
+    
+\end{tabular}
+\caption{
+\textbf{Qualitative effects of scaling.} Displayed are examples demonstrating the impact of scaling training steps (left to right: 50k, 200k, 350k, 500k) and model sizes (top to bottom: depth=15, 30, 38) on PartiPrompts, highlighting the influence of training duration and model complexity.
+}
+\label{fig:qualitativescaleparti}
+\end{figure*}
+}
+
+
+
+
+
+
+
+\newcommand{\figvalscalingsqueeze}{
+\setlength{\tabcolsep}{-1pt}
+%
+%
+\begin{figure}
+\begin{tabular}{cc}
+\includegraphics[width=.5\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_train-step.png}
+&
+\includegraphics[width=.5\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_train-flops.png} \\
+\includegraphics[width=.5\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_gen-eval.png}
+&
+\includegraphics[width=.5\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_elo.png} 
+\end{tabular}
+\caption{\label{fig:valscaling} \textbf{Quantitative effects of scaling.} \TODO{\textbf{larger plot. add third eval from appendix. add video exps, do video val loss vs human eval metrics}} We analyze the impact of model size on performance, maintaining consistent training hyperparameters throughout. 
+An exception is depth=38, where learning rate adjustments at $3 \times 10^5$ steps were necessary to prevent divergence. 
+(Top) Validation loss smoothly decreases as a function of both model size and training steps. 
+(Bottom) Validation loss is a \textit{strong predictor of overall model performance}. There is a marked correlation between validation loss and holistic image evaluation metrics, including 
+GenEval~\cite{ghosh2023geneval}, column 1, human preference, column 2, and T2I-CompBench~\cite{huang2023t2i}, column 3. For video models we observe a similar correlation between validation loss and human preference, column 4.
+.}
+\end{figure}
+}
+
+
+\newcommand{\figvalscaling}{
+\setlength{\tabcolsep}{-1pt}
+%
+%
+\begin{figure*}
+\begin{tabular}{cccc}
+\includegraphics[width=.25\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_train-step.png}
+&
+\includegraphics[width=.25\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_train-flops.png} &
+\includegraphics[width=.25\linewidth,valign=m]{img/scale_val_squeeze/01_kinetics_val_loss_train-step.png} &
+\includegraphics[width=.25\linewidth,valign=m]{img/scale_val_squeeze/01_kinetics_val_loss_train-flops.png}
+ \\
+\includegraphics[width=.25\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_gen-eval.png}
+&
+\includegraphics[width=.25\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_elo.png} 
+&
+\includegraphics[width=.25\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_compbench-avg.png}
+&
+\includegraphics[width=.25\linewidth,valign=m]{img/scale_val_squeeze/01_kinetics_val_loss_elo.png} 
+\end{tabular}
+\caption{\label{fig:valscaling} \textbf{Quantitative effects of scaling.}  We analyze the impact of model size on performance, maintaining consistent training hyperparameters throughout. 
+An exception is depth=38, where learning rate adjustments at $3 \times 10^5$ steps were necessary to prevent divergence. 
+(Top) Validation loss smoothly decreases as a function of both model size and training steps for both image (columns 1 and 2) and video models (columns 3 and 4). 
+(Bottom) Validation loss is a \textit{strong predictor of overall model performance}. There is a marked correlation between validation loss and holistic image evaluation metrics, including 
+GenEval~\cite{ghosh2023geneval}, column 1, human preference, column 2, and T2I-CompBench~\cite{huang2023t2i}, column 3. For video models we observe a similar correlation between validation loss and human preference, column 4.
+.}
+\end{figure*}
+}
+
+\newcommand{\combenchcorr}{
+\begin{figure}
+\centering
+\includegraphics[width=.5\linewidth,valign=m]{img/scale_val_squeeze/00_coco_val_loss_compbench-avg.png}
+\caption{\label{fig:combench_corr} \textbf{Correlation of validation loss and model performance as measured by CompBench~\cite{huang2023t2i}.} Similar to the findings for GenEval~\citep{ghosh2023geneval} and human preference presented in \Cref{fig:valscaling}, we find a strong correlation between validation loss and model performance on T2I-CompBench~\citep{huang2023t2i}, which provides further evidence that the validation loss is a strong predictor of model performance.}
+\end{figure}
+}
+
+\newcommand{\figmembaselinessd}{
+\begin{figure}\centering
+\includegraphics[width=0.85\textwidth]{img/memorization/plot_baseline_sscd50.pdf}
+\caption{\label{fig:memorization_sscd} \textbf{SSCD-based deduplication prevents memorization.} 
+To assess how well our SSCD-based deduplication works, we extract memorized samples from
+small, specifically for this purpose trained models and compare them before and after deduplication. 
+We plot a comparison between number of memorized samples, before and after using SSCD with the threshold of 0.5 to remove near-duplicated samples. \citet{carlini2023extracting} mark images within clique size of 10 as memorized samples. Here we also explore different sizes for cliques. For all clique thresholds, SSCD is able to significantly reduce the number of memorized samples. Specifically, when the clique size is 10,  models on the deduplicated training samples cut off at SSCD$=0.5$ show a $5 \times $ reduction in potentially memorized examples.}
+\end{figure}
+}
+
+
+
+\newcommand{\figmemsimilarity}{
+\begin{figure}
+\includegraphics[width=0.85\textwidth]{img/memorization/dup.pdf}
+\caption{\label{fig:memorization_dup} Effect of model conditioning in memorization. Dup both means that both images and caotion are duplicated. We use BLIP when duplicating only images. Similar to ~\citet{somepalli2023understanding} when we train for 10K iterations, dulicating only images and using different captions for replicated images shows lower similarity score (memorization). This is a reminiscent of data augmentation effect, as a helping measure for generalization. However, our observation shows that this is very dependent on number of finetuning iterations and also guidance scale when sampling. }
+\end{figure}
+}
+
+
+
+
+\newcommand{\figmemcaption}{
+\begin{figure}
+\includegraphics[width=0.85\textwidth]{img/memorization/dup_scale_7.5.pdf}
+\caption{\label{fig:memorization_caption} Effect of different captioning in memorization. Using different captions when employing partial duplication (dup image) lead to different similarity scores.}
+\end{figure}
+}
+
+
+\newcommand{\figdupcombined}{
+\begin{figure}
+\centering
+\begin{subfigure}[t]{0.49\textwidth}\centering
+        %
+        \includegraphics[width=\textwidth]{img/deduplication/sscd_v3.jpg}
+        %
+        \caption{\label{fig:sscd_final_result}Final result of SSCD deduplication over the entire dataset}
+    \end{subfigure}\hfill%
+    \begin{subfigure}[t]{0.49\textwidth}\centering
+        %
+        \includegraphics[width=\textwidth]{img/deduplication/bigdups.png}
+        %
+        \caption{\label{fig:sscd_ablation}Result of SSCD deduplication with various thresholds over 1000 random clusters}
+    \end{subfigure}
+\caption{\label{fig:dedup} Results of deduplicating our training datasets for various filtering thresholds.}
+\end{figure}
+}
+
+
+\newcommand{\figdupsscdrandom}{
+\begin{figure}\centering
+\includegraphics[width=0.45\textwidth]{img/deduplication/bigdups.png}
+\caption{\label{fig:sscd_ablation}Result of SSCD deduplication with various thresholds over 1000 random clusters}
+\end{figure}
+}
+
+
+\newcommand{\figdupsscdfinal}{
+\begin{figure}\centering
+\includegraphics[width=0.45\textwidth]{img/deduplication/sscd_v3.jpg}
+\caption{\label{fig:sscd_final_result}Final result of SSCD deduplication over the entire dataset}
+\end{figure}
+}
+
+\newcommand{\figfidvssteps}{
+\begin{figure}
+\includegraphics[width=0.45\textwidth]{img/fid_vs_steps_traj}
+\vspace{-0.5em}
+\caption{\label{fig:fidvssteps}
+\textbf{Rectified flows are sample efficient.}
+Rectified Flows perform better then other formulations when sampling fewer steps. For 25 and more steps, only \texttt{rf/lognorm(0.00, 1.00)} remains competitive to \texttt{eps/linear}. \vspace{-0.75em}}
+\end{figure}
+}
+
+
+\newcommand{\algclusterdeduplication}{%
+\begin{algorithm}
+\caption{Finding Duplicate Items in a Cluster}
+\label{alg:cluster_deduplication}
+\begin{algorithmic}[1]
+     \REQUIRE $\mathtt{vecs}$ -- List of vectors in a single cluster, 
+             $\mathtt{items}$ -- List of item IDs corresponding to vecs, 
+             $\mathtt{index}$ -- FAISS index for similarity search within the cluster,  
+             $\mathtt{thresh}$ -- Threshold for determining duplicates 
+
+    \textbf{Output:} $\mathtt{dups}$ -- Set of duplicate item IDs 
+    \STATE $\mathtt{dups} \gets \text{new set}()$
+    \FOR{$i \gets 0$ \textbf{to} $\mathrm{length}(\mathtt{vecs}) - 1$}
+        \STATE $\mathtt{qs} \gets \mathtt{vecs}[i]$ \COMMENT{Current vector}
+        \STATE $\mathtt{qid} \gets \mathtt{items}[i]$ \COMMENT{Current item ID}
+        \STATE $\mathtt{lims}, D, I \gets \mathtt{index}.\mathrm{range\_search}(\mathtt{qs}, \mathtt{thresh})$
+        \IF{$\mathtt{qid} \in \mathtt{dups}$}
+            \STATE \textbf{continue}
+        \ENDIF
+        \STATE $\mathtt{start} \gets \mathtt{lims}[0]$
+        \STATE $\mathtt{end} \gets \mathtt{lims}[1]$
+        \STATE $\mathtt{duplicate\_indices} \gets I[start:end]$ 
+        \STATE $\mathtt{duplicate\_ids} \gets \mathrm{new\ list}()$
+        \FOR{$j$ \textbf{in} $\mathtt{duplicate\_indices}$}
+            \IF{$\mathtt{items}[j] \neq \mathtt{qid}$}
+                \STATE $\mathtt{duplicate\_ids}.\mathrm{append}(\mathtt{items}[j])$
+            \ENDIF
+        \ENDFOR
+        \STATE $\mathtt{dups}.\mathrm{update}(\mathtt{duplicate\_ids})$
+    \ENDFOR
+    \STATE \textbf{{Return} $\mathtt{dups}$} \COMMENT{Final set of duplicate IDs}
+\end{algorithmic}
+\end{algorithm}%
+}
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+%
+
+\newcommand{\algmemorizationdetection}{%
+\begin{algorithm}
+\caption{Detecting Memorization in Generated Images}
+\label{alg:memorization_detection}
+\begin{algorithmic}[1]
+    \REQUIRE Set of prompts $P$, Number of generations per prompt $N$, Similarity threshold $\epsilon=0.15$, Memorization threshold $T$
+    \ENSURE Detection of memorized images in generated samples
+    \STATE Initialize $D$ to the set of most-duplicated examples
+    \FOR{each prompt $p \in P$}
+        \FOR{$i = 1$ to $N$}
+            \STATE Generate image $\mathrm{Gen}(p; r_i)$ with random seed $r_i$
+        \ENDFOR
+    \ENDFOR
+    \FOR{each pair of generated images $x_i, x_j$}
+        \IF{distance $d(x_i, x_j) < \epsilon$}
+            \STATE Connect $x_i$ and $x_j$ in graph $G$
+        \ENDIF
+    \ENDFOR
+    \FOR{each node in $G$}
+        \STATE Find largest clique containing the node
+        \IF{size of clique $\geq T$}
+            \STATE Mark images in the clique as memorized
+        \ENDIF
+    \ENDFOR
+\end{algorithmic}
+\end{algorithm}
+}
+
+\newcommand{\figdpo}{
+\begin{figure}[htbp]
+\vspace{-1em}
+\centering
+\begin{tabular}{c@{\hspace{5pt}}c@{\hspace{3pt}}c}
+\toprule
+%
+& \footnotesize{\shortstack{\emph{``a peaceful lakeside landscape with} \\ \emph{migrating herd of sauropods''}}} & \footnotesize{\shortstack{\emph{``a book with the words `Don't Panic!`,} \\ \emph{written on it''}}} \\ 
+\midrule
+\rotatebox[origin=l,y=1.2em]{90}{{\textbf{2B base}}} &
+\includegraphics[width=.47\textwidth]{img/dpo_images/third_sweep_no_dpo_dinosaur.jpg} &
+\includegraphics[width=.47\textwidth]{img/dpo_images/third_sweep_no_dpo_panic.jpg} \\ %
+
+\rotatebox[origin=l,y=1.2em]{90}{{\textbf{2B w/ DPO}}} &
+\includegraphics[width=.47\textwidth]{img/dpo_images/third_sweep_rank_128_lr_1e-5_dpobeta_500_ITER_000004000__dinosaur.jpg} &
+\includegraphics[width=.47\textwidth]{img/dpo_images/third_sweep_rank_128_lr_1e-5_dpobeta_500_ITER_000004000__panic.jpg} \\ %
+
+\midrule
+
+\rotatebox[origin=l,y=1.2em]{90}{{\textbf{8b base}}} &
+\includegraphics[width=.47\textwidth]{img/dpo_images/initial_sweep_8b_no_dpo__dinosaur.jpg} &
+\includegraphics[width=.47\textwidth]{img/dpo_images/initial_sweep_8b_no_dpo__panic.jpg} \\ %
+
+\rotatebox[origin=l,y=1.2em]{90}{{\textbf{8b w/ DPO}}} &
+\includegraphics[width=.47\textwidth]{img/dpo_images/initial_sweep_8b_rank_128_lr_1e-5_dpobeta_1k_ITER_000002000__dinosaur.jpg} &
+\includegraphics[width=.47\textwidth]{img/dpo_images/initial_sweep_8b_rank_128_lr_1e-5_dpobeta_1k_ITER_000002000__panic.jpg} \\ %
+\bottomrule
+%
+\end{tabular}
+\caption{Comparison between base models and DPO-finetuned models. DPO-finetuning generally results in more aesthetically pleasing samples with better spelling.
+} \label{fig:dpo}
+\end{figure}
+}
+
+\newcommand{\sotaeval}{
+\begin{figure}
+\includegraphics[width=\linewidth,valign=m]{img/baseline_comp.jpg}
+\caption{\label{fig:sota_human_eval} \textbf{Human Preference Evaluation against currrent closed and open SOTA generative image models.} Our 8B model compares favorable against %both open and closed 
+current state-of-the-art text-to-image models when evaluated on the parti-prompts~\cite{yu2022scaling} across the categories \emph{visual quality}, \emph{prompt following} and \emph{typography generation}.}
+\end{figure}
+}
+
+\newcommand{\figdpohumaneval}{
+\begin{figure}
+\centering
+\includegraphics[width=0.85\textwidth]{img/dpo_images/dpo_human_eval.pdf}
+\caption{Human preference evaluation between base models and DPO-finetuned models. Human evaluators prefer DPO-finetuned models for both prompt following and general quality.} \label{fig:dpo_human_eval}
+\end{figure}
+}
+
+\newcommand{\modelarchitecture}{%
+\begin{figure*}[t]
+\centering
+\begin{subfigure}[t]{0.49\textwidth}\centering
+        \resizebox{!}{0.46\textheight}{\input{tikz/overview_mmdit_only2}}
+        \caption{Overview of all components.}
+        \label{fig:modelfig:overview_mmdit_only}
+    \end{subfigure}\hfill%
+    \begin{subfigure}[t]{0.49\textwidth}\centering
+        \resizebox{!}{0.46\textheight}{\input{tikz/mm_block2}}
+        \caption{One \modelname block}
+        \label{fig:modelfig:mm}
+    \end{subfigure}
+    %
+    %
+    %
+    %
+    %
+    \caption{\textbf{Our model architecture.} Concatenation is indicated by $\odot$ and element-wise multiplication by $*$. The RMS-Norm for $Q$ and $K$ can be added to stabilize training runs. Best viewed zoomed in. \vspace{-1em}}
+    \label{fig:modelfig:total}
+\end{figure*}
+}
+
+\newcommand{\textmanipulation}{%
+\begin{figure*}[h]
+\centering
+\begin{tabular}{@{\hspace{0\tabcolsep}}c@{\hspace{0.2\tabcolsep}}c@{\hspace{0.2\tabcolsep}}c@{\hspace{0.2\tabcolsep}}c}
+& Input & Output 1 & Output 2\\
+{
+\begin{tabular}[x]{@{}c@{}} \small Write "go small \\ \small go home"  \\ \small instead \end{tabular}}
+ & 
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/birdhat_ae.png}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/gosmallbird.png}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/bird_gosmall_3.png}}\\
+{
+\begin{tabular}[x]{@{}c@{}} \small GO BIG OR GO UNET \\ \small is written on \\ \small the blackboard \end{tabular}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/gobigapple_ae.png}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/gounet_4.png}}
+&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/go_unet_1.png}}\\
+{
+\begin{tabular}[x]{@{}c@{}} \small change the \\ \small word to \\ \small UNOT \end{tabular}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/unet.jpg}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/unot.png}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/unot_2.png}} \\
+{
+\begin{tabular}[x]{@{}c@{}} \small make the  \\ \small sign say \\ \small MMDIT rules \end{tabular}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/cat_sign.jpg}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/cat_sign_rules_2.png}}&
+\raisebox{-.5\height}{
+\includegraphics[width=0.25\linewidth]{img/edit/cat_sign_rules_3.png}}
+\end{tabular}
+\caption{Zero Shot Text manipulation and insertion with the 2B Edit model}
+\label{fig:textmanipulation} %
+\end{figure*}
+}
+
+
+\newcommand{\gobig}{
+\begin{figure*}
+\includegraphics[width=0.99\textwidth]{img/samples/grid01.jpg}
+\caption{\label{fig:gobig} More 768 $\times$ 1344 samples from our 8B rectified flow model (w/o DPO training).}
+\end{figure*}
+}
+
+\newcommand{\maxattnlogitqk}{
+\begin{figure}
+\includegraphics[width=0.49\linewidth,valign=m]{img/qk_norm/02_max_attn_logit_qk.png}
+\includegraphics[width=0.49\linewidth,valign=m]{img/qk_norm/02_attn_entropy_qk.png}
+
+\caption{\label{fig:qk_vis} \textbf{Effects of QK-normalization.} Normalizing the Q- and K-embeddings before calculating the attention matrix prevents the attention-logit growth instability (\emph{left}), which causes the attention entropy to collapse (\emph{right}) and has been previously reported in the discriminative ViT literature~\cite{dehghani2023scaling,wortsman2023smallscale}. In contrast with these previous works, we observe this instability in the last transformer blocks of our networks. Maximum attention logits and attention entropies are shown averaged over the last 5 blocks of a 2B (d=24) model.}
+\end{figure}
+}
+
+\newcommand{\figtimeshift}{
+\begin{figure}
+\includegraphics[width=1.0\linewidth,valign=m]{img/timeshift_v1} \\
+\includegraphics[width=1.0\linewidth,valign=m]{img/qualshift/row_unshifted10k_q40.jpg} \\
+\includegraphics[width=1.0\linewidth,valign=m]{img/qualshift/row_shifted10k_q40.jpg}
+\caption{\label{fig:timeshift}\textbf{Timestep shifting at higher resolutions.} 
+\emph{Top right:} Human quality preference rating when applying the shifting based on \Cref{eq:timeshift}. 
+\emph{Bottom row:} A $512^2$ model trained and sampled with $\sqrt{m/n} = 1.0$ (\emph{top}) and $\sqrt{m/n} = 3.0$ (\emph{bottom}).
+See \Cref{subsec:shifting}.}
+%
+\end{figure}
+}
+
+
+\newcommand{\horizontalcherries}{
+\begin{figure*}[htp]
+    \centering
+    \begin{minipage}[t]{0.1042\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/002/spaceelevator.jpg} \\
+        \tiny{a space elevator, cinematic scifi art}
+    \end{minipage}
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/002/royalburger.jpg} \\
+        \tiny{A cheeseburger with juicy beef patties and melted cheese sits on top of a toilet that looks like a throne and stands in the middle of the royal chamber.}
+    \end{minipage}
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/002/gremlins.jpg} \\
+        \tiny{a hole in the floor of my bathroom with small gremlins living in it}
+    \end{minipage}
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/002/caroffice.jpg} \\
+        \tiny{a small office made out of car parts}
+    \end{minipage}
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/002/birdthing.jpg} \\
+        \tiny{This dreamlike digital art captures a vibrant, kaleidoscopic bird in a lush rainforest.}
+    \end{minipage}
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/002/humanlife.jpg} \\
+        \tiny{human life depicted entirely out of fractals}
+    \end{minipage}
+    \begin{minipage}[t]{0.1042\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/002/origamipig.jpg} \\
+        \tiny{an origami pig on fire in the middle of a dark room with a pentagram on the floor}
+    \end{minipage}
+    \hfill
+    %
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/001/rustedrobot.jpg} \\
+        %
+        %
+        \tiny{an old rusted robot wearing pants and a jacket riding skis in a supermarket.}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/001/dogfinememe.jpg} \\
+        %
+        %
+        \tiny{smiling cartoon dog sits at a table, coffee mug on hand, as a room goes up in flames. ``This is fine,'' the dog assures himself.}
+    \end{minipage}
+    \hfill
+    \vspace{1em}
+    \begin{minipage}{1.0\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/001/hippowaffle.jpg} 
+        \tiny{A whimsical and creative image depicting a hybrid creature that is a mix of a waffle and a hippopotamus. This imaginative creature features the distinctive, bulky body of a hippo, but with a texture and appearance resembling a golden-brown, crispy waffle. The creature might have elements like waffle squares across its skin and a syrup-like sheen. It's set in a surreal environment that playfully combines a natural water habitat of a hippo with elements of a breakfast table setting, possibly including oversized utensils or plates in the background. The image should evoke a sense of playful absurdity and culinary fantasy.}
+    \end{minipage}
+\end{figure*}
+}
+
+\newcommand{\morehorizontalcherries}{
+\begin{figure*}[htp]
+    \centering
+    \begin{minipage}{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/001/sd3magazine.jpg} \\
+        \captionof{figure}{\emph{the words ``STABLE DIFFUSION 3'' composed of an abstract collage of torn + glued magazine clippings from 1970’s era magazine, arranged in the shape of the words, white background.}}
+        \label{fig:sample4}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/001/pigdragon.png} \\
+        \captionof{figure}{\emph{epic fantasy art of a massive pig dragon destroying a village at night. \\ \phantom{abg}}}
+        \label{fig:sample5}
+    \end{minipage}
+    \hfill
+\vspace{1em}
+    \begin{minipage}{1.0\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/001/highresdog.jpg} 
+        \captionof{figure}{\emph{a cute dog wearing sunglasses on a boat in a lake in the mountains at dawn.}}
+        \label{fig:sample6}
+    \end{minipage}
+\end{figure*}
+}
+
+\newcommand{\horizontalcherriesthree}{
+\begin{figure*}[htp]
+    %
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/pigbutcher.jpg} \\
+        \tiny{Detailed pen and ink drawing of a happy pig butcher selling meat in its shop.}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/spacepretzel.jpg} \\
+        \tiny{a massive alien space ship that is shaped like a pretzel.}
+    \end{minipage}
+    %
+    \hfill
+    \vspace{0.5em}
+    %
+    \centering
+    \hspace{0.5em}
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/singingkangaroo.webp.jpg} \\
+        \tiny{A kangaroo holding a beer, wearing ski goggles and passionately singing silly songs.}
+    \end{minipage}
+    %
+    \hfill
+    \centering
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/universebottle.webp.jpg} \\
+        \tiny{An entire universe inside a bottle sitting on the shelf at walmart on sale.}
+    \end{minipage}
+    %
+    \hfill
+    \centering
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/surfburger.webp.jpg} \\
+        \tiny{A cheesburger surfing the vibe wave at night}
+    \end{minipage}
+    %
+    \hfill
+    \centering
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/swampogre.webp.jpg} \\
+        \tiny{A swamp ogre with a pearl earring by Johannes Vermeer}
+    \end{minipage}
+    %
+    \hfill
+    \centering
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/veggiecar.webp.jpg} \\
+        \tiny{A car made out of vegetables.}
+    \end{minipage}
+    %
+    \hfill
+    \centering
+    \begin{minipage}[t]{0.1425\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/heatdeath.webp.jpg} \\
+        \tiny{heat death of the universe, line art}
+    \end{minipage}
+    %
+    \hfill
+    \vspace{0.5em}
+    %
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/cheesecrab.jpg} \\
+        %
+        \tiny{A crab made of cheese on a plate}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/sd3cherries.webp.jpeg} \\
+        \tiny{Dystopia of thousand of workers picking cherries and feeding them into a machine that runs on steam and  is as large as a skyscraper. Written on the side of the machine: "SD3 Paper"}
+    \end{minipage}
+    %
+    \hfill
+    \vspace{0.5em}
+    %
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/translucentpig.jpg} \\
+        \tiny{translucent pig, inside is a smaller pig.}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/003/burgersofa.webp.jpeg} \\
+        \tiny{Film still of a long-legged cute big-eye anthropomorphic cheeseburger wearing sneakers relaxing on the couch in a sparsely decorated living room.}
+    \end{minipage}
+\end{figure*}
+}
+
+
+\newcommand{\horizontalcherriesgrids}{
+\begin{figure*}[htp]
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/grid_samples/ink_machine.jpg} \\
+        \tiny{detailed pen and ink drawing of a massive complex alien space ship above a farm in the middle of nowhere.}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/grid_samples/bear_it.jpg} \\
+        \tiny{photo of a bear wearing a suit and tophat in a river in the middle of a forest holding a sign that says "I cant bear it".}
+    \end{minipage}
+
+
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/grid_samples/tiny_sushi_city.jpg} \\
+        \tiny{tilt shift aerial photo of a cute city made of sushi on a wooden table in the evening.}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/grid_samples/life_tree2.jpg} \\
+        \tiny{dark high contrast render of a psychedelic tree of life illuminating dust in a mystical cave.}
+    \end{minipage}  
+
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/grid_samples/anthro_fractal_v2.jpg} \\
+        \tiny{an anthropomorphic fractal person behind the counter at a fractal themed restaurant.}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/grid_samples/river_2.jpg} \\
+        \tiny{beautiful oil painting of a steamboat in a river in the afternoon. On the side of the river is a large brick building with a sign on top that says \"SD3\".}
+    \end{minipage}  
+
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/grid_samples/donut1.jpg} \\
+        \tiny{an anthopomorphic pink donut with a mustache and cowboy hat standing by a log cabin in a forest with an old 1970s orange truck in the driveway}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.495\linewidth}
+        \centering
+        \includegraphics[width=1.0\linewidth]{img/samples/grid_samples/foxed_and_zebrad.jpg} \\
+        \tiny{fox sitting in front of a computer in a messy room at night. On the screen is a 3d modeling program with a line render of a zebra.}
+    \end{minipage}  
+\end{figure*}
+}

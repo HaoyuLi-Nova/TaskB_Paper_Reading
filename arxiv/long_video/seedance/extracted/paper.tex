@@ -1,0 +1,153 @@
+\documentclass[]{bytedance_seed}
+
+% single-column: \documentclass[]{bytedance_seed}, 
+%Please prioritize using single-column。
+
+% twocolumn: \documentclass[twocolumn]{bytedance_seed}
+
+\usepackage[toc,page,header]{appendix}
+
+\input{resources/packages}
+\input{resources/math_macro}
+\setlength{\cftbeforesubsecskip}{1.5pt}
+\usepackage{mathrsfs}
+\usepackage{adjustbox}
+\usepackage{multirow}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{tcolorbox}
+\usepackage{changepage}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{bm}
+\usepackage{hyperref}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{minitoc}
+
+
+
+
+\newcommand{\dif}{\mathrm d}
+\newcommand{\ie}{\emph{i.e., }}
+\newcommand{\eg}{\emph{e.g., }}
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%
+
+%\title{Seedream 3.0: A Native High-Resolution Multilingual Image Generation Foundation Model}
+\title{Seedance 1.0: Exploring the Boundaries of \\ Video Generation Models}
+
+% Cost-Effective Training of
+% Video Generation Foundation Model
+
+
+\author[]{ByteDance Seed}
+%\author[1]{Author2}
+
+
+% \affiliation[]{Seed Vision Team, ByteDance} 
+%\affiliation[2]{Peking University}
+%\contribution[*]{Work done at ByteDance Seed}
+%\contribution[\dagger]{Corresponding authors}
+
+\abstract{
+Notable breakthroughs in diffusion modeling have propelled rapid improvements in video generation, yet current foundational model still face critical challenges in simultaneously balancing prompt following, motion plausibility, and visual quality.
+In this report, we introduce \textbf{Seedance 1.0}, a high-performance and inference-efficient video foundation generation model that integrates several core technical improvements: 
+(i) multi-source data curation augmented with precision and meaningful video captioning, enabling comprehensive learning across diverse scenarios; 
+(ii) an efficient architecture design with proposed training paradigm, which allows for natively supporting multi-shot generation and jointly learning of both text-to-video and image-to-video tasks.
+(iii) carefully-optimized post-training approaches leveraging fine-grained supervised fine-tuning, and video-specific RLHF with multi-dimensional reward mechanisms for comprehensive performance improvements; 
+(iv) excellent model acceleration achieving ~10× inference speedup through multi-stage distillation strategies and system-level optimizations. Seedance 1.0 can generate a 5-second video at 1080p resolution only with 41.4 seconds (NVIDIA-L20). Compared to state-of-the-art video generation models, Seedance 1.0 stands out with high-quality and fast video generation having superior spatiotemporal fluidity with structural stability, precise instruction adherence in complex multi-subject contexts, native multi-shot narrative coherence with consistent subject representation.
+Seedance 1.0 is now accessible on \href{https://console.volcengine.com/ark/region:ark+cn-beijing/experience/vision?type=GenVideo}{Volcano Engine}\textsuperscript{$\alpha$}.
+}
+
+
+
+
+%\date{\today}
+%\correspondence{Authors are listed in  \cref{contributions}.}
+
+% You can add additional info fields as follows 
+\checkdata[Official Page]{\url{ https://seed.bytedance.com/seedance} }
+\checkdata[\textsuperscript{$\alpha$}Model ID]{Doubao-Seedance-1.0-pro}
+
+\begin{document}
+\begin{CJK*}{UTF8}{gbsn}
+
+
+\maketitle
+
+\definecolor{chinese_red}{HTML}{8B4513}
+\definecolor{english_blue}{HTML}{4169E1}
+
+\begin{figure}[ph]
+\begin{center}
+\vspace{-25pt}
+\includegraphics[height=6.8cm]{figures/radar_all.pdf}
+% \includegraphics[trim=0cm 23cm 0cm 0cm,clip,height=6.5cm]{figures/radar_new/radar_aa_arena.png}
+\end{center}
+\label{fig:overall_eval}
+\vspace{-10pt}
+\caption{Overall evaluation. Left: Text-to-Video; Right: Image-to-Video. Seedance 1.0 ranks first on both the two video generation leaderboards of Artificial Analysis on Jun 10, 2025 (Due to unavailable public data, the Elo score for Kling 2.1 is taken from Kling 2.0). "Speed" denotes the inverse of the average generation time per second of video (from API).}
+\vspace{-8pt}
+\end{figure}%
+% \footnotetext[1]{
+% Seedream 3.0 ranks first at Artifcial Analysis Text to Image Model Leaderboard with an Arena ELO score of 1158 at 17.0K Appearances. For the latest information, please visit
+% \url{https://artificialanalysis.ai/text-to-image/arena?tab=Leaderboard}}
+
+%\begin{figure}[pt]
+%\begin{center}
+%\includegraphics[width=0.88\linewidth]{figures/seedream3_overall.png}
+%\end{center}
+%\label{fig:teaser}
+%\vspace{-1pt}
+%\caption{Seedream 3.0 visualization.}
+%\end{figure}
+
+% \newpage
+
+
+\clearpage
+
+
+\tableofcontents
+
+\newpage
+
+\input{sections/Introduction}
+
+% \newpage
+
+\input{sections/Model_Design}
+
+\input{sections/Data}
+
+\input{sections/Model_Train}
+
+\input{sections/Model_Optimization}
+
+\input{sections/infrastructure}
+
+
+\input{sections/Model_Performance}
+
+
+\input{sections/Conclusion}
+
+\clearpage
+
+\bibliographystyle{plainnat}
+\bibliography{main}
+
+\clearpage
+
+\beginappendix
+\input{sections/appendix}
+
+\end{CJK*}
+\end{document}

@@ -1,0 +1,121 @@
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{figures/Diff2Lip-Approachv2.pdf}
+    \vspace{-0.1in}
+    \caption{\textbf{Overview:} \ours ~ solves lip-sync using an audio-conditioned diffusion model, which learns to inpaint the lower half of the face. During training (left), given an input video sequence $x_{0,s:s+5}$, we first add noise to the lower half using the forward process (Eq.~\ref{eq:make_noisy}) to get the noisy video sequence $x_{t,s:s+5}$, where diffusion step $t$ is sampled uniformly. Then a noisy video frame $x_{t,s+i}$ for $i\in[0,5)$, a different random reference frame $x_{r}$, and the audio frame $a_{s+i}$ is input  to our model. The audio encoder $E_\text{Audio}$ encodes the audio frame $a_{s+i}$. Our model (right), predicts the added noise $\epsilon_\theta$ given these inputs, which is used to get the predicted clean frame $x^\theta_{0,s+i}$ (using Eq.~\ref{eq:make_noisy}). Then frame-wise reconstruction losses like $\mathcal{L}_2$ and $\mathcal{L}_\text{lpips}$ are applied to the predicted clean sequence $x^\theta_{0,s:s+5}$ for enforcing good image quality while sequential losses like sequential adversarial loss $\mathcal{L}_\text{GAN}$ and SyncNet expert loss $\mathcal{L}_\text{sync}$ ensure lip-sync.  }
+    \label{fig:approach}
+    \vspace{-0.1in}
+\end{figure*}
+
+\section{Methods}
+
+In this section, we discuss our proposed approach - \ours. We propose a novel audio and image conditioned diffusion model which is able to synthesize high quality lip-synced mouths corresponding to the audio input.  We discuss diffusion models in Section~\ref{sec:dm}. Then we introduce our approach in Section~\ref{sec:approach}. Finally, in Section~\ref{sec:losses}, we talk about the losses required to train our model.
+
+\subsection{Diffusion Models}\label{sec:dm}
+Diffusion models~\cite{ddpm} are likelihood-based models which try to sample points from a given distribution by gradually denoizing random gaussian noise in $T$ steps. In the forward diffusion process, increasing amounts of noise is added to a sample point $x_0$ iteratively as $x_0\rightarrow x_1 \rightarrow \dots \rightarrow x_{t-1}\rightarrow x_t \rightarrow \dots \rightarrow x_{T-1}\rightarrow x_T$, to get a completely noisy image $x_T$. Formally, the forward diffusion process is a Markovian noising process defined by a list of noise scales ${\{\Bar{\alpha}_t\}}_{t=1}^T$ as:
+
+\begin{equation}
+\label{eq:forward}
+q(x_t|x_0) := \mathcal{N}(x_t|\sqrt{\Bar{\alpha}_t}x_0, (1-\Bar{\alpha}_t)\textbf{I})
+\end{equation}
+which can be rewritten as:
+
+
+\begin{equation}
+\label{eq:make_noisy}
+x_t = \sqrt{\Bar{\alpha}_t}x_0 + \sqrt{1-\Bar{\alpha}_t}\epsilon, \space \epsilon \in \mathcal{N}(0, \textbf{I})
+\end{equation}
+where $\epsilon$ is the noise, $\mathcal{N}$ denotes normal distribution, $x_0$ is the original image, and $x_t$ is noised image after $t$ steps of the diffusion process.  
+The reverse diffusion process aims to learn the posterior distribution $q(x_{t-1}|x_0,x_t)$, using which one can estimate $x_{t-1}$ given $x_t$. This is typically done using a neural network, which can be parameterized in multiple ways. Similar to~\cite{ddpm, improved-diffusion, guided-diffusion}, we choose to parameterize the neural network to predict the noise, ie. $\epsilon_\theta(x_t, t)$, where $\theta$ represents the parameters of the neural network. It takes a noisy sample $x_t$ and timestep $t$ to predict the added noise $\epsilon$ in Eq.~\ref{eq:make_noisy}. The model is learned using the simplified objective used in~\cite{ddpm} which reweights the variational lower bound on the maximum likelihood objective: 
+
+\begin{equation}
+\label{eq:L_eps}
+\mathcal{L}_{\text{simple}}=\mathbb{E}_{x_0,t,\epsilon}[\|\epsilon_\theta(x_t, t) - \epsilon \|_2^2]
+\end{equation}
+
+ The posterior distribution $q(x_{t-1}|x_0,x_t)$ is also tractable using the Bayesian rule and turns out to be another normal distribution. When using DDIM~\cite{ddim} for sampling, we can deterministically sample the posterior by disregarding the variance. Since we can write $x_0$ in terms of $x_t$ and $\epsilon$ using Eq.~\ref{eq:make_noisy}, therefore we can recover $x_{t-1}$ deterministically given $x_t$ and $\epsilon$ using:
+ \begin{equation}
+\label{eq:remove_noise}
+x_{t-1}=\sqrt{\frac{\Bar{\alpha}_{t-1}}{\Bar{\alpha}_t}}x_t + \left( \sqrt{1-\Bar{\alpha}_{t-1}} -  \sqrt{\frac{\Bar{\alpha}_{t-1}(1-\Bar{\alpha}_t)}{\Bar{\alpha}_t}}\right)\cdot \epsilon
+\end{equation}
+This equation represents the mean of the learned posterior $p_\theta(x_{t-1}|x_{x_t})$ distribution in the DDIM~\cite{ddim} formulation.
+
+
+For sampling during inference time, $x_T$ is sampled from the standard normal distribution. The neural network can then recover the noise $\epsilon_\theta$ that needs to be removed. This in turn can be fed into Eq.~\ref{eq:remove_noise} to get back $x_{T-1}$. Iterating over this one can get the clean image as $x_T\rightarrow x_{T-1} \rightarrow \dots \rightarrow  x_t\rightarrow x_{t-1} \rightarrow \dots \rightarrow x_1\rightarrow x_0$ as seen in Fig.~\ref{fig:intermediate} top.
+
+ 
+
+\textbf{Notation.} In this paper, we work with diffusion processes and videos. We use $t$ for the diffusion process step number while $s$ for the video frame number.  For the diffusion process, we keep the notation here the same as~\cite{improved-diffusion}.
+
+\subsection{Proposed Approach}\label{sec:approach}
+
+
+We pose the problem of lip-sync as a lower mouth inpainting task,  where given an input face with the lower half masked, an audio frame input, and a reference frame input, the model needs to generate the masked region of the face. Formally, given a video $V=\{v_1,\dots v_S\}$ with $S$ frames, were $v_s$ is the $s^\text{th}$ frame, and audio $A=\{a_1,\dots, a_S\}$, where $a_s$ is the $s^\text{th}$ audio frame, our model processes one video frame $x_{0,s}=v_s$ at a time. Let $x_{s,T}=v_s\cdot (1-M) + \eta \cdot M$ be a noise-masked video frame, where $\eta \in \mathcal{N}(0, \textbf{I})$ and $M$ is a binary mask for the lower half of the face. (Here the subscript $T$ denotes a completely noised frame that we want to denoise). We want our trained model to be able to recover $v_s$ using the reverse diffusion process, given inputs masked video frame $x_{s,T}$, the audio frame $a_s$, and a random reference frame $x_r=v_{\text{random}(1,S)\neq s}$. This setup is quite similar to Wav2Lip\cite{wav2lip}. The random reference frame $x_r$ is chosen from the same video and provides cues about the source's identity and pose. We make sure that it is not the same as the input frame; otherwise there could be information leakage while training. The audio input $a_s$ provides information about the lip structure.  
+
+As shown Fig.~\ref{fig:approach} we formulate the generation as an inpainting task similar to~\cite{palette}, i.e.,  we learn a conditional model $\epsilon_\theta(x_{s,t}, a_s, x_r,t)$. At training time, we first take a clean sample frame $x_{s,0}(=v_s)$ and a uniformly sampled $t$, and add noise to $x_{s,0}$ using Eq.~\ref{eq:make_noisy} to get $x_{s,t}$. The model is trained to predict the noise $\epsilon  \in \mathcal{N}(0, \textbf{I})$ added to it using $\mathcal{L}_{\text{simple}}$ (Eq.~\ref{eq:L_eps}).
+
+
+We feed the reference frame by concatenating it with the input frame while the audio is fed using group normalization (similar to time and class conditioning in~\cite{improved-diffusion}). Our network has a UNet~\cite{unet} backbone which consists of residual blocks and attention blocks similar to~\cite{guided-diffusion}.  We want the UNet to extract contextual information from the unmasked portion of the input frame, and the reference frame. To enforce this we provide these directly as input to the network. For the audio which is used as a conditioning, we first encode it using a trainable encoder $E_\text{Audio}$, which generates embeddings that are injected as conditioning. $E_\text{Audio}$ is also built using the same blocks as the UNet. 
+
+
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/intermediate.png}
+    \caption{Intermediate $x_t$ (\textbf{top}) and $x^\theta_{0}$ (\textbf{bottom}) as $t$ goes from $T$ to $0$ (left to right), sampled at uniform intervals.}
+    \label{fig:intermediate}
+    \vspace{-0.15in}
+\end{figure}
+
+\subsubsection{Additional Losses}\label{sec:losses}
+
+When just training using $\mathcal{L}_{\text{simple}}$ (applied to the masked region), we observe that the mouth region generation had good image quality but no lip-sync.  
+Hence we add additional losses to make our model work.
+
+
+Our model predicts in noise space and hence many image-space losses cannot be directly applied to it. There are three ways to approach this issue - first, our model could be parameterized to directly predict the denoized image $x_0$ instead of predicting $\epsilon$. Second, we can use the sampling process described in Section~\ref{sec:dm} to recover back the clean image $x_0$. Third, substituting $x_t$ and $\epsilon_\theta$ into Eq.~\ref{eq:make_noisy} one could directly recover $x^\theta_0(x_t, t)$, an estimate of $x_0$, without having to do iterative sampling. We observed that directly predicting denoized image leads to worse image quality while using iterative sampling is overly time-consuming and hence we stick with predicting $\epsilon$.
+
+
+
+This approach leads to a noisy $x^\theta_0(x_t, t)$ when the step $t$ is large as seen in Fig.~\ref{fig:intermediate} bottom but there have been previous works~\cite{piti} which have applied image losses to $x^\theta_0(x_t, t)$. We enforce an $\mathcal{L}_2$ loss on this $x^\theta_0(x_t, t)$ to make sure that it is clean:
+\begin{equation}
+\label{eq:L_2}
+\mathcal{L}_{2}=
+\mathbb{E}_{x_{0,s},t,\epsilon}[\|x^\theta_{0,s} - x_{0,s} \|_2^2]
+\end{equation}
+Next, to impose audio synchronization, we use SyncNet discriminator as used by Wav2Lip~\cite{wav2lip}. We first separately train the SyncNet in a contrastive manner which is kept fixed during training our generation model. Similar to Wav2Lip~\cite{wav2lip} we work with a sequence of 5 frames as input to the SyncNet. By using 5 predicted video frames $x^\theta_{0,s:s+5}$ and the corresponding audio sequence $a_{s:s+5}$, SyncNet loss can be written as:
+\begin{equation}
+\label{eq:L_sync}
+\mathcal{L}_{\text{sync}}=\mathbb{E}_{x_{0,s},t,\epsilon}[\text{SyncNet}(x^\theta_{0,s:s+5}, a_{s:s+5} )]
+\end{equation}
+
+As shown in our ablation, directly adding SyncNet loss, deteriorates the image quality. To mitigate this we add perceptual similarity loss~\cite{lpips} on the generated frames:
+\begin{equation}
+\label{eq:L_lpips}
+\mathcal{L}_{\text{lpips}}=\mathbb{E}_{x_{0,s},t,\epsilon}\mathbb{E}_{l}[ \|\phi_l(x^\theta_{0,s})-\phi_l(x_{0,s} )\|_2^2]
+\end{equation}
+where $\phi_l(\cdot)$ represents the features coming from the $l^\text{th}$ layer of a pretrained-VGG network. 
+Finally, to enforce temporal consistency we also add a sequence adversarial loss. This makes sure that the movement of the lips look realistic across frames. 
+\begin{equation}
+\label{eq:L_gan}
+\begin{aligned}
+\mathcal{L}_{\text{GAN}}=\mathbb{E}_{x_{0,s},t,\epsilon}[\log D_\psi (x^\theta_{0,s:s+5})]+ \\
+\mathbb{E}_{x_{0,s}}[\log(1-D_\psi(x_{0,s:s+5}))]
+\end{aligned}
+\end{equation}
+where we use a PatchGAN~\cite{patch-gan} discriminator $D_\psi$. This task requires more context than just two frames~\cite{chan2019everybody} but no optical flow~\cite{wang2018video}.
+
+The overall optimization objective can be written as:
+
+\begin{equation}
+\label{eq:L_all}
+\begin{aligned}
+\mathcal{L}=\mathcal{L}_{\text{simple}} + \lambda_{\text{l2}}\mathcal{L}_{2} +  \lambda_{\text{sync}}\mathcal{L}_{\text{sync}}+ \\ \lambda_{\text{lpips}}\mathcal{L}_{\text{\text{lpips}}}+\lambda_{\text{gan}}\mathcal{L}_{\text{GAN}}
+\end{aligned}
+\end{equation}
+
+
+For sequence-based losses, it is essential that the diffusion process step input $t$ is the same for a sequence of frames $x_{0,s:s+5}$. This ensures uniformity within a predicted sequence during loss computation. 
+
+

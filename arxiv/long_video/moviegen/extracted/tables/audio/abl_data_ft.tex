@@ -1,0 +1,19 @@
+\begin{table}[h]
+    \centering
+    \adjustbox{max width=0.7\textwidth}{%
+    \begin{tabular}{cc ccc cc}
+        \toprule
+        & & \multicolumn{5}{c}{A net win rate \vs B} \\
+        & & \multicolumn{3}{c}{Quality} & \multicolumn{2}{c}{Video-SFX Alignment} \\
+        \cmidrule(lr){3-5} \cmidrule(lr){6-7}
+        Model A & Model B & Ovr. & Nat. & Pro. & Corr. & Sync. \\
+        \midrule
+        FT & PT & \meanci{41.7}{15.3} & \meanci{37.8}{16.3} & \meanci{43.0}{14.7} & \meanci{31.0}{16.0} & \meanci{24.9}{17.7} \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{Effectiveness of fine-tuning \OursAudio.}
+    When comparing the \pretrained (PT) model to the finetuned (FT) model, we observe that generations from the finetuned model are significantly better.
+    }
+    \label{tab:audio_abl_pt_vs_ft}
+\end{table}

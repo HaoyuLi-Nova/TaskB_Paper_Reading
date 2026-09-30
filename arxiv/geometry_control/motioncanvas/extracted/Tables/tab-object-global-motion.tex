@@ -1,0 +1,18 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[t]
+  \caption{Quantitative comparison for object motion control on VIPSeg.}
+  \label{tab:quan_compare_object}
+\resizebox{\linewidth}{!}{
+  \setlength{\tabcolsep}{2.1pt}
+  \centering
+  \begin{tabular}{lccc|ca}
+  \toprule
+    Metric & DragAnything &MOFA-Video &TrackDiffusion &Ours$_\text{coord}$ & \mc{1}{\multirow{1}{*}{Ours$_\text{map}$}} \\
+    \midrule
+ObjMC  & 32.37& 35.94& 30.49&47.73 &\best{25.72}\\
+ FID & 64.32& 54.58& 58.08& 46.27&\best{42.47}\\
+  \bottomrule
+  \end{tabular}
+}
+\end{table}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

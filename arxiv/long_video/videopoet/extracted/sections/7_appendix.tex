@@ -1,0 +1,260 @@
+
+\section{Appendix} \label{sec:appendix}
+
+\subsection{Responsible AI and Fairness Analysis}
+
+We evaluate whether the generated outputs of our model are fair regarding protected attributes such as (1) Perceived Age (2) Perceived Gender Expression (3) Perceived Skin Tone.
+We construct 306 prompts with template --- ``a \{profession or people descriptor\} looking \{adverb\} at the camera” with ``profession'' being crawled from the US Bureau of Labor and Statistics and ``people descriptors'' including emotion state, socioeconomic class, \etc.
+The ``adverb'' is used to generate semantically unchanged prompt templates such as ``straightly'' or ``directly''. 
+We generate 8 videos for each prompt and for each generated video we infer an approximation of the expressed attribute regarding the 3 protected attributes.
+Across 10 prompts that have the same semantic meaning but different ``adverbs'', we observe our outputs generally introduced a stronger distribution shift toward ``Young Adults'' (age 18-35), ``Male'' and ``Light Skin Tone''.
+However, we observe changing the ``adverb'' in the prompt template can significantly alter the output distributions. Therefore, our model can be prompted to produce outputs with non-uniform distributions across these groups, but also possess the ability of being prompted to enhance uniformity, though prompts are semantically unchanged.
+While research has been conducted in the image generation and recognition domain~\cite{zhang2023auditing, schumann2021step, schumann2023consensus, Chiu_2023_ICCV}, 
+this finding highlights the importance of continued research to develop strategies to mitigate issues and improve fairness for video generation.
+
+
+% \vspace{-2mm}
+\subsection{Model Scale and Performance}
+% \vspace{-2mm}
+To analyze model performance versus model scale, we use a subset of the training set without text-paired data and a slightly different task prompt design. 
+%
+We evaluate the video generation quality using FVD~\cite{unterthiner2018towards} and audio generation quality using the Fréchet Audio Distance (FAD), which uses the VGGish model as the embedding function~\cite{hershey2017cnn}. 
+%
+Both FVD and FAD metrics are calculated using a held-out subset of 25 thousand videos.
+
+\Cref{fig:model_scale} shows that as the model size grows and the amount of training data increases, performance improves across visual and audiovisual tasks.
+%
+After obtaining the above results, we retrain our 1B and 8B models using the task design and text-paired training data discussed in \Cref{sec:method}.
+%
+\Cref{sec:appendix-sxs} shows a qualitative comparison of the 1B and 8B pretrained models. Increasing the model size improved temporal consistency, prompt fidelity, and motion dynamics while adding capabilities for limited text rendering, spatial understanding, and counting.
+
+\begin{figure*}[h]
+\centering
+\begin{subfigure}{0.48\textwidth}  
+\includegraphics[width=\linewidth]{figures/scale_fvd.png}
+\subcaption{Video generation quality in FVD ().}
+\end{subfigure}
+\begin{subfigure}{0.48\textwidth}  
+\includegraphics[width=\linewidth]{figures/scale_fad.png}
+\subcaption{\label{fig:model_scale_b}Audio generation quality in FAD  ().}
+\end{subfigure}
+\caption{\textbf{Effects of model and data scale on video and audio generation quality}. The performance, depicted on a log-log scale, improves significantly when we scale up the model and training data. 
+Language models with 300 million, 1 billion, and 8 billion parameters are trained on datasets comprising 10, 37, and 58 billion visual and audio tokens, respectively.
+} 
+\label{fig:model_scale}
+% \vspace{-6mm}
+\end{figure*}
+
+\subsubsection{Qualitative Comparison of 1B and 8B models} \label{sec:appendix-sxs}
+
+\input{figures/fig_sxs_1b_8b}
+
+In Figure~\ref{fig:sxs_1b_8b}, we show outputs of 1B and 8B parameter models on the same prompts.
+Four frames from the best video output of each model in a batch of four text-to-video samples were selected to represent the model.
+In the first row, the 1B model is unstable with large changes to the subject over time and misses elements from the complex prompt.
+This prompt was originally used for scaling comparisons in~\cite{yu2022scaling}, and compared to a dedicated image-only model, our model does not preserve text as well given the training data used. In the second row, we use a simpler text task and show that the 8B model can represent a single letter clearly, but the 1B model still produces artifacts.
+In the third row, we show that the 8B model learns spatial positioning such as the river being in front of the astronaut and horse. In the fourth row, we show that the 8B parameter model learned a stop motion style to have items disappear ``one by one" and can follow a complicated layout from a long prompt.
+In contrast, the 1B model includes all of the nouns, but is unstable over time and does not follow the layout indicated in the prompt. In the bottom row, we show that the 8B model understands counts of objects in that it displays a full bouquet (though 12 roses are not explicitly in frame) and smooth consistent motion as opposed to the 5 roses and distorting objects produced by the 1B model. 
+Overall, scaling the model improved temporal consistency, prompt fidelity, and motion dynamics while adding capabilities for limited text rendering, spatial understanding, and counting.
+
+% -----------------------------
+
+\subsection{Additional Generated Examples} 
+We include most generated videos in the supplementary materials for an enhanced visualization of motion and visual quality, in addition to \Cref{fig:outpaint_stylize} and \Cref{fig:camera_movement}.
+
+% \input{figures/fig_chain_mona_yawn}
+
+\input{figures/fig_chain_train_single}
+
+\input{figures/fig_camera_movement}
+
+%-----------------------------------------------------------------------------------------
+
+
+\subsection{Video Stylization}
+\label{sec:stylization}
+To perform video stylization, we follow an approach inspired by~\cite{zhang2023adding,chen2023control,esser2023structure} to predict videos from the combination of text, optical flow, and depth signals. On a subset of steps, we also condition on the first video frame. As described in~\cite{esser2023structure}, the text will generally define the ``content" or appearance of the output and the optical flow and depth control the ``structure." In contrast to the diffusion-based approaches that usually use external cross-attention networks~\cite{zhang2023adding} or latent blending~\cite{meng2021sdedit} for stylization, our approach is more closely related to machine translation using large language models in that we only need to provide the structure and text as a prefix to a language model. 
+
+To perform the task, we estimate optical flow from RAFT~\cite{sun2022disentangling} and produce monocular depth maps from MIDAS~\cite{ranftl2020midas}, and then normalize and concatenate on the channel dimension. This conveniently produces the same number of channels as the RGB ground truth and so can be tokenized in the same fashion as RGB videos with the MAGVIT-v2 tokenizer without retraining the tokenizer. The task of stylization is to reconstruct the ground truth video from the given optical flow, depth, and text information.
+During inference, we apply optical flow and depth estimation on an input video but then vary the text prompt to generate a new style, \eg ``cartoon''.
+
+
+\begin{table}[h]
+\centering
+\caption{\textbf{Comparison on video stylization.} \modelname{} outperforms Control-A-Video by a large margin. 
+\label{table:stylization}
+}
+\begin{tabular}{lc}
+\toprule
+Model & CLIPSIM \\
+\midrule
+Control-A-Video~\cite{chen2023control}[depth] & 0.3246 \\
+\textbf{\modelname{} (Ours)} & 0.3417 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+To evaluate stylization capabilities, we choose 20 videos from the public DAVIS 2016\footnote{DAVIS license: \url{https://creativecommons.org/licenses/by-nc/4.0/deed.en}}~\cite{Perazzi2016davis} dataset and provide 2 style prompts for each video. For more details, please refer to \Cref{sec:appendix-stylization-davis}. Following~\cite{esser2023structure},
+we evaluated the CLIP-embedding consistency between each frame and the text prompt
+to determine if the stylization results matches the text. As shown in \Cref{table:stylization}, \modelname{} outperforms Control-A-Video conditioned on depth by a large margin. We also conduct human evaluations as discussed above comparing with Control-A-Video~\cite{chen2023control}.
+Human raters consistently 
+prefer our text fidelity and video quality as shown in \Cref{fig:human_t2v_evals_stylization}.
+
+
+\begin{figure}
+\centering
+\begin{subfigure}{0.6\textwidth}  
+\includegraphics[width=0.99\linewidth]{figures/Stylization_v2.pdf}
+\end{subfigure}
+\caption{\textbf{Human side-by-side evaluations comparing \modelname{} with the video stylization model Control-a-video~\cite{chen2023control}.} Raters prefer \modelname{} on both text fidelity and video quality.
+Green and pink bars represent the proportion of trials where \modelname{} was preferred over an alternative, or preferred less than an alternative, respectively.
+}
+\label{fig:human_t2v_evals_stylization}
+\end{figure}
+
+
+%-----------------------------------------
+
+
+\subsection{Additional Implementation and Evaluation Details} 
+
+
+
+%---------------------------------------------------------------------------------------
+% Moved from the main text
+
+\subsubsection{Additional Implementation Details}
+The unified vocabulary is constructed as follows: the initial 256 codes are reserved for special tokens and task prompts. \Cref{tab:special_tokens} lists some examples of special tokens. Subsequently, the next 262,144 codes are allocated for image and video tokenization. This is followed by 4,096 audio codes. We also include a small text vocabulary of English words. Overall, this produces a total vocabulary size of approximately 300,000.
+
+
+\input{tables/prompt_format}
+
+Since the first frame is tokenized separately, MAGVIT-v2 allows images to be represented in the same vocabulary as video.
+In addition to being more compact, images provide many learnable characteristics that are not typically represented in videos, such as strong visual styles (\eg, art paintings), objects which are infrequently seen in video, rich captions, and significantly more text-image paired training data.
+When training on images, we resize the images to 128$\times$128 which are then tokenized to a latent shape of $(1, 16, 16)$, or 256 tokens.
+We scale the MAGVIT-v2 model's size and train it on the datasets discussed in \Cref{sec:exp_data}. The training follows two steps: image training, inflation~\cite{yu2023language} and video training. Due to images requiring fewer tokens, we can include roughly 5$\times$ more images per batch than videos, \ie 256 image tokens vs. 1280 video tokens. We use up to a maximum of 64 text tokens for all of our experiments. For the \texttt{<res>} token, the resolution is only specified for $128\times224$ output, $128\times128$ resolution is assumed otherwise.
+
+The video-to-video tasks use the COMMIT encoding~\cite{yu2023magvit} to obtain the tokens for the tasks such as inpainting and outpainting.
+Text is encoded as T5 XL embeddings~\cite{raffel2020exploring} and are inserted into reserved sequence positions right after the \texttt{<bot\_i>} token as shown in \Cref{fig:vffm_schematic}.
+ 
+% Additionally, we assess stylization tasks using a subset of the DAVIS dataset\footnote{\url{https://davischallenge.org/}}~\cite{Perazzi2016davis}, as further detailed below.
+
+
+
+
+
+\subsubsection{Super-resolution implementation details} \label{sec:appendix-superres-details}
+We use a 1B model for the first $2\times$ spatial super-resolution stage and a 500M model for the second $2\times$ stage.
+The first super-resolution stage models videos of $17\times448\times256$ pixels with a  token sequence of shape $(5, 56, 32)$. The second stage models videos of $17\times896\times512$ pixels with a token sequence of shape $(5, 112, 64)$. The token sequences are obtained with the same MAGVIT-v2~\citep{yu2023language} tokenizer used for the base language model.
+The custom super-resolution transformer has local self-attention windows for \emph{vertical}, \emph{horizontal} and \emph{temporal} layers of shape $(1, 56, 4), (1, 8, 32), (5, 8, 8)$ in the first stage and  $(1, 112, 2), (1, 4, 64), (5, 8, 8)$ in the second stage, respectively (\Cref{fig:sr_diagram}). The cross-attention layers attend to local windows in the low-resolution sequence isomorphic to self-attention windows but with half the spatial size.
+
+We train the super-resolution stages on a dataset of 64M high-quality text-video  pairs using the masked modeling objective of MAGVIT~\citep{yu2023magvit}, with token factorization into $k=2$ groups~\cite{yu2023language}. During inference, we use the sampling algorithm of MAGVIT-v2~\citep{yu2023language} with 24 sampling steps for each stage and classifier-free guidance scale~\citep{ho2022classifier,brooks2023instructpix2pix} of $4.0/8.0$ for the text condition and $1.0/2.0$ for the low-resolution condition, in the first/second stage.
+
+\subsubsection{Additional Evaluation details}
+
+We measure CLIP similarity scores~\cite{wu2021godiva} following an implementation given by \citet{villegas2022phenaki}, measure FVD~\cite{unterthiner2018towards} following \citet{yu2023magvit} on UCF101 dataset and following \citet{zhang2023show} on MSR-VTT, and measure Inception Score (IS)~\cite{saito2020train}. When the evaluation protocol is on 16 frames, we discard the generated last frame to make a 16-frame video.
+
+
+\subsubsection{Additional Human Evaluation details}
+\label{sec:appendix-human-evaluation}
+
+\input{figures/fig_human_eval_screenshot}
+
+Figure~\ref{fig:human_eval_screenshot} shows an example screenshot
+of our side-by-side UI for comparing models.  We used a team of 7
+human raters to complete all ratings.  To achieve best results, we
+call VideoPoet using the negative prompt \emph{``a
+still shot of an ugly cartoon, slideshow of an empty scene,
+low resolution, distorted and disfigured''}
+and rewrite the given prompt by appending the string
+\emph{highly detailed, cinematic, arc shot, high contrast, soft lighting, 8k}.
+
+\subsubsection{Zero-shot Text-to-Video Evaluation Settings}
+\label{sec:appendix-evaluation}
+We report the details of our zero-shot text-to-video settings here.
+We note that some details are missing in previous papers and different papers use different settings. Hence, we provide all the details and hope this evaluation setting can serve as a standard text-to-video generation benchmark.
+Our results are reported on the 8B model and we adopt classifier-free guidance~\cite{ho2022classifier}.
+
+\vspace{-2mm}
+All metrics are evaluated on generated videos containing 16 frames with a resolution of 256 x 256.
+We first generate videos of 128 x 128 resolution and then resize to 256 x 256 via bicubic upsampling.
+
+\emph{Zero-shot MSR-VTT}.
+For CLIP score, we used all 59,794 captions from the MSR-VTT test set. We use CLIP ViT-B/16 model following Phenaki~\cite{villegas2022phenaki}.
+We note that some papers use other CLIP models, \eg, VideoLDM~\cite{blattmann2023align} uses ViT-B/32.
+Our CLIP score evaluated on the ViT-B/32 backbone for MSR-VTT is 30.01.
+For the FVD metric, to evaluate on a wide range of captions as well as to be comparable with previous papers that evaluate on 2,048 videos, we evaluate on the first 40,960 captions in the MSR-VTT test set. More specifically, we report the FVD metrics on 2048 videos with 20 repeats.
+The FVD real features are extracted from 2,048 videos sampled from the MSR-VTT test set.
+We sample the central 16 frames of each real video, without any temporal downsampling, \ie, we use the original fps in the MSR-VTT dataset (30 fps as reported in \citet{xu2016msr}). The FVD is evaluated with an I3D model trained on Kinetics-400.
+
+\emph{Zero-shot UCF-101}.
+Following VDM~\cite{ho2022video}, we sample 10,000 videos from the UCF-101 test set and use their categories as the text prompts to generate 10,000 videos.
+We use the class text prompts provided in PYoCo~\cite{ge2023preserve} to represent the 101 categories.
+To compute the FVD real features, we sample 10K videos from the training set, following TGAN2~\cite{saito2020train}.
+We sample the central 16 frames for each real video , without any temporal downsampling, \ie, we use the original fps in the UCF-101 dataset (25 fps as reported in \cite{soomro2012ucf101}).
+The FVD metric is evaluated with an I3D model trained on Kinetics-400 and the IS metric is evaluated with a C3D model trained on UCF-101.
+
+\subsubsection{Self-Supervised Tasks Evaluation Settings}
+\label{sec:ssl_task}
+Self-supervised learning tasks include frame prediction on K600 with 5 frames as condition, as well as inpainting and outpainting on SSv2.
+FVD~\cite{unterthiner2018towards} is used as the primary metric, calculated with 16 frames at 128$\times$128 resolution.
+We follow MAGVIT~\cite{yu2023magvit} in evaluating these tasks against the respective real distribution, using 50000$\times$4 samples for K600 and 50000 samples for SSv2.
+
+
+
+
+\subsubsection{Stylization Evaluation on DAVIS} \label{sec:appendix-stylization-davis}
+
+To evaluate the CLIP similarity score and human preference on video stylization, we use the following set of videos and prompts. We select 20 videos from DAVIS 2016~\cite{Perazzi2016davis}, and for each video we take 16 frames starting from the initial frame specified below and evaluate stylization on the two text prompts specified below. To be easily reproducible, we use a central square crop at the height of the video and evaluate the output videos at 256x256 resolution. We use CLIP-B/16 for the similarity score. Several prompts below are used in or inspired by previous work~\cite{esser2023structure,chen2023control,liew2023magicedit}.
+
+\begin{table*}[tp]
+\centering
+\begin{tabular}{lcp{10cm}}
+\toprule
+video name & starting frame & first text prompt \\
+\midrule
+elephant & 10 & oil painting of an elephant walking away \\
+elephant & 10 & cartoon animation of an elephant walking through dirt surrounded by boulders \\
+car-turn & 40 & car on a snowcovered road in the countryside \\
+car-turn & 40 & 8-bit pixelated car driving down the road \\
+dog-agility & 0 & a dog in the style of a comic book \\
+dog-agility & 0 & a dog running through a field of poles in the style of cyberpunk \\
+bmx-bumps & 10 & riding a bicycle on a rainbow track in space with stars and planets in the background \\
+bmx-bumps & 10 & riding a bicycle on a dirt track in the style of a graphic novel \\
+train & 0 & a gingerbread steam train made of candy \\
+train & 0 & a train in lava \\
+bus & 0 & a black and white drawing of a bus \\
+bus & 0 & a bus in cyberpunk style \\
+lucia & 0 & an astronaut walking on mars \\
+lucia & 0 & a claymation animation of a woman walking  \\
+tennis & 15 & a robot throwing a laser ball \\
+tennis & 15 & astronaut playing tennis on the surface of the moon \\
+bear & 60 & a polar bear exploring on an iceberg \\
+bear & 60 & a space bear walking beneath the stars  \\
+flamingo & 0 & 2D vector animation of a group of flamingos standing near some rocks and water \\
+flamingo & 0 & oil painting of pink flamingos wading \\
+hike & 0 & a green alien explorer hiking in the mountains \\
+hike & 0 & paper cut-out mountains with a paper cut-out hiker \\
+goat & 59 & a tiger prowling along the ridge above a jungle \\
+goat & 59 & a dragon prowling over a crater on the moon \\
+parkour & 60 & a man jumping over rocks in a red sandstone canyon \\
+parkour & 60 & a robot dodging through an obstacle course \\
+cows & 10 & a pig standing in the mud \\
+cows & 10 & a robotic cow walking along a muddy road \\
+camel & 10 & a camel robot on a snowy day  \\
+camel & 10 & toy camel standing on dirt near a fence \\
+blackswan & 0 & a watercolor painting of a white swan \\
+blackswan & 0 & a crochet black swan swims in a pond with rocks and vegetation \\
+dog & 20 & a cat walking \\
+dog & 20 & a dalmatian dog walking \\
+kite-surf & 10 & a sand surfer kicking up sand in the desert \\
+kite-surf & 10 & kite surfer in the ocean at sunset \\
+libby & 0 & chinese ink painting of a dog running \\
+libby & 0 & 3D animation of a small dog running  through grass \\
+horsejump-high & 0 & a cartoon of a magical flying horse jumping over an obstacle \\
+horsejump-high & 0 & person rides on a horse while jumping over an obstacle with an aurora borealis in the background \\
+
+\bottomrule
+\end{tabular}
+\caption{\textbf{DAVIS stylization evaluation settings.}}
+\end{table*}

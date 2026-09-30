@@ -1,0 +1,48 @@
+% \begin{table}[t]
+% \centering
+% \resizebox{\columnwidth}{!}{%
+
+% \begin{tabular}{lccc}
+% \toprule
+% Method & LSE-C $\uparrow$ & LSC-D  & LMD \\ \hline
+% % All from a single network~\cite{ren2021pirenderer} \\
+% Speech2Gesture~\cite{speech2gesture} &0.878 &13.889 &3.595\\
+% Baseline~(Encoder + mapping) &  5.241 &9.532 &2.928\\
+% Baseline + $\beta_0$  &6.993 &7.841 & 2.388\\
+% Full RealImage~(Baseline+ $\beta_0$  + $\mathcal{L}_{read}$) &6.567 &8.061 &2.308\\
+% Ours Full Wav2Lip~(Baseline+ $\beta_0$  + $\mathcal{L}_{read}$) &7.209 &7.740 &2.396\\
+% % \midrule
+% % Ours & 0.502 \\
+% \bottomrule
+% \end{tabular}
+
+% }
+% \caption{
+% Ablation for ExpNet. \todo{Fill this table}
+% }
+% \vspace{-0.05in}
+% \label{tab:exp}
+% \end{table}
+
+\begin{table}[t]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccc}
+\toprule
+Method & LSE-C $\uparrow$ & LSE-D   \\ \hline
+% All from a single network~\cite{ren2021pirenderer} \\
+Speech2Gesture~\cite{speech2gesture} &0.878 &13.889\\ \hline
+OursFull~(Lip coeffs. + $\beta_0$ + $\mathcal{L}_{read}$) & \textbf{7.290} & \textbf{7.772}  \\
+w/o $\beta_0$ \& $\mathcal{L}_{read}$ & 5.241 &9.532\\
+w/o $\mathcal{L}_{read}$ & 6.993 &7.841 \\
+w/ real coeffs. & 6.567 &8.061 \\
+% \midrule
+\bottomrule
+\end{tabular}
+}
+\vspace{-1em}
+\caption{Ablation for ExpNet. Both the initial expression $\beta_0$, lip reading loss $\mathcal{L}_{read}$ improve the performance a lot. However, the lip synchronization metric drops a lot when using the real coefficients.}
+\vspace{-1em}
+
+\label{tab:exp}
+\end{table}

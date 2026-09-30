@@ -1,0 +1,50 @@
+\begin{table}[t]
+\centering
+\caption{
+\textbf{Ablation study on geometry VAE.}
+Here,
+we report geometry reconstruction results on both VAE and U-Net,
+as a better VAE may not always lead to better final results.
+The models are trained on a subset only for geometry reconstruction.
+}
+\label{tab:ablation_geometry}
+\vspace{-0.5em}
+\begin{adjustbox}{width=\linewidth}
+\begin{tabular}{@{}l cc cc cc@{}}
+\toprule
+\multirow{2}{*}{\textbf{Model}} & 
+\multirow{2}{*}{\textbf{Training Type}} & 
+\multirow{2}{*}{\textbf{Rescale}} & 
+\multicolumn{2}{c}{\textbf{Sintel}\cite{sintel}} &
+\multicolumn{2}{c}{\textbf{Monkaa}~\cite{mayer2016large}} \\
+\cmidrule(lr){4-5} \cmidrule(lr){6-7}
+& & &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ &
+$\text{Rel}^{p}\!\downarrow$ & $\delta^{p}\!\uparrow$ \\
+\midrule
+VAE - 1 & Original  & Max &
+39.96 & 62.63 &
+23.78 & 67.33 \\
+
+VAE - 2 & From scratch & Max &
+18.80 & 79.68 &
+11.48 & 90.55 \\
+
+VAE - 3  & Finetune decoder & Max &
+20.76 & 77.77 &
+14.44 & 85.91 \\
+
+VAE - 4 & Finetune all & Mean &
+\textbf{5.68} & \textbf{98.77} &
+\textbf{5.03} & \textbf{99.13} \\
+
+\midrule
+Unet - I & VAE - 3 + Unet & Max &  40.47 & 49.42 & 33.66 & 56.42  \\
+Unet - II & VAE - 4 + Unet & Mean &  \textbf{35.17} & \textbf{58.08} & \textbf{27.36} & \textbf{66.21} \\
+
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\vspace{-0.5em}
+\end{table}
+

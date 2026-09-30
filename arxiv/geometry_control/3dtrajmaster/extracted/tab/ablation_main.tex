@@ -1,0 +1,32 @@
+\begin{table}[!ht]
+
+\vspace{-1em}
+\caption{\textbf{Ablation Study on Full Testest and Base T2V Videos (As Reference Video).} } 
+\label{tab:ablation_main}
+
+\centering
+\begin{threeparttable}
+\resizebox{.88\textwidth}{!} 
+{
+\begin{tabular}{ccccccccccc}
+\toprule
+&  \multicolumn{3}{c}{ Video Quality } & \multicolumn{2}{c}{ 3D Trajectory Accuracy } \\
+\cmidrule(lr){2-4} 
+\cmidrule(lr){5-6} 
+Ablation Setting & FVD  & FID  & CLIPSIM $\uparrow$  &  TransErr (m)  & RotErr (deg)   \\
+
+\midrule
+
+w/ Cross-Attn. Fusion & 1673.24 & 102.13 & 32.87 & 0.453 & 0.341 \\
+w/ 3D Self-Attn. & \underline{1597.51} & \underline{98.74} & \underline{33.15} & 0.427 & 0.296 \\
+w/o Domain Adaptor & 2379.89 & 157.51 & 30.50 & 0.415 & 0.301 \\
+w/o Annealed Sampl. & 1841.64 & 112.57 & 32.26 & \underline{0.407} & \textbf{0.265} \\
+\midrule
+Full Model & \textbf{1546.15} & \textbf{96.75} & \textbf{33.77} & \textbf{0.398} & \underline{0.277} \\
+
+\bottomrule
+\end{tabular}
+}
+\vspace{-1em}
+\end{threeparttable}
+\end{table}

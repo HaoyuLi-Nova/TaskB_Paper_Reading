@@ -1,0 +1,38 @@
+\begin{table}[h]
+    \begin{subfigure}[b]{.68\linewidth}
+        \centering
+        \adjustbox{max width=\textwidth}{%
+        \begin{tabular}{cc ccc cc}
+            \toprule
+            \multicolumn{2}{c}{\multirow{2}{*}{Model and inference setup}} 
+            & \multicolumn{5}{c}{A net win rate \vs B} \\
+            & & \multicolumn{3}{c}{Quality} & \multicolumn{2}{c}{Video-SFX Alignment} \\
+            \cmidrule(lr){3-5} \cmidrule(lr){6-7} 
+            Model A & Model B & Ovr. & Nat. & Pro. & Corr. & Sync. \\
+            \midrule
+            TV2A $\rightarrow$ TV2A & TV2A $\rightarrow$ V2A & \meanci{12.5}{20.0} & \meanci{12.5}{20.0} & \meanci{11.1}{20.7} & \meanci{20.4}{20.3} & \meanci{17.5}{21.6} \\
+            TV2A $\rightarrow$ TV2A &  V2A $\rightarrow$ V2A & \meanci{15.9}{17.4} & \meanci{10.3}{17.1} & \meanci{18.8}{18.0} & \meanci{26.7}{18.2} & \meanci{32.1}{19.7} \\
+            \bottomrule
+        \end{tabular}
+        }
+        \subcaption{Subjective metrics.}
+    \end{subfigure}
+    \begin{subfigure}[b]{.30\linewidth}
+        \centering
+        \adjustbox{max width=\textwidth}{%
+        \begin{tabular}{c c}
+            \toprule
+            Model & CLAP \\
+            \midrule
+            TV2A $\rightarrow$ TV2A & 0.37 \\
+            TV2A $\rightarrow$  V2A & 0.23* \\
+            V2A  $\rightarrow$  V2A & 0.21* \\
+            \bottomrule
+        \end{tabular}
+        }
+        \subcaption{Objective metrics.}
+    \end{subfigure}
+    
+    \caption{\textbf{\OursAudio text prompt ablations.} TV2A and V2A are models trained with and without text caption, ``w/ cap'' and ``w/o cap'' indicate whether text caption is used or not during inference. We put ``*'' on CLAP results when text is not used at inference.}
+    \label{tab:audio_abl_text_cap}
+\end{table}

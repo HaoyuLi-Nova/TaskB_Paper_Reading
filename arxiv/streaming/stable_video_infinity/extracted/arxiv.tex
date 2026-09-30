@@ -1,0 +1,815 @@
+
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2026_conference_arxiv,times}
+
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{epigraph}
+\usepackage{tikz}
+\usepackage{graphicx}
+\usepackage{caption} 
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{listings}
+\usepackage{xcolor} 
+\usepackage{graphicx}
+\usepackage{adjustbox}
+\usepackage{pifont}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\usepackage{comment}
+\usepackage{amsmath,amssymb} 
+\usepackage{color}
+\usepackage{soul}
+\usepackage{svg}
+\usepackage{wrapfig}
+\usepackage{array}
+\usepackage{xspace}
+\usepackage{subcaption}
+\usepackage{wrapfig}
+\usepackage{mathrsfs}
+\usepackage{sidecap}
+\usepackage{colortbl} 
+\usepackage{bm}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{cutwin}
+\usepackage{graphicx}
+\usepackage{wrapfig} 
+\usepackage{booktabs} 
+\usepackage{colortbl} 
+\usepackage{soul,xcolor}
+\usepackage[usestackEOL]{stackengine} % for \Centerstack
+\usepackage{tcolorbox}
+
+\title{Stable Video Infinity: Infinite-Length Video Generation with Error Recycling}
+
+% Authors must not appear in the submitted version. They should be hidden
+% as long as the \iclrfinalcopy macro remains commented out below.
+% Non-anonymous submissions will be rejected without review.
+
+% \author{Wuyang Li$^1$, 
+% Wentao Pan$^{1,2}$,
+% Po-Chien Luan$^1$, 
+% Yang Gao$^1$,
+% Alexandre Alahi$^1$\\
+% $^1$VITA@EPFL, $^2$CUHK\\
+% \small{
+% \texttt{wuyang.li@epfl.ch, alexandre.alahi@epfl.ch}}
+% \\ 
+% Project page: 
+% }
+
+
+\author{
+\begin{minipage}[t]{\textwidth}
+\centering\hspace*{-2em}
+Wuyang Li \quad Wentao Pan \quad Po-Chien Luan \quad Yang Gao\quad Alexandre Alahi \\[0.1cm]
+\centering\hspace*{-4em}
+ \href{https://www.epfl.ch/labs/vita/}{VITA@EPFL} \\
+\centering\hspace*{-6em}
+Project Page: \href{https://stable-video-infinity.github.io/homepage/}{\emph{https://stable-video-infinity.github.io/homepage/}}
+\end{minipage}
+}
+
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to \LaTeX{} to determine where to break
+% the lines. Using \AND forces a linebreak at that point. So, if \LaTeX{}
+% puts 3 of 4 authors names on the first line, and the last on the second
+% line, try using \AND instead of \And before the third author name.
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+\newcommand\vid{\mathrm{vid}}
+
+\newcommand{\emb}{\mathrm{emb}}
+\newcommand{\vis}{\mathrm{vis}}
+\newcommand\rcy{\mathrm{rcy}}
+
+\newcommand\noi{\mathrm{noi}}
+\newcommand\img{\mathrm{img}}
+\newcommand{\err}{E}
+
+\newcommand{\bank}{\mathcal{B}}
+\newcommand{\samp}{\mathrm{Unif}}
+\newcommand{\method}{Stable Video Infinity }
+\newcommand{\cond}{C}
+
+\sethlcolor{yellow}
+\newcommand{\highlight}[1]{\textbf{\emph{#1}}}
+\newcommand{\TODO}[1]{{\textcolor{red}{{TODO: #1}}}}
+\newcommand{\blue}[1]{{\color{blue}#1}} 
+\definecolor{blackred}{rgb}{0.9, 0, 0} 
+\newcommand{\blackred}[1]{{\color{blackred}#1}} 
+\newcommand{\red}[1]{{\color{red}#1}} 
+\newcommand{\best}[1]{{\textbf{#1}}} 
+\newcommand{\secondbest}[1]{{\underline{#1}}} 
+
+\iclrfinalcopy % Uncomment for camera-ready version, but NOT for submission.
+\begin{document}
+
+\newcommand{\blackcircled}[1]{%
+\tikz[baseline=(char.base)]{
+\node[shape=circle, fill=black, text=white, inner sep=0.8pt, minimum size=0.5em] (char) {\small #1};
+}
+}
+
+\maketitle
+
+\begin{abstract}
+We propose \textbf{Stable Video Infinity (SVI)} that is able to generate infinite-length videos with high temporal consistency, plausible scene transitions, and controllable streaming storylines. While existing long-video methods attempt to \emph{mitigate accumulated errors} via handcrafted anti-drifting (e.g., modified noise scheduler, frame anchoring), they remain limited to single-prompt extrapolation, producing homogeneous scenes with repetitive motions. We identify that the fundamental challenge extends beyond error accumulation to a critical discrepancy between the training assumption (seeing clean data) and the test-time autoregressive reality (conditioning on self-generated, error-prone outputs). To bridge this hypothesis gap, SVI incorporates \textbf{Error-Recycling Fine-Tuning}, a new type of efficient training that recycles the Diffusion Transformer (DiT)’s self-generated errors into supervisory prompts, thereby encouraging DiT to \emph{actively identify and correct its own errors}. This is achieved by injecting, collecting, and banking errors through closed-loop recycling, autoregressively learning from error-injected feedback. Specifically, we (i) inject historical errors made by DiT to intervene on clean inputs, simulating error-accumulated trajectories in flow matching; (ii) efficiently approximate predictions with one-step bidirectional integration and calculate errors with residuals; (iii) dynamically bank errors into replay memory across discretized timesteps, which are resampled for new input. SVI is able to scale videos from seconds to infinite durations with no additional inference cost, while remaining compatible with diverse conditions (e.g., audio, skeleton, and text streams). We evaluate SVI on three benchmarks, including consistent, creative, and conditional settings, thoroughly verifying its versatility and state-of-the-art role. 
+
+\end{abstract}
+\section{Introduction}
+
+\begin{quote}
+\centering
+\textit{Failure is simply the opportunity to begin again, this time more intelligently.} \\
+\textsc{--- Henry Ford}
+\end{quote}
+
+With the scaling of models and data, the video Diffusion Transformer (DiT)~\citep{wang2025wan,kong2024hunyuanvideo,liu2024sora,hong2022cogvideo} has made great strides in synthesizing realistic, temporally coherent videos, supporting in-the-wild content creation. While achieving great success, this community suffers from a limited video length, typically 5 seconds~\citep {wang2025wan}. This is mainly caused by the open challenge of \textbf{error accumulation}, a.k.a., drifting: after autoregressively conditioning on the previously generated, predictive errors will compound over time, leading to progressive degradation in image fidelity, motion stability, and semantic controllability (Fig.~\ref{fig:intro}.a).
+
+
+In this context, existing solutions can be divided into three trends, including \textbf{(i) noise modification}, augmenting and modifying the noise schedule to reduce the past-frame dependency~\citep{chen2024diffusion,ruhe2024rolling}, \textbf{(ii) frame anchoring} using the error-free reference image~\citep{henschel2025streamingt2v} as anchors to reduce the dependency of error-included ones, and \textbf{(iii) improved sampling} like masked-noise guidance~\citep{songhistory} and anti-drifting sampling~\citep{zhang2025packing}.
+\begin{figure}[t]
+\centering
+\centering\includegraphics[width=0.98\linewidth]{Figure/intro.png}
+\vspace{-5pt}
+\caption{Comparison among (a) video generative DiT, (b) restoration DiT, and (c) our \method regarding the scheme (\emph{row 1}), training-test hypothesis gap (\emph{row 2}), and outcome (\emph{row 3}).}
+\label{fig:intro}
+\vspace{-10pt}
+\end{figure}
+
+However, existing methods primarily aim to alleviate rather than correct accumulated errors, which leads to two key limitations: \textbf{constrained length} (generally 10 seconds up to about 1 minute) and the \textbf{scene homogeneity bias} with repetitive motion. Practically, most methods essentially extrapolate the original clips controlled by a single prompt, rather than creating truly long-form videos that the prompt stream storylines can easily control. Consequently, current solutions do not satisfy many creative real-world demands, such as short-form filming that requires plausible, frequent scene changes or creation of hour-scale online presentations.
+
+To tackle this, we aim to treat the cause rather than the symptom, seeking to {fundamentally correct accumulated error itself rather than merely alleviating its effects}. By observing the artifacts caused by errors (see Fig.~\ref{fig:error_vis}), we empirically find that they closely align with common degradation types, such as blur and color shift within the image restoration community. Given the state-of-the-art role of DiT in low-level vision, these degradations should not be difficult for much larger video DiT (e.g., 14B) with more substantial capacity. Surprisingly, the opposite holds in practice: Why are these powerful models highly susceptible to such errors, leading to a severe and rapid collapse?
+
+We uncover that the fundamental challenge lies in the \emph{hypothesis gap between the training and test}. In training generative DiT (Fig.~\ref{fig:intro}a), historical trajectories of flow matching are assumed to be error-free. However, this is easily broken in test since the model autoregressively uses previous generations with predictive errors, which is mathematically clarified in Sec.~\ref{sec:motivation}. In contrast, for restoration DiT (Fig.~\ref{fig:intro}b), both training and test assume error-injected inputs, ensuring error robustness. Hence, to bridge this gap, we start a new perspective: \emph{recycling self-generated errors as supervisory prompts, encouraging DiT to autoregressively correct its own mistakes via error feedback.}
+
+In this work, we propose \textbf{\method (SVI)} that can generate infinite-length videos with temporally coherent and visually plausible context following a long storyline. In Fig.~\ref{fig:intro}c, SVI employs a novel \textbf{Error-Recycling Fine-Tuning} that repurposes the DiT's self-generated errors as supervisory signals, thereby enabling the model to iteratively refine its outputs through autoregressive error feedback. Specifically, we (i) intervene on clean input by injecting historical errors to simulate degradation, (ii) approximate the predictions and calculate errors via one-step integration bidirectionally, and (iii) dynamically save and selectively resample errors across discretized timesteps from replay memory. By doing so, we can efficiently unleash the restoration ability in video DiT, actively correcting errors in generation. Additionally, SVI has several emergent advantages over previous works. \highlight{Data light}: only small-scale data required for LoRA fine-tuning; \highlight{Efficient}: zero additional inference cost; \highlight{Versatile}: supporting in-the-wild control signals, e.g., audio and skeleton (Fig.~\ref{fig:exp_qual}c). 
+
+In summary, our contributions are fivefold. (1) SVI breaks the length limit of videos from seconds to infinity by actively correcting errors. (2) We systematically analyze the training-test hypothesis gap in long video generation and theoretically formulate two types of errors. (3) To bridge this gap, an error-recycling fine-tuning is proposed to dynamically calculate, save, and selectively inject errors to clean inputs, predicting error-recycled velocity. (4) We extend SVI into a family of models for different applications, e.g., talking and dancing (see Fig.~\ref{fig:exp_qual}c). (5) We propose comprehensive benchmarks with short/long consistent/creative settings, aligning with diverse real user needs.
+
+\section{Related Work}
+
+\noindent\textbf{Video Generation in the Wild.} With the scaling of model~\citep{hu2024acdit} and data~\citep{weissenborn2020scaling}, commercial-grade video generative models ~\citep{liu2024sora,videoworldsimulators2024,yang2024cogvideox,blattmann2023stable,ho2022video,lin2024open}, such as Wan~\citep{wang2025wan} and Hunyuan~\citep{chen2025hunyuanvideo}, have made significant progress in producing high-quality short videos. Based on this, the community has pursued a flourishing line of secondary creation for diverse objectives, introducing task-oriented controls, e.g., audio, skeleton, to generate desired content like talking~\citep{kong2025let,chen2025hunyuanvideo}, dancing~\citep{wang2025unianimate}, navigation~\citep{agarwal2025cosmos,hassan2025gem}, gaming~\citep{yu2025gamefactory,che2024gamegen}. Despite promising progress, the short length remains an open challenge, limiting its practical applications. 
+
+\noindent\textbf{Long Video Generation.} Generating long videos is an open problem due to error accumulation, prompting three trends of solutions. (i) Modified scheduler: aims to improve the ODE solver with error robustness. Some works~\citep{qiu2024freenoise,hoeg2024streaming} extend videos via noise rescheduling. Some other works~\citep{chen2024diffusion,ruhe2024rolling,songhistory} modify and augment the noise schedule to reduce dependence on past frames. (ii) Frame anchoring: uses the clean image as a consistent reference, including tailored anchor designs~\citep{henschel2025streamingt2v,weng2024art} and planning-based optimization~\citep{videoworldsimulators2024,zhao2024moviedreamer,yang2024synchronized}. (iii) Error-robust architecture: improve long-range consistency autoregressively with bidirectional distillation~\citep{yin2025causvid,huang2025self}, distributed generation~\citep{tan2024video}, and anti-drifting sampling~\citep{zhang2025packing,gu2025long}, improved attention~\cite{kodaira2025streamdit,lu2024freelong}, mixture of context~\citep{cai2025mixture}. 
+Differently, we recycle errors and encourage the DiT to correct the errors made by itself. See Appx.~\ref{appdx_related} for concurrent works.
+
+
+% In this work, we start a new perspective by recycling the errors made by DiT itself, encouraging DiT to actively correct errors cyclically.
+\begin{wrapfigure}{r}{0.35\textwidth} 
+\centering
+\vspace{-15pt}
+\includegraphics[width=\linewidth]{Figure/pre_error.png}
+\vspace{-12pt}
+\caption{\textbf{Training-test hypotheses gap.} (a) Training assumes historical trajectories and an intermediate stage free of errors, which are easily broken in test by two errors. (b) Predictive error caused by the regressive nature affects the trajectory end $X_\vid$. (c) Conditional error caused by error-included images also affects start $\tilde{X}_\noi^\img$.}
+\label{fig:error}
+\end{wrapfigure}
+
+
+\section{Preliminaries and Motivation} \label{sec:motivation}
+
+\subsection{Error-Free Hypothesis in Long Video Training} 
+
+\textbf{Notation.} We use \emph{hat} $\hat{(\cdot)}$, \emph{tilde} $\tilde{(\cdot)}$, and the \emph{superscript-free} symbol ${(\cdot)}$ to represent \emph{model predicted}, \emph{error-injected}, and \emph{clean (error-free)} variables, respectively, in following sections.
+
+\textbf{Training.} Flow matching enables continuous-time generation for DiT. To delve into the essential challenge of the training-test hypothesis gap, we start from error-free flow matching (Fig.~\ref{fig:error}a) for image-to-video training, which aims to learn the model solving ODE from the joint noise and reference image distribution $X_\noi^\img$ to video latent $X_\vid$. 
+In training, assuming \emph{error-free video latent} $X_\vid$, noise $X_\noi \sim \mathcal{N}(0, I)$, timestep $t \in [0, 1]$, \emph{error-free reference image} $X_\img$, and optional multimodal condition $C$, the training objective is denoted as:
+\begin{equation}\label{eq:training_pre}
+\mathcal{L} = \mathbb{E}_{X_\noi, X_\vid, X_\img,C, t}\big|u(X_t, X_\img,C, t; \theta) - V_t\big|^2,
+\end{equation}
+where $X_t = t\cdot X_\vid + (1 - t)\cdot X_\noi$ is the intermediate state, $\hat{V}_t= u(X_t, X_\img,C, t; \theta)$ is the predicted velocity with model $\theta$, $V_{t}=\frac{d X_{t}}{d t}= X_\vid-X_\noi$ is the ground-truth.
+
+\textbf{Test.} The generated video latent is obtained at $t=1$ with ${X}_{1}= X_\vid$ using $N_{\mathrm{test}}$ sampling from noise $X_0$. In practice, this process can be achieved by discretizing the unit interval $0 = t_0 < t_1 < \cdots < t_{N_{\mathrm{test}}} = 1$ and applying a numerical ODE solver~\citep{esser2024sd3} for the step-wise integration:
+\begin{equation}\label{eq:sampling}
+X_{t_{k+1}} = X_{t_k} + (t_{k+1} - t_k)\cdot u(X_{t_k}, X_\img, t_k; \theta),
+\end{equation}
+where $k<N_{\mathrm{test}}-1$, and $X_{t_{k+1}}$ is next-step generation.
+
+
+\subsection{Error-Corrupted Inference in Long Video Generation}\vspace{-4pt}
+
+In the test, we uncover that two types of errors will appear due to the error-free training hypothesis.
+
+\textbf{Single-Clip Predictive Error}. In Eq.~\ref{eq:training_pre}, the training assumes $X_t$ obtained via a clean latent $X_\vid$ with correct historical trajectory. However, in inference (Fig.~\ref{fig:error}b), this hypothesis is easily broken, since $\tilde{X}_t$ is obtained from a predictive trajectory with inherent errors. Due to the Mean-Square-Error (MSE) regressive nature, this will lead to an eternal existent difference $E_{t}$ between the predicted velocity $\hat{V}_t = u({\color{red}{\tilde{X}_t}}, X_\img, C, t; \theta)$ and ground-truth $V_t=u({\color{red}{X_t}}, X_\img, C, t; \theta)$. This shift is gradually accumulated at each sampling step, which reuses the integrated velocity from previous steps. Consequently, for the independent generation, the small step-wise errors integrate over the ODE trajectory in Eq.~\ref{eq:sampling}, producing a shifted predicted latent $\hat{X}_\vid$, which is defined as \emph{single-clip sampling error}: $\err = \hat{X}_\vid - X_\vid $. Conceptually, $\err$ is typically small with adversarial attack nature~\citep{goodfellow2014explaining} and causes negligible perceptual degradation in short video generation.
+
+\noindent\textbf{Cross-Clip Conditional Error}. In Fig.~\ref{fig:error}c, when generating subsequent clips autoregressively, the model uses \highlight{error-included} frame $\tilde{X}_\img$ from $\hat{X}_\vid$ (Fig.~\ref{fig:error}b) instead of the \emph{clean one} $X_\img$ used in training (Eq.~\ref{eq:training_pre}), leading to a shift in the trajectory start from $X^\img_\vid$ to $\tilde{X}^\img_\vid$. As Eq.~\ref{eq:training_pre} is optimized with \emph{clean input}, these \emph{error-corrupted samples} $\tilde{X}^\img_\vid$ are out-of-distribution regarding clean training data, which will severely confuse DiT in predicting $\hat{V}_t = u({\color{red}{\tilde{X}_t}}, {\color{red}{\tilde{X}_\img}}, C, t; \theta)$. Due to its large gap with desired velocity $V_t = u({\color{red}{X_t}}, {\color{red}{X_\img}}, C, t; \theta)$ in training, this error will cause a more biased prediction $X_\vid$, where we define this accumulated error as \emph{cross-clip conditional error}: $\err= \hat{X}_\vid - X_\vid$. Here, $\hat{X}_\vid$ is solved by integrating $\hat{V}_t$ with error-corrupted $\tilde{X}_\img$. 
+
+\noindent\textbf{Error Accumulation and Amplification.} In autoregressive cross-clip conditioning, these two types of error are \emph{accumulated and reinforce each other}: predictive error induces drift in the generated video latent, which magnifies the error at the trajectory start and, in turn, further increases predictive error. This feedback loop can rapidly cause catastrophic degradation of generated videos.
+
+\subsection{Bridging the Training-Test Hypothesis Gap}\label{sec:mot_obj}\vspace{-4pt}
+In summary, the essential challenge for long video generation is the hypothesis gap between the error-free training and error-included inference. More harmfully, DiTs tend to \emph{accumulate and amplify these errors} in the autoregressive condition, rather than correcting them. To bridge this gap, we aim to break the error-free training hypothesis with \textbf{Error-Recycling Fine-Tuning (ERFT)} to stabilize the DiT in long generation, which recycles the DiT’s self-generated errors into supervisory prompts, thereby encouraging the model to correct its own mistakes from autoregressive error feedback. Mathematically, the error-recycling objective is defined as follows ,
+
+\begin{tcolorbox}
+Given error-injected and clean inputs at random timestep $t$, \textbf{ERFT} aims to predict an \textbf{error-recycled velocity}: $V^\rcy_t=u({\color{red}{\tilde{X}_t}}, {\color{red}{\tilde{X}_\img}}, C, t; \theta)$ and $V^\rcy_t= u({\color{red}{X_t}}, {\color{red}{X_\img}}, C, t; \theta)$, respectively, to stabilize DiT in autoregressive generation, which consistently points to clean latents $X_\vid$, regardless the correctness of the current state $\tilde{X}_t$ and historical trajectory before $t$.
+\end{tcolorbox}
+
+We achieve this via a closed-loop fine-tuning: inject errors $\err$\footnote{Considering duality, we use noise $E_\noi$ and latent error $E_\vid$ bidirectionally for theoretical completeness.} made by DiT to simulate degradation (Sec.~\ref{sec:method_dit}), calculate and save errors $\err$ (Sec.~\ref{sec:method_bank}), and dynamically bank and resamples errors $\err$ for new input (Sec.~\ref{sec:method_sample}), finally optimizing error-recycled velocity $V^\rcy_t$ (Sec.~\ref{sec:method_optimize}).
+
+\section{\method\label{sec:method}}
+
+\subsection{Error-Recycling Fine-tuning}\label{sec:method_dit}
+
+Given a clean video clip $\{I_i\}_{i=1}^{T_\vid}$ and reference image $I_i$, we extract the video $X_\vid$ and image $X_\img$ (typically using padding) latent via 3D VAE that both $\in \mathbb{R}^{C\times T\times H\times W}$. Then, we randomly sample a noise $X_\noi\in \mathbb{R}^{C\times T\times H\times W}$ drawn from $\mathcal{N}(0, I)$ and a timestep $t\in\mathcal{T}_{\mathrm{tra}}$ to train the video DiT.
+
+\noindent\textbf{Error Injection.} Unlike existing works assuming clean input, we aim to simulate error-accumulated degradation occurring in inference. Given clean input $X_\vid, X_\noi, X_\img$, we design three types of errors accordingly: $\err_\vid$, $\err_\noi$, $\err_\img$. These errors are resampled from the memory banks $\mathcal{B}_\vid, \mathcal{B}_\noi$, which are explained in the next sections. Then, we inject errors into clean inputs probabilistically:
+\begin{equation}\label{eq:error_inject}
+\tilde{X}_\vid = X_\vid + \mathbb{I}_\vid \cdot \err_\vid, \quad
+\tilde{X}_\noi = X_\noi + \mathbb{I}_\noi \cdot \err_\noi, \quad
+\tilde{X}_\img = X_\img + \mathbb{I}_\img \cdot \err_\img.
+\end{equation}
+Here, $\mathbb{I}_\ast = 1, \text{w.p. } p_\ast$ else $0$ controls probability $p_\ast$ of error injection. This design aims to simulate the randomness and complexity of error accumulation appearing in any inference timestep. To preserve the generation ability with corrected errors, we set a probability $p=0.5$ using the error-free input. Hence, the ultimate input $\tilde{X}_t$ sent to DiT blocks is denoted as $\tilde{X}_t = \mathrm{Concat}(\tilde{X}_t, \tilde{X}_\img)$, where $\tilde{X}_t = t\tilde{X}_\vid + (1 - t)\tilde{X}_\noi$ is noisy video latent with errors. This error-injection can fundamentally break the previous error-free hypothesis in Eq.~\ref{eq:training_pre}, serving to bridge the train-test gap.
+
+
+\begin{figure}[t]
+\centering\includegraphics[width=0.99\linewidth]{Figure/overall.png}
+\caption{\textbf{Stable Video Infinity}. We (a) inject errors into clean latent to break the error-free hypothesis, (b) approximate predictions via one-step integration to calculate bidirectional errors, and (c) dynamically bank and resample errors from memory for clean inputs, in a closed-loop cycling.}
+\label{fig:overall}
+\vspace{-10pt}
+\end{figure}
+
+\textbf{Control Injection and Velocity Prediction.} To satisfy in-the-wild applications, we propose to extend SVI with extra controls $\cond=\{\cond_{\mathrm{vis}},\cond_{\mathrm{emb}}\}$, justified in Fig.~\ref{fig:exp_qual}c. \emph{(a) $\cond_{\mathrm{vis}}$ is the visual condition} ensuring the spatial-level control on videos, e.g., the skeleton, which are injected at the tokenized input via element-wise addition. $\cond_{\mathrm{vis}}$ can achieve precise control of spatial composition, serving tasks like dance animation. \emph{(b) $\cond_{\mathrm{emb}}$ is the embedding condition} for the multi-modal control without spatial constraints, e.g., text and audio for talking animation. $\cond_{\mathrm{emb}}$ is injected via specific cross-attention layers in DiT blocks. Hence, the error-injected input $\tilde{X}_t$ is tokenized, optionally with $\cond_{\mathrm{vis}}$, and sent to DiT blocks with optional $\cond_{\mathrm{emb}}$ to predict the velocity: $\hat{V}_t = u(\tilde{X}_{t},\tilde{X}_\img, \cond,t;\theta )$.
+
+\subsection{Bidirectional Error Curation}\label{sec:method_bank}
+Given the velocity $\hat{V}_t$, we approximate error-embedded predictions by a single-step integration bidirectionally for efficient error curation, which avoids the prohibitive cost of solving full ODEs.
+
+\textbf{Prediction Approximation.} To tackle the complexity of accumulated errors, we delve into different error-inject scenarios in Fig.~\ref{fig:banking} to calculate errors. Aligning with our main objective (Sec.~\ref{sec:mot_obj}), we define the ground-truth \highlight{error-recycled velocity} $V^\rcy_{t}$ (green single arrow) \emph{pointing to the error-free latent} $X_\vid$, independent of the historical trajectory and current state. Then, with error-injected noisy latent $\tilde{X}_{t}$ and predicted velocity $\hat{V}_t$ (red single arrow), we can approximate video latent $\hat{X}_\vid$ and conditioned noise $ \hat{X}^\img_\noi$ via one-step forward and backward integration, respectively (\emph{{red 
+dotted line}}): $X_\vid = \tilde{X}_t + \int_t^1 V_s\, ds;\quad {X}^\img_\noi = \tilde{X}_t - \int_0^t V_s\, ds$. Similarly, we deploy the integration on $\hat{V}_{t}$ to obtain the error-recycled latent and noise: $X^\rcy_\vid = \tilde{X}_t + \int_t^1 {V}^\rcy_s\, ds$, $X^\rcy_\noi = \tilde{X}_t - \int_0^t V^\rcy_s\, ds $. 
+
+\noindent\textbf{Error Calculation.} With approximated predictions and error-recycled ground-truth, we examine each error-injected case in Fig.~\ref{fig:banking}. We first present a unified formulation applicable to all cases:
+\begin{equation}\label{eq:error_cal}
+\err_\vid = \hat{X}_\vid - X^\rcy_\vid, \quad \err_\noi = \hat{X}^\img_\noi - X^\rcy_\noi, \quad \err_\img = \samp_T({\err_\vid) },
+\end{equation}
+where, $\samp(\cdot)$ is uniform sampling at the temporal axis $T$ in the latent space. We then prove this unified error curation aligning with Sec.~\ref{sec:mot_obj} by detailing each real case as follows.
+
+\vspace{-3pt}
+\emph{(a) No Injected Error.} This can simulate the initial \emph{single-clip predictive error} that the predicted velocity $\hat{V}_t$ is shifted anytime. Here, we define the latent and noise error with residuals: $\err_\vid = \hat{X}_\vid -X_\vid $ and $\err_\noi = \hat{X}_\noi^\img -X_\noi^\img $, where we also have $X^\rcy_\vid = X_\vid$ and $X^\rcy_\noi = X_\noi^\img$. 
+
+\vspace{-3pt}
+\emph{(b) Error-Injected Start Point.} This can simulate the \emph{cross-clip conditional error} when the error causes shifts at the beginning from $X^\img_\noi$ to $\tilde{X}^\img_\noi$. Here, we can intervene on clean $X_\img$ or $X_\noi$ to simulate the error impacts. With error-recycled velocity, we can calculate bidirectional error with $\err_\vid = \hat{X}_\vid -X_\vid $ and $\err_\noi = \hat{X}_\noi^\img -\tilde{X}_\noi^\img $, where we have $X^\rcy_\vid = X_\vid$ and $X^\rcy_\noi = \tilde{X}_\noi^\img$. 
+
+\begin{figure}[t]
+\centering\includegraphics[width=0.96\linewidth]{Figure/error_cal.png}
+\vspace{-2pt}
+\caption{\textbf{Error calculation.} In different cases, the latent error $\err_\vid$ and noise error $\err_\noi$ are calculated by the one-step integration in the forward (top) and backward direction (bottom), respectively.}
+\vspace{-10pt}
+\label{fig:banking}
+\end{figure}
+
+\vspace{-3pt}
+\emph{(c) Error-Injected End Point.} This can simulate both error types from an accumulated perspective, where the previous integration points to a degraded generation $\tilde{X}_\vid$. Our stabilized DiT is encouraged to verify and, if necessary, correct the wrong historical trajectory and wrong intermediate state $\tilde{X}_t$ towards degraded latent $\tilde{X}_\vid$. To align with the error-recycled velocity, the errors can be written as $\err_\vid = \hat{X}_\vid -X_\vid $ and $\err_\noi = \hat{X}_\noi^\img - X^\rcy_\noi $, where we only have $X^\rcy_\vid =X_\vid$.
+
+\subsection{Error Replay Memory}\label{sec:method_sample}
+
+\noindent\textbf{Error Update.} We propose to dynamically save calculated errors $\err_\vid$ and $\err_\noi$ into two replay memory $\bank_\vid$ and $\bank_\noi$ according to timestep, respectively. To better reduce the train-test gap, we first discretize the training timestep $\mathcal{T}_{\mathrm{tra}}=\{t_i\}_{i=1}^{N_{\mathrm{tra}}}$ that is typically $N_{\mathrm{tra}}=1000$ by aligning it with the timestep used in test stage $\mathcal{T}_{\mathrm{test}}=\{t_n\}_{n=1}^{N_{\mathrm{test}}}$ with typically $N_{\mathrm{test}}=50$ as Eq.~\ref{eq:sampling}. Specifically, given a training timestep $t\in\mathcal{T}_{\mathrm{tra}}$, we retrieve the nearest timestep grid $t_n$ in $\mathcal{T}_{\mathrm{test}}$, and save each error $E_{\ast}$ into the corresponding location $B_{\ast,n}$ in bank $\bank_{\ast}=\{B_{\ast,n}\}_{n=1}^{N_{\mathrm{test}}}$, where $\ast=\{\vid,\noi\}$. Here, the timestep is a pointer pointing to the specific storage location. 
+Considering the slow bank updates caused by the limited per-GPU sample, we design a warmup by saving errors with cross-machine gathering, inspired by Federated Learning~\citep{mcmahan2017communication}. To conserve the memory usage, we set an upper bound $Z=500$ for the number of saved errors $|B_{\ast,n}|=Z$, justified in Appx~\ref{appendix:quantitative}. When the specific bank $B_{i,\ast}$ is full, we replace the most similar one by measuring the $L_2$ distance between the new error $E_{\ast}$ and historical errors in $B_{\ast,n}$ to preserve error diversity.
+
+\noindent\textbf{Error Sampling.} Considering specific roles of error terms, we design a selective sampling method based on the individual properties of each input term in flow-matching trajectories. Specifically, aligning with our error banking, we first discretize the training timestep $t$ sampled from $\mathcal{T}_{\mathrm{tra}}$ to the test timestep $t_n \in \mathcal{T}_{\mathrm{test}}$ by retrieving the nearest one. Then, for input terms $X_\vid$, $X_\noi$, $X_\img$ in Eq.~\ref{eq:error_inject}, the resampled errors are designed as follows accordingly,
+\begin{equation}\label{eq:error_sampling}
+\err_\vid = \samp(\bank_{\vid,n}), \quad \err_\noi = \samp(\bank_{\noi,n}), \quad \err_\img = \samp_{T}(\bank_\vid).
+\end{equation}
+Here, $\samp(\bank_{\ast,n})$ is uniform sampling conducted on the memory bank $B_{\ast,n} \in \bank_{\ast}$ for the timestep $t_n$, and $\samp_{T}$ is performed across two dimensions: the whole timestep in the noise scheduler and the temporal axis of the video. The rationale for each selective strategy is explained as follows. 
+
+\vspace{-3pt}
+\emph{(a) Video Latent Error} $\err_{\mathrm{vid}}$ is uniformly sampled from the timestep-aligned bank $\bank_{\vid,n}$, because the step-wise errors predominantly depend on the current timestep $t_n$ throughout the trajectory. We also empirically find that degradation types are highly correlated with sampling steps. 
+
+\vspace{-3pt}
+\emph{(b) Noise Error} $\err_{\mathrm{noi}}$, following the video latent, is sampled uniformly within the same timesteps from ${B}_{\noi,n}$, considering the duality between the noise (start) and latent (end). 
+
+\vspace{-3pt}
+\emph{(c) Image Latent Error} $\err_{\mathrm{img}}$ is sampled from the video bank to align with the cross-clip autoregression, i.e., the generated frame serves as the reference image in the next-clip generation. Unlike the step-wise error, the reference image is obtained by integrating over all timesteps, which accumulates errors over the entire trajectory. To simulate this complexity, we sample $\err_\img$ across timesteps independently of the current $t_n$, because the error may occur and accumulate at any timestep.
+
+\subsection{Optimization}\label{sec:method_optimize}
+\vspace{-3pt}
+To train Stable Video Infinity, we aim to predict {error-recycled velocity} $ V^\rcy_t =X_\vid-\tilde{X}_\noi$ pointing to clean latent $X_\vid$ from {error-injected inputs} $\tilde{X}_\vid, \tilde{X}_\noi,\tilde{X}_\img$ obtained via Eq.~\ref{eq:error_inject}. This aligns with our error-recycling objective (Sec.~\ref{sec:mot_obj}) in bridging the train-test hypothesis gap, denoted as follows,
+\begin{equation}\label{eq:training}
+\mathcal{L}_{\mathrm{SVI}} = \mathbb{E}_{\tilde{X}_\vid, \tilde{X}_\noi,\tilde{X}_\img,\cond,t}\big|u(\tilde{X}_{t},\tilde{X}_\img,\cond, t; \theta) - V^\rcy_t\big|^2,
+\end{equation}
+where $\tilde{X}_t = t\tilde{X}_\vid + (1 - t)\tilde{X}_\noi$ is noisy latent with injected errors. To enable user flexibility, we only train LoRA. Our error-recycling tuning can actively correct the trajectory, unleashing DiT's restoration ability. Overall, in line with Henry Ford’s quote at the beginning of this manuscript, we can rephrase it in the context of long video generation as: \emph{``The accumulated error is simply an opportunity to begin again by recycling the errors. this time more stable — \method."}
+
+\begin{table}[t]
+\centering
+\setlength\tabcolsep{4pt}
+\footnotesize 
+\begin{tabular}{l|c|c|c|c|c|c|c}
+\hline
+Models
+& {\Centerstack{Generated \\Scenes }}
+& {\Centerstack{Subject \\Consistency}} 
+& {\Centerstack{Background \\Consistency}} 
+& {\Centerstack{Aesthetic\\Quality}} 
+& {\Centerstack{Imaging\\Quality}} 
+& {\Centerstack{Dynamic\\Degree}} 
+& {\Centerstack{Motion\\Smoothness}} \\ 
+\hline
+\multicolumn{8}{c}{{\highlight{Consistent Video Generation (single text prompt without scene transitions)}}} \\
+\hline
+Wan 2.1 & Single & 87.03\% & 92.45\% & 56.40\% & 65.70\% & 12.68\% & 98.51\% \\ 
+StreamingT2V & Single & 84.79\% & 89.27\% & 56.81\% & 66.41\% & \best{57.04\%} & 99.00\% \\
+HistoryGuidance & Single & 83.77\% & 90.90\% & 40.42\% & 55.48\% & 4.93\% & \secondbest{99.38\%} \\ 
+FramePack & Single & \secondbest{93.08\%} & \secondbest{94.72\%} & \secondbest{63.57\%} & \secondbest{66.72\%} & 7.75\% & \best{99.57\%} \\ 
+\rowcolor{blue!10} SVI-Shot (Ours) &Single& \best{98.13\%}& \best{98.19\%} & \best{63.84\%} & \best{71.88\%} & \secondbest{17.61\%} & 98.93\% \\ 
+\hline
+\multicolumn{8}{c}{{\highlight{Ultra-Long Consistent Video Generation (single text prompt without scene transitions)}}} \\
+\hline
+Wan 2.1 & Single & \secondbest{80.00\%} & \secondbest{87.27\%} & \secondbest{56.19\%} & \secondbest{65.37\%} & 14.29\% & 98.74\% \\ 
+StreamingT2V & Single & 66.32\% & 77.62\% & 40.49\% & 55.18\% & \best{85.71}\% & 95.60\% \\ 
+HistoryGuidance &Single & 64.84\% & 80.51\% & 29.84\% & 50.41\% & 7.14\% & \secondbest{99.42\%} \\ 
+FramePack &Single & 79.37\% & 86.64\% & 55.66\% & 57.61\% & 0.00\% & \best{99.63}\% \\ 
+\rowcolor{blue!10} SVI-Shot (Ours)&Single& \best{97.50\%} & \best{97.89\%} & \best{65.75\%} & \best{71.54\%} & \secondbest{21.43\%} & 98.81\% \\ 
+\hline
+\multicolumn{8}{c}{{\highlight{Creative Video Generation (text prompt stream with scene transitions)}}} \\
+\hline
+Wan 2.1 & Multiple & 81.44\% & 89.81\% & 51.33\% & 53.09\% & \best{61.97\%} & 98.57\% \\
+\rowcolor{blue!10} SVI-Film (Ours) & Multiple & 84.27\% & 90.68\% & 57.02\% & 62.44\% & \secondbest{57.04\%} & 99.12\% \\ \hline
+StreamingT2V & Single & 81.01\% & 88.47\% & 52.20\% & 58.05\% & \best{61.97\%} & 98.96\% \\ 
+HistoryGuidance & Single & 84.12\% & 91.21\% & 38.40\% & 52.31\% & 7.75\% & \secondbest{99.39\%} \\ 
+FramePack &Single & \secondbest{85.62\%} & \secondbest{91.22\%} & \textbf{59.41\%} & \secondbest{59.44\%} & 9.15\% & \textbf{99.49\%} \\ 
+\rowcolor{blue!10} SVI-Shot (Ours) & Single & \textbf{93.52\%} & \textbf{95.86\%} & \secondbest{58.07\%} & \textbf{62.81\%} & 55.63\% & 98.42\% \\ 
+\hline
+\multicolumn{8}{c}{{\highlight{Ultra-Long Creative Video Generation (text prompt stream with scene transitions)}}} \\
+\hline
+Wan 2.1 & Multiple & 67.85\% & 83.45\% & 46.68\% & 43.36\% & 57.14\% & 98.56\% \\ 
+\rowcolor{blue!10} SVI-Film (Ours) &Multiple & 70.90\% & \secondbest{84.30\%} & \secondbest{55.09\%} & \secondbest{57.73\%} & \secondbest{64.29\%} & 98.89\% \\ \hline
+StreamingT2V & Single & 68.65\% & 82.00\% & 44.69\% & 55.20\% & \textbf{78.57\%} & 96.95\% \\ 
+HistoryGuidance & Single & 62.58\% & 81.97\% & 28.66\% & 47.68\% & 7.14\% & \secondbest{99.36\%} \\ 
+FramePack & Single & \secondbest{70.95\%} & 83.46\% & \secondbest{52.39\%} & 53.72\% & 0.00\% & \textbf{99.48\%} \\ 
+\rowcolor{blue!10} SVI-Shot (Ours) & Single & \textbf{91.96\%} & \textbf{95.04\%} & \textbf{63.31\%} & \textbf{65.25\%} & \secondbest{64.29\%} & 97.97\% \\ 
+\hline
+\end{tabular}
+\vspace{-6pt}
+\caption{Generic video generation with diverse settings. \textbf{Bold}, \secondbest{Underline} highlights the highest, second highest, respectively. For more details on metrics, see~\citep{huang2024vbench}.}
+\label{tab:main_results}
+\vspace{-5pt}
+\end{table}
+
+
+\begin{table*}[t]
+\centering
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\small
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{l|ccc}
+\hline
+Models
+& {Sync-C {$\uparrow$}}
+& {Sync-D {}}
+& FVD {}\\ 
+\hline
+Wan 2.1 & 0.21 & 12.86&934\\
+MultiTalk & \secondbest{1.26} & \secondbest{9.57} & \secondbest{520} \\
+\rowcolor{blue!10} SVI-Talk (Ours) & \best{6.12} &\best{8.74} & \best{390}\\ \hline
+\end{tabular}
+}
+\vspace{-6pt}
+\caption{{Audio-conditioned long talk.}}\vspace{-3pt}
+\label{tab:talk}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+\small
+\resizebox{0.95\textwidth}{!}{
+\begin{tabular}{l|ccc}
+\hline
+Models & PSNR {$\uparrow$} & SSIM {$\uparrow$}& FVD{} \\ 
+\hline
+Wan 2.1 & 12.12 & 0.33 & 4099 \\
+UniAnimate-DiT &\secondbest{18.97} & \secondbest{0.69} & \secondbest{337} \\
+\rowcolor{blue!10} SVI-Dance (Ours) & \best{20.01} & \best{0.71} & \best{299} \\
+\hline
+\end{tabular}}
+\vspace{-6pt}
+\caption{Skeleton-conditioned long dance.\label{tab:dance}}
+
+\end{minipage}
+\vspace{-10pt}
+\end{table*}
+
+\vspace{-5pt}\section{Experiments}
+
+\begin{figure}[t]
+\centering\includegraphics[width=0.98\linewidth]{Figure/sen.png}
+\vspace{-8pt}
+\caption{Stability comparison about video length. SVI is more stable without an obvious decrease.}
+\vspace{-6pt}
+\label{fig:stable}
+\end{figure}
+
+
+
+\begin{table*}[t]
+\centering
+\begin{minipage}[t]{0.51\linewidth}
+\vspace{-65pt}
+\centering
+\small
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{l|cccc}
+\hline
+Method. 
+& {\Centerstack{Sub. \\Cons.}}
+& {\Centerstack{Back. \\Cons.}}
+& {\Centerstack{Aest.\\Qual.}}
+& {\Centerstack{Img.\\Qual.}} \\
+\hline
+Wan 2.1 & 66.73\% & 82.83\% & 43.95\% & 42.31\% \\ \hline
+SVI \tiny{w/o} $\err_\img$ & \blackred{73.82\%} & \blackred{84.21\%} & \blackred{49.58\% }& \blackred{57.63\%} \\ 
+SVI \tiny{w/o} $\err_\noi$ & 94.22\% & 94.87\% & 59.80\% & 69.90\% \\ 
+SVI \tiny{w/o} $\err_\vid$ & 93.56\% & 95.01\% & 58.99\% & \best{71.50\%} \\ \hline
+SVI full& \best{94.69\%} &\best{95.39\%} & \best{61.88\%} & 71.22\% \\ \hline
+\end{tabular}
+}
+\vspace{-6pt}
+\captionof{table}{Ablation study on each error term.\label{tab:abl}}\vspace{-3pt}
+
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\linewidth}
+\centering
+\small
+\resizebox{0.95\textwidth}{!}
+{\centering\includegraphics{Figure/error.png}
+}\vspace{-6pt}
+\captionof{figure}{Error correction comparison.\label{fig:error_vis}}
+\end{minipage}
+\vspace{-14pt}
+\end{table*}
+
+\vspace{-5pt}
+\textbf{Benchmarks Setup.} We establish three benchmarks, consistent, creative, and conditional settings, for image and text-to-video generation (each has two variants), satisfying diverse industrial needs. \emph{(a) Consistent Video Generation} aims to produce \emph{50-sec} and \emph{250-sec} (ultra-long) videos from an unchanging text prompt within one scene. \emph{(b) Creative Video Generation} targets the needs of vloggers (e.g., TikTok) by emphasizing storytelling with plausible scene transitions. We develop an automatic engine via MLLM (see Appx.~\ref{appendix:benchmark}) to generate prompt streams for videos of \emph{50-sec} and \emph{250-sec} (ultra-long) duration. \emph{(c) Multimodal Conditional Generation} measures compatibility with extra conditions. We evaluate \emph{300-sec} audio-guided talking and \emph{50-sec} skeleton-guided dancing. \textbf{Metrics.} We use 6 core metrics from Vbench++~\citep{huang2024vbench} for global video quality. For specific conditional generation, we use additional metrics, Sync-C, Sync-D, FVD, PSNR, and SSIM.
+
+
+\vspace{-4pt}
+\textbf{Implementations.} We deploy a family of SVI with minor modifications for diverse usages, which is only trained with 300-6k short videos (see Appx.~\ref{appendix:implementation}). \emph{(a)} \textbf{SVI-Shot} aligns with the previous long video generation, focusing on a homogeneous scene. Here, in training, we conduct padding with a random image as the anchor to obtain the image latent, and replace it with the reference image in inference. \emph{(b)} \textbf{SVI-Film} supports end-to-end long filming controlled with a storyline-based prompt stream. We use five motion frames and replace the padding frame with zero for the image latent. \emph{(c)} \textbf{SVI-Talk} targets audio-conditioned human-talking videos, which extends SVI-Shot by injecting the audio-image cross-attention from~\citep{kong2025let}. \emph{(d)} \textbf{SVI-Dance} is for skeleton-guided dancing videos, which encodes the skeleton and injects it into input tokens following~\citep{wang2025unianimate}. $E_\img$, $E_\vid$, and $E_\noi$ are injected with probabilities 0.9, 0.9, and 0.01, respectively. 
+
+
+\subsection{Long Video Generation in the Wild.}
+We compare with state-of-the-art methods: StreamingT2V~\citep{henschel2025streamingt2v}, HistoryGuidance~\citep{songhistory}, FramePack~\citep{zhang2025packing}, and report Wan 2.1~\citep{wang2025wan}. We compare conditional generation with MultiTalk~\citep{kong2025let} and UniAnimate-DiT~\citep{wang2025unianimate} in audio-guided talking and skeleton-guided dancing, respectively.
+
+\vspace{-2pt}\textbf{Consistent Video Generation.} In Tab.~\ref{tab:main_results} top, SVI-Shot achieves the best results on most core metrics. Note that an abnormally large dynamic degree in this setting indicates uncontrollable motion degradation. Compared with FramePack, we give 5.05\% and 3.37\% gains on consistency, 5.16\% gains on image quality. Most methods suffer from a large drop when extended to ultra-long videos, such as {7.03\% and 13.71\% subject consistency decrease} for Wan 2.1 and FramePack. In contrast, SVI exhibits a negligible 0.63\% decrease, while maintaining a satisfactory degree of dynamics.
+
+
+\vspace{-2pt}\textbf{Creative Video Generation.} Tab.~\ref{tab:main_results} bottom compares the long videos guided by a storyline-based prompt stream, which has frequent scene transitions. Note that existing long video works uniformly fail, as they cannot generate filming-level scene transitions with the prompt stream (see Fig.~\ref{fig:exp_qual}). SVI achieves the best consistency, quality, and a satisfactory dynamic degree with significant gains. This superiority is maintained when extended to ultra-long settings, showing the stability of SVI. 
+
+\vspace{-2pt}\textbf{Multimodal Conditional Generation.} In Tab.~\ref{tab:talk} and~\ref{tab:dance}, we justify our adaptability with two typical conditions $\cond_{\mathrm{emb}}$ with audio-guided talking, and $\cond_{\mathrm{vis}}$ with skeleton-guided dancing mentioned in Sec.~\ref{sec:method_dit}. It can be observed that SVI can effortlessly adapt to specific domains and enhance the state-of-the-art in long videos, verifying its versatility for in-the-wild generation. 
+
+
+\subsection{Further Analysis}
+
+\vspace{-4pt}
+\textbf{Stability to Video Length.} Fig.~\ref{fig:stable} compares the robustness among the latest long video methods by measuring the consistency and quality. Unlike all existing works exhibiting a decreasing trend, SVI can maintain robust and high consistency and quality. This nature justifies the ability to generate an arbitrary length, which, for the first time, fundamentally corrects errors and breaks the time limit.
+
+\vspace{-4pt}
+\textbf{Ablation Study.} In Tab.~\ref{tab:abl} top, we analyze each error with a 1-epoch tuning for proof-of-concept, revealing 2 critical messages. \emph{(a)} Removing errors on the reference image $\err_\img$ gives a significant drop in all metrics. This indicates the primary role of intervening on the trajectory start (Fig.~\ref{fig:banking}b) to simulate the error accumulation, justifying its direct and major role in solving the train-test hypothesis gap. \emph{(b)} Injecting errors into the video latent $\err_\vid$ or noise $\err_\noi$ gives an auxiliary benefit in an indirect role compared with the major factor $\err_\img$. More ablations are in Appx.~\ref{appendix:quantitative}.
+
+
+\vspace{-4pt}
+\textbf{Error Visualization.} Fig.~\ref{fig:error_vis} visualizes the decoded error $E_\vid$ and $E_\noi$, and compares the prediction $\hat{E}_\vid$, where we have two observations. \emph{(a)} Video generators (Wan 2.1) are sensitive to the errors they make, leading to degraded prediction. This issue can be tackled by the error-recycling fine-tuning in SVI, achieving robustness of self-errors. \emph{(b)} Injecting errors can well simulate the drifting ($X_\vid$ by Wan 2.1), justifying the critical role of error recycling in bridging the train-test gap.
+
+\begin{figure}[t]
+\centering\includegraphics[width=1.0\linewidth]{Figure/show.png}
+\vspace{-15pt}
+\caption{Qualitative comparison with the best specific-domain methods (see videos in Appx~\ref{appendix:qualitative}).}
+\vspace{-15pt}
+\label{fig:exp_qual}
+\end{figure}
+
+
+\vspace{-4pt}\subsection{Qualitative Comparison}
+
+Fig.~\ref{fig:exp_qual}a compares \highlight{Creative Video Generation} guided by a storyline-based prompt stream. Existing works fail to achieve scene transitions with severe quality degradation. In contrast, SVI achieves smooth scene transitions, maintaining high visual fidelity and text-prompt following, which paves the way for end-to-end filming. In Fig.~\ref{fig:exp_qual}b, we compare \highlight{Consistent Video Generation} with an unchanged prompt, showing that existing methods suffer from color shifts, motion drifts, and degradation in static images. Differently, SVI generates temporally coherent videos with plausible consistency and dynamics. Fig.~\ref{fig:exp_qual}c compares \highlight{Multimodal Conditional Generation} between SVI and state-of-the-art counterparts in talking and dancing videos. Without being tailored to these domains, SVI can effortlessly tackle the drifting in long generation, justifying its effectiveness and transferability. Refer to videos in Appx.~\ref{appendix:qualitative}, including extra cross-domain adaptability (Tom and Jerry).
+
+\section{Conclusion}
+
+We address the core challenge in long video generation, the training–test hypothesis gap, leading to two forms of accumulated error (Sec.~\ref{sec:motivation}). To bridge this gap, we propose \method to break the time limit by actively correcting the self-generated errors, which employs a novel Error-Recycling Fine-Tuning (Sec.~\ref{sec:method}) to autoregressively learn from error feedback. Unlike the error-free training assumption, SVI deliberately injects historical errors into clean inputs and learns to predict an error-recycled velocity, which computes errors via bidirectional one-step integration, stores errors in replay memory, and selectively resamples errors for new inputs. Across three benchmarks, SVI surpasses state-of-the-art methods on long, ultra-long, and conditional video generation.
+
+
+\section*{Acknowledgements}
+
+This work was supported as part of the Swiss AI Initiative by a grant from the Swiss National Supercomputing Centre (CSCS) under project ID a144 on Alps. We would like to express our gratitude to Valentin Gerard, Tomasz Stanczyk, Megh Shukla, and Xiaoyuan Liu for insightful discussions.
+
+
+\bibliography{iclr2026_conference}
+\bibliographystyle{iclr2026_conference}
+
+\appendix
+
+\clearpage
+
+\section{Benchmark Setup}\label{appendix:benchmark}
+
+\subsection{Automatic Prompt Stream Engine\label{appendix:engine}}
+
+In this work, we study the creative generation using a storyline-driven text prompt stream. However, this is still an open problem in the community due to the lack of high-quality data and the laborious labeling process. To solve this issue and generate sufficient test data, we propose a \emph{fully automated system for effortless, end-to-end short film production that streamlines creative video generation and evaluation}. The only user input required is the high-level subject specification (e.g., “dog” and “street”). The system then automatically retrieves and downloads relevant images and uses a Multimodal Large Language Model (MLLM) to generate a storyline-aligned text prompt stream for each video clip. These image–prompt pairs are subsequently fed into Stable Video Infinity to produce high-quality, narrative-driven short videos of unlimited length.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figure/film.png}
+\caption{Overview of the proposed end-to-end automatic pipeline, which is able to generate infinite short films from user-given keywords. This engine is used to generate the prompt streams according to a specific storyline for our creative video generation benchmarks.}
+\label{fig:pipeline}
+\end{figure}
+The complete workflow is illustrated in Fig.~\ref{fig:pipeline}. This pipeline systematically transforms high-level keywords into structured pairs of images and prompt sequences, eliminating the need for labor-intensive manual annotation and prompt engineering. The pipeline operates as follows:
+
+
+\begin{enumerate}
+
+\item \textbf{Keyword-based Image Retrieval (Keyword $\rightarrow$ Image)}: The process commences with a set of user-defined keywords (e.g., “dog” and “street”). These keywords are fed into an automated download script, which retrieves a diverse set of relevant images from online resources. Optionally, the user can also skip this process by directly using the customized images instead of automatically retrieving them online.
+
+\item \textbf{Automated Prompt Stream Generation (Image $\rightarrow$ Storyline)}: Each retrieved image is then processed by the Qwen2.5~\citep{yang2024qwen2} for auto-labeling. Critically, instead of generating a single, static description, our auto-labeling module is configured to produce a temporally coherent sequence of $L$ distinct prompts. This sequence, which we term a ``prompt stream", is designed to describe a plausible dynamic evolution or narrative originating from the static scene in the input image. For example, given an image of a resting dog, the prompt stream might describe the dog waking up, perking its ears, and then wagging its tail. The length of this stream, $L$, is a controllable parameter. \emph{In our benchmark, $L$ is set to 10 for creative video generation (10 sequential video clips in one long-shot), and set to 50 for the ultra-long setting.} Optionally, users can also skip this step by directly providing their prompt streams and storyline instead of generating them via MLLM.
+
+\item \textbf{Input Preparation and Video Synthesis (Storyline $\rightarrow$ Short Film)}: Concurrently with the prompt generation, the initially downloaded image undergoes standard normalization procedures, which are sent to SVI. The normalized image, paired with its corresponding generated prompt stream \{prompt 1, prompt 2,..., prompt $L$ \}, serves as the complete input to our model. \emph{SVI will iteratively generate a video clip for each prompt within the prompt stream, which uses the last frames of the previous generation as the conditions.} The model then synthesizes a video by conditioning the animation of the input image on the sequential instructions provided by the prompt stream.
+\end{enumerate}
+
+This automated pipeline is central to our study. It enables rapid generation of a large and diverse suite of test cases for qualitative evaluation and provides a scalable framework for benchmarking the model’s ability to interpret static content and animate it in response to dynamic textual guidance.
+
+\subsection{Benchmark Datasets}
+
+With our automatic prompt-stream engine, we are able to efficiently construct high-quality test data spanning both creative and consistent video generation scenarios. To better mirror real-world usage, two-thirds of the dataset is automatically harvested from the web through our engine, while the remaining one-third is sourced from real users following~\citep{zhang2025packing}, ensuring a balanced mix of scale, diversity, and authenticity. We will open-source the full codebase and all benchmark datasets to catalyze progress in long-form video generation and evaluation.
+
+For generic video generation, we assemble 152 samples under the 50-second default setting and 14 samples under the 250-second ultra-long setting, and we evaluate all benchmarked methods under identical conditions to ensure fair comparison. In the consistent video generation track, \emph{each input image is paired with a single, stable text prompt} across both duration settings, emphasizing temporal coherence and identity preservation. In contrast, the creative track introduces narrative dynamics: we generate \emph{a prompt stream comprising 50 textual descriptions for the default setting and 100 for the ultra-long setting}, enabling rich, storyline-driven scene transitions and event progression. In this setting, each generated video clip (5 seconds, 16 FPS) will follow a unique prompt. Finally, for multimodal conditional generation, we evaluate 10 ultra-long samples across all benchmarked methods, probing the models’ ability to align and fuse visual inputs with evolving multimodal guidance, e.g., audio and skeleton, over extended durations.
+
+Together, these settings provide a \emph{comprehensive, scalable, and strict benchmark} suite that stresses both fidelity and creativity, supports controlled ablations and cross-method comparisons, and reflects the practical requirements of long-video creation in the wild. This can also break through the previous long-video evaluation~\citep{zhang2025packing,henschel2025streamingt2v,songhistory}, only focusing on a single homogeneous scene with repeated motions, which has been fully tackled by the proposed SVI-Shot, as proved by Tab.~\ref{tab:main_results} in the main paper.
+
+
+\section{Discussion}
+
+\subsection{Broader Practical Impact on Industry}
+
+\textbf{Filming and Entertainment.} Contemporary short-form video production typically requires substantial manual effort to design scene transitions, craft storylines, and stitch together video clips, making true single-take narrative videos impractical. Differently, \emph{our \method makes end-to-end, single-take filmmaking feasible and accessible}. Users provide only high-level intent and brief textual descriptions; the system then autonomously produces unlimited single-shot videos with controllable pacing and visually plausible transitions, without any human intervention.
+
+\textbf{Robotic World Models.} Existing world models~\citep{wang2023world} for robotics~\citep{li2025voxdet} and simulation (e.g., Cosmos~\citep{agarwal2025cosmos}) are constrained by \emph{short video horizons and limited training diversity, making it difficult to simulate prolonged, complex scenarios or rare out-of-distribution corner cases}. \emph{Our \method demonstrates strong potential for long-duration, controllable, and semantically consistent scenario synthesis, particularly in the navigation domain.} 
+
+
+\textbf{World Generation, Gaming, and Spatial AI.} We observe strong \emph{long-term geometric and identity consistency across scenes} from the proposed \method, a property that can catalyze progress in large-scale world generation and spatial AI. Our pipeline provides controllable, narrative-conditioned evolution of scenes while maintaining structural coherence, beneficial for research in 3D-aware video synthesis, continual scene modeling, and interactive agents that reason over persistent environments~\citep{che2024gamegen,yu2025gamefactory,generalworldmodelsurvey}. 
+
+
+\subsection{Broader Methodology Impact on Academia}
+
+\emph{Our central goal is to bridge the train–test hypothesis gap in autoregressive generation. This gap is pervasive across modern generative paradigms, including large language models (LLMs). and MLLM}. During training, models are typically exposed to clean, error-free inputs; at test time, however, autoregressive generation conditions each new token (or frame) on previously generated outputs, which may contain errors. Hence, this hypothesis gap is also a challenge in LLM/MLLM training. Our error-recycling tuning exposes the model to its own imperfect rollouts and teaches it to recover from errors. In doing so, the optimization becomes aligned with the test-time process.
+
+\emph{This principle generalizes beyond video to a broad class of generative settings, including LLMs, autoregressive image generative models.} In long video generation, the drift and compounding artifacts that destabilize content can be viewed as a form of \red{\textbf{visual hallucination}}. This has a similar property to the open problem, \red{\textbf{linguistic hallucination}} in the context of LLM and MLLM, i.e., LLM tends to give hallucinated words when the generated context is too long. Based on this insight, our error-recycling tuning potentially mitigates this effect by closing the train–test gap: the model learns robust policies for stabilization, re-grounding, and content repair under distribution shift.
+
+
+\subsection{Concurrent Related Works\label{appdx_related}} 
+
+Recently, there have been many concurrent works addressing long-video generation challenges based on Self-Forcing~\citep{huang2025self}. LongLive~\citep{yang2025longlive} adopts a causal, frame-level AR design and integrates a KV-recache mechanism to refresh cached states with new prompts for smooth scene switches. Self-Forcing++\citep{cui2025self} leverages the rich knowledge of teacher models to guide student models using sampled segments drawn from self-generated long videos. LoViC\citep{jiang2025lovic} employs an expressive autoencoder that jointly compresses video and text into unified latent representations, using a single-query-token design inspired by Q-Former.
+
+Compared with these works, our \method (SVI) has several distinct advantages: (1) SVI supports image-to-video generation, enabling broader long-video applications such as talking-head and dance synthesis; (2) SVI provides flexible control over scene transitions to suit different application scenarios; (3) SVI imposes no inherent length limit on generated videos; and (4) SVI can be easily adapted to arbitrary video generators.
+
+
+\subsection{Limitation and Future Work}
+
+
+\textbf{Scaling Up.} Due to time constraints, our models were trained on small datasets without scaling up. We observe that when test-time image styles diverge from the training distribution, adjacent clips can exhibit color shifts. A likely cause is that the model incorrectly treats test-time low-level style as an error and “corrects” it. We plan to scale up data and diversify styles to correct this “misunderstanding”, apply domain-balanced sampling, and incorporate style-preservation losses or reference-style conditioning to reduce such artifacts. Additionally, curriculum scaling, mixed/high-resolution training, and stronger augmentations should further improve robustness to style shifts.
+
+\textbf{Real-Time and Interactive Generation.} Our current model, built on Wan 2.1, generates frames in parallel rather than as a stream, which poses challenges for real-time deployment. Recent work (e.g., CausVid~\citep{yin2025causvid}, Self-Forcing~\citep{huang2025self}) has begun to explore streaming generation. Because our method only trains lightweight LoRA adapters, it can be seamlessly integrated into a real-time pipeline. In future work, we also plan to pursue real-time, infinite-horizon video generation and incorporate interactive control signals (e.g., live prompt updates, joystick-like trajectory guidance, and event triggers) for responsive editing and steering.
+
+\textbf{ID Consistency.} In SVI-Film, we maintain cross-clip motion continuity by conditioning on five motion frames. However, without explicit long-term memory, when the main character exits the frame, identity drift or swapping can occur. While SVI-Shot/Talk/Dance have achieved identity control via anchor frames, they currently do not extend to creative generation with scene transitions. We intend to develop an end-to-end filming pipeline that combines persistent identity embeddings, cross-shot feature caching, and scene-aware anchors to strengthen subject consistency across complex transitions. Some advanced anchoring and memorization strategies will be proposed.
+
+\subsection{Clarification of LLM usage}
+
+In this work, LLMs are used for writing refinement and grammatical checking, in strict accordance with ICLR guidelines. LLMs are not involved in the conception, methodology, and other sensitive components. In qualitative comparisons, we employ LLMs to assist with ancillary Python scripting tasks (e.g., vframe extraction, clip concatenation, and related utilities) and the Readme document.
+
+
+\subsection{Ethical concerns}
+
+All used and benchmarked models and the corresponding training data used in this work are sourced from openly available datasets. We do not use proprietary, restricted, or sensitive data. For the retrieved test data, we have checked the permissive licenses. This study does not involve human subjects, biometric information, or biological data, and therefore does not raise associated human-subjects risks. Regarding human talking videos, we recognize potential misuse risks such as deepfakes and fraud. To mitigate these risks, future open-source releases will include compliance constraints and guardrails to discourage malicious use and support ethical deployment.
+
+\section{Quantitative Experiments}\label{appendix:quantitative}
+
+\begin{table}[t]
+\centering
+\setlength\tabcolsep{4pt}
+\footnotesize 
+\begin{tabular}{l|c|c|c|c|c|c|c}
+\hline
+Models
+& {\Centerstack{Generated \\Scenes }}
+& {\Centerstack{Subject \\Consistency}} 
+& {\Centerstack{Background \\Consistency}} 
+& {\Centerstack{Aesthetic\\Quality}} 
+& {\Centerstack{Imaging\\Quality}} 
+& {\Centerstack{Dynamic\\Degree}} 
+& {\Centerstack{Motion\\Smoothness}} \\ 
+\hline
+Copy Clips & Single & 98.48\% & 98.60\% & 67.99\% & {71.93\%} & 7.14\% & 98.93\% \\ 
+Ping-Pong Clips & Single & 98.51\% & 98.59\% & 67.92\% & 71.92\% & 7.14\% & 99.06\% \\ 
+Copy Reference Img & Single & \red{100.00\%} & \red{100.00\%} & \red{68.55\%} & \red{73.05\%} & {0.00\%} & \red{99.84\%} \\ 
+\hline
+Wan 2.1 & Single & {80.00\%} & {87.27\%} & {56.19\%} & {65.37\%} & 14.29\% & 98.74\% \\ 
+StreamingT2V & Single & 66.32\% & 77.62\% & 40.49\% & 55.18\% & \red{85.71\%} & 95.60\% \\ 
+HistoryGuidance &Single & 64.84\% & 80.51\% & 29.84\% & 50.41\% & 7.14\% & {99.42\%} \\ 
+FramePack &Single & 79.37\% & 86.64\% & 55.66\% & 57.61\% & 0.00\% & {99.63}\% \\ \hline
+SVI-Shot (Ours)&Single& {97.50\%} & {97.89\%} & {65.75\%} & {71.54\%} & {21.43\%} & 98.81\% \\ 
+\hline
+\end{tabular}
+\vspace{-6pt}
+\caption{Exploring naive video extension methods. The best is highlighted in red (abnormally large).}
+\label{tab:fool}
+\vspace{-5pt}
+\end{table}
+
+\begin{table*}[t]
+\centering
+\begin{minipage}[t]{0.51\linewidth}
+\centering
+\small
+\resizebox{1\textwidth}{!}{
+\begin{tabular}{l|cccc}
+\hline
+Error
+& {\Centerstack{Sub. \\Cons.}}
+& {\Centerstack{Back. \\Cons.}}
+& {\Centerstack{Aest.\\Qual.}}
+& {\Centerstack{Img.\\Qual.}} \\
+\hline
+Self Only &\best{69.34\%} & 83.14\% & \best{52.83\%} & \best{56.97\%} \\
+Handcraft Only &69.21\% & \best{83.65\%} & 49.62\% & 45.17\% \\
+Self+Handcraft & 69.24\% & 83.48\% & 48.51\% & 39.50\% \\ \hline
+\end{tabular}
+}
+\vspace{-6pt}
+\caption{Comparison between self-generated errors and handcraft errors with image augmentation.\label{tab:aug}}\vspace{-3pt}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.47\linewidth}
+\centering
+\small
+\resizebox{0.95\textwidth}{!}{
+\begin{tabular}{l|cccc}
+\hline
+$\alpha$
+& {\Centerstack{Sub. \\Cons.}}
+& {\Centerstack{Back. \\Cons.}}
+& {\Centerstack{Aest.\\Qual.}}
+& {\Centerstack{Img.\\Qual.}} \\
+\hline
+$0.2$ & {92.16\%} & {93.68\%} & {58.52\%} & 77.49\% \\ 
+$0.4$ & 97.49\% & 96.73\% & 59.86\% & {77.32\%} \\ 
+% $\alpha=0.6$ & 99.06\% & 98.75\% & 60.18\% & 77.69\% \\ 
+$0.8$ & \best{99.59\%} & \best{99.37\%} & 59.69\% & 78.11\% \\ 
+$1.0$ & 98.54\% & 97.97\% & \best{59.88\%} & \best{78.12\%} \\
+\hline
+\end{tabular}}
+\vspace{-6pt}
+\caption{Analysis on error-recycling intensity by modifying LoRA alpha.\label{tab:alpha}}
+\end{minipage}
+\vspace{-14pt}
+\end{table*}
+
+\textbf{Exploring Naive Ways of Fooling Metrics.} In Tab~\ref{tab:fool}, we further study three types of designs fooling metrics: \emph{(a) Copy Clips}, which copies the first generated video clips 50 times naively; \emph{(b) Ping-Pong Clips} copies the first generated video clips 50 times in a ping-pong manner, and \emph{(c) Copy Reference Image} only naively copies reference images by 50$\times$81 times. We can see that these naive methods can successfully fool and attack some metrics, e.g., consistency and quality, showing some limitations of existing video generation evaluation. Correspondingly, methods with abnormally high values on these metrics tend to exhibit abnormally low counterparts, for example, a 0.00\% dynamic degree. \emph{Hence, we can learn a valuable message that it is necessary to comprehensively consider all metrics together for evaluation to prevent metric fooling.} Our SVI gives a satisfactory trade-off among all metrics, revealing its effectiveness.
+
+\textbf{Comparison between Self-generated Error and Naive Image Augmentation.} In Tab.~\ref{tab:aug}, we apply handcrafted degradations to the reference image, including random color shifts, blur, and sharpness, and compare with our self-generated errors. We observe that the naive image augmentations not only fail to help but also substantially degrade image quality. Moreover, combining self-generated and handcrafted errors causes severe conflicts, leading to further drops. These results suggest that accumulated, model-induced errors possess unique characteristics that are difficult to mimic with manual augmentations, showing the necessity of learning from the model’s own errors.
+
+
+\textbf{Analysis on Error-recycling Intensity.} In Tab.~\ref{tab:alpha}, bottom, we gradually adjust the error-recycling intensity by changing LoRA weight $\alpha$ in test, where a lower value means a weaker effect. Compared with $\alpha=1$, there is a consistent decrease in all metrics when reduced from $0.8$ to $0.2$, indicating that the more catastrophic errors appear when weakening the error correction ability. Hence, this can justify the necessary role of correcting errors actively. 
+
+\begin{wrapfigure}{r}{0.6\textwidth} 
+\centering
+\vspace{-10pt}
+\begin{tabular}{l|cccc}
+\hline
+$Z$
+& {\Centerstack{Sub. \\Cons.}}
+& {\Centerstack{Back. \\Cons.}}
+& {\Centerstack{Aest.\\Qual.}}
+& {\Centerstack{Img.\\Qual.}} \\
+\hline
+1 & 67.82\% &82.90\% & 51.55\% & 52.96\% \\ 
+10 & 67.41\% & 81.79\% & 52.12\% & 54.29\% \\ 
+100 & 68.51\% & 82.97\% & 51.03\% & 55.30\% \\ 
+500 & \best{69.34}\% & 83.14\% & \best{52.83}\% & \best{56.97}\% \\ 
+1000 & 69.14\% & \best{83.83}\% & 51.36\% & 55.06\% \\ 
+2000 & 69.02\% & 82.98\% & 51.39\% & 54.55\% \\ \hline
+\end{tabular}
+\vspace{-5pt}
+\captionof{table}{Ablation study on error bank size $Z$.}
+\label{tab:error_bank_size}
+\end{wrapfigure}
+\textbf{Analysis on Error Bank Size.} Tab.~\ref{tab:error_bank_size} evaluates the effect of varying the error bank size $Z$ on model performance across multiple metrics. Exceedingly limited error bank sizes, such as $Z=1$ or $Z=10$, restrict error diversity, leading to suboptimal performance in Subjective Consistency, Background Consistency, Aesthetic Quality, and Image Quality. As $Z$ increases, all metrics show consistent improvements. However, beyond $Z=500$, performance saturates, with most metrics exhibiting no significant gains or slight declines. Our selection of $Z=500$ achieves satisfactory performance, effectively balancing error diversity with model capability.
+
+\begin{table*}[t]
+\centering
+\small
+\begin{tabular}{lll}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Description} \\
+\midrule
+Learning rate & 2.0e-05 & Adam optimizer learning rate \\
+Max epochs & 10 & Maximum training epochs \\
+Gradient clipping & 1.00 & Gradient norm clipping threshold \\
+Gradient accumulation & 1 & Gradient accumulation steps \\
+Training strategy & deepspeed\_stage\_2 & Distributed training \\
+Data workers & 1 & Number of data loading workers \\
+Gradient checkpointing & Yes & Memory optimization technique \\
+Checkpointing offload & Yes & CPU gradient checkpointing \\
+\midrule
+LoRA rank & 128 & Low-rank adaptation rank dimension \\
+LoRA alpha & 128 & LoRA scaling parameter \\
+LoRA init & kaiming & LoRA weight initialization method \\
+Architecture & lora & Training architecture type \\
+LoRA position & q,k,v,o,ffn.0,ffn.2 & Target modules for LoRA \\
+Frame height & 480 & Video frame height (pixels) \\
+Frame width & 832 & Video frame width (pixels) \\
+Tiled processing & Yes & Tiled inference for memory efficiency \\
+Tile height & 34 & Processing tile height \\
+Tile width & 34 & Processing tile width \\
+Video frames & 81 & Number of video frames per sample \\
+\midrule
+error-recycling tuning & Yes & Enable error-recycling tuning \\
+Warmup iterations & 20 & Number of iter. gathering multi-node errors \\
+Noise error $p_\noi$& 0.01 & Noise error injection probability \\
+Latent error $p_\vid$& 0.9 & Latent error injection probability \\
+Image error $p_\img$& 0.9 & Image error injection probability \\
+Clean input $p$&0.5 & probability without any error\\
+Timestep grids & 50 &Discretized timestep grids for error buffer \\
+Maximum error $Z$& 500 &Maximum errors saved in each memory grid \\
+Motion grames & 5 & Number of motion reference frames \\
+Motion probability & 0.95 & Probability of using motion frame \\
+\bottomrule
+\end{tabular}
+\caption{Detailed hyperparameters used in the training and test.}
+\label{tab:training_params}
+\end{table*}
+
+
+\section{Implementation Details\label{appendix:implementation}}
+
+The experiments are conducted on a large-scale GH200 cluster. Detailed hyperparameters used for SVI training are shown in Tab.~\ref{tab:training_params}. We implement SVI based on Wan2.1-I2V-14B-480P, and only tune LoRA to enable the flexibility, i.e., the user can effortlessly inject SVI into their private models. \textbf{All the models/source codes/benchmark datasets have been made publicly available.}
+
+\textbf{Training Data.} The proposed \method is significantly data efficient as it only uses small-scale publicly available data to fine-tune. In all settings, we only train SVI with 10 epochs. For the creative and consistent video generation setting, the proposed SVI-Shot and SVI-Film are trained with the MixKit Dataset~\citep{lin2024open} consisting of 6K videos. We also explore the scaling-up ability with UltraVideo~\citep{xue2025ultravideo}. For the audio-guided talking. we use a random subset of Hallo 3~\citep{cui2025hallo3} containing 5,000 video clips for training. For the skeleton conditional dancing, we use TikTok~\citep{jafarian2021learning} for the error-recycling fine-tuning, where the LoRA is pretrained from~\citep{wang2025unianimate}
+
+\section{Additional Qualitative Comparison\label{appendix:qualitative}}
+The proposed SVI demonstrates capability in generating temporally coherent short films guided by text streams, as evidenced in Fig.~\ref{fig:airplane_long} through Fig.~\ref{fig:baby_long}, showcasing its potential for end-to-end storytelling and creative content creation applications. Beyond basic generation, our method exhibits remarkable versatility by supporting multimodal controls. As illustrated in Fig.~\ref{fig:dance_034} and Fig.~\ref{fig:talkingface_vis}, SVI achieves robust long-range video synthesis through both visual and embedding-based control, enabling precise manipulation of character movements and facial expressions. 
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figure/Vis_Creative_Short_V2/airplane_creative_short.pdf}
+\caption{Qualitative results about airplane landing story.}
+\label{fig:airplane_long}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figure/Vis_Creative_Short_V2/cat_creative_short.pdf}
+\caption{Qualitative results about the cat story.}
+\label{fig:cat_long}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figure/Vis_Creative_Short_V2/motorcycle_creative_short.pdf}
+\caption{Qualitative results about the motorcycle story.}
+\label{fig:motorcycle_long}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figure/Vis_Creative_Short_V2/zoo_creative_short.pdf}
+\caption{Qualitative results about the zoo story.}
+\label{fig:zoo_long}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figure/Vis_Creative_Short_V2/baby_creative_short.pdf}
+\caption{Qualitative results about the baby story.}
+\label{fig:baby_long}
+\end{figure}
+
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figure/dance_034.pdf}
+\caption{Qualitative results about the dancing.}
+\label{fig:dance_034}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=.7\linewidth]{Figure/talkingface_vis.pdf}
+\caption{Qualitative results about the talking face.}
+\label{fig:talkingface_vis}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{Figure/tom_vis.pdf}
+\caption{Qualitative results about the clips of Tom and Jerry.}
+\label{fig:tom_vis}
+\end{figure}
+
+\end{document}

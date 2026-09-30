@@ -1,0 +1,15 @@
+Despite these results, our framework has notable limitations.
+It inherits the capabilities and limitations of the underlying base model; improvements in character motion, high-frequency details, and audio quality will directly translate to better results from our method as well.
+
+Beyond base-model limitations, our design introduces specific constraints and failure modes.
+\textbf{Mask representation.}
+We encode masks within the reference video rather than providing them as a separate input. This works reliably in practice, with a rare failure mode when the video contains colors similar to the designated inpainting color.
+
+\textbf{Complex character motion.}
+When the reference depth or pose signal contains rapid, intricate character movements, the generated video may exhibit temporal jitter or implausible limb configurations.
+
+\textbf{Camera control with fast scene dynamics.}
+Camera trajectory control from video re-renders each frame as a point cloud from the target viewpoint. In scenes with rapid, non-rigid motion, the per-frame reprojection can produce stretching or ghosting artifacts in the reference canvas, and the LoRA may faithfully reproduce these artifacts rather than correcting them.
+
+\textbf{Reference image conditioning.}
+The most notable capability gap relative to VACE is reference image conditioning. Identity preservation is fundamentally different from the spatial and temporal controls our framework targets and is better handled by a separate, complementary mechanism.

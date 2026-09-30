@@ -1,0 +1,95 @@
+\documentclass[runningheads]{llncs}
+
+% ---------------------------------------------------------------
+% ECCV package (camera-ready mode for arXiv)
+\usepackage{eccv}
+
+% ---------------------------------------------------------------
+% Other packages
+
+% Commonly used abbreviations (\eg, \ie, \etc, \cf, \etal, etc.)
+\usepackage{eccvabbrv}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+\usepackage{xcolor}
+
+% The "axessibility" package can be found at: https://ctan.org/pkg/axessibility?lang=en
+% \usepackage[accsupp]{axessibility} % Improves PDF readability for those with disabilities.
+
+\usepackage[pagebackref,breaklinks,colorlinks,citecolor=eccvblue]{hyperref}
+
+\renewcommand{\footnotesize}{\scriptsize}
+
+\begin{document}
+
+\pagestyle{headings}
+\mainmatter
+
+\title{AVControl: Efficient Framework for Training Audio-Visual Controls}
+
+\author{
+Matan~Ben-Yosef$^*$ \and
+Tavi~Halperin$^*$ \and
+Naomi~Ken~Korem \and
+Mohammad~Salama \and
+Harel~Cain \and
+Asaf~Joseph \and
+Anthony~Chen \and
+Urska~Jelercic \and
+Ofir~Bibi
+}
+% ORCIDs (uncomment when ready):
+% Tavi Halperin: 0000-0001-9288-5392
+% Mohammad Salama: 0009-0001-7301-0117
+% Harel Cain: 0009-0007-0105-6937
+% Naomi Ken Korem: 0009-0006-8761-9675
+% Asaf Joseph: 0009-0000-5144-0602
+% Urska Jelercic: 0000-0002-7131-8062
+% Ofir Bibi: 0009-0004-1119-9550
+% Matan Ben-Yosef: TODO
+\authorrunning{M.~Ben-Yosef, T.~Halperin \textit{et al.}}
+\institute{Lightricks}
+
+\maketitle
+
+\let\thefootnote\relax\footnotetext{
+$^*$Equal contribution.\\[2pt]
+Project page: \url{https://matanby.github.io/AVControl/}\\
+Code: \url{https://github.com/Lightricks/LTX-2/tree/main/packages/ltx-trainer}\\
+Video: \url{https://youtu.be/f8D2CwF6BIY}
+}
+
+\begin{abstract}
+\input{sections/abstract}
+\keywords{video generation, audio-visual models, LoRA, controllable generation, video editing}
+\end{abstract}
+
+\section{Introduction}
+\input{sections/introduction}
+\section{Related Work}
+\input{sections/related_work}
+\section{Method}
+\label{sec:method}
+\input{sections/method}
+\section{Experiments}
+\input{sections/experiments}
+\section{Limitations}
+\label{sec:limitations}
+\input{sections/limitations}
+\section{Conclusion}
+\input{sections/conclusion}
+
+
+\clearpage
+
+\bibliographystyle{splncs04}
+\bibliography{egbib}
+
+\clearpage
+\section*{Supplementary Material}
+\input{sections/supplementary}
+
+\end{document}

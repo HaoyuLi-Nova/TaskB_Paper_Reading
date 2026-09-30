@@ -1,0 +1,22 @@
+
+
+\begin{table}[h]
+    \centering
+    \adjustbox{max width=\textwidth}{%
+    \begin{tabular}{ccc ccc cc cc}
+        \toprule
+        & \multicolumn{2}{c}{\multirow{2}{*}{FT data}} & \multicolumn{7}{c}{A net win rate \vs B} \\
+        & & & \multicolumn{3}{c}{Quality} & \multicolumn{2}{c}{Video-SFX Alignment} & \multicolumn{2}{c}{Video-Music Alignment}  \\
+        \cmidrule(lr){4-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10}
+        Dataset & Model A & Model B & Ovr. & Nat. & Pro. & Corr. & Sync. & Mood & Action \\
+        \midrule
+        SFX & Cin-AV + HQ-A & Cin-AV        & \meanci{21.5}{18.7} & \meanci{24.3}{17.3} & \meanci{22.8}{18.7} & \meanci{11.7}{17.4} & \meanci{ 9.6}{18.1} & n/a & n/a \\
+        SFX+music & Cin-AV + HQ-A & Cin-AV  & \meanci{ 1.7}{18.0} & \meanci{ 3.0}{18.0} & \meanci{ 0.4}{18.3} & \meanci{ 0.0}{14.7} & \meanci{ 8.6}{16.0} & \meanci{16.4}{12.8} & \meanci{14.9}{11.8} \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{Using high quality audio-only data in fine-tuning \OursAudio.}
+    Including high quality audio-only data significantly improves audio quality and even video alignment for SFX-only generation.
+    }
+    \label{tab:audio_abl_hq_data}
+\end{table}

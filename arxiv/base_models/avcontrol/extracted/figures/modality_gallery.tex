@@ -1,0 +1,30 @@
+\begin{figure*}[t]
+\centering
+\definecolor{oursblue}{HTML}{3B9DD9}%
+\newlength{\mgfw}\setlength{\mgfw}{0.184\textwidth}%
+\newcommand{\mgimg}[1]{\includegraphics[width=\mgfw]{figures/images/modality_gallery/#1}}%
+\newcommand{\mgout}[1]{{\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.5pt}%
+  \fcolorbox{oursblue}{white}{\includegraphics[width=\dimexpr\mgfw-1pt\relax]{figures/images/modality_gallery/#1}}}}%
+\newcommand{\modpair}[2]{%
+  \begin{minipage}[c]{0.04\textwidth}%
+    \centering\rotatebox[origin=c]{90}{\scriptsize\textbf{#1}}%
+  \end{minipage}%
+  \hfill
+  \begin{minipage}[c]{0.95\textwidth}%
+    \mgimg{#2_ctrl_1}\hfill\mgimg{#2_ctrl_2}\hfill\mgimg{#2_ctrl_3}\hfill\mgimg{#2_ctrl_4}\hfill\mgimg{#2_ctrl_5}\\[0.5pt]%
+    \mgout{#2_out_1}\hfill\mgout{#2_out_2}\hfill\mgout{#2_out_3}\hfill\mgout{#2_out_4}\hfill\mgout{#2_out_5}%
+  \end{minipage}%
+}%
+%
+\modpair{Canny}{canny}\\[3pt]
+\modpair{Pose}{pose}\\[3pt]
+\modpair{Depth}{depth}\\[3pt]
+\modpair{Camera (Img)}{camera_image}\\[3pt]
+\modpair{Camera (Vid)}{camera_video}\\[3pt]
+\modpair{Sparse Track.}{sparse_tracking}\\[3pt]
+\modpair{Cut-on-Action}{cut_on_action}\\[3pt]
+\modpair{Inpainting}{inpainting}%
+%
+\caption{Partial gallery of control modalities. Each row pair shows control input (top) and generated output (bottom, \textcolor{oursblue}{blue border}) across five sampled frames. Each modality is an independent LoRA trained in 200--15{,}000 steps. We provide additional video examples in the supplementary.}
+\label{fig:modality_gallery}
+\end{figure*}

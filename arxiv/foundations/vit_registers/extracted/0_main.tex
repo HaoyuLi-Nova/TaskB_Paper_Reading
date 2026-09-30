@@ -1,0 +1,117 @@
+\documentclass{article} %
+\usepackage{iclr2024_conference,times}
+
+\makeatletter
+\def\blfootnote{\gdef\@thefnmark{}\@footnotetext}
+\makeatother
+
+
+\input{math_commands.tex}
+
+\usepackage{layouts}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{pythonhighlight}
+\usepackage{printlen}
+\usepackage{subcaption}
+\usepackage{mdframed}
+\usepackage{relsize}
+\usepackage{array}
+
+
+\title{
+  \centering
+  Vision Transformers Need Registers
+}
+
+
+
+\author{
+Timothée Darcet\textsuperscript{1,2} \And
+Maxime Oquab\textsuperscript{1} \And
+Julien Mairal\textsuperscript{2} \And
+Piotr Bojanowski\textsuperscript{1} \And
+\normalfont
+\textsuperscript{1} FAIR, Meta \\
+\textsuperscript{2} Univ. Grenoble Alpes, Inria, CNRS, Grenoble INP, LJK, 38000 Grenoble, France \\
+}
+
+
+\newcommand{\new}[1]{{#1}}
+\newcommand{\old}[1]{}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\newnew}{\marginpar{NEW}}
+\newcommand{\pb}[1]{{\color{purple} PB: #1}}
+\newcommand{\mo}[1]{{\color{blue} MO: #1}}
+\newcommand{\td}[1]{{\color{cyan} TD: #1}}
+\newcommand{\ours}{DINOv2+reg} %
+\newcommand{\internaldeadlinemodif}[1]{{#1}}
+\iclrfinalcopy %
+
+\begin{document}
+
+
+
+  
+\maketitle
+\blfootnote{Correspondence to \texttt{timdarcet@meta.com}}
+
+\begin{abstract}
+
+  Transformers have recently emerged as a powerful tool for learning visual representations. 
+  In this paper, we identify and characterize artifacts in feature maps of both supervised 
+  and self-supervised ViT networks. The artifacts correspond to high-norm tokens appearing 
+  during inference primarily in low-informative background areas of images, that are 
+  repurposed for internal computations. We propose a simple yet effective solution based on 
+  providing additional tokens to the input sequence of the Vision Transformer to fill that 
+  role. We show that this solution fixes that problem entirely for both supervised and 
+  self-supervised models, sets a new state of the art for self-supervised visual models on 
+  dense visual prediction tasks, enables object discovery methods with larger 
+  models, and most importantly leads to smoother feature maps and attention maps for downstream visual 
+  processing.
+\end{abstract}
+
+\input{0_pullfig.tex}
+
+
+\input{1_intro.tex}
+
+
+
+
+\input{3_problem_formulation.tex}
+
+
+\input{4_experiments.tex}
+
+\input{2_related.tex}
+
+\section{Conclusion}
+In this work, we exposed artifacts in the feature maps of DINOv2 models, and found this phenomenon to 
+be present in multiple existing popular models. We \new{have} described a simple method to detect these artifacts 
+by observing that they correspond to tokens with an outlier norm value at the output of the Transformer 
+model. Studying their location, we \new{have} proposed an interpretation that models naturally recycle tokens 
+from low-informative areas and repurpose them into a different role for inference. Following this 
+interpretation, we \new{have} proposed a simple fix, consisting of appending additional tokens to the input sequence 
+that are not used as outputs, and \new{have} found that this entirely removes the artifacts, improving the 
+performance in dense prediction and object discovery. Moreover, we \new{have shown}\old{showed} that the proposed solution also 
+removes the same artifacts present in supervised models such as DeiT-III and OpenCLIP, confirming the generality of our solution. 
+
+\subsubsection*{Acknowledgments}
+We thank Hu Xu, Oriane Siméoni, Mido Assran and Armand Joulin for their insightful discussions and help during the course of this work.
+We thank Pyrrhus for posing for fig~\ref{fig:scores_n_reg}.
+Julien Mairal was supported by ANR 3IA MIAI@Grenoble Alpes (ANR-19-P3IA-0003) and by ERC grant number 101087696 (APHELEIA project).
+
+\bibliography{egbib}
+\bibliographystyle{iclr2024_conference}
+
+\newpage
+\appendix
+
+\input{5_appendix.tex}
+
+\end{document}

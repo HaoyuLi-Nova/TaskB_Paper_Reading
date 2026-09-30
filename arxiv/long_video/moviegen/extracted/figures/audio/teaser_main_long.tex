@@ -1,0 +1,43 @@
+\begin{table}[h]
+    \centering
+    \captionsetup{type=figure}
+    \setlength{\tabcolsep}{1pt}
+    \adjustbox{max width=0.95\textwidth}{%
+    \centering
+    \begin{tabular}{cccccc}
+        \rowcolor{blue300}
+        \multicolumn{6}{c}{\textbf{Long-form video-to-cinematic audio generation}} \\
+        \multicolumn{6}{c}{{(a) Airhead (57s, \Sora \& shy kids)}} \\
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/airhead/out-285.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/airhead/out-571.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/airhead/out-856.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/airhead/out-1142.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/airhead/out-1427.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/airhead/out-1713.jpg}\\
+        \multicolumn{6}{c}{
+            \includegraphics[width=\linewidth, height=0.05\linewidth]
+            {figures/audio/teaser/main_long/airhead/spec.jpg}
+        } \\
+        \multicolumn{6}{c}{{(b) Ocean, cloud, galaxy (2m09s, \Sora \& Tammy Lovin)}} \\
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/ocean_sky_galaxy/out-646.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/ocean_sky_galaxy/out-1292.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/ocean_sky_galaxy/out-1938.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/ocean_sky_galaxy/out-2584.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/ocean_sky_galaxy/out-3230.jpg}&
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/main_long/ocean_sky_galaxy/out-3876.jpg}\\
+        \multicolumn{6}{c}{
+            \includegraphics[width=\linewidth, height=0.05\linewidth]
+            {figures/audio/teaser/main_long/ocean_sky_galaxy/spec.jpg}
+        } \\
+    \end{tabular}}
+\vspace{-3mm}
+\caption{\textbf{Examples of sound track generation for long videos with \OursAudio.}
+\OursAudio can generate long-form coherent and cinematic soundtracks for videos up to a few minutes long.
+It learns to compose music that progresses with the story.
+For example, in Airhead, verse 1 starts at 0:10 that aligns with the protagonist walking,
+verse 2 starts at 0:22 when the ballon starts floating around the world and the music intensity builds up,
+and finally music calms down and fades out in the last scene at 0:42.
+Videos in this Figure found at \url{https://go.fb.me/MovieGen-Figure32}.
+}
+\label{fig:audio_main_long}
+\end{table}

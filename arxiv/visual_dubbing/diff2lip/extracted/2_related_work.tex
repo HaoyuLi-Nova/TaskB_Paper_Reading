@@ -1,0 +1,33 @@
+
+\section{Related Works}
+In this section, we first talk about existing methods in lip-sync and then discuss conditional diffusion models. 
+\subsection{Lip synchronization}
+Lip-sync methods can be roughly classified into the following four categories.  Please note that there may be overlaps between these categories. 
+
+
+\noindent{\textbf{Embedding-based head reconstruction.}}
+\label{sec:head-based}
+This class of methods tends to synthesize the entire head by the fusion of speech and identity features. This is usually done using an encoder-decoder style architecture. Song et al.~\cite{song2018talking} and Vougioukas et al.~\cite{vougioukas2018end} use RNNs while Speech2Vid~\cite{speech2vid} uses CNNs. LipGAN~\cite{kr2019towards} uses an audio-visual discriminator to improve synchronization. PC-AVS~\cite{pcavs} performs disentanglement of identity, speech, and pose from each other to have complete pose control. GC-AVT~\cite{gcavt} additionally disentangles emotion. Recent contemporary works like DiffTalk~\cite{shen2023difftalk} use latent diffusion models for achieving high visual quality at the cost of lip-sync, which is even worse in cross generation. This method additionally requires landmarks for proper face positioning, uses auto-regressive inference strategies that cannot be parallelized, and employs an external frame interpolation method as it suffers from jitter. In general, as these methods generate full faces, they suffer from border inconsistency issues while putting the generated head back onto the frame.
+
+\noindent{\textbf{Intermediate representation-based methods.}}
+\label{sec:2d3d}
+These methods learn to manipulate sparse intermediate representations like face landmarks or meshes. Chen et al.~\cite{chen2019hierarchical} and Das et al.~\cite{das2020speech} generate faces conditioned on the landmarks estimated using the audio. MakeItTalk~\cite{makeittalk} proposes to predict speaker landmark displacement based on the audio. 
+Methods like Song et al.~\cite{song2022everybody}, Yu et al.~\cite{yu2020multimodal}, and Xie et al.~\cite{xie2021towards} use 3DMM (facial mesh) to generate face videos. Neural Voice Puppetry~\cite{thies2020neural}, uses audio to predict the coefficients of an expression basis of a 3D model. Zhang et al.~\cite{zhang2021flow} propose to first predict 3DMM-based animation parameters which are then converted into a dense flow for facial animation. Although these methods leverage intermediate structures for lip-sync, getting such representations manually is expensive while automatic predictions are error-prone. Further, these also tend to lose finer details given the sparse representation.
+
+\noindent{\textbf{Personalized methods.}}
+\label{sec:person-specific}
+In this type of methods, the models are trained to be identity specific or even video-specific~\cite{rhythmic-head}. For example, SynthesizingObama~\cite{synthesizing-obama} only focuses on Obama's lip sync using an audio-to-landmark network.  MEAD~\cite{mead} leverages edges while Lu et al.\cite{lu2021live} uses facial landmarks to create edge-like conditional-feature maps to generate talking faces. Methods like  Song et al.~\cite{song2022everybody}, Zhang et al.\cite{zhang2021flow}, and Neural Voice Puppetry~\cite{thies2020neural}, discussed earlier, which do audio-driven expression manipulation (3DMM) also fall in this category. Some methods also deal with explicit 3D mesh vertex deformfation like LipSync3D~\cite{lipsync3d}. NeRF~\cite{nerf} based models like AD-NeRF~\cite{adnerf} and SSPNeRF~\cite{SSPNeRF} are also person-specific. This class of methods demonstrates high video quality at times, but that comes at the cost of retraining the model on the specific person and environment every time.
+
+\noindent{\textbf{Inpainting-based methods.}}
+\label{sec:inpainting-based}
+In these methods instead of generating the whole face only the bottom part of the face, which gets affected by speech is modified. These models don't suffer from image boundary inconsistencies when pasting back the mouth portion to the entire frame. Initial works like~\cite{chen2018lip} only focus on lip region features and used an audio-speech fusion module to merge them. Wav2Lip~\cite{wav2lip} is one of the most popular methods in this area and shows the importance of lip-sync expert network for better lip-sync. AV-CAT~\cite{avcat} uses a transformer backbone and a refinement model for inpainting the lower face.  SyncTalkFace~\cite{synctalkface} further introduces an audio lip memory that is used for inference time generation. Our method falls also in this category of lip-sync. It doesn't struggle with error propagation issues being end-to-end trainable, and does not require any explicit 2D/3D information while being identity-agnostic. It further improves the image quality compared to previous methods. Recent contemporary works like Gupta et al.~\cite{gupta2023towards} also focus on improving quality by using VQGAN and a face restoration network but consequently make the lips have a pinkish tint and slightly different from the input. Their lip-sync expert network requires five times more context compared to Wav2Lip. 
+
+
+\subsection{Conditional diffusion models}
+
+
+Initial work in this area involved class conditioning for image generation. For example, Ho \& Salimans~\cite{ho2021classifierfree} used class labels to train a diffusion model by interpolating between conditional and unconditional outputs. While Guided-diffusion~\cite{guided-diffusion} used a classification network for class conditioning to get a better image generation. Methods like GLIDE~\cite{glide}, DALLE-2~\cite{dalle2}, Stable-Diffusion\cite{latent-diffusion}, and IMAGEN~\cite{imagen} leverage language models to generate photorealistic as well as many other styles of images just using text prompt inputs. There has also been some research into text-to-video generation like Video Diffusion Models~\cite{video-diffusion-models} and more photorealistic models like Gen-1~\cite{gen1}. Recently, seeing the popularity of diffusion models, people have also proposed models like Noise2Music~\cite{noise2music} that can generate music using just text prompts. There has also been some work on image-conditioned diffusion models. Palette~\cite{palette} is a generalized image-to-image generation framework, which can solve tasks like coloration, inpainting, outpainting, jpeg-restoration, etc. We also pose the problem as an inpainting style diffusion task but with additional audio and reference identity-conditioned inputs. 
+
+  
+
+

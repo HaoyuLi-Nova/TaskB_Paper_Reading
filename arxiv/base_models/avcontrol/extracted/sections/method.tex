@@ -1,0 +1,32 @@
+\input{figures/method_overview}
+
+An overview of AVControl is shown in Figure~\ref{fig:method_overview}. The reference control signal is placed on a parallel canvas alongside the generation target, and a lightweight LoRA adapter is the only trainable component. We describe each design decision below.
+
+\subsection{Parallel Canvas Conditioning}
+A common strategy for incorporating reference signals into diffusion models is \emph{channel concatenation}, where the reference is concatenated along the channel dimension of the noisy latents and fed into the diffusion model. This incurs negligible latency overhead but requires new input-projection weights.
+
+We instead encode the reference signal through the same VAE as the generation target, producing a set of latent patch tokens. These reference tokens are concatenated along the sequence dimension with the noisy target tokens and processed jointly through the transformer's self-attention layers. Reference tokens are assigned a clean timestep ($t{=}0$) while generation tokens carry the current noise level, allowing the model to inherently distinguish the two without positional encoding changes. Training uses the standard diffusion denoising objective, with the loss computed only on the generation tokens; reference tokens serve as clean conditioning context. A lightweight LoRA adapter on the frozen transformer is the only trainable component, applied by default to all attention projection matrices and feed-forward layers, with the exact set of target modules optimized per modality (see supplementary Table~\ref{tab:training_details}). While this approach increases the token count, it provides three important advantages:
+
+\begin{enumerate}
+    \item \textbf{Training efficiency.} Some modalities converge in as few as a few hundred steps, with most spatially-aligned controls requiring only a few thousand. This is because we leverage the pre-trained self-attention layers for injecting the control.
+
+    \item \textbf{Fine-grained reference weighting.} Because reference and target interact through self-attention, we can directly scale the attention weights between target queries and reference keys. A global strength parameter uniformly scales all target-to-reference attention, providing a continuous trade-off between structural fidelity and generative freedom. Local modulation varies this scaling per token, enabling spatial or temporal fading of the reference influence (see Fig.~\ref{fig:strength_modulation} in the supplementary). Such modulation is impossible when the reference is fused at the input channel level.
+
+    \item \textbf{Support for misaligned references.} Channel concatenation assumes pixel-level spatial alignment. Our formulation imposes no such constraint: for example, our \emph{cut-on-action} control, which re-renders a scene from a substantially different camera angle, is similar to camera trajectory control but with potentially large viewpoint changes and a different starting frame. The reference and target videos are temporally aligned but spatially different, and the parallel canvas learns this correspondence despite the lack of pixel-level alignment.
+\end{enumerate}
+
+\input{figures/canvas_vs_concat}
+
+\noindent We illustrate the failure of spatial concatenation in Figure~\ref{fig:canvas_vs_concat}: a concatenation-based LoRA trained for depth-guided generation captures scene semantics but does not faithfully follow the spatial structure of the depth signal, motivating our use of a parallel canvas approach.
+
+\subsection{Per-Modality LoRA Training}
+Our framework is built on top of a joint audio-visual model, yet each LoRA can be trained on a \emph{single} modality (either video or audio) or on joint audio-visual pairs. A video-only LoRA (e.g., depth-to-video) controls the video stream while the base model freely generates synchronized audio. An audio-only LoRA (e.g., speech-to-ambient) controls the audio stream while the base model generates accompanying video. This single-modality training keeps individual runs small and focused while the joint foundation model provides cross-modal generation at no additional training cost. We can apply a video LoRA and an audio LoRA at the same generation.
+
+\subsection{Combining Conditions}
+The framework conditions on a single reference signal. To combine multiple control signals, we merge them onto one canvas by compositing; for instance, masked depth overlaid with pose for neural rendering from Blender, keeping geometry aligned while allowing the model freedom on character motion.
+
+\subsection{Small-to-Large Control Grid}
+Not all control modalities carry the same amount of information. Dense, spatially-aligned signals such as depth maps require a relatively high-resolution reference canvas, while sparser controls like camera parameters can be expressed with far fewer tokens. We leverage this by scaling the reference canvas resolution according to the information density of each modality. This \emph{small-to-large control grid} reduces the number of additional attention tokens, and consequently the inference latency and memory overhead, for modalities that do not require pixel-level reference detail; see the supplementary for details.
+
+
+\noindent We next validate these design choices on standard benchmarks and demonstrate the framework across a diverse set of control modalities.

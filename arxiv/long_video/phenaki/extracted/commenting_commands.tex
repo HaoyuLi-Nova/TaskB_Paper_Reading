@@ -1,0 +1,26 @@
+%\iffalse % show comments
+\iffalse % don't show comments
+    % Add command for TODO notes that can be hidden easily:
+    \newcommand\todo[1]{}
+
+    \newcommand{\dumitru}[1]{}
+    \newcommand{\mbz}[1]{}
+    \newcommand{\pikinder}[1]{}
+    \newcommand{\hmoraldo}[1]{}
+    \newcommand{\msaffar}[1]{}
+    \newcommand{\rubville}[1]{}
+    \newcommand{\zhanghan}[1]{}
+\else % show comments
+    % Add command for TODO notes that can be hidden easily:
+    \newcommand{\todo}[1]{{\textcolor{red}{[[TODO: {#1}]]}}}
+    % \renewcommand\todo[1]{} % Uncomment this to hide all to-dos.
+    \newcommand{\edit}[1]{{\textcolor{red}{[[{#1}]]}}}
+
+    \newcommand{\dumitru}[1]{\textcolor{magenta}{[dumitru: {#1}]}}
+    \newcommand{\mbz}[1]{\textcolor{green}{[mbz: {#1}]}}
+    \newcommand{\pikinder}[1]{\textcolor{blue}{[pikinder: {#1}]}}
+    \newcommand{\hmoraldo}[1]{\textcolor{orange}{[hmoraldo: {#1}]}}
+    \newcommand{\msaffar}[1]{\textcolor{gray}{[msaffar: {#1}]}}
+    \newcommand{\rubville}[1]{\textcolor{purple}{[rubville: {#1}]}}
+    \newcommand{\zhanghan}[1]{\textcolor{navy}{[zhanghan: {#1}]}}
+\fi

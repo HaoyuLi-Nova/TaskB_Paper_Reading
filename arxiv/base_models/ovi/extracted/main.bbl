@@ -1,0 +1,327 @@
+\begin{thebibliography}{43}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Anastassiou et~al.(2024)Anastassiou, Chen, Chen, Chen, Chen, Chen,
+  Cong, Deng, Ding, Gao, et~al.]{anastassiou2024seed}
+Philip Anastassiou, Jiawei Chen, Jitong Chen, Yuanzhe Chen, Zhuo Chen, Ziyi
+  Chen, Jian Cong, Lelai Deng, Chuang Ding, Lu~Gao, et~al.
+\newblock Seed-tts: A family of high-quality versatile speech generation
+  models.
+\newblock \emph{arXiv preprint arXiv:2406.02430}, 2024.
+
+\bibitem[Brooks et~al.(2024)Brooks, Peebles, Holmes, DePue, Guo, Jing, Schnurr,
+  Taylor, Luhman, Luhman, Ng, Wang, and Ramesh]{sora}
+Tim Brooks, Bill Peebles, Connor Holmes, Will DePue, Yufei Guo, Li~Jing, David
+  Schnurr, Joe Taylor, Troy Luhman, Eric Luhman, Clarence Ng, Ricky Wang, and
+  Aditya Ramesh.
+\newblock Video generation models as world simulators.
+\newblock Technical report, OpenAI, 2024.
+\newblock URL
+  \url{https://openai.com/research/video-generation-models-as-world-simulators}.
+\newblock Accessed: 2025-09-24.
+
+\bibitem[Chen et~al.(2024{\natexlab{a}})Chen, Wang, Huang, and
+  Sang]{chen2024semantically}
+Gehui Chen, Guan'an Wang, Xiaowen Huang, and Jitao Sang.
+\newblock Semantically consistent video-to-audio generation using multimodal
+  language large model.
+\newblock \emph{arXiv preprint arXiv:2404.16305}, 2024{\natexlab{a}}.
+
+\bibitem[Chen et~al.(2020)Chen, Xie, Vedaldi, and Zisserman]{chen2020vggsound}
+Honglie Chen, Weidi Xie, Andrea Vedaldi, and Andrew Zisserman.
+\newblock Vggsound: A large-scale audio-visual dataset.
+\newblock In \emph{ICASSP 2020-2020 IEEE International Conference on Acoustics,
+  Speech and Signal Processing (ICASSP)}, pp.\  721--725. IEEE, 2020.
+
+\bibitem[Chen et~al.(2025{\natexlab{a}})Chen, Ma, Liu, Li, Chen, Liu, He, Li,
+  He, and Wu]{chen2025humo}
+Liyang Chen, Tianxiang Ma, Jiawei Liu, Bingchuan Li, Zhuowei Chen, Lijie Liu,
+  Xu~He, Gen Li, Qian He, and Zhiyong Wu.
+\newblock Humo: Human-centric video generation via collaborative multi-modal
+  conditioning.
+\newblock \emph{arXiv preprint arXiv:2509.08519}, 2025{\natexlab{a}}.
+
+\bibitem[Chen et~al.(2025{\natexlab{b}})Chen, Liang, Zhou, Huang, Ma, Tang,
+  Lin, Zhou, and Lu]{chen2025hunyuanvideo}
+Yi~Chen, Sen Liang, Zixiang Zhou, Ziyao Huang, Yifeng Ma, Junshu Tang, Qin Lin,
+  Yuan Zhou, and Qinglin Lu.
+\newblock Hunyuanvideo-avatar: High-fidelity audio-driven human animation for
+  multiple characters.
+\newblock \emph{arXiv preprint arXiv:2505.20156}, 2025{\natexlab{b}}.
+
+\bibitem[Chen et~al.(2024{\natexlab{b}})Chen, Niu, Ma, Deng, Wang, Zhao, Yu,
+  and Chen]{chen2024f5}
+Yushen Chen, Zhikang Niu, Ziyang Ma, Keqi Deng, Chunhui Wang, Jian Zhao, Kai
+  Yu, and Xie Chen.
+\newblock F5-tts: A fairytaler that fakes fluent and faithful speech with flow
+  matching.
+\newblock \emph{arXiv preprint arXiv:2410.06885}, 2024{\natexlab{b}}.
+
+\bibitem[Cheng et~al.(2025)Cheng, Ishii, Hayakawa, Shibuya, Schwing, and
+  Mitsufuji]{cheng2025mmaudio}
+Ho~Kei Cheng, Masato Ishii, Akio Hayakawa, Takashi Shibuya, Alexander Schwing,
+  and Yuki Mitsufuji.
+\newblock Mmaudio: Taming multimodal joint training for high-quality
+  video-to-audio synthesis.
+\newblock In \emph{Proceedings of the Computer Vision and Pattern Recognition
+  Conference}, pp.\  28901--28911, 2025.
+
+\bibitem[Chung \& Zisserman(2016)Chung and Zisserman]{chung2016out}
+Joon~Son Chung and Andrew Zisserman.
+\newblock Out of time: automated lip sync in the wild.
+\newblock In \emph{Asian conference on computer vision}, pp.\  251--263.
+  Springer, 2016.
+
+\bibitem[Du et~al.(2024)Du, Chen, Zhang, Hu, Lu, Yang, Hu, Zheng, Gu, Ma,
+  et~al.]{du2024cosyvoice}
+Zhihao Du, Qian Chen, Shiliang Zhang, Kai Hu, Heng Lu, Yexin Yang, Hangrui Hu,
+  Siqi Zheng, Yue Gu, Ziyang Ma, et~al.
+\newblock Cosyvoice: A scalable multilingual zero-shot text-to-speech
+  synthesizer based on supervised semantic tokens.
+\newblock \emph{arXiv preprint arXiv:2407.05407}, 2024.
+
+\bibitem[Gemmeke et~al.(2017)Gemmeke, Ellis, Freedman, Jansen, Lawrence, Moore,
+  Plakal, and Ritter]{gemmeke2017audio}
+Jort~F Gemmeke, Daniel~PW Ellis, Dylan Freedman, Aren Jansen, Wade Lawrence,
+  R~Channing Moore, Manoj Plakal, and Marvin Ritter.
+\newblock Audio set: An ontology and human-labeled dataset for audio events.
+\newblock In \emph{2017 IEEE international conference on acoustics, speech and
+  signal processing (ICASSP)}, pp.\  776--780. IEEE, 2017.
+
+\bibitem[Gong et~al.(2025)Gong, Zhao, Wang, Xu, and Guo]{gong2025ace}
+Junmin Gong, Sean Zhao, Sen Wang, Shengyuan Xu, and Joe Guo.
+\newblock Ace-step: A step towards music generation foundation model.
+\newblock \emph{arXiv preprint arXiv:2506.00045}, 2025.
+
+\bibitem[{Google DeepMind}(2024)]{veo3}
+{Google DeepMind}.
+\newblock Veo: A text-to-video generation system.
+\newblock Technical report, Google, 2024.
+\newblock URL
+  \url{https://storage.googleapis.com/deepmind-media/veo/Veo-3-Tech-Report.pdf}.
+\newblock Accessed: 2025-09-24.
+
+\bibitem[Guo et~al.(2024)Guo, Hu, Liu, Shen, Tang, Wu, Xie, Xie, and
+  Xu]{guo2024fireredtts}
+Hao-Han Guo, Yao Hu, Kun Liu, Fei-Yu Shen, Xu~Tang, Yi-Chen Wu, Feng-Long Xie,
+  Kun Xie, and Kai-Tuo Xu.
+\newblock Fireredtts: A foundation text-to-speech framework for industry-level
+  generative speech applications.
+\newblock \emph{arXiv preprint arXiv:2409.03283}, 2024.
+
+\bibitem[Haji-Ali et~al.(2024)Haji-Ali, Menapace, Siarohin, Balakrishnan, and
+  Ordonez]{haji2024taming}
+Moayed Haji-Ali, Willi Menapace, Aliaksandr Siarohin, Guha Balakrishnan, and
+  Vicente Ordonez.
+\newblock Taming data and transformers for audio generation.
+\newblock \emph{arXiv preprint arXiv:2406.19388}, 2024.
+
+\bibitem[Hershey et~al.(2017)Hershey, Chaudhuri, Ellis, Gemmeke, Jansen, Moore,
+  Plakal, Platt, Saurous, Seybold, et~al.]{hershey2017cnn}
+Shawn Hershey, Sourish Chaudhuri, Daniel~PW Ellis, Jort~F Gemmeke, Aren Jansen,
+  R~Channing Moore, Manoj Plakal, Devin Platt, Rif~A Saurous, Bryan Seybold,
+  et~al.
+\newblock Cnn architectures for large-scale audio classification.
+\newblock In \emph{2017 ieee international conference on acoustics, speech and
+  signal processing (icassp)}, pp.\  131--135. IEEE, 2017.
+
+\bibitem[Ho \& Salimans(2022)Ho and Salimans]{ho2022classifier}
+Jonathan Ho and Tim Salimans.
+\newblock Classifier-free diffusion guidance.
+\newblock \emph{arXiv preprint arXiv:2207.12598}, 2022.
+
+\bibitem[Huang et~al.(2023)Huang, Ren, Huang, Yang, Ye, Zhang, Liu, Yin, Ma,
+  and Zhao]{huang2023make}
+Jiawei Huang, Yi~Ren, Rongjie Huang, Dongchao Yang, Zhenhui Ye, Chen Zhang,
+  Jinglin Liu, Xiang Yin, Zejun Ma, and Zhou Zhao.
+\newblock Make-an-audio 2: Temporal-enhanced text-to-audio generation.
+\newblock \emph{arXiv preprint arXiv:2305.18474}, 2023.
+
+\bibitem[Kong et~al.(2020)Kong, Cao, Iqbal, Wang, Wang, and
+  Plumbley]{kong2020panns}
+Qiuqiang Kong, Yin Cao, Turab Iqbal, Yuxuan Wang, Wenwu Wang, and Mark~D
+  Plumbley.
+\newblock Panns: Large-scale pretrained audio neural networks for audio pattern
+  recognition.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language
+  Processing}, 28:\penalty0 2880--2894, 2020.
+
+\bibitem[Kong et~al.(2024)Kong, Tian, Zhang, Min, Dai, Zhou, Xiong, Li, Wu,
+  Zhang, et~al.]{kong2024hunyuanvideo}
+Weijie Kong, Qi~Tian, Zijian Zhang, Rox Min, Zuozhuo Dai, Jin Zhou, Jiangfeng
+  Xiong, Xin Li, Bo~Wu, Jianwei Zhang, et~al.
+\newblock Hunyuanvideo: A systematic framework for large video generative
+  models.
+\newblock \emph{arXiv preprint arXiv:2412.03603}, 2024.
+
+\bibitem[Lee et~al.(2022)Lee, Ping, Ginsburg, Catanzaro, and
+  Yoon]{lee2022bigvgan}
+Sang-gil Lee, Wei Ping, Boris Ginsburg, Bryan Catanzaro, and Sungroh Yoon.
+\newblock Bigvgan: A universal neural vocoder with large-scale training.
+\newblock \emph{arXiv preprint arXiv:2206.04658}, 2022.
+
+\bibitem[Liao et~al.(2024)Liao, Wang, Li, Cheng, Zhang, Zhou, and
+  Xing]{liao2024fish}
+Shijia Liao, Yuxuan Wang, Tianyu Li, Yifan Cheng, Ruoyi Zhang, Rongzhi Zhou,
+  and Yijin Xing.
+\newblock Fish-speech: Leveraging large language models for advanced
+  multilingual text-to-speech synthesis.
+\newblock \emph{arXiv preprint arXiv:2411.01156}, 2024.
+
+\bibitem[Lipman et~al.(2022)Lipman, Chen, Ben-Hamu, Nickel, and
+  Le]{lipman2022flow}
+Yaron Lipman, Ricky~TQ Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le.
+\newblock Flow matching for generative modeling.
+\newblock \emph{arXiv preprint arXiv:2210.02747}, 2022.
+
+\bibitem[Liu et~al.(2024)Liu, Yuan, Liu, Mei, Kong, Tian, Wang, Wang, Wang, and
+  Plumbley]{liu2024audioldm}
+Haohe Liu, Yi~Yuan, Xubo Liu, Xinhao Mei, Qiuqiang Kong, Qiao Tian, Yuping
+  Wang, Wenwu Wang, Yuxuan Wang, and Mark~D Plumbley.
+\newblock Audioldm 2: Learning holistic audio generation with self-supervised
+  pretraining.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language
+  Processing}, 32:\penalty0 2871--2883, 2024.
+
+\bibitem[Liu et~al.(2025)Liu, Li, Chen, Wu, Zheng, Ji, Zhou, Jiang, Luo, Fei,
+  et~al.]{liu2025javisdit}
+Kai Liu, Wei Li, Lai Chen, Shengqiong Wu, Yanhao Zheng, Jiayi Ji, Fan Zhou,
+  Rongxin Jiang, Jiebo Luo, Hao Fei, et~al.
+\newblock Javisdit: Joint audio-video diffusion transformer with hierarchical
+  spatio-temporal prior synchronization.
+\newblock \emph{arXiv preprint arXiv:2503.23377}, 2025.
+
+\bibitem[Low \& Wang(2025)Low and Wang]{low2025talkingmachines}
+Chetwin Low and Weimin Wang.
+\newblock Talkingmachines: Real-time audio-driven facetime-style video via
+  autoregressive diffusion models.
+\newblock \emph{arXiv preprint arXiv:2506.03099}, 2025.
+
+\bibitem[Luo et~al.(2023)Luo, Yan, Hu, and Zhao]{luo2023diff}
+Simian Luo, Chuanhao Yan, Chenxu Hu, and Hang Zhao.
+\newblock Diff-foley: Synchronized video-to-audio synthesis with latent
+  diffusion models.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  36:\penalty0 48855--48876, 2023.
+
+\bibitem[Majumder et~al.(2024)Majumder, Hung, Ghosal, Hsu, Mihalcea, and
+  Poria]{majumder2024tango}
+Navonil Majumder, Chia-Yu Hung, Deepanway Ghosal, Wei-Ning Hsu, Rada Mihalcea,
+  and Soujanya Poria.
+\newblock Tango 2: Aligning diffusion-based text-to-audio generations through
+  direct preference optimization.
+\newblock In \emph{Proceedings of the 32nd ACM International Conference on
+  Multimedia}, pp.\  564--572, 2024.
+
+\bibitem[Mei et~al.(2024)Mei, Meng, Liu, Kong, Ko, Zhao, Plumbley, Zou, and
+  Wang]{mei2024wavcaps}
+Xinhao Mei, Chutong Meng, Haohe Liu, Qiuqiang Kong, Tom Ko, Chengqi Zhao,
+  Mark~D Plumbley, Yuexian Zou, and Wenwu Wang.
+\newblock Wavcaps: A chatgpt-assisted weakly-labelled audio captioning dataset
+  for audio-language multimodal research.
+\newblock \emph{IEEE/ACM Transactions on Audio, Speech, and Language
+  Processing}, 32:\penalty0 3339--3354, 2024.
+
+\bibitem[Peebles \& Xie(2023)Peebles and Xie]{peebles2023scalable}
+William Peebles and Saining Xie.
+\newblock Scalable diffusion models with transformers.
+\newblock In \emph{Proceedings of the IEEE/CVF international conference on
+  computer vision}, pp.\  4195--4205, 2023.
+
+\bibitem[Rasley et~al.(2020)Rasley, Rajbhandari, Ruwase, and
+  He]{rasley2020deepspeed}
+Jeff Rasley, Samyam Rajbhandari, Olatunji Ruwase, and Yuxiong He.
+\newblock Deepspeed: System optimizations enable training deep learning models
+  with over 100 billion parameters.
+\newblock In \emph{Proceedings of the 26th ACM SIGKDD international conference
+  on knowledge discovery \& data mining}, pp.\  3505--3506, 2020.
+
+\bibitem[Salimans et~al.(2016)Salimans, Goodfellow, Zaremba, Cheung, Radford,
+  and Chen]{salimans2016improved}
+Tim Salimans, Ian Goodfellow, Wojciech Zaremba, Vicki Cheung, Alec Radford, and
+  Xi~Chen.
+\newblock Improved techniques for training gans.
+\newblock \emph{Advances in neural information processing systems}, 29, 2016.
+
+\bibitem[Schuhmann(2022)]{improved-laion-aesthetic}
+Christoph Schuhmann.
+\newblock Improved aesthetic predictor, 2022.
+
+\bibitem[Su et~al.(2024)Su, Ahmed, Lu, Pan, Bo, and Liu]{su2024roformer}
+Jianlin Su, Murtadha Ahmed, Yu~Lu, Shengfeng Pan, Wen Bo, and Yunfeng Liu.
+\newblock Roformer: Enhanced transformer with rotary position embedding.
+\newblock \emph{Neurocomputing}, 568:\penalty0 127063, 2024.
+
+\bibitem[Teed \& Deng(2020)Teed and Deng]{teed2020raft}
+Zachary Teed and Jia Deng.
+\newblock Raft: Recurrent all-pairs field transforms for optical flow.
+\newblock In \emph{European conference on computer vision}, pp.\  402--419.
+  Springer, 2020.
+
+\bibitem[Wan et~al.(2025)Wan, Wang, Ai, Wen, Mao, Xie, Chen, Yu, Zhao, Yang,
+  et~al.]{wan2025wan}
+Team Wan, Ang Wang, Baole Ai, Bin Wen, Chaojie Mao, Chen-Wei Xie, Di~Chen,
+  Feiwu Yu, Haiming Zhao, Jianxiao Yang, et~al.
+\newblock Wan: Open and advanced large-scale video generative models.
+\newblock \emph{arXiv preprint arXiv:2503.20314}, 2025.
+
+\bibitem[Wang et~al.(2025)Wang, Zuo, Li, Chen, Liao, Zhou, Yin, Dai, Jiang, and
+  Yu]{wang2025universe}
+Duomin Wang, Wei Zuo, Aojie Li, Ling-Hao Chen, Xinyao Liao, Deyu Zhou, Zixin
+  Yin, Xili Dai, Daxin Jiang, and Gang Yu.
+\newblock Universe-1: Unified audio-video generation via stitching of experts.
+\newblock \emph{arXiv preprint arXiv:2509.06155}, 2025.
+
+\bibitem[Wang et~al.(2024)Wang, Guo, Huang, Huang, Wang, You, Li, and
+  Zhao]{wang2024frieren}
+Yongqi Wang, Wenxiang Guo, Rongjie Huang, Jiawei Huang, Zehan Wang, Fuming You,
+  Ruiqi Li, and Zhou Zhao.
+\newblock Frieren: Efficient video-to-audio generation network with rectified
+  flow matching.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  37:\penalty0 128118--128138, 2024.
+
+\bibitem[Wu et~al.(2023)Wu, Chen, Zhang, Hui, Berg-Kirkpatrick, and
+  Dubnov]{wu2023large}
+Yusong Wu, Ke~Chen, Tianyu Zhang, Yuchen Hui, Taylor Berg-Kirkpatrick, and
+  Shlomo Dubnov.
+\newblock Large-scale contrastive language-audio pretraining with feature
+  fusion and keyword-to-caption augmentation.
+\newblock In \emph{ICASSP 2023-2023 IEEE International Conference on Acoustics,
+  Speech and Signal Processing (ICASSP)}, pp.\  1--5. IEEE, 2023.
+
+\bibitem[Yi et~al.(2025)Yi, Ye, Shao, Yang, Zhao, Guo, Wang, Yin, Xie, Zhu,
+  et~al.]{yi2025magicinfinite}
+Hongwei Yi, Tian Ye, Shitong Shao, Xuancheng Yang, Jiantong Zhao, Hanzhong Guo,
+  Terrance Wang, Qingyu Yin, Zeke Xie, Lei Zhu, et~al.
+\newblock Magicinfinite: Generating infinite talking videos with your words and
+  voice.
+\newblock \emph{arXiv preprint arXiv:2503.05978}, 2025.
+
+\bibitem[Yin et~al.(2024)Yin, Gharbi, Park, Zhang, Shechtman, Durand, and
+  Freeman]{yin2024improved}
+Tianwei Yin, Micha{\"e}l Gharbi, Taesung Park, Richard Zhang, Eli Shechtman,
+  Fredo Durand, and Bill Freeman.
+\newblock Improved distribution matching distillation for fast image synthesis.
+\newblock \emph{Advances in neural information processing systems},
+  37:\penalty0 47455--47487, 2024.
+
+\bibitem[Zhang et~al.(2025)Zhang, Liu, Zheng, Chen, Ding, and
+  Di]{zhang2025deepaudio}
+Haomin Zhang, Chang Liu, Junjie Zheng, Zihao Chen, Chaofan Ding, and Xinhan Di.
+\newblock Deepaudio-v1: Towards multi-modal multi-stage end-to-end video to
+  speech and audio generation.
+\newblock \emph{arXiv preprint arXiv:2503.22265}, 2025.
+
+\bibitem[Zhao et~al.(2023)Zhao, Bai, Rao, Zhou, and Lu]{zhao2023unipc}
+Wenliang Zhao, Lujia Bai, Yongming Rao, Jie Zhou, and Jiwen Lu.
+\newblock Unipc: A unified predictor-corrector framework for fast sampling of
+  diffusion models.
+\newblock \emph{Advances in Neural Information Processing Systems},
+  36:\penalty0 49842--49869, 2023.
+
+\end{thebibliography}

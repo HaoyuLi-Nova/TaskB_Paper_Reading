@@ -1,0 +1,34 @@
+\section{Introduction}
+\label{sec:intro}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Rise of LLMs & Diffusion Models
+The advent of diffusion-based models DDPM \cite{ddpm2020} and DDIM \cite{ddim2020}, together with recent advances in large language models \cite{brown2020language}, has laid the foundation for cinematic long-form video generation and AI-driven content creation. High-quality, realistic video generation now underpins applications in education \cite{wang2023text2video_education}, marketing \cite{zhang2023diffusion_marketing}, autonomous driving \cite{wen2024panacea_autonomous_driving}, gaming \cite{muller2020gamegan}, entertainment \cite{kim2023cinediff}, robotic learning \cite{james2022sim2real}, medicine \cite{xu2020surgical_video_synthesis}, and virtual reality \cite{yang2021vr360}. These modeling developments produce large volumes of synthetic video data that benefit all of the aforementioned domains. Such data can support educational content, drive task-specific applications, or facilitate the training of next-generation machine learning models.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Video generation complexity 
+Video generation poses greater challenges than text or image generation. It incorporates temporal complexity alongside spatial complexity, ensuring frames' consistency, which is a key distinction from image generation. Consequently, beyond 16 seconds, autoregressive methods accumulate quality degradation, leading to inconsistencies, visual artifacts, or other perceptual errors \cite{xing2023survey}. Another limitation is the high memory requirements and computational resources required for video generation, as in the spatiotemporal attention \cite{wang2018nonlocal,duke2021sstvos,bertasius2021timesformer}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% dataset Limitations
+Video datasets that can be used commercially are very limited, which further hampers progress. Most public datasets require commercial licenses i.e. MovieBench \cite{moviebench2025}, Koala-36M \cite{wang2024koala36m}, CelebV-HQ \cite{zhu2022celebvhq}, Panda-70M \cite{chen2024panda70m}, HD-VG-130M \cite{videofactory} and MiraData \cite{ju2024miradata}, impeding industry-driven innovation. Long-form video generation demands realistic clips with detailed annotations to capture full narrative scenes. However, existing open-source datasets typically contain only a few seconds of footage. Moreover, crucial metadata such as shot type, camera motion, character emotions, background context, and action labels are rarely provided, necessitating custom dataset creation and curation. Richly annotated datasets, as in MovieBench \cite{moviebench2025}, include details about the background, characters, camera shot type, and camera motion. All of these annotation details of the dataset would improve text-to-video alignment and prompt adherence as per their benchmark results. In addition, the same dataset includes high-quality long videos, leading to the capability of generating longer videos.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Video generation limitation: character inconsistency 
+Maintaining character appearance consistency over time poses a challenge \cite{tulyakov2018mocogan}. Camera-relative character motion alters scale and density, potentially disrupting visual continuity \cite{brooks2022generating}. Ensuring temporal scene consistency during character movement is also critical \cite{yan2022temporally}. Supporting multiple characters while preserving consistency is even more demanding \cite{lin2023videodirectorgpt}. Abrupt scene transitions hinder coherent narrative generation \cite{wu2025mind}. Enforcing physical plausibility and accurate interactions further complicates video synthesis \cite{yang2025towards}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Motivation
+In this survey, we highlight the core architectural elements and training methodologies that reliably address the primary obstacles in video generation. We introduce a foundational framework that identifies and recommends a set of novel, high-potential components whose integration can overcome these challenges and enable the synthesis of longer, coherent, and visually compelling videos. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% contributions 
+
+Our contributions in this paper are summarized as:
+\begin{enumerate}
+  \item \textbf{Comprehensive Taxonomy and Architectural Backbone:} We introduce a taxonomy tree in Section~\ref{sec:taxonomy} that organizes video‐generation methods by their primary architectural focus, and Table~\ref{tab:backbone1} presents a detailed comparison of the core components used in state‐of‐the‐art models.
+
+  \item \textbf{Architectural Advances:} We survey emerging design patterns in video generation—covering training objectives, backbone networks, text encoders, VAE variants, positional embeddings, and other core modules. Section~\ref{sec:architecture} distills these components to guide the next generation of foundational video‐diffusion models.
+
+  \item \textbf{Datasets and Evaluation Metrics:} We identify underexplored cinematic and long‐form video datasets with high potential, and catalog the evaluation metrics recently adopted by the community (see Appendix).
+\end{enumerate}

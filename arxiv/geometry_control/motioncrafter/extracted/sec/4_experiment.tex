@@ -1,0 +1,128 @@
+
+\input{tables/scene_flow_estimation}
+\input{figs/indomain_result}
+
+\section{Experiments}
+\label{sec:experiments}
+\subsection{Evaluation Setting}
+
+\paragraph{Datasets}
+For \emph{geometry} evaluation, we perform zero-shot testing on three unseen dynamic scene datasets:
+DDAD~\cite{ddad2020},
+Monkaa~\cite{mayer2016large},
+and Sintel~\cite{sintel}. 
+These datasets cover both real-world and synthetic scenes,
+including indoor and outdoor environments. 
+% 
+For \emph{motion} evaluation,
+due to the limited availability of datasets with dense scene flow annotations,
+we use a combination of three in-domain datasets
+(Kubric~\cite{greff2021kubric},
+Spring~\cite{Mehl2023_Spring},
+and VKITTI2~\cite{cabon2020virtual})
+and two out-of-domain datasets
+(Dynamic Replica~\cite{karaev2023dynamicstereo}
+and Point Odyssey~\cite{zheng2023pointodyssey}). 
+Since Dynamic Replica and Point Odyssey only provide sparse scene flow annotations,
+we compute metrics only on the annotated points.
+
+\paragraph{Metrics}
+Unlike previous methods,
+we evaluate geometry and motion in the \textit{world coordinate system}.
+% to directly assess the real reconstruction ability of the model. 
+The predicted world-space point cloud is aligned with the ground truth by optimizing per-sequence scale and shift parameters. 
+We report the \textit{relative point error} ($\text{Rel}^p$) and the \textit{percentage of inlier} ($\delta^p$, threshold 0.25) as evaluation metrics. 
+% 
+The predicted scene flow is aligned according to the point map scale.
+We compute the \textit{End Point Error} (EPE) and the \textit{Average Percent of Points within Delta} (APD), 
+where the subscript of APD denotes the inlier threshold in the metric scale. 
+We provide details in the supplementary material.
+
+\subsection{Comparison with the State-of-the-art Methods}
+
+\paragraph{Assessing joint Geometry and Motion Reconstruction}
+We compare \method with recent representative methods in joint geometry and motion estimation in~\cref{tab:joint_geo_motion}.
+Here,
+we assess these metrics in the world coordinate space.
+Our model directly outputs a sequence of predictions in world coordinates.
+By contrast, most existing methods follow a pairwise design based on DUSt3R~\cite{wang2024dust3r},
+which need post-optimization or camera poses to align with ground truth.
+To ensure fairness, we use the camera pose predicted by VGGT~\cite{wang2025vggt} to transform their predictions into the world coordinate system.
+% 
+Through both quantitative and qualitative comparison in~\cref{fig:indomain_result,tab:joint_geo_motion},
+we observe that these pairwise approaches usually exhibit degraded performance when extended to video sequences, while our method outperforms state-of-the-art methods by 38.64\% in geometry and 25.0\% in motion on average.
+Note that,
+unlike Zero-MSF~\cite{liang2025zero},
+we do not train our model with motion annotations from Dynamic Replica~\cite{karaev2023dynamicstereo} and Point Odyssey~\cite{zheng2023pointodyssey}, yet still achieve better performance except on one comparable metric.
+\Cref{fig:effectiveness} shows that our method estimates temporally consistent scene flow in a world coordinate system, 
+remaining robust to camera motion and capable of describing 4D scene dynamics more accurately and efficiently.
+
+
+\input{tables/point_map_estimation}
+
+\paragraph{Assessing Geometry Reconstruction}
+We further compare our method with several representative approaches in geometry reconstruction in~\cref{tab:geo_only}.
+We group them by their geometric representation:
+(1) Camera-centric methods predict depth or point maps in the camera coordinate system.
+We transform their outputs to world coordinates using VGGT poses for fair comparison.
+(2) World-centric methods predict geometry directly in the reference frame coordinate system, and we align their results to ground truth using an affine transformation.
+% 
+Our method achieves \emph{state-of-the-art} performance on Monkaa, 
+demonstrating the advantages of our proposed architecture. 
+For Sintel and DDAD, our performance is inferior to VGGT~\cite{wang2025vggt}, 
+which we attribute to our single-modal design (w/o camera rays and depth maps) and the limited scale of our outdoor training data. 
+Note that we do not perform post-optimization, as in Geo4D~\cite{jiang2025geo4d}.
+The visual comparisons (see in supp.) further validate that our approach produces more coherent and consistent reconstructions in dynamic environments.
+
+\input{figs/effectiveness}
+
+
+\subsection{Ablation Study}
+We conduct thorough ablations to analyze \method.
+Results are reported in~\cref{tab:ablation_geometry,tab:ablation_motion},
+aiming to investigate the following three key questions:
+
+\input{tables/geometry_ablation}
+
+\noindent
+\textbf{Is it necessary to strictly align the input distribution with that of Video Diffusion?}
+The answer is \textbf{no}.
+Most of the existing geometric diffusion models~\cite{ke2024repurposing,zhang2024world,jiang2025geo4d}
+strictly normalize the 3D attributes (such as depth and point maps) to $[-1, 1]$,
+in order to inherit the diffusion prior.
+However,
+we find that such a \textit{max-rescale} normalization results in suboptimal reconstruction accuracy for the pretrained VAEs (VAE-1\&2 of~\cref{tab:ablation_geometry}). 
+Although Geo4D~\cite{jiang2025geo4d} alleviates this issue by freezing the VAE encoder and fine-tuning only the decoder, 
+our ablation shows that this strategy still yields inferior results (VAE-3 in~\cref{tab:ablation_geometry}).
+In contrast,
+our proposed \emph{mean rescale} strategy---combined with fine-tuning all VAE components---achieves the best performance without strict adherence to the original VAE distribution (VAE-4 of~\cref{tab:ablation_geometry}). 
+We further validate this finding in the Diffusion Unet stage (Unet-I vs. Unet-II),
+resulting in an average of 16.6\% gain in geometry.
+This finding suggests that \method maintains a better generalization ability,
+even do \emph{not} align the distribution with that of video diffusion.
+
+
+\input{tables/motion_ablation}
+
+\noindent
+\textbf{Which strategy for fusing geometric and motion latent information is most effective?}
+We explore different strategies,
+including \emph{Offset}, \emph{Separate}, and \emph{Unify} as discussed in~\cref{sec:method_vae},
+for jointly encoding geometry and motion information in~\cref{tab:ablation_motion}.
+Experimental results indicate that although separate VAEs achieve optimal performance in VAE reconstruction, a unified VAE ultimately performs better in Unet prediction.
+This phenomenon highlights the importance of tightly coupling geometry and motion representations for coherent 4D modeling.
+
+\noindent
+\textbf{What prior knowledge does video generator provide?}
+When using the original pretrained VAE to encode geometry and motion,
+we observe that the model already exhibits reasonable reconstruction ability in indoor scenes, as seen in the first rows of~\cref{tab:ablation_geometry,tab:ablation_motion}. 
+However, due to the significant scale discrepancy between point maps, scene flow, and image-space distributions,
+the original VAE struggles to handle large-scale variations, especially in outdoor scenes, shown in~\cref{fig:rescale}. 
+We argue that appropriate normalization and fine-tuning strategies are essential to fully leverage the priors embedded in the diffusion model. 
+As shown in VAE-2 of Table~\ref{tab:ablation_geometry}, 
+training from scratch leads to suboptimal results, confirming that the pretrained Video Diffusion model indeed contains rich priors beneficial for dense 4D reconstruction. 
+By explicitly modeling these priors, we effectively unlock the 4D representation capability of the video diffusion model.
+
+
+
+

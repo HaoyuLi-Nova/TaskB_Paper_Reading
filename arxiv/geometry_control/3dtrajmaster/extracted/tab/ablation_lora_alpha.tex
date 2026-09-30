@@ -1,0 +1,31 @@
+\begin{table}[!ht]
+
+\caption{Ablation Study on LoRA Scalar $\alpha$.} 
+\label{tab:ablation_lora_alpha}
+
+\centering
+\begin{threeparttable}
+\resizebox{.85\textwidth}{!} 
+{
+\begin{tabular}{ccccccccccc}
+\toprule
+&  \multicolumn{3}{c}{ Video Quality } & \multicolumn{2}{c}{ 3D Trajectory Accuracy } \\
+\cmidrule(lr){2-4} 
+\cmidrule(lr){5-6} 
+LoRA Scalar $\alpha$ & FVD  & FID  & CLIPSIM $\uparrow$ & TransErr (m)  & RotErr (deg)    \\
+
+\midrule
+$\alpha=0$ & \textbf{1495.38} & \textbf{80.56} & \textbf{0.3467} & 0.646 & 0.900  \\
+$\alpha=0.2$ & \underline{1976.01} & \underline{106.45} & \underline{0.3429}  & 0.546 & 0.493 \\
+$\alpha=0.4$ & 2150.42 & 133.76 & 0.3367 & 0.444 & \underline{0.428}   \\
+$\alpha=0.6$ & 2330.56 & 152.12 & 0.3277 & 0.394 & \textbf{0.393}  \\
+$\alpha=0.8$ & 2318.78 & 195.93 & 0.3125 & \underline{0.378} & 0.450  \\
+$\alpha=1.0$ & 2481.33 & 224.81 & 0.3087 & \textbf{0.358} & 0.432 \\
+\bottomrule
+
+
+\end{tabular}
+}
+
+\end{threeparttable}
+\end{table}

@@ -1,0 +1,64 @@
+
+
+\section{Introduction}
+\label{sec-1-intro}
+
+Image animation, also known as image-to-video generation (I2V), offers a powerful tool for video creation, allowing filmmakers and content creators 
+to bring static images to life with dynamic motion. 
+Over the years, image animation has attracted significant research efforts~\cite{horrytour, xuanimating,niklaus3d,liuinfinite, holynski2021animating}, exploring various approaches to animate still images.
+Recent advances in modern video generation models have transformed the landscape of I2V 
+%image-to-video 
+synthesis~\cite{xing2023dynamicrafter,yang2024cogvideox}. These models utilize generative techniques 
+%modeling techniques to generate 
+to produce videos from textual descriptions, opening up new creative possibilities. However, the limitations of pure I2V approaches become clear when considering the complexities of dynamic content, as textual information alone often falls short of 
+%fails to 
+capturing the intricate details of the motion, leading to uncertainty and a lack of control in generating the animations.
+
+In content creation and filmmaking, motion design of the shot is crucial. It involves planning the camera movements and object motions to create a cohesive visual narrative. Despite its importance, current video generation models \phil{rely primarily} on textual input\phil{s} for motion control, which \phil{largely} limits the precision and expressiveness of the resulting animations. \phil{Some?} Existing works \phil{cite some here?} attempt to incorporate camera and object motion controls in video diffusion models.
+However, they \phil{cannot fully address} 
+%have not fully addressed 
+the challenges of shot design.
+%Specifically, they face two main limitations: the lack of joint modeling for camera and object motions, and the absence of 3D-aware motion conditioning signals.
+\phil{Specifically, the challenges come from (i)} the lack of joint modeling for camera and object motions, and (ii) the absence of 3D-aware motion conditioning signals.
+
+\phil{TO NOTE: it will be good to explain the paper title here (or revise the title), e.g. interactive? Does this work support interactive?}
+
+\phil{The next sentence is important. Make sure the sentence clearly describes this work without overly claiming something or misleading, e.g., did you relate camera movements with object motion?}
+To define our problem, we focus on the relationship between camera movement and scene-aware object motion within the temporal range of a shot. This involves representing each motion signal in a way that accurately reflects user intentions while remaining suitable for training video generation models. The key challenges include the following:
+
+\textbf{Designing Control Signals}: Creating control signals that effectively communicate \phil{describe? model? capture?} user intentions for both camera and object motions.
+
+\textbf{Generating Video with User Intentions}: Ensuring that the generated video aligns with the specified motion intentions.
+
+\textbf{Separating Camera and Object Motion}: Distinguishing between camera movements and object motions to achieve coherent animations \phil{natural video generation?}.
+
+Our findings indicate that, while users think about motion in scene space, models are often trained more effectively with screen-space signals. We propose that the first frame of the video can serve as a canvas for users to express their scene-space motion design intent. Additionally, classical graphics and 3D vision techniques offer natural methods for separately representing object positioning and camera movements.
+
+To address these challenges, we introduce \MOCA, a streamlined video synthesis system designed for cinematic shot design. Our method enables comprehensive motion control, allowing for the joint manipulation of both camera and object motions in a scene-aware manner during the shot design and video synthesis processes. We develop dedicated motion-conditioning mechanisms that guide DiT-based video diffusion models to follow control signals capturing camera and object motions. Coupled with a Motion Signal Translation module, our approach translates depicted scene-space motion intent into screen-space conditioning signals for the video generation module.
+
+In summary, this paper makes the following contributions.
+
+\begin{itemize} 
+%
+%\item We introduce the problem of cinematic shot design in image-to-video synthesis. 
+\item We introduce cinematic shot design to the process of image-to-video synthesis. 
+%
+\item We present \MOCA, a streamlined video synthesis system for cinematic shot design, 
+%enabling 
+\phil{offering} holistic motion control\phil{s} 
+%that allows 
+for joint manipulation of camera and object motions in a scene-aware manner. 
+%
+\item 
+%To this end, 
+Further, we design dedicated motion conditioning mechanisms to guide the DiT-based video diffusion models with 
+%in following 
+the control signals that capture the camera and object motions. We couple that with a Motion Signal Translation module to translate the depicted scene-space motion intent into the screen-space conditioning signal for the Video Generation module. 
+%
+\item Evaluations on diverse 
+%range of 
+real-world photos 
+%input images 
+demonstrate the effectiveness of \MOCA for cinematic shot design, highlighting its flexibility and potential for various creative applications. 
+%
+\end{itemize}

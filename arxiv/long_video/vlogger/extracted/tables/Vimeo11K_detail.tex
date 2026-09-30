@@ -1,0 +1,50 @@
+\begin{table*}[t]
+\begin{minipage}[t]{1\linewidth}
+    \centering
+    \setlength\tabcolsep{6pt}
+    \resizebox{1\linewidth}{!}{%
+    \begin{tabular}{c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c }
+    \toprule
+    \multicolumn{2}{c |}{ } & \multicolumn{4}{| c}{\textbf{Experimental 1003}} & \multicolumn{4}{| c}{\textbf{Music 1179}} & \multicolumn{4}{| c}{\textbf{Animation 1175}} & \multicolumn{4}{| c}{\textbf{Sport 905}} & \multicolumn{4}{| c}{\textbf{Ads and Commercials 1229}} \\
+    \midrule
+        \textbf{TTCA} & \textbf{MTP} & 0/16 () & 1/15 () & 3/13 () & 5/11 () & 0/16 () & 1/15 () & 3/13 () & 5/11 () & 0/16 () & 1/15 () & 3/13 () & 5/11 () & 0/16 () & 1/15 () & 3/13 () & 5/11 () & 0/16 () & 1/15 () & 3/13 () & 5/11 ()  \\
+        \midrule
+        \xmark & \xmark & 326.75 & 244.45 & 302.43 & 260.52 & 362.06 & 254.73 & 377.09 & 318.92 & 283.49 & 204.61 & 272.61 & 277.08 & 608.13 & 332.09 & 433.65 & 313.92 & 339.66 & 190.68 & 268.9 & 211.51 \\
+        
+        \cmark & \xmark & 319.93 & 197.03 & 251.3 & 226.34 & 357.28 & 206.5 & 261.78 & 221.05 & 252.42 & 174.8 & 262.87 & 243.34 & 556.09 & 261.2 & 315.4 & 218.27 & 332.7 & 177.28 & 205.07 & 166.19 \\
+        
+        \cmark & \cmark & \textbf{227.3} & \textbf{124.23} & \textbf{113.13} & \textbf{122.28} & \textbf{250.4} & \textbf{132.16} & \textbf{130.2} & \textbf{128.78} & \textbf{207.3} & \textbf{115.3} & \textbf{130.14} & \textbf{104.94} & \textbf{427.79} & \textbf{196.11} & \textbf{181.84} & \textbf{148.87} & \textbf{239.88} & \textbf{107.05} & \textbf{101.6} & \textbf{109.17} \\
+        \bottomrule
+        % \vspace{-1.75em}
+    \end{tabular}
+    }
+    \subcaption{Ablation on Experimental, Music, Animation, Sport, and Ads and Commercials categories of Vimeo11K.}
+    \end{minipage}
+
+\begin{minipage}[t]{1\linewidth}
+    \centering
+    \setlength\tabcolsep{6pt}
+    \resizebox{1\linewidth}{!}{%
+    \begin{tabular}{c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c | c }
+    \toprule
+    \multicolumn{2}{c |}{ } & \multicolumn{4}{| c}{\textbf{Travel 1288}} & \multicolumn{4}{| c}{\textbf{Branded Content 1173}} & \multicolumn{4}{| c}{\textbf{Narrative 1010}} & \multicolumn{4}{| c}{\textbf{Comedy 1267}} & \multicolumn{4}{| c}{\textbf{Documentary 1064}} \\
+    \midrule
+        \textbf{TTCA} & \textbf{MTP} & 0/16 () & 1/15 () & 3/13 () & 5/11 () & 0/16 () & 1/15 () & 3/13 () & 5/11 () & 0/16 () & 1/15 () & 3/13 () & 5/11 () & 0/16 () & 1/15 () & 3/13 () & 5/11 () & 0/16 () & 1/15 () & 3/13 () & 5/11 ()  \\
+        \midrule
+        \xmark & \xmark & 432.36 & 215.06 & 285.86 & 244.87 & 246.83 & 174.44 & 221.33 & 188.21 & 301.44 & 202.36 & 310.94 & 232.17 & 244.46 & 172.31 & 260.8 & 219.12 & 338.39 & 183.15 & 240.09 & 199.32 \\
+        
+        \cmark & \xmark & 382.39 & 178.86 & 220.89 & 172.71 & 249.88 & 135.09 & 173.19 & 150.78 & 272.07 & 173.55 & 224.69 & 192.73 & 232.65 & 135.15 & 191.19 & 182.11 & 380.86 & 143.28 & 199.26 & 161.65 \\
+        
+        \cmark & \cmark & \textbf{283.64} & \textbf{123.55} & \textbf{116.24} & \textbf{92.99} & \textbf{209.6} & \textbf{98.77} & \textbf{98.19} & \textbf{88.17} & \textbf{242.63} & \textbf{135.59} & \textbf{107.18} & \textbf{109.89} & \textbf{205.04} & \textbf{94.03} & \textbf{103.85} & \textbf{95.3} & \textbf{283.38} & \textbf{108.28} & \textbf{97.88} & \textbf{92.69} \\
+        \bottomrule
+        % \vspace{-1.75em}
+    \end{tabular}
+    }
+    \subcaption{Ablation on Travel, Branded Content, Narrative, Comedy, and Documentary categories of Vimeo11K.}
+    \end{minipage}
+    
+    \caption{\textbf{Detail ablation for temporal text cross attention and mixed training paradigm. }. Detailed experimental data on 10 major categories of Vimeo11K.
+    }
+    \vspace{-0.5cm}
+    \label{tab:vimeo_detail}
+\end{table*}

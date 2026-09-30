@@ -1,0 +1,285 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Implementation Details}
+Our training dataset is composed of three parts: Hallo3~\cite{cui2025hallo3}, Celebv-HQ~\cite{zhu2022celebvhq}, and videos collected from the internet, totaling 1200 hours of video.
+Following previous works~\cite{wang2025fantasytalking,cui2025hallo3,kong2025let,gan2025omniavatar}, we evaluate our model on HDTF~\cite{zhang2021flow} and semi-body AVSpeech~\cite{ephrat2018looking}. 
+Since previous works do not open-source their testing datasets, we randomly select 100 videos (5-20 seconds long) from HDTF and AVSpeech, respectively.
+We conduct additional experiments on 100 unseen videos (2-5 minutes long), referred to the Long100, selected from the internet to assess the robustness of our model during long avatar animation.
+Our DiT uses pre-trained weights of Wan2.1-I2V 1.3B~\cite{wan2025, liu2025phantom}, while the Audio Encoder is trained from scratch. 
+Our model is trained for 20 epochs on 64 NVIDIA A100 80G GPUs, with a batch size of 1 per GPU. 
+We set learning rate=1$e$-5, $\alpha=4.5$, and $\beta=3.0$.
+
+\begin{table*}[t!]\small
+\caption{Quantitative comparisons on HDTF/AVSpeech/Long100. In the table elements $a$ / $b$ / $c$, $a$, $b$, and $c$ refer to the result on the HDTF, AVSpeech, and Long100, respectively. The average video duration of HDTF and AVSpeech is 10 seconds, while Long100 is 3 minutes.
+}
+\vspace{-0.25in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.85}{
+\begin{tabular}{l|ccccccc}
+\toprule
+Model          & FID                                    & FVD                              & CSIM$\uparrow$                                  & Sync-C$\uparrow$                             & Sync-D                             & IQA$\uparrow$                                & ASE$\uparrow$                                \\ \midrule
+SadTalker~\cite{zhang2023sadtalker}      & 53.12/120.57/194.88                    & 567/1468/2261                    & 0.821/0.802/0.423                     & 7.25/4.13/3.21                     & 9.86/9.72/11.16                    & 3.12/2.40/2.31                     & 2.14/1.43/1.38                     \\
+Aniportrait~\cite{wei2024aniportrait}    & 46.35/118.86/190.66                    & 537/1524/2095                    & 0.815/0.796/0.415                     & 3.88/1.95/1.13                     & 10.84/11.58/12.87                  & 3.82/2.28/2.10                     & 2.41/1.31/1.22                     \\
+Sonic~\cite{ji2025sonic}          & 62.17/187.42/278.40                    & 552/2051/2877                    & 0.843/0.825/0.451                     & 8.16/6.04/4.03                     & 7.65/8.94/10.23                    & 3.28/2.24/2.08                     & 2.05/1.36/1.13                     \\
+EchoMimic~\cite{chen2025echomimic}      & 63.43/108.13/178.12                    & 593/1123/1885                    & 0.849/0.837/0.456                     & 5.44/4.59/3.64                     & 9.27/9.78/10.74                    & 3.64/2.97/2.31                     & 2.23/1.82/1.43                     \\
+Hallo3~\cite{cui2025hallo3}         & 44.31/98.14/170.44                     & 438/987/1724                     & 0.845/0.834/0.462                     & 6.58/5.16/4.42                     & 8.64/9.62/9.92                     & 3.50/3.38/2.35                     & 2.11/1.96/1.36                     \\
+FantasyTalking~\cite{wang2025fantasytalking} & 46.74/80.01/175.78                     & 479/823/1789                     & 0.863/0.853/0.468                     & 3.42/2.98/1.92                     & 12.15/11.422/11.78                 & 3.55/3.24/2.42                     & 2.28/1.89/1.48                     \\
+HunyuanAvatar~\cite{chen2025hunyuanvideo}  & 52.16/77.53/172.94                     & 625/868/1743                     & 0.866/0.859/0.472                     & 7.20/6.74/4.34                     & 8.39/8.28/10.07                    & 3.56/3.63/2.46                     & 2.25/2.21/1.52                     \\
+MultiTalk~\cite{kong2025let}      & 46.94/75.67/175.52                     & 446/804/1768                     & 0.868/0.861/0.465                     & 7.53/4.88/4.12                     & 8.02/9.59/10.18                    & 3.54/3.72/2.42                     & 2.15/2.25/1.45                     \\
+OmniAvatar~\cite{gan2025omniavatar}     & 41.79/72.56/168.49         & 424/744/1621         & 0.862/0.857/0.471          & 7.50/6.78/4.45          & 8.26/8.05/9.62          & 3.55/3.74/2.51          & 2.27/2.29/1.56 \\ \midrule
+Ours           & \textbf{38.14/68.12/57.18}             & \textbf{375/640/504}             & \textbf{0.875/0.872/0.849}            & \textbf{8.15/7.56/8.24}            & \textbf{6.94/7.85/6.79}            & \textbf{3.90/3.79/3.84}            & \textbf{2.46/2.32/2.39}            \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\vspace{-0.3in}
+\label{table:quantitative_comparisons}
+\end{table*}
+
+\subsection{Comparison with State-of-the-Art Methods}
+\textbf{Quantitative results.}
+Regarding metrics, we use FID~\cite{heusel2017gans} and FVD~\cite{unterthiner2018towards} to assess the quality of synthesized images and videos.
+We further use the Q-align model~\cite{wu2023q} to evaluate the video quality (IQA) and aesthetic metrics (ASE). Sync-C~\cite{chung2016out} and Sync-D~\cite{chung2016out} are utilized to assess the synchronization of lips with audio.
+CSIM~\cite{zhang2023sadtalker} evaluates the cosine similarity between the facial embeddings of two images. 
+We compare with recent audio-driven avatar video generation models, including GAN-based models (SadTalker~\cite{zhang2023sadtalker}) and diffusion-based models (SD-based: AniPortrait~\cite{wei2024aniportrait}, EchoMimic~\cite{chen2025echomimic}; SVD-based: Sonic~\cite{ji2025sonic}; CogVideo-5B-based: Hallo3~\cite{cui2025hallo3}; HunyuanVideo-13B-based: HunyuanAvatar~\cite{chen2025hunyuanvideo}; Wan-14B-based: FantasyTalking~\cite{wang2025fantasytalking}, MultiTalk~\cite{kong2025let}, OmniAvatar~\cite{gan2025omniavatar}).
+Based on previous studies that assess quantitative results using the self-driven and reconstruction approach, we perform quantitative comparisons with the above competitors on HDTF~\cite{zhang2021flow}, AVSpeech~\cite{ephrat2018looking}, and Long100.
+Notably, all competitors are trained on our dataset before evaluating on Long100 to ensure a fair comparison.
+The results are shown in Table \ref{table:quantitative_comparisons}.
+We observe that, even though all competitors encounter a significant drop in performance for long video generation, StableAvatar still surpasses them regarding face quality, video fidelity, and lip synchronization while maintaining relatively high single-frame quality.
+Specifically, Wan2.1-1.3B-based StableAvatar outperforms the leading competitor, Wan2.1-14B-based OmniAvatar, by 80.3\% and 85.2\% in CSIM and Sync-C on Long100.
+
+\noindent\textbf{Qualitative Results.}
+The qualitative results are shown in Fig. \ref{fig:comparison}. Notably, each audio lasts 3+ minutes and is filled with intricate rhythm patterns, while the references include intricate details of appearances. We only display selected frames from the last 2 minutes for brevity.
+EchoMimic~\cite{chen2025echomimic} exhibits face/body distortion and clothing changes, while the rest of competitors can accurately modify the reference lip movements within the first 15 seconds of the video.
+However, when the video duration exceeds 15 seconds, all competitors suffer from audio-lip synchronization issues, blurry noises, face distortion, and color drift.
+In particular, Hallo3~\cite{cui2025hallo3} and HunyuanAvatar~\cite{chen2025hunyuanvideo} suffer from severe face distortion and audio-lip synchronization issues, with the lips moving randomly. Meanwhile, FantasyTalking~\cite{wang2025fantasytalking}, MultiTalk~\cite{kong2025let}, and OmniAvatar~\cite{gan2025omniavatar} struggle with color drift, body/face distortion, and audio-lip synchronization issues.
+In contrast, our StableAvatar accurately animates images based on the given audio while preserving reference identities even after generating 3500+ frames, highlighting the superiority of our model in identity retention and in generating vivid, infinite-length avatar videos.
+
+\noindent\textbf{Length Discussion.}
+Fig. \ref{fig:cover_curve} shows that the quality drift in our StableAvatar remains negligible as the frame count increases, especially when compared to previous models. Theoretically, our StableAvatar is capable of synthesizing hours of video without significant quality degradation.
+
+\begin{figure*}[t!]
+\begin{center}
+\includegraphics[width=0.98\linewidth]{comparison.pdf}
+\end{center}
+\vspace{-0.65cm}
+   \caption{Qualitative comparisons with state-of-the-art methods. More examples can be found in the supplementary material.}
+\label{fig:comparison}
+\vspace{-0.5cm}
+\end{figure*}
+
+\begin{figure}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{ablation_core.pdf}
+\end{center}
+\vspace{-0.7cm}
+   \caption{Ablations on core components of StableAvatar. 
+   }
+\label{fig:ablation_core}
+\vspace{-0.40cm}
+\end{figure}
+
+\begin{table}[t!]\small
+\caption{Ablation study on core components. MF and SW are motion frame~\cite{cui2025hallo3} and conventional sliding-window~\cite{ji2025sonic}, which are both based on \textit{w/o} Audio Adapter.
+}
+\vspace{-0.25in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.75}{
+\begin{tabular}{l|cccccc}
+\toprule
+Method            & FVD          & CSIM$\uparrow$           & Sync-C$\uparrow$        & Sync-D        & IQA$\uparrow$           & ASE$\uparrow$           \\ \midrule
+\textit{w/o} Audio Adapter & 1802         & 0.457          & 3.95          & 10.96         & 2.34          & 1.40          \\
+\textit{w/o} Guidance      & 866          & 0.822          & 7.48          & 8.36          & 3.74          & 2.31          \\
+\textit{w/o} DWSW          & 718          & 0.845          & 8.17          & 6.85          & 3.79          & 2.36          \\
+\textit{w/} MF~\cite{cui2025hallo3}   & 2043         & 0.402          & 3.69          & 10.82         & 2.28          & 1.32          \\
+\textit{w/} SW~\cite{ji2025sonic} & 1854         & 0.438          & 3.77          & 10.72         & 2.31          & 1.35          \\ \midrule
+Ours              & \textbf{504} & \textbf{0.849} & \textbf{8.24} & \textbf{6.79} & \textbf{3.84} & \textbf{2.39} \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\label{table:ablation_core}
+\vspace{-0.3in}
+\end{table}
+
+\subsection{Ablation Study}
+
+\textbf{Audio Adapter.}
+We conduct an ablation study to demonstrate the contributions of core components in StableAvatar, as shown in Table \ref{table:ablation_core} and Fig. \ref{fig:ablation_core}. Notably, all quantitative ablation studies are on the Long100 dataset. We can see that removing the core components significantly degrades performance, particularly in CSIM and Sync-C/D, highlighting that our components significantly enhance both video fidelity while preserving high ID consistency in long avatar video generation. In contrast, previous long video generation strategies (\textit{w/} MF~\cite{cui2025hallo3} and \textit{w/} SW~\cite{ji2025sonic}) still suffer from dramatic appearance inconsistency and color drift, as they only basically tackle the video smoothness issue.
+
+We further conduct an ablation study regarding audio modeling, as shown in Table \ref{table:ablation_audio} and Fig. \ref{fig:ablation_audio_modeling} (a).
+By analyzing the results, we can gain the following observations: 
+(1) \textit{w/o} Aduio Adapter dramatically degrades the video fidelity and lip synchronization. The plausible reason is that current diffusion backbones lack audio-related priors, and directly injecting audio embeddings from third-party off-the-shelf extractors into diffusion leads to significant latent error accumulation across video clips, gradually deteriorating the overall long video quality.
+(2) \textit{w/o} Modulation/CAttn both relatively degrade the video quality. The underlying reason is that timestep-aware modulation bridges the joint audio-latent modeling, as latents and timesteps are strongly correlated. CAttn explicitly introduces latents into audio modeling, but without timestep modulation for audio embeddings, making it challenging for the model to effectively model the joint latent-audio space.
+Thus, timestep-aware modulation and CAttn are complementary, which is also evidenced by \textit{w/} Random modulation results.
+(3) StableAvatar can significantly refine the face quality while maintaining high video fidelity in long video generation since our model enables joint audio-latent modeling, reducing latent distribution error accumulation across video clips.
+
+\begin{figure}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{ablation_adapter_error.pdf}
+\end{center}
+\vspace{-0.6cm}
+   \caption{Ablation study on audio modeling.
+   }
+\label{fig:ablation_audio_modeling}
+\vspace{-0.45cm}
+\end{figure}
+
+\begin{table}[t!]\small
+\caption{Ablation study on audio modeling. \textit{w/o} Random modulation and \textit{w/o} CAttn refer to replace timesteps with random learnable parameters and remove cross-attention in our Audio Adapter.
+}
+\vspace{-0.25in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.75}{
+\begin{tabular}{l|cccccc}
+\toprule
+Method               & FVD          & CSIM$\uparrow$           & Sync-C$\uparrow$        & Sync-D        & IQA$\uparrow$           & ASE$\uparrow$           \\ \midrule
+\textit{w/o} Audio Adapter    & 1802         & 0.457          & 3.95          & 10.96         & 2.34          & 1.40          \\
+\textit{w/o} Modulation       & 1340         & 0.637          & 5.25          & 9.48          & 3.39          & 1.98          \\
+\textit{w/} Random modulation & 1186         & 0.632          & 5.16          & 9.76          & 3.50          & 2.07          \\
+\textit{w/o} CAttn  & 1218         & 0.664          & 6.37          & 8.52          & 3.56          & 2.23          \\ \midrule
+Ours                 & \textbf{504} & \textbf{0.849} & \textbf{8.24} & \textbf{6.79} & \textbf{3.84} & \textbf{2.39} \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\label{table:ablation_audio}
+\vspace{-0.3in}
+\end{table}
+
+\begin{table}[t!]\small
+\caption{Ablation study on the error accumulation. Adapter and G refer to our Audio Adapter and Audio Native Guidance.
+}
+\vspace{-0.2in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.8}{
+\begin{tabular}{l|ccccc}
+\toprule
+Method          & FVD          & CSIM$\uparrow$           & Sync-C$\uparrow$        & Sync-D        & CIEDE          \\ \midrule
+Baseline(A)     & 865          & 0.836          & 7.66          & 7.82          & 0.536          \\
+Baseline(B)     & 2388         & 0.405          & 3.78          & 10.47         & 2.318          \\ \midrule
+\textit{w/} Adapter(A)   & 723          & 0.829          & 8.23          & 6.74          & 0.196          \\
+\textit{w/} Adapter(B)   & 912          & 0.818          & 7.95          & 6.92          & 0.831          \\ \midrule
+\textit{w/} Adapter+G(A) & 478          & 0.846          & 8.28          & 6.65          & 0.166          \\
+\textit{w/} Adapter+G(B) & 572 & 0.853 & 8.20 & 6.83 & 0.523 \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\label{table:ablation_error}
+\vspace{-0.3in}
+\end{table}
+
+\noindent\textbf{Error Accumulation.}
+We conduct an ablation study on error accumulation, as shown in Table \ref{table:ablation_error} and Fig. \ref{fig:ablation_audio_modeling}(b). 
+A and B pick the 1st-200th and 3500th-3700th frames for evaluation, respectively. CIEDE~\cite{sharma2005ciede2000} measures the extent of color drift.
+Baseline removes all our audio-related components.
+We have the following observations: 
+(1) Baseline suffers from significant video quality deterioration in the 3500th-3700th frames. The main reason is that raw audio embeddings have conflicts with original backbone priors, triggering latent distribution error at each clip.
+As the number of generated frames increases, error accumulation becomes more severe, and the shift of the subsequent distribution from the target distribution grows larger.
+(2) \textit{w/} Adapter relatively maintains video fidelity even in the later frame intervals. It indicates that our Audio Adapter helps the diffusion model to overcome the scarcity of audio priors via timestep-aware modulation, thereby tackling the error accumulation issue.
+(3) Our guidance can also ensure the video quality stability in the long video generation to some extents, as it can further alleviate the latent error at each clip. 
+(4) Our audio-related components ensure that even after generating 3500+ frames, the video consistency and fidelity remain stable without significant degradation, certainly addressing the accumulation issue.
+
+\begin{figure}[t!]
+\begin{center}
+\includegraphics[width=1\linewidth]{ablation_guidance_window.pdf}
+\end{center}
+\vspace{-0.8cm}
+   \caption{Ablation study on long video generation strategies.
+   }
+\label{fig:ablation_guidance_window}
+\vspace{-0.4cm}
+\end{figure}
+
+\begin{table}[t!]\small
+\caption{Ablation study on the guidance. \textit{w/} CFG replaces our Audio Native Guidance with Classify-Free-Guidance (CFG).
+}
+\vspace{-0.25in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.75}{
+\begin{tabular}{l|cccccc}
+\toprule
+Method       & FVD          & CSIM$\uparrow$           & Sync-C$\uparrow$        & Sync-D        & IQA$\uparrow$           & ASE$\uparrow$           \\ \midrule
+\textit{w/o} Guidance & 866          & 0.822          & 7.48          & 8.36          & 3.74          & 2.31          \\
+\textit{w/} CFG~\cite{ho2022classifier}       & 822          & 0.828          & 7.62          & 7.91          & 3.78          & 2.33          \\ \midrule
+Ours         & \textbf{532} & \textbf{0.853} & \textbf{8.20} & \textbf{6.83} & \textbf{3.84} & \textbf{2.39} \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\label{table:ablation_guidance}
+\vspace{-0.3in}
+\end{table}
+
+\noindent\textbf{Audio Native Guidance.}
+To validate the significance of our Audio Native Guidance, we conduct an ablation regarding different strategies. The results are in Table \ref{table:ablation_guidance} and Fig. \ref{fig:ablation_guidance_window}.
+While conventional CFG only regards each external condition as an individual signal which is independent of latents, our guidance considers audio embeddings as correlated with the latents, accounting for the joint audio-latent distribution, thereby further facilitating the lip synchronization/naturalness and video fidelity. 
+
+\begin{table}[t!]\small
+\caption{Ablation study on long avatar video generation methods.
+}
+\vspace{-0.25in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.75}{
+\begin{tabular}{l|cccccc}
+\toprule
+Method         & FVD          & CSIM$\uparrow$           & Sync-C$\uparrow$        & Sync-D        & IQA$\uparrow$           & ASE$\uparrow$           \\ \midrule
+Motion Frame~\cite{cui2025hallo3}   & 772          & 0.836          & 8.12          & 6.98          & 3.72          & 2.23          \\
+Sliding Window~\cite{ji2025sonic} & 698          & 0.842          & 8.18          & 6.89          & 3.77          & 2.31          \\ \midrule
+Ours           & \textbf{532} & \textbf{0.853} & \textbf{8.20} & \textbf{6.83} & \textbf{3.84} & \textbf{2.39} \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\label{table:ablation_window}
+\vspace{-0.3in}
+\end{table}
+
+\noindent\textbf{Long Video Strategy.}
+We conduct a comparison between our DWSW and other types of long avatar video generation strategies, as shown in Table \ref{table:ablation_window} and Fig. \ref{fig:ablation_guidance_window}.
+We can see that both motion frame~\cite{cui2025hallo3, kong2025let} and conventional sliding-window~\cite{ji2025sonic} fail to eliminate the jitter caused by the connection between video clips. By contrast, our DWSW leverages a logarithmic interpolation to dynamically assign weights to different context windows, significantly mitigating the impact of video clip connection. More ablation studies are in Sec. \ref{supp:ablation_window} of the Supp.
+
+\subsection{Applications and User Study}
+\noindent\textbf{Speed and GPU Resource.}
+We compare the inference speed and GPU memory consumption between our StableAvatar and previous models, as shown in Sec. \ref{supp:gpu} of the Supp.
+With approximately 50\% of the memory consumption and 10 times the inference speed of the leading competitor OmniAvatar~\cite{gan2025omniavatar}, our Wan2.1-1.3B-based StableAvatar significantly outperforms previous Wan2.1-14B-based models~\cite{wang2025fantasytalking,kong2025let,gan2025omniavatar} in face quality and lip synchronization, highlighting its superiority in long avatar video generation.
+
+\noindent\textbf{Full Body Avatar Videos.}
+We conduct a qualitative experiment on our StableAvatar in full/half-body avatar animation.
+The results are shown in Sec. \ref{supp:full_body} of the Supp. 
+Each protagonist in the reference image interacts with an object, such as an instrument or an apple.
+We can observe that our StableAvatar can handle full/half-body avatar animation in high fidelity while preserving identities even during intensive object interactions.
+
+\noindent\textbf{Multi-Avatar Animation.}
+We experiment on audio-driven multi-avatar animation, as shown in Sec. \ref{supp:multi_avatar} of the Supp. We can see that our model is capable of animating multiple individuals following the given audio. 
+
+\noindent\textbf{Cartoon Avatars.}
+To validate the robustness of our StableAvatar, we experiment on audio-driven cartoon avatar animation, as shown in Sec. \ref{supp:cartoon} of the Supp. We can observe that our model can synthesize natural cartoon avatar videos with rich facial expressions based on the given audio.
+
+\noindent\textbf{User Study.}
+We conduct a user study on 30 selected videos to evaluate the human preference between our StableAvatar and other competitors. The participants are basically university students and faculty. In each case, participants are first presented with the reference image and the audio. Then we provide two videos (one is generated by our StableAvatar and the other is synthesized by a competitor) in random orders. Participants are then asked to answer the following questions: 
+L-A/A-A/B-A/I-A: ``Which one has better lip/appearance/background/ID alignment with the audio/reference". Table \ref{table:user_study} shows the superiority of our model regarding subjective evaluation.
+
+\begin{table}[t!]\small
+\caption{User preference of StableAvatar compared with other competitors. Higher indicates users prefer more to our model.
+}
+\vspace{-0.25in}
+\begin{center}
+\renewcommand\arraystretch{1.1}
+\scalebox{0.9}{
+\begin{tabular}{lcccc}
+\toprule
+Method         & L-A    & A-A    & B-A    & I-A    \\ \midrule
+Hallo3~\cite{cui2025hallo3}         & 97.4\% & 98.1\% & 95.2\% & 98.9\% \\
+FantasyTalking~\cite{wang2025fantasytalking} & 98.6\% & 95.8\% & 94.9\% & 98.1\% \\
+HunyuanAvatar~\cite{chen2025hunyuanvideo}  & 96.2\% & 94.5\% & 94.6\% & 97.5\% \\
+MultiTalk~\cite{kong2025let}      & 95.5\% & 95.2\% & 94.2\% & 96.4\% \\
+OmniAvatar~\cite{gan2025omniavatar}     & 94.6\% & 95.6\% & 93.8\% & 95.8\% \\ \bottomrule
+\end{tabular}
+}
+\end{center}
+\label{table:user_study}
+\vspace{-0.3in}
+\end{table}

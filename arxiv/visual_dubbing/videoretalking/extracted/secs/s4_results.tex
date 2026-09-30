@@ -1,0 +1,201 @@
+\input{figs_tex/fig_qualititave}
+\input{table_tex/tb_method}
+\section{Training}
+Our framework is implemented using Pytorch~\cite{pytorch}, and we train each module individually. After training, the whole framework can be tested in a sequence without manual intervention. 
+% Move to Supp!
+% All the optimizers are Adam. The learning rates of $D$-Net, $L$-Net and $E$-Net are $1e^{-4}$, $ 1e^{-4}$ and $ 1e^{-5}$, respectively. 
+Below, we give the dataset and training details of each module.
+More details can be found in supplementary material.
+
+\subsection{Training for each module}
+\subsubsection{$D$-Net}
+
+% \subsection{Implementation Details}
+% \subsection{Experimental Settings}
+% \subsubsection{Datasets}
+% % The video self-decomposition module is trained on VoxCeleb~\cite{voxceleb} dataset including 22496 talking head videos. . 
+% We train the lip synthesis module on LRS2~\cite{lrs2} dataset which consists of 160p videos from BBC programs. We pre-process LRS2 dataset by face detection as in \cite{wav2lip}. HDTF~\cite{hdtf} is a new high-resolution talking-face video dataset containing 720p or 1080p talking head videos from YouTube. We evaluate the proposed method on both low-resolution dataset~(LRS2) and high-resolution dataset~(HDTF). Following the unpaired evaluating setting described in \cite{wav2lip}, we take a video clip and an audio clip from another different video as the inputs. As for the evaluation, we created $14k$ and 100 twenty-second audio-video pairs for LRS2 and HDTF dataset evaluation respectively.
+
+% \subsubsection{Implementation Details}
+To perform semantic-guided expression reenactment, we train our network on the VoxCeleb~\cite{voxceleb} dataset with the pose and expression from \cite{face3d}. This dataset contains 22496 talking head videos with diverse identities and head poses. We resize the input frames to 256$\times$256 and train the network on the cropped faces similar to \cite{fomm}. 
+% We train $D$-Net on the VoxCeleb~\cite{voxceleb} dataset with the pose and expression from \cite{face3d}. This dataset contains 22496 talking head videos with diverse identities and head poses. We resize the input frames to 256$\times$256 and train the network on the cropped faces similar to \cite{fomm} in 400k iterations using a progressive training setting.
+% Move to Supp!
+% For training, we randomly choose two frames from the original video as the source and target image pairs, and we reconstruct the target frame using the source image and coefficients of the target frame. 
+We train the network in 400k iterations using a progressive training setting.
+As for the loss function, we calculate the pixel-wise differences between the predicted image and the ground truth using perception loss~\cite{zhang2018lpips} and ~gram matrix loss~\cite{gatys2016image}.
+
+
+\subsubsection{$L$-Net}
+We train the $L$-Net on the LRS2~\cite{lrs2} dataset. This lip-reading dataset contains large-scale 160p videos from BBC programs. We pre-process the dataset using face detection~\cite{fan} and resize the input image to $96\times96$ following the previous method~\cite{wav2lip}. 
+% Move to Supp!
+% The audio features are mel-specrograms conducted from 16kHz audio with FFT window size 800 and hop size 200. The $L$-Net is trained in 400k iterations. We use the continuous five frames of the original video and their corresponding windowed audio features as input, the random frames from the same video will be considered as the references in training.
+We train the $L$-Net using perceptual loss and lip-sync discriminator for visual quality and audio-visual synchronization~\cite{wav2lip}, respectively. 
+
+
+\subsubsection{$E$-Net}
+The training process of $E$-Net is based on $L$-Net. We enhance the LRS2 dataset in advance to get a high-resolution dataset, and train the $E$-Net in 300k iterations. 
+% Move to Supp!
+% To perform down-sampling, we use a hybrid method of differentiable JPEG and bilinear down-sampling. 
+As for the loss function, $E$-Net is trained on the hybrid losses of perceptual loss~\cite{johnson2016perceptual_loss}, pixel-wise $L_1$ loss, adversarial loss~\cite{pix2pix}, lip-sync discriminator~\cite{wav2lip} and identity-loss using a pre-trained face recognition network~\cite{deng2019arcface}.
+
+
+
+
+
+
+\subsection{Evaluation}
+
+We evaluate the proposed method in terms of visual quality and lip-synchronization. As for the visual quality, since the ground-truth talking video is unavailable, we choose Fr$\rm\bf\acute{e}$chet inception distance (FID)~\cite{heusel2017fid} and cumulative probability blur detection (CPBD)~\cite{narvekar2009no} to evaluate the visual quality of generated videos. A lower FID score means that the generated images are closer to the dataset distribution. The CPBD reflects the sharpness of the results. Different from~\cite{wav2lip}, we compute visual quality metrics on the full frames of the video instead of cropped faces since we focus on the quality of the whole video. 
+% For the lip-synchronization metrics, Landmarks Distance around the mouths~(LMD) cannot be adopted since the lack of ground-truth videos.
+We choose the LSE-C and LSE-D~\cite{wav2lip} to evaluate the quality of lip synchronization. As for the dataset choices, we evaluate our framework on both low-resolution dataset~(LRS2) and high-resolution dataset~(HDTF). 
+% LRS2 dataset contains 160p videos from BBC programs. HDTF~\cite{hdtf} is a new high-resolution talking-face video dataset containing 720p or 1080p videos from YouTube. 
+HDTF dataset contains 720p or 1080p videos from YouTube.
+Following the unpaired evaluating settings as described in \cite{wav2lip}, we take a video and an audio clip from the other different video to synthesize the results. We create $14k$ and 100 twenty-second audio-video pairs for LRS2 and HDTF dataset evaluation respectively.
+
+
+\section{Results}
+\label{sec:result}
+\subsection{Comparison with state-of-the-art Methods}
+% \subsubsection{Comparison Methods}
+We compare our method with three state-of-the-art methods under the same settings, including LipGAN~\cite{lipgan}, Wav2Lip~\cite{wav2lip} and PC-AVS~\cite{pc-avs}. 
+LipGAN and Wav2Lip share the similar network structures. Differently, Wav2Lip uses a pre-trained lip-sync discriminator as the lip-expert, yet a better lip-sync performance. PC-AVS is originally proposed for one-shot pose-controllable talking-head generation. We use the identity code of each original video frame to replace the original single image face animation settings. We compare the proposed method with these methods using their open-sourced codes.
+
+
+
+
+
+% \subsubsection{Quantitave Comparison}
+
+
+
+% \xiaodong{\\
+% 1. $L$-Net lama baseline l1 \\
+% 2. $L$-Net LamaTrans l1 \\
+% 3. $L$-Net + $E$-Net: lamasrv2 + gfpgan~(for lip enhancement) + face parser~(for parser) \\
+% 4. $L$-Net + $E$-Net + $D$-Net : based on 3 + pirender~(video decomposition) \\
+% }
+
+
+
+
+
+		
+
+
+
+
+
+% \begin{table*}[!htb]
+% \centering
+% \caption{Quantitative results on LRS2 and HDTF datasets.}
+% \label{tab:quantitative_}
+% \begin{tabular}{c ccccc c ccccc}
+% \toprule
+%   & \multicolumn{5}{c}{LRS2} & & \multicolumn{5}{c}{HDTF} \\
+% \cline{2-6} \cline{8-12}
+% % & \rotatebox{90}{LipGAN} & \rotatebox{90}{Wav2Lip} & \rotatebox{90}{Wav2Lip+GAN} & \rotatebox{90}{PC-AVS} & \rotatebox{90}{Ours} & & \rotatebox{90}{LipGAN} & \rotatebox{90}{Wav2Lip} & \rotatebox{90}{Wav2Lip+GAN} & \rotatebox{90}{Ours} & \rotatebox{90}{Ours+Enhance} & \rotatebox{90}{Full Pipeline} \\
+% & LipGAN & Wav2Lip & Wav2Lip+GAN & PC-AVS & Ours & & LipGAN & Wav2Lip & Wav2Lip+GAN & Ours+Enh & Ours+Full \\
+% \cline{1-12}
+% % \midrule
+% FID   \\
+% CPBD \\
+% LSE-D \\
+% LSE-C \\
+% \bottomrule
+% \end{tabular}
+% \end{table*}
+
+
+
+% \subsubsection{Qualitative Comparison}
+As shown in Table~\ref{tab:quantitative}, the proposed method achieves much better visual qualities according to CPBD and FID. Since the LRS2 dataset is low-resolution and our method produces high-resolution results, the FID of Wav2Lip on the LRS2 dataset is better. As for the accuracy of lip-sync, our method still gets much better and comparable performance on these two datasets. We also show some examples in Figure~\ref{fig:compare} to perform the visual comparison. From this figure, our method produces high-quality results with more accurate lip-sync than previous methods. Since visual dubbing is a video editing task, we highly recommend the reader to compare our methods with others refer to the accompanying video.
+
+% \subsubsection{User Study}
+% The lip synchronization quality is necessary to be evaluated by the human. 
+For the comparison of the lip-sync quality, human evaluation is required. We perform a user study to further evaluate the performance of the proposed method. In the user study, we generate ten talking videos with different audio and video sources of our method and two state-of-the-art methods~(LipGAN and Wav2Lip) on the HDTF dataset. We let the users show their opinions about each video in terms of the visual and lip-sync qualities. We set five different scores~(larger is better, ranging from 1 to 5) for each option. Our form is sent to 51 people in total, getting 510 opinions. As shown in Table~\ref{tab:user}, most users prefer to give higher scores to our method with respect to the visual and lip-sync quality.
+
+
+\begin{table}[h]
+\centering
+% \vspace{-1em}
+\caption{User Study.}
+\vspace{-1em}
+\label{tab:user}
+\begin{tabular}{lcccc}
+\toprule
+% \multirow{2}{*}{Method} & \multicolumn{4}{c}{LRS2} \\
+ Method & Visual Quality$\uparrow$ & Lip-Sync  Quality$\uparrow$ \\
+\hline
+LipGAN &    2.867 & 3.058    \\
+Wav2Lip &   3.173 & 3.398   \\
+Ours &      \textbf{4.171} & \textbf{4.100}  \\ 
+\bottomrule 
+\end{tabular}
+\end{table}
+
+% \xiaodong{add a table for user study.}
+
+\subsection{Ablation Study}
+We mainly ablate three major components of our framework in Table~\ref{tab:ablation}. 
+% \sout{Inspired by recently general image inpainting network~\cite{lama}, we design a baseline model and modify it to suitable our task by the additional image encoder and audio conditional.}
+The first component is the cross-attention between two image encoders. 
+$L$-Net w/o cross-attention in Table~\ref{tab:ablation} means channel-wisely concatenating the features from the source and reference frames.
+We find cross-attention is helpful in terms of the lip-sync quality since it can capture the long-range dependencies. Besides the gains in numerical metrics, we also find it brings more vivid results~(e.g, larger mouth). We then show the results of adding the $E$-Net in our framework. As we expected, the identity-aware face enhancement will hugely improve the visual quality. However, the additional artifacts will also influence the lip-sync quality. Finally, by using $D$-Net to stabilize reference frames, our framework generates better video in terms of visual and lip-sync quality.
+
+\begin{table}[h]
+\centering
+\caption{Major Ablation Studies on HDTF Dataset.}
+\vspace{-1em}
+\label{tab:ablation}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l|cc|cc}
+\toprule
+% \multirow{2}{*}{Method} & \multicolumn{4}{c}{LRS2} \\
+& \multicolumn{2}{c|}{Visual Quality} &  \multicolumn{2}{c}{Lip-Sync Quality} \\
+& FID & CPBD$\uparrow$ & LSE-D & LSE-C$\uparrow$ \\
+\hline
+% Wav2Lip~(Ours run) &                 7.722 & 0.2770 & 9.430  & \textbf{4.577} \\
+% $L_{basic}$-Net~(Ours) &              6.471 &  &   &  \\
+$L$-Net w/o cross-att.  &     5.951 & 0.2743 & 9.788  & 4.164 \\
+% $L$-Net w/ FFC &     - & - & -  & - \\
+$L$-Net   &  6.471 & 0.2755 & 9.578  & 4.382 \\ 
+$L$-Net + $E$-Net &           \textbf{3.334} & 0.2873 & 10.171 & 3.764 \\ 
+$L$-Net + $E$-Net + $D$-Net&  4.504 & \textbf{0.2903} & \textbf{9.359}  & \textbf{4.518}  \\ 
+\bottomrule 
+\end{tabular}
+}
+\end{table}
+
+
+\subsection{Extensions to Emotional Talking Video}
+We have already shown that the proposed method can be used for emotional talking-head video editing in Figure~\ref{fig:teaser}. Since our method only modifies the lower-half face, we also get inspiration from the facial action unit system~\cite{facs} and edit the upper face of the images using \cite{ganimation}, causing different combinations as shown in Figure~\ref{fig:emo}. 
+% since their method is an image based method, we reduce the artifacts and get more photo-realistic results of the upper face using \cite{gpen}.
+% \xiaodong{add a figure to different emotion by GANimation.}
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figs_pdf/exps.pdf}
+    % \vspace{-1em}
+    \setlength{\abovecaptionskip}{0.1cm}   % distance between the caption and Figure
+    \caption{More emotional results using \cite{ganimation}. Natural face \copyright~\emph{ONU Brasil}~(CC BY).}
+    % \vspace{-1em}
+    \label{fig:emo}
+\end{figure}
+
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\columnwidth]{figs_pdf/fail.pdf}
+    % \vspace{-1em}
+    \setlength{\abovecaptionskip}{0.1cm}
+    \caption{Failed cases on identity and extreme poses. Natural faces \copyright~\emph{ONU Brasil} and \copyright~\emph{European Central Bank}~(CC BY).}
+    % \vspace{-0.5em}
+    % \vspace{-1em}
+    \setlength{\belowcaptionskip}{-0.1cm}
+    \label{fig:failed_cases}
+\end{figure}
+
+\subsection{Limitation}
+Although the proposed method can work for the videos in the wild, it still contains some noticeable artifacts in some cases. As shown in Figure~\ref{fig:failed_cases}, one noticeable difference of the proposed framework will cause a slightly identity change from the original video due to the dense warping of $D$-Net. However, it is only one module of our method and we will replace it with another face reenactment network~\cite{face_vid2vid} or 3D-based face reenactment method~\cite{dvp} directly. Our method also shows some artifacts in some extreme poses as shown in Figure~\ref{fig:failed_cases}. Since our method edits the video in a frame-by-frame fashion, the results may show some small temporal jittering and flashing. 
+

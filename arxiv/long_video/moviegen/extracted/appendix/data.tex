@@ -1,0 +1,69 @@
+\section{Additional Data Details}
+
+\subsection{Video Data Curation Thresholds}  \label{appendix:data_curation_thresholds}
+In this section, we share more details about models used in data curation and the corresponding thresholds used.
+
+\textbf{OCR model.} Our internal OCR model samples frames adaptively, detects words within those sampled frames, and then recognizes the text of those detected words.
+We only retained videos where the word detection score multiplied by the word recognition score was below 0.6 for all sampled frames.
+
+\textbf{Border detection.} We noticed that the presence of borders in training videos resulted in generated videos having black borders around them. This issue is particularly common in portrait-mode videos. We removed such videos by writing a simple border detector based on first order derivative calculations. We first detect pixels with large vertical and horizontal deltas and then apply a scanning line algorithm to find the borders.
+
+\textbf{Clip sampling.} With an average duration of 28 seconds, our raw videos needed to be clipped into shorter segments to meet our \OursVideo model's training requirements of 4-16 second clips. However, we noticed that randomly sampling clips without considering scene boundaries leads to generating videos with frequent and abrupt scene changes.
+Thus, we used FFmpeg~\citep{ffmpeg} to detect scene changes and sampled 1-2 scenes with duration exceeding 16 seconds from each video. We then randomly extracted a single clip from each scene, with a duration ranging from 4-16 seconds, to use as a training clip.  More than 50\% of our training clips have duration ranging from 15 seconds to 16 seconds.
+
+\textbf{Aesthetic filtering.} We removed clips with poor aesthetic quality such as blurry or compressed clips by applying the public LAION aesthetics image model~\citep{schuhmann2022laion} on the middle frame of each clip.
+We removed all clips with an aesthetic score less than 4, ensuring to have high-quality clips for training. We also calculated average aesthetic scores across multiple frames in a clip and observed that multi-frame aesthetic score didn't lead to a significant increase in the recall of poor-quality clips.
+
+\textbf{Jittery motion detection.} FFmpeg~\citep{ffmpeg} motion scores and motion vectors struggle to detect videos with frequent, jittery camera movements,
+which ultimately leads to our model generating videos with a jittery quality.
+We noticed that the Shot Boundary Detection (SBD) from PySceneDetect~\citep{pyscenedetect} breaks down jittery videos into numerous false-positive shots.
+To identify and remove jittery videos, we used the number of shots detected per second, removing clips with a rate exceeding 0.85 shots per second.
+
+\textbf{Data volume per filter.} We analyzed the data volume drop at each filtering step when using our most strict curation thresholds in~\cref{tab:pt-volume-drop}.
+These thresholds were used to curate our high resolution set.
+
+\begin{table}
+    \centering
+    \adjustbox{max width=\textwidth}{
+    \begin{tabular}{cccc}
+        \toprule
+        Curation Step& Thresholds & Remaining volume in \% \\
+        \midrule
+        Duration & 4s $\leq$ duration $\leq$ 120s & 100 \\
+        Resolution & width $\geq$ 768 and height $\geq$ 768 & 25 \\
+        Aspect Ratio & width $\geq$ height & 7\\
+        No Text & No sampled frame with
+        word detection score * word recognition score $\geq$ 0.6
+         & 1.94 \\
+        No Border & No videos with borders around them
+        & 1.87 \\
+        No Scene Change & 1 clip of duration 12s to 16s sampled from 1 scene in a video
+        & 1.78 \\
+        Aesthetics &  aesthetic score on middle frame of clip $\geq$ 4.0
+        & 1.57 \\
+        No Slow Motion &  motion score $>$ 2.0, motion vector average $>$ 0.5,
+        motion vector average $<$ 7
+        & 1.32 \\
+        No Jittery Motion &  Number of shots per second $<$ 0.85
+        & 1.22 \\
+        No Content Duplicates &  Embedding cosine similarity $<$ 0.99
+        & 1.15 \\
+        Concept Resampling &  Volume per cluster: 1/sqrt(cluster size)
+        & 0.94 \\
+        \bottomrule
+    \end{tabular}}
+    \caption{\textbf{Volume drop during high resolution set curation.}
+    Note that our data acceptance rate with these thresholds is less than 1\%.
+    }
+    \label{tab:pt-volume-drop}
+\end{table}
+
+
+
+
+\subsection{Camera Motion Control types} \label{appendix:data_camera_motion}
+Here, we explain in more detail the different kinds of camera motion control that we train our model for.
+As described in \cref{sec:pt-data} in the technical report, to enable cinematic camera motion control, we train a camera motion classifier to predict 16 different camera motion types. The predictions from this classifier are prefixed to the training captions.
+The 16 camera motion control types are: zoom in, zoom out, push in, pull out, pan right, pan left, truck right, truck left, tilt up, tilt down, pedestal up, pedestal down, arc shot, tracking shot, static shot, and handheld shot.
+As detailed in~\cref{sec:t2v_post_training}, during supervised finetuning, we label 6 additional camera motion and position types in the finetuning set.
+These include: wide angle, close-up, aerial, low angle, over the shoulder, and first person view.

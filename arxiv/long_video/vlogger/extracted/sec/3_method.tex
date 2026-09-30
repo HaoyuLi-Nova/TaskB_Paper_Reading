@@ -1,0 +1,382 @@
+\section{Method}
+\label{sec:method}
+
+
+In this section,
+we introduce our Vlogger framework in detail.
+First,
+we describe how to make a vlog by planning and shooting with our Vlogger.
+Then,
+we further explain the novel design of ShowMaker.
+As the videographer in our Vlogger,
+it is critical for video generation in the vlog.
+
+
+\subsection{Overall Framework of Vlogger}
+
+To generate a minute-level vlog,
+our Vlogger leverages LLM as the director,
+which can effectively decompose this generation task by four key roles within the planning and shooting stages. 
+As shown in Fig. \ref{fig:teaser},
+the LLM Director first creates Script and designs Actor in the planning stage.
+Based on Script and Actor,
+ShowMaker generates a video snippet for each scene in the shooting stage,
+and Voicer dubs subtitles of this snippet.
+Finally,
+one can combine the snippets of all the scenes as a vlog.
+
+
+\begin{figure*}[t]
+    \centering
+    % \vspace{-0.3cm}
+    \includegraphics[width=0.95\linewidth]{figs/generating.pdf}
+    \vspace{-0.2cm}
+    \caption{
+    \textbf{Bottom-Up Shooting.} 
+    For each scene,
+    ShowMaker can generate the video snippet with script and actor coherence,
+    by using script description and actor image as textual and visual prompts.
+    Moreover,
+    ShowMaker can effectively control the snippet duration,
+    by performing generation and prediction sequentially in the inference.  
+    Finally,
+    we apply a Text-To-Speech (TTS) model as Voicer for dubbing.
+    }
+    \label{fig:generating}
+    \vspace{-0.3cm}
+\end{figure*}
+
+
+\subsubsection{Top-Down Planning}
+
+A vlog often comes from a user story that contains diversified content within many shot changes.
+Clearly,
+it is challenging to produce a minute-long vlog,
+by directly feeding such a complex story into video generation models.
+To this end,
+we propose to leverage LLM as director and decompose the user story by top-down planning in Fig. \ref{fig:director}.
+
+\textbf{Script Creating}.
+First,
+we parse the use story into a script,
+which describes this story explicitly by a number of shooting scenes.
+In this case,
+we can generate a video snippet for each shooting scene,
+instead of learning a long video tediously from the entire story.
+Since LLM has shown an impressive capacity in language understanding \cite{brown2020language, Zeng2022GLM130BAO, Touvron2023LLaMAOA, OpenAI2023GPT4TR, Sun2021ERNIE3L, Bai2023QwenTR, 2023internlm, Chowdhery2022PaLMSL},
+we feed the user story into such a director for script generation.
+As shown in Fig. \ref{fig:director},
+we introduce a progressive creation paradigm,
+which can effectively parse the story by coarse-to-fine steps,
+\begin{equation}
+\mathcal{S}^{(i)}=\text{LLM}(\mathcal{S}^{(i-1)},\mathcal{I}^{(i)}_{S},\mathcal{U}).
+\label{eq:script}    
+\end{equation}
+Given the user story $\mathcal{U}$ and creation instruction $\mathcal{I}^{(i)}_{S}$,
+the LLM Director generates the current script $\mathcal{S}^{(i)}$ from the previous one $\mathcal{S}^{(i-1)}$.
+More specifically,
+there are four steps including
+(1) \textit{Rough}.
+First,
+LLM generates a basic draft of the script from the story.
+(2) \textit{Detailed}.
+Then,
+LLM refines the rough script with story details.
+(3) \textit{Completed}.
+Next,
+LLM checks if the detailed script misses the important parts of the story. 
+(4) \textit{Scheduled}.
+Finally,
+LLM allocates a shooting duration for each scene in the completed script,
+according to the scene content.
+For convenience,
+we denote the final script as $\mathcal{S}$ in the following.
+It contains the descriptions of $N$ shooting scenes $\{\mathcal{S}_{1},...,\mathcal{S}_{N}\}$ and their allocated duration $\{\mathcal{T}_{1},...,\mathcal{T}_{N}\}$.
+Additionally,
+due to the limited pages,
+please read the full descriptions of instructions and script in the supplementary doc.
+
+
+\textbf{Actor Designing}.
+After generating the script,
+it is time to design actors in the vlog.
+As shown in Fig. \ref{fig:director},
+we ask the LLM Director to summarize the actor list $\mathcal{A}$ from script $\mathcal{S}$, %and describe appearance of these actors $\mathcal{C}$
+\begin{equation}
+\mathcal{A}=\text{LLM}(\mathcal{S},\mathcal{I}_{A}),
+\label{eq:actor_des}    
+\end{equation}
+where 
+$\mathcal{I}_{A}$ is the instruction for actor summarization.
+Then,
+according to actor descriptions,
+the LLM Director invokes a designer to generate reference images of these actors $\mathcal{R}$,
+\begin{equation}
+\mathcal{R}=\text{Stable-Diffusion}(\mathcal{A}).
+\label{eq:actor}    
+\end{equation}
+We choose Stable Diffusion XL \cite{Podell2023SDXLIL} as the character designer,
+due to its high-quality generation.
+Finally,
+based on script $\mathcal{S}$ and actor $\mathcal{A}$,
+the LLM Director decides the leading actor (\textit{i.e.}, protagonist) in each shooting scene of the script, 
+\begin{equation}
+\mathcal{P}=\text{LLM}(\mathcal{S},\mathcal{A},\mathcal{I}_{P}).
+\label{eq:actorp}    
+\end{equation}
+where 
+$\mathcal{I}_{P}$ is the instruction for protagonist selection.
+The resulting doc $\mathcal{P}$ is aligned with the script $\mathcal{S}$,
+where 
+$\mathcal{P}_{n}$ describes which actor appears in the scene $\mathcal{S}_{n}$.
+For example,
+\{$\mathcal{S}_{6}$ \textit{is starred by} $\mathcal{A}_{1}$\} in Fig. \ref{fig:director}.
+
+
+
+\begin{figure*}[t]
+    \centering
+    % \vspace{-0.3cm}
+    \includegraphics[width=\textwidth]{figs/arch.pdf}
+    %\vspace{-0.7cm}
+    \caption{
+    \textbf{ShowMaker}. 
+    (a) The Overall Architecture.
+    (b) Spatial-Temporal Enhanced Block (STEB).
+    Via spatial-actor and temporal-text cross attention, 
+    our STEB can further enhance actor and script coherence in the snippet.
+    (c) Mode Selection. 
+    We introduce a mixed training paradigm of T2V generation and prediction,
+    via probabilistic selection of masked frames.
+    %The {\color{gray}{gray}} modules in STEB represent the original components that are inherent to the base model.
+    }
+    \label{fig:architecture}
+    \vspace{-0.3cm}
+\end{figure*}
+
+\subsubsection{Bottom-Up Shooting}
+\label{sec:Bottom-Up}
+
+Via the top-down planning above,
+the LLM Director flexibly decomposes a complex user story into several script scenes 
+and designs actor reference image for each scene.
+Such a manner largely reduces the difficulty of vlog generation,
+since we can generate vlogs by bottom-up shooting,
+\textit{i.e.},
+we just need to generate the video snippet for each shooting scene and combine all of them as a vlog.
+
+\textbf{ShowMaker Shooting}.
+To generate the video snippet of a shooting scene,
+we introduce a novel ShowMaker as the videographer,
+which is a video diffusion model with two distinct designs.
+First,
+it is important to maintain spatial-temporal coherence of both script and actor in the generated snippet.
+Hence,
+our ShowMaker not only takes the scene description $\mathcal{S}_{n}$ as a textual prompt 
+but also takes actor image of this scene $\mathcal{R}_{n}$ as a visual prompt.
+Second,
+each scene is allocated with a shooting duration in the script.
+To control the duration of each scene,
+our ShowMaker contains two learning modes including generation and prediction in Fig.\ref{fig:generating}.
+Specifically,
+it starts with the generation mode.
+For the shooting scene $n$,
+we feed its script description $\mathcal{S}_{n}$ and actor reference image $\mathcal{R}_{n}$ into ShowMaker,
+\begin{equation}
+\mathcal{C}_{n}^{(1)}=\text{ShowMaker}(\mathcal{N}_{n}^{(1)}~|~\mathcal{S}_{n},\mathcal{R}_{n},\text{Generate}),
+\label{eq:showmakergeneration}    
+\end{equation}
+which generates the first video clip of this scene $\mathcal{C}_{n}^{(1)}$ from the noisy clip $\mathcal{N}_{n}^{(1)}$.
+If the duration of this clip is smaller than the allocated duration $\mathcal{T}_{n}$ in the script,
+we continue to perform the prediction mode, %in an auto-aggressive manner,
+\textit{i.e.},
+the last $k$ frames of the current clip $\mathcal{C}_{n}^{(j)}(k)$ are used as context,
+when generating the next clip from the noisy input $\mathcal{N}_{n}^{(j+1)}$,
+\begin{equation}
+\mathcal{C}_{n}^{(j+1)}=\text{ShowMaker}(\mathcal{N}_{n}^{(j+1)}~|~\mathcal{S}_{n},\mathcal{C}_{n}^{(j)}(k),\text{Predict}).
+\label{eq:showmakerprediction}    
+\end{equation}
+Note that,
+actor reference images are not necessary in the prediction mode,
+since such an actor's appearance has been shown in the current clip $\mathcal{C}_{n}^{(j)}(k)$ that is used as input for prediction.
+This prediction procedure stops until the total duration achieves the allocated $\mathcal{T}_{n}$ of this scene.
+Subsequently,
+we combine all the clips as the video snippet of this scene, \textit{i.e.}, $\mathcal{C}_{n}=\{\mathcal{C}_{n}^{(1)},...,\mathcal{C}_{n}^{(J)}\}$.
+
+
+
+\textbf{Voicer Speaking}.
+To enhance the completeness of the vlog,
+we apply a Text-To-Speech model (e.g., Bark \cite{sunoai2023bark}) as a Voicer,
+which converts the scene description $\mathcal{S}_{n}$ into the corresponding audio $\mathcal{O}_{n}=\text{Bark}(\mathcal{S}_{n})$.
+Finally,
+we add this audio to the corresponding video snippet
+$\mathcal{V}_{n}=\mathcal{O}_{n}\oplus\mathcal{C}_{n}$,
+and
+combine all the sounded video snippets as a complete vlog,
+\textit{i.e.},
+$\mathcal{V}=\{\mathcal{V}_{1},...,\mathcal{V}_{N}\}$.
+
+
+
+\subsection{ShowMaker}
+
+As discussed in Section \ref{sec:Bottom-Up},
+ShowMaker plays a critical role in generating video snippet of a shooting scene.
+In this work,
+we introduce a text-to-video diffusion model for it.
+It follows the style of latent diffusion model \cite{rombach2022highResolution}.
+In the diffusing stage,
+we add Gaussian noise progressively to the latent code of a training snippet.
+In the denoising stage,
+we reconstruct the latent code from the noisy latent code at any iteration step.
+For simplicity,
+we just show the denoising stage in Fig.\ref{fig:architecture} (a).
+First,
+we forward a noisy training snippet into the encoder of the autoencoder to extract its latent code.
+Then,
+we feed this into a denoising U-Net \cite{Ronneberger2015UNetCN} to learn the clean latent code.
+Finally,
+we leverage the decoder to reconstruct the original snippet with the clean latent code.
+
+But, compared with the existing video diffusion models \cite{Ho2022VideoDM, blattmann2023align, Wang2023LAVIEHV, Ho2022ImagenVH, Ge2023PreserveYO},
+our novel ShowMaker contains two distinct designs,
+in terms of 
+model structure (\textit{i.e.}, Spatial-Temporal Enhanced Block) in  Fig.\ref{fig:architecture} (b),
+and
+training paradigm (\textit{i.e.}, Mode Selection) in Fig.\ref{fig:architecture} (c).
+ 
+
+\subsubsection{Spatial-Temporal Enhanced Block (STEB)}
+\label{sec:STEB}
+
+To reconstruct the clean latent code of a training video snippet,
+each block in the denoising U-Net consists of both spatial and temporal operations in previous works \cite{Wang2023LAVIEHV}.
+First,
+spatial operations encode the feature of each frame separately in the snippet.
+Typically,
+three operations are inherited from text-to-image generation approaches \cite{saharia2022imagen, Ramesh2022HierarchicalTI, rombach2022highResolution, Balaji2022eDiffITD, Nichol2021GLIDETP},
+including 
+spatial ConVolution (CV), 
+spatial Self Attention (SA),
+and 
+spatial Cross Attention (CA),
+\begin{align}
+\mathcal{X}_{cv}&=\text{CV-Spatial}(\mathcal{X}_{in}, \mathcal{F}_{t}),
+\label{eq:steb1}\\    
+\mathcal{X}_{sa}&=\text{SA-Spatial}(\mathcal{X}_{cv}),
+\label{eq:steb2}\\
+\mathcal{X}_{ca}&=\text{CA-Spatial-Text}(\mathcal{X}_{sa},\mathcal{S}_{n}),
+\label{eq:steb3} 
+\end{align}
+where
+$\mathcal{X}_{in}$ is the noisy feature of the training snippet,
+and $\mathcal{F}_{t}$ is the positional embedding of the iteration step $t$.
+To guide denoising with the given text, 
+we use the scene description $\mathcal{S}_{n}$ as Key and Value of cross attention in Eq. (\ref{eq:steb3}).
+
+However,
+we notice that 
+such spatial encoding does not consider actors.
+Hence,
+it inevitably suffers from actor incoherence when generating a snippet.
+To tackle this problem,
+we introduce a spatial image cross attention,
+\begin{equation}
+\mathcal{Y}_{ca}=\text{CA-Spatial-Actor}(\mathcal{X}_{sa},\mathcal{R}_{n}).
+\label{eq:steb4} 
+\end{equation}
+For a shooting scene $\mathcal{S}_{n}$,
+we leverage the protagonist doc (Eq. \ref{eq:actorp}) to find the corresponding actor in this scene.
+Then,
+we leverage actor reference image $\mathcal{R}_{n}$ as the visual context of spatial cross attention.
+Subsequently,
+we enhance spatial embedding with the complementary guidance of both script and actor,
+\textit{i.e.},
+$\mathcal{Z}_{se}=\mathcal{X}_{ca}+\beta\mathcal{Y}_{ca}$ with a weight $\beta$.
+
+After spatial encoding,
+it is time to learn the correlation across frames in the snippet.
+Hence,
+the typical operation is to perform self attention along the temporal dimension,
+\begin{equation}
+\mathcal{Z}_{sa}=\text{SA-Temporal}(\mathcal{Z}_{se}).
+\label{eq:steb5} 
+\end{equation}
+However,
+such a temporal operation does not take the constraints of scene text into account.
+It often leads to text incoherence when generating video snippets.
+Hence,
+we introduce a temporal text cross attention,
+\begin{equation}
+\mathcal{Z}_{ca}=\text{CA-Temporal-Text}(\mathcal{Z}_{sa},\mathcal{S}_{n}),
+\label{eq:steb6} 
+\end{equation}
+where
+we leverage the scene description $\mathcal{S}_{n}$ as the textual context of temporal encoding.
+Via spatial-actor (Eq. \ref{eq:steb4}) and temporal-text (Eq. \ref{eq:steb6}) cross attention,
+our STEB can further enhance actor and script coherence in the snippet.
+
+
+
+\subsubsection{Mixed Training Paradigm with Mode Selection}
+
+As discussed in Section \ref{sec:Bottom-Up},
+ShowMaker aims to generate a video snippet with the allocated duration in the script.
+To this goal,
+it leverages the combination of both generation and prediction modes in the inference stage.
+Next,
+we explain how to train our ShowMaker to learn these modes.
+
+\input{tables/UCF}
+
+As shown in Fig.\ref{fig:architecture} (c),
+we design a mode selection mechanism,
+which selects $k$ frames of the clean snippet as the context of the noisy snippet.
+The $k$$=$$0$ setting refers to the generation mode 
+since there is no context from the clean snippet.
+Alternatively,
+the $k$$>$$0$ setting refers to the prediction mode,
+since $k$ frames of the clean snippet are already available.
+The goal is to generate the rest frames of the clean snippet from the noisy one.
+To integrate both modes into training,
+we design a probabilistic manner to select $k$,
+\begin{align}
+\begin{split}
+\text{P}(k)=\left\{
+\begin{aligned}
+\alpha^{k}-\alpha^{k+1},~~~~~~& k\in\lbrack0,m) \\
+\alpha^{k},~~~~~~& k=m
+\end{aligned}
+\right.
+\end{split}
+\label{eq:alpham} 
+\end{align}
+where 
+$\text{P}(k)$ is the selection probability distribution of $k$.
+Moreover,
+$0$$<$$\alpha$$<$$1$ and $0$$\leq$$m$ are the manual parameters,
+which respectively control the mode selection tendencies of $\text{P}(k)$ and the maximum number of preserved frames. 
+
+After determining $k$,
+we introduce a frame mask $\mathcal{M}_{k}$ on the latent code of the clean snippet $\mathcal{X}_{clean}$,
+\begin{equation}
+\mathcal{X}_{k}=\mathcal{X}_{clean}\odot\mathcal{M}_{k}, \label{eq:ms1}
+\end{equation}
+where
+we only preserve $k$ frames and mask the rest of the frames.
+Then,
+we concatenate the mask $\mathcal{M}_{k}$ with the latent code of snippet $\mathcal{X}_{noise}$ and $\mathcal{X}_{k}$,
+\begin{equation}
+\mathcal{X}_{in}=\text{Concat}(\mathcal{X}_{noise},~\mathcal{X}_{k},~\mathcal{M}_{k}).\label{eq:ms3}  
+\end{equation}
+This produces the input feature $\mathcal{X}_{in}$ for training the denoising U-Net in Section \ref{sec:STEB}.
+Via such a concise probabilistic manner,
+we can effectively integrate both generation ($k$$=$$0$) and prediction ($k$$>$$0$) modes in the training procedure.
+
+
+
+
+
+\input{tables/Kinetics400}
+\input{tables/MSRVTT}

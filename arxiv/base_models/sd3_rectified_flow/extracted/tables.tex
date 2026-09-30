@@ -1,0 +1,186 @@
+\newcommand{\aereconstructiontable}{
+\begin{table}[t]
+  \centering
+  \begin{tabular}{lccc}
+    \toprule
+    Metric & 4 chn & 8 chn & 16 chn \\
+    \midrule
+    FID () & \s2.41 & \s1.56 & \textbf{\s1.06} \\
+    Perceptual Similarity () & \s0.85 & \s0.68 & \textbf{\s0.45} \\
+    SSIM ($\uparrow$) & \s0.75 & \s0.79 & \textbf{\s0.86} \\
+    PSNR ($\uparrow$) & 25.12 & 26.40 & \textbf{28.62} \\
+    \bottomrule
+  \end{tabular}
+  \vspace{-0.5em}
+  \caption{\textbf{Improved Autoencoders.} Reconstruction performance metrics for different channel configurations. The downsampling factor for all models is $f=8$. \vspace{-1em}}
+  \label{tab:aereconstructiontable}
+\end{table}
+}
+
+\newcommand{\aereconstructiontablefullprecision}{
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{lccc}
+    \toprule
+    Metric & 4 chn & 8 chn & 16 chn \\
+    \midrule
+    \textbf{Fidelity} & & & \\
+    FID () & 2.4132 & 1.5607 & 1.0638 \\
+    \midrule
+    \textbf{Image Similarity} & & & \\
+    PSNR ($\uparrow$) & 25.1210 & 26.3944 & 28.6241 \\
+    Perceptual Similarity () & 0.8480 & 0.6761 & 0.4544 \\
+    SSIM ($\uparrow$) & 0.7536 & 0.7920 & 0.8574 \\
+    \bottomrule
+  \end{tabular}
+  \caption{\textbf{Improved} Reconstruction performance metrics for different channel configurations.}
+  \label{tab:aereconstructiontable}
+\end{table}
+}
+
+\newcommand{\biggerismorestepefficient}{
+\begin{table}[t]
+\centering
+\begin{tabular}{@{}lccc@{}c}
+\toprule
+  & \multicolumn{4}{c}{relative CLIP score decrease [\%]} \\
+\cmidrule(l){2-5}
+ & \multicolumn{1}{p{2cm}}{\centering 5/50 steps} & \multicolumn{1}{p{2cm}}{\centering 10/50 steps} & \multicolumn{1}{p{2cm}}{\centering 20/50 steps} & path length \\
+\midrule
+  depth=15 & 4.30 & 0.86 & 0.21 & 191.13 \\
+  depth=30 & 3.59 & 0.70 & 0.24 & 187.96 \\
+  depth=38 & 2.71 & 0.14 & 0.08 & 185.96 \\
+\bottomrule
+\end{tabular}
+\caption{
+\textbf{Impact of model size on sampling efficiency.}
+The table shows the relative performance decrease relative to CLIP scores evaluated using 50 sampling steps at a fixed seed. 
+Larger models can be sampled using fewer steps, which we attribute to increased
+robustness and better fitting the straight-path objective of rectified flow
+models, resulting in shorter path lengths. Path length is calculated by summing up $ \Vert v_\theta \cdot dt \Vert $ over 50 steps. \vspace{-1em}
+\label{tab:biggerismorestepefficient}
+%
+}
+\end{table}
+}
+
+\newcommand{\genEvalSotaTable}{
+\begin{table}[t]
+\tiny
+\centering
+\setlength{\tabcolsep}{2pt}
+\resizebox{.99\linewidth}{!}{
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+%
+ %
+\multirow{2}{*}[-9.7pt]{Model} & \multirow{2}{*}[-9.9pt]{Overall} & \multicolumn{2}{c}{Objects} & \multirow{2}{*}[-9.7pt]{Counting} & \multirow{2}{*}[-9.7pt]{Colors} & \multirow{2}{*}[-9.7pt]{Position} & \multirow{2}{*}[-0.5pt] {Color} \\
+\cmidrule(lr){3-4}
+ &  & Single & Two &  &  &  & Attribution \\
+\midrule
+minDALL-E & 0.23 & 0.73 & 0.11 & 0.12 & 0.37 & 0.02 & 0.01 \\
+SD v1.5 & 0.43 & 0.97 & 0.38 & 0.35 & 0.76 & 0.04 & 0.06 \\
+PixArt-alpha & 0.48 & 0.98 & 0.50 & 0.44 & 0.80 & 0.08 & 0.07 \\
+SD v2.1 & 0.50 & 0.98 & 0.51 & 0.44 & \underline{0.85} & 0.07 & 0.17 \\
+DALL-E 2 & 0.52 & 0.94 & 0.66 & 0.49 & 0.77 & 0.10 & 0.19 \\
+SDXL & 0.55 & 0.98 & 0.74 & 0.39 & \underline{0.85} & 0.15 & 0.23 \\
+SDXL Turbo          & 0.55 & \textbf{1.00} & 0.72 & 0.49 & 0.80 & 0.10 & 0.18 \\
+IF-XL & 0.61 & 0.97 & 0.74 & \textit{0.66} & 0.81 & 0.13 & 0.35 \\
+DALL-E 3 & 0.67 & 0.96 & \underline{0.87} & 0.47 & \textit{0.83} & \textbf{0.43} & \textit{0.45} \\
+\midrule
+Ours (depth=18), $512^2$ & 0.58 & 0.97 & 0.72 & 0.52 & 0.78 & 0.16 & 0.34 \\
+Ours (depth=24), $512^2$ & 0.62 & 0.98 & 0.74 & 0.63 & 0.67 & \textit{0.34} & 0.36 \\
+Ours (depth=30), $512^2$ & 0.64 & 0.96 & 0.80 & 0.65 & 0.73 & 0.33 & 0.37 \\
+Ours (depth=38), $512^2$ & \textit{0.68} & 0.98 & 0.84 & \textit{0.66} & 0.74 & \underline{0.40} & 0.43 \\
+Ours (depth=38), $512^2$ w/DPO & \underline{0.71} & 0.98 & \underline{0.89} & \textbf{0.73} & \textit{0.83} & \textit{0.34} & \underline{0.47} \\
+Ours (depth=38), $1024^2$ w/DPO & \textbf{0.74} & \underline{0.99} & \textbf{0.94} & \underline{0.72} & \textbf{0.89} & 0.33 & \textbf{0.60} \\
+\bottomrule
+\end{tabular}
+}
+\caption{\textbf{GenEval comparisons}. Our largest model (depth=38) outperforms all current open models and DALLE-3~\citep{betker2023improving} on GenEval~\citep{ghosh2023geneval}.
+We highlight the \textbf{best}, \underline{second best}, and \textit{third best} entries. For DPO, see \Cref{supsec:dpo}.
+}\label{tab:genEvalSotaTable}
+\end{table}
+}
+
+
+\newcommand{\spelling}{
+\vspace{-1em}
+\begin{table}
+\centering
+\setlength{\tabcolsep}{5pt}
+%
+\begin{tabular}{@{}l@{\hspace{3em}}cc@{}}
+\toprule
+ours (depth=38) w/DPO & vs. Ideogram v2 & vs. DALLE-3  \\
+\midrule
+Win Rate & 61\% & 54 \% \\
+\bottomrule
+\end{tabular}
+%
+\vspace{-5pt}
+\caption{\label{tab:spelling} 
+\textbf{Spelling.} 
+Our model outperforms \emph{Ideogram v2}~\citep{ideogramv02} and \emph{DALLE-3}~\citep{betker2023improving} in typography. 
+We report human preference with respect to correct spelling based on the ``Writing`` category of PartiPrompts~\citep{yu2022scaling}.}
+\vspace{-1.5em}
+\end{table}
+}
+
+
+\newcommand{\captionstudy}{
+\begin{table}
+\centering
+
+\begin{tabular}{@{}lcc@{}}
+\toprule
+& \multicolumn{1}{c}{Original Captions} & \multicolumn{1}{c}{50/50 Mix} \\
+\cmidrule(lr){2-3}
+& success rate [\%] & success rate [\%]  \\
+\midrule
+Color Attribution & 11.75 & 24.75 \\
+Colors & 71.54 & 68.09 \\
+Position & \s6.50 & 18.00 \\
+Counting & 33.44 & 41.56 \\
+Single Object & 95.00 & 93.75 \\
+Two Objects & 41.41 & 52.53 \\ \midrule
+Overall score & 43.27 & 49.78 \\
+\bottomrule
+\end{tabular}
+\vspace{-0.5em}
+\caption{\textbf{Improved Captions}. Using a 50/50 mixing ratio of synthetic (via CogVLM~\citep{wang2023cogvlm}) and original captions improves text-to-image performance. Assessed via the GenEval~\citep{ghosh2023geneval} benchmark.}
+\label{tab:captionstudy}
+\end{table}
+}
+
+
+\newcommand{\preencodingspeedups}{
+\begin{table}
+%
+%
+%
+%
+%
+%
+%
+%
+    \setlength{\tabcolsep}{5pt}
+    \centering
+    %
+    \begin{tabular}{lcccc}
+        \toprule
+         Model & Mem [GB] & FP [ms] & Storage [kB] & Delta [\%] \\ \midrule
+         VAE (Enc) & 0.14 & 2.45 & 65.5 & 13.8 \\
+         CLIP-L & 0.49 & 0.45 & 121.3 & 2.6 \\
+         CLIP-G & 2.78 & 2.77 & 202.2 & 15.6 \\
+         T5 & 19.05 & 17.46 & 630.7 & 98.3 \\
+         \bottomrule
+    \end{tabular}
+    %
+\caption{
+\textbf{   Key figures for preencoding frozen input networks.}
+Mem is the memory required to load the model on the GPU. FP [ms] is the time per sample for the forward pass with per-device batch size of 32. Storage is the size to save a single sample. Delta [\%] is how much longer a training step takes, when adding this into the loop for the 2B MMDiT-Model (568ms/it).}
+\label{tab:preencodingspeedups}
+\end{table}
+}
+

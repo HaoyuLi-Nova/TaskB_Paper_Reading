@@ -1,0 +1,51 @@
+
+\begin{table}[h]
+    \centering
+    \captionsetup{type=figure}
+    \setlength{\tabcolsep}{1pt}
+    \adjustbox{max width=0.95\textwidth}{%
+    \centering
+    \begin{tabular}{cccccc}
+        \rowcolor{blue300}
+        \multicolumn{6}{c}{\textbf{Ablation: SFX+music audio generation with different audio quality scores prompts (10s, \OursVideo)}} \\
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_5/out-042.jpg}& 
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_5/out-085.jpg}& 
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_5/out-128.jpg}& 
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_5/out-170.jpg}& 
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_5/out-213.jpg}& 
+        \includegraphics[width=0.17\linewidth]{figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_5/out-256.jpg}\\
+        \multicolumn{6}{c}{{(a) Audio quality score = 5}} \\
+        \multicolumn{6}{c}{
+            \includegraphics[width=\linewidth, height=0.1\linewidth]
+            {figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_5/spec.jpg}
+        } \\
+        \multicolumn{6}{c}{{(b) Audio quality score = 6}} \\
+        \multicolumn{6}{c}{
+            \includegraphics[width=\linewidth, height=0.1\linewidth]
+            {figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_6/spec.jpg}
+        } \\
+        \multicolumn{6}{c}{{(c) Audio quality score = 7}} \\
+        \multicolumn{6}{c}{
+            \includegraphics[width=\linewidth, height=0.1\linewidth]
+            {figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_7/spec.jpg}
+        } \\
+        \multicolumn{6}{c}{{(d) Audio quality score = 8}} \\
+        \multicolumn{6}{c}{
+            \includegraphics[width=\linewidth, height=0.1\linewidth]
+            {figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_8/spec.jpg}
+        } \\
+        \multicolumn{6}{c}{{(e) Audio quality score = 9}} \\
+        \multicolumn{6}{c}{
+            \includegraphics[width=\linewidth, height=0.1\linewidth]
+            {figures/audio/teaser/ablation_aes_sfx_music/sample_231_aes_9/spec.jpg}
+        } \\
+    \end{tabular}}
+
+    \vspace{-3mm}
+
+    \caption{\textbf{Examples of generated audio with different audio quality score in the text prompt with \OursAudio.}
+    \OursAudio controls the generated audio output quality using the input text prompts (refer to \ref{tab:audio_caption}). As we can observed in the spectrogram plot, lower quality scores contains some high frequency noises and by gradually increasing the quality scores, we got a cleaner audio spectrogram.
+    Videos in this Figure found at \url{https://go.fb.me/MovieGen-Figure41}.
+}
+\label{fig:audio_ablation_audio_quality_sfx_music}
+\end{table}

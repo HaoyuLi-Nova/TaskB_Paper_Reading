@@ -1,0 +1,83 @@
+\section{DATA}
+Training a high-performance video generation model demands massive, high-quality, and diverse data. To this end, we have developed a scalable data processing system that constructs the training dataset for \magi from tens of petabytes of raw videos and images collected from a wide range of sources.
+
+An overview of the data processing pipeline is shown in Fig.~\ref{fig:data_pipeline_overview}. We utilize PySceneDetect\footnote{PySceneDetect: \url{https://github.com/Breakthrough/PySceneDetect}} to cut long videos into short clips, ensuring that each clip contains only a single shot. Next, we apply a series of filters to remove low-quality data and eliminate duplicates. While this initial filtering stage effectively discards most of the low-quality data, some problematic cases still persist. To further improve data quality, we incorporate a multi-modal large language model (MLLM) as a stronger filter. Data that passes this filter is then captioned by the MLLM to provide accurate and detailed descriptions.
+
+Through this process, we curate training data with satisfactory visual and motion quality. However, the distribution of the data — particularly in terms of semantic concept — still requires consideration. Specifically, we observed that the modeling difficulty varies significantly across different concepts. To address this, we use a dynamic distribution adjustment strategy based on evaluation results obtained during training. Additionally, we tailor the data distribution to accommodate the multi-stage training strategy.
+
+In the sections that follow, we provide a detailed description of each component in our data processing pipeline.
+
+
+\input{data/figures/data_pipeline_overview}
+
+\subsection{Filter Actors}
+We have developed a set of filtering actors to ensure the quality of the training data. These actors are described below in details:
+
+\paragraph{Video Quality Assessment}
+We adopt DOVER~\citep{wu2023exploring} to assess the visual quality of each video clip. DOVER provides three distinct quality scores: overall score, aesthetic score, and technical score. Through empirical evaluation, we found that the technical score alone is the most effective indicator for our use case.
+
+\paragraph{Aesthetics}
+We employ the LAION aesthetic model~\citep{schuhmann2022laion} to predict aesthetic score for each image and video. Since the LAION aesthetic model is originally designed for images, we use the aesthetic score of the first frame to represent the quality of the entire video clip.
+
+\paragraph{Overexposed and Underexposed}
+Some videos suffer from overexposure or underexposure, which we have found to adversely affect training stability. To remove such data, we convert every frame of the video to the HSI color space and compute the average brightness across the entire video. Videos identified as either overexposed or underexposed, based on their average brightness, are excluded from the training set.
+
+\paragraph{Motion Strength}
+To quantify the motion strength of each video, we employ the RAFT optical flow model~\citep{teed2020raft}. To reduce computational overhead, all videos are first downsampled to 8 FPS before computing the optical flow between adjacent frames. The optical flow is calculated at the pixel level, and the overall motion strength is obtained by averaging the flow magnitudes across all pixels in the clip.
+
+However, this approach tends to underestimate motion in cases where the background remains static while the foreground exhibits significant movement. To mitigate this issue, we additionally apply a saliency detection model~\citep{zhao2019pyramid} to each frame. The resulting saliency maps enable us to distinguish between foreground and background regions, allowing us to compute the average optical flow separately for both.
+
+As a result, we derive three motion statistics: overall motion strength, foreground motion strength, and background motion strength. To balance data quality and training difficulty, we prioritize video clips with moderate motion strength, avoiding both overly static and excessively dynamic videos. Specifically, we define lower and upper thresholds for all three motion statistics to guide data selection.
+
+\paragraph{Camera Movement Stability}
+A significant portion of collected videos is captured with handheld devices, which often results in erratic camera movements that are challenging for the model to learn. Since such cases are not effectively filtered by motion strength alone, we estimate camera stability by evaluating the consistency of optical flow between adjacent frames, filtering out clips with unstable camera motion.
+
+\paragraph{Slides Movement}
+Slide movements, such as floating photos or banners commonly found in screen recordings or slideshow presentations, are another undesirable case. To detect these, we analyze the divergence of the optical flow across all pixels in each frame. If the divergence remains consistently low over time, the clip is identified as containing slide movements and is removed.
+
+\paragraph{Border Detection}
+We perform edge detection on each frame and apply the Hough transform to identify persistent vertical and horizontal lines across frames. These lines are treated as potential borders, and the proportion of frames containing such borders serves as a confidence score for filtering.
+
+\paragraph{Text Detection}
+We perform text detection on video frames to identify and exclude clips containing excessive textual content. Specifically, if any frame within a clip contains an overly large number of characters or if the detected text regions occupy a substantial portion of the frame, the corresponding clip is discarded.
+
+A notable exception is subtitles, which typically consist of fewer characters and occupy relatively limited spatial regions, rendering them less likely to be filtered out by the aforementioned criteria. Nevertheless, subtitles exhibit distinctive spatiotemporal patterns: they consistently appear in fixed locations where most commonly at the top or bottom of the frame, and persist across multiple consecutive frames. By leveraging these characteristics, we are able to reliably detect and exclude video clips containing subtitles from the training data.
+
+\paragraph{Logo Detection}
+Many videos contain logos in the corners, which is an undesirable pattern for model training. To address this, we employ the Florence-2 model~\citep{xiao2024florence}, which supports open-vocabulary object detection. By providing a predefined set of keywords, Florence-2 accurately detects and localizes logos within video frames and providing confidence scores for filtering.
+
+\paragraph{Corner Face Detection}
+In commentary videos, narrators typically appear in a fixed corner of the screen, and we aim to exclude such patterns from our training data. To achieve this, we employ a face detection model, leveraging both face location and detection confidence to identify potential narrators. Specifically, we average the detection confidence of faces located in fixed corners across all frames to estimate the likelihood of a narrator's presence.
+
+\paragraph{Transition Detection}
+While PySceneDetect can segment raw videos into clips based on shot boundaries, it struggles to handle complex transitions, and as a result, the resulting clips may still contain multiple shots. To address this issue, we sparsely sample keyframes from each video and use CLIP~\citep{radford2021learning} to compute the semantic similarity between adjacent keyframes. If the similarity falls below a predefined threshold, the clip is considered to contain multiple shots and is subsequently removed.
+
+\subsection{De-duplication}
+Recent studies on large language models~\citep{lee2021deduplicating,hernandez2022scaling} have shown that even small amounts of duplicate data can significantly degrade performance. Motivated by this, we conduct rigorous de-duplication. We compute pairwise similarity scores using both CLIP~\citep{radford2021learning} and DINOv2~\citep{oquab2023dinov2}, and treat any clip exceeding the threshold in either similarity as a duplicate to be removed.
+
+\subsection{MLLM as Advanced Filter}
+After the above filtering and de-duplication processes, most of the undesired data have been effectively removed. However, due to the limitations of the current filtering actors, a small portion of low-quality data still remains. As the remaining data size has been significantly reduced and to further improve data quality, we leverage a multi-modal large language model (MLLM) to perform an additional round of filtering. This enables us to detect more complex bad cases. Notably, this step can be seamlessly integrated into the subsequent caption procedure, thereby reducing overall costs and improving efficiency.
+
+
+\subsection{Caption}
+\label{sec:caption}
+\paragraph{Highly Descriptive Caption}
+Recent advances~\citep{betker2023improving} have demonstrated that using MLLMs to generate highly descriptive captions is crucial for improving image generation quality, and we adopt this approach for captioning our data. Compared to images, videos have richer temporal information, including actions, camera movements, and scene changes. However, most mainstream MLLMs are primarily designed for images. To address this, we process each video by extracting a set of key-frames to form an image sequence. Through empirical analysis, we find that using 4 to 12 frames per video clip (depending on its duration) reaches the best trade-off between descriptive accuracy and computational efficiency.  
+For video data, the captioning prompt is structured into two stages. In the first stage, the model is guided through a series of targeted questions aimed at eliciting responses on predefined attributes of the video clip (as summarized in Tab.~\ref{table:caption_attributes}). This step encourages the model to perform a structured analysis of the content. In the second stage, the model generates the final descriptive caption, which can incorporate salient observations identified in the preceding analysis of first stage. In contrast, for image data, we directly prompt the model to generate a caption without the attribute-based pre-analysis. Example captions are provided in Tab.~\ref{table:caption_examples}.
+
+\input{data/tables/caption_attributes}
+\input{data/tables/caption_example}
+\paragraph{Auto-Regressive Caption}
+Unlike typical bi-directional denoising video generation models that produce an entire video as a whole, our model generates videos in an auto-regressive manner. This design allows our model to condition different parts of the video on distinct text prompts, offering greater controllability.  
+To enable this capability, we provide fine-grained, second-by-second descriptions for each video clip. Tab.~\ref{table:caption_examples} shows example. Specifically, the caption of the first second is instruct to generates a detailed description. For caption of subsequent seconds, they focus on describing changes relative to the previous one. 
+
+\input{data/tables/data_configurations}
+\subsection{Data Adjustment in Training}
+\label{sec:data_adjustment}
+We have two different data adjustment scenarios during training. First, we use a multi-stage training strategy, with later stages having higher data quality; Second, we dynamically adjust the data distribution during training based on the evaluation results. 
+
+\paragraph{Multi-stage Adjustment}
+\magi is trained in three stages, with the data resolution gradually increasing from 256p to 480p and ultimately to 720p. Alongside the resolution improvements, the data volume is progressively reduced, and more rigorous filtering strategies are employed to ensure higher data quality. Furthermore, in the final stage, the video duration is extended from a maximum of 8 seconds to a maximum of 16 seconds, allowing the model to capture richer temporal dynamics. The data specifications for each stage are summarized in Tab.~\ref{table:data_configuration}.
+
+\paragraph{Dynamic Distribution Adjustment}
+An appropriate data distribution is crucial for training high-performance models. However, identifying the optimal distribution in advance is challenging. For instance, during training, we observed that landscape scenes are relatively easy for the model to learn, while human expressions are significantly more difficult. These insights are hard to predict beforehand. To address this, we adopt a dynamic distribution adjustment strategy. By continuously monitoring model performance throughout the training process, we can adaptively adjust the proportion of specific data subsets to strengthen the underperforming aspects of the model, thereby enabling a more effective learning process.

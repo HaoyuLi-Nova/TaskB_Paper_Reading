@@ -1,0 +1,346 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{iclr2026_conference,times}
+\input{math_commands.tex}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+\title{Ovi: Twin backbone cross-modal fusion for audio-video generation}
+
+\iclrfinalcopy
+
+% Remove the top rule from all pages
+\pagestyle{plain}
+
+\author{
+Chetwin Low$^{1,\ast}$ \quad
+Weimin Wang$^{1,\ast,\dagger}$ \quad
+Calder Katyal$^{2}$ \\
+$^{1}$Character AI \quad $^{2}$Yale University \\
+$^{\ast}$Equal contributions \quad
+$^{\dagger}$Project Lead 
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Audio–video (AV) generation has often relied on complex multi-stage architectures or sequential synthesis of sound and visuals. We introduce \textsc{Ovi}, a unified paradigm for audio–video generation that models the two modalities as a single generative process. By using blockwise cross-modal fusion of twin-DiT modules, \textsc{Ovi} achieves natural synchronization and removes the need for separate pipelines or post hoc alignment. To facilitate fine-grained multimodal fusion modeling, we initialize an audio tower with an architecture identical to that of a strong pretrained video model. Trained from scratch on hundreds of thousands of hours of raw audio, the audio tower learns to generate realistic sound effects, as well as speech that conveys rich speaker identity and emotion. Fusion is obtained by jointly training the identical video and audio towers via blockwise exchange of timing (via scaled-RoPE embeddings) and semantics (through bidirectional cross-attention) on a vast video corpus. Our model enables cinematic storytelling with natural speech and accurate, context-matched sound effects, producing movie-grade video clips. 
+
+% Date and Project Page aligned with abstract content
+\vspace{0.5em}
+\textbf{Date:} September 29, 2025\\
+\textbf{Project Page (Demos, Codes, Model):} \href{https://aaxwaz.github.io/Ovi}{https://aaxwaz.github.io/Ovi}
+\end{abstract}
+
+\vspace{1em}
+
+\maketitle
+
+\section{Introduction}
+
+Recent progress in video generation has come from systems—such as text-to-video (T2V), audio-to-video (A2V), and video-to-audio (V2A)—that handle one modality at a time, instead of learning audio and visuals together. In practice, however, cinematic content demands audio and video be composed jointly: speech must lip-sync and background music should match scene dynamics. Existing open-source solutions typically fix one modality and synthesize the other, relying on post hoc alignment or narrow audio-driven cases like talking-head animation. To our knowledge, truly unified one-pass audio–video generation at scale remains largely unexplored in the open literature; the only widely cited system (Google’s Veo3) is closed-source and methodologically opaque.
+
+We propose \textsc{Ovi}, a unified generator that produces audio and video in a single pass. \textsc{Ovi} couples two architecturally matched latent diffusion transformers (DiTs)—one for video and one for audio—via blockwise, bidirectional cross-modal attention inserted in every transformer block. A single frozen T5 encoder conditions both branches using a combined natural-language prompt, while aligned RoPE scaling reconciles their different temporal resolutions. Training proceeds in two stages: (i) initialize an audio tower mirroring the architecture of a pretrained video model and train it from scratch on large-scale, richly captioned audio to master speech and diverse sound effects; (ii) fine-tune the twin audio and video backbones with newly initialized cross-modal layers (and original attention modules) on paired audio–video data to learn synchronization without sacrificing unimodal fidelity.
+
+\textbf{Contributions.} Guided by this framework, we make four contributions: (1) a large-scale AV data pipeline (millions of videos) with strict synchronization filtering and rich captions, enabling a combined-prompt conditioning scheme (single T5 pass) that unifies semantic control across modalities; (2) a 11B symmetric twin backbone with blockwise bidirectional fusion and scaled RoPE embeddings for precise cross-modal temporal coupling; (3) an end-to-end, one-stage formulation that achieves strong synchronization without heuristics such as face masks or post hoc alignment; and (4) a scalable training recipe—audio pretraining, audio post-training, and fusion fine-tuning—that yields high-quality, synchronized 5-second clips at 720$\times$720 and 24\,fps.
+
+\section{Related Work}
+
+While joint AV generation is still a relatively new field in the open-source community, various subproblems have been explored in great depth. Our review focuses on three of these subtasks: T2V generation, A2V generation, and V2A generation; we furthermore detail the efforts that have been made in joint AV generation. The unifier between the vast majority of recent models in this space is their use of the Diffusion Transformer (DiT) architecture \citep{peebles2023scalable} inside latent space with a Flow Matching \citep{lipman2022flow} loss, along with other widely-adopted practices in generative modeling such as RoPE positional embeddings \citep{su2024roformer} and Classifier-Free Diffusion Guidance \citep{ho2022classifier}. 
+
+\subsection{Text-To-Video (T2V) Generation}
+The T2V (or TI2V) task aims to generate silent video from a text prompt, optionally given a reference image (often fixed to be the first frame). The first major catalyst in this field is OpenAI's Sora \citep{sora}, which incorporates latent-space spacetime patching into a generalist diffusion transformer that handles both images and videos. The close-sourced model has led to public implementations of T2V and TI2V pipelines. One of the most impactful efforts is \citet{wan2025wan}, which introduces a series of open-source models that perform latent-space spatio-temporal attention and cross-attention with T5-embedded text given a fixed first-frame anchor image. The model pretrains a 3D VAE to achieve compression at 16x16x4, which, together with their 5B Wan2.2 model, can generate realistic 720p videos at 24\,fps. The natural extension to these models is to incorporate audio into the generation process, which is addressed in future A2V models.
+
+\subsection{Audio-To-Video (A2V) Generation}
+Perhaps the most common method for video generation is to condition a DiT on fixed, pre-generated audio. Tencent’s HunyuanVideo \citep{kong2024hunyuanvideo} improves alignment with a robust data filter and an MLLM in place of T5, while HunyuanVideo-Avatar \citep{chen2025hunyuanvideo} augments character and emotion by prepending a reference image, injecting emotion via cross-attention, and restricting Whisper-encoded audio features to facial regions with a mask. Tackling long-form talking-heads, \citet{yi2025magicinfinite} employs Wav2Vec audio features with 3D full-attention over video, text, and reference image tokens. ByteDance’s HuMo \citep{chen2025humo} fine-tunes Wan 2.1 in two stages, first freezing most weights while appending image latents, then adding Whisper-audio cross-attention and a mask predictor. Recent models emphasize real-time streaming, e.g., \citet{low2025talkingmachines}, which distills a bidirectional I2V teacher into a sparse, causal autoregressive A2V student. Unlike these pipelines, \textsc{Ovi} jointly generates both modalities without heuristics such as face masks, which limit generality.
+
+\subsection{Video-To-Audio (V2A) Generation}
+An alternative approach has been to fix the video modality and generate audio by conditioning on the video and text. Such V2A pipelines predict mel-spectrogram or codec latents from compressed video features using latent DiTs, often employing frame-level cross-modal attention. An early implementation of this, Diff-Foley \citep{luo2023diff}, uses the standard noise-prediction objective, encoding video and audio into a shared space with a contrastively trained AV encoder, conditioning a latent diffusion model on these features, and adding a separate alignment classifier to guide inference toward temporal synchronization. Subsequent models such as Frieren \citep{wang2024frieren} replace the standard diffusion with flow matching in the audio latent space, enabling faster and more stable generation. Aiming to address the lack of support for sound effects (SFX) and background music (BGM) in prior V2A models, SVA \citep{chen2024semantically} feeds a video keyframe into an MLLM to generate SFX and BGM descriptions, sending them into an audio generation and music generation model respectively, and then uses post-processing to blend the two produced waveforms. More recently, models have attempted to blend speech and generic audio generation. DeepAudio-V1 \citep{zhang2025deepaudio} trains a CLIP-conditioned V2A module with flow matching for ambient audio, a diffusion-transformer TTS branch on transcripts, and a Mixture-of-Fusion network that fuses text, video, instructions, and V2A-predicted energy contours to fine-tune TTS into a video-to-speech (V2S) model generating synchronized speech with ambient audio. A simplified process is found in MMAudio \citep{cheng2025mmaudio}, which performs joint attention between text, audio, and video inside a single DiT but requires an auxiliary synchronization module. 
+
+
+\subsection{Joint Audio–Video Generation}
+
+The de facto for joint audio-video generation has become Google's Veo3 \citep{veo3}, a closed-source latent diffusion model capable of generating 8s video synchronized with audio. A few open-source projects have since attempted to replicate Veo3's quality and synchronization with limited success. \citet{wang2025universe} introduces UniVerse-1, which uses Wan2.1 as the video backbone and the music-generation model ACE-Step as the audio backbone \citep{gong2025ace}, aligning their depths by inserting interpolated transformer blocks into the shallower model and enabling blockwise cross-attention between modalities via lightweight projection layers. The model is constrained, however, due to its reliance on a pretrained music-generation model instead of training a foundational audio model, as well as the misalignment between architectures and the consequent need for block insertion, projections, and an auxiliary semantic-alignment loss to prevent degradation when fusing with video. \citep{liu2025javisdit} addresses the architectural mismatch by employing the same backbone for both video and audio, but requires a learned  prior estimator that injects global and fine-grained latent spatio-temporal features from the text prompt into latent video via extra cross-attention in order to achieve synchronization. Ultimately, these open-source solutions demonstrate limited synchronization ability and fail to deliver consistent, high-quality video.
+
+\section{Data Processing Pipeline}
+
+Training a unified audio–video generator at scale requires careful construction of a large multimodal corpus. We designed a multi-stage data processing pipeline to ensure quality, diversity, and synchronization across both modalities.
+
+\subsection{Data Collection}
+
+To support both high-fidelity video generation and robust text-to-speech (TTS) modeling, we curate two complementary corpora: a paired audio-video corpus for learning modality alignment, as well as an audio-only corpus for acoustic pretraining and fine-tuning. The internal audio-video corpus is composed of human and nonhuman data from diverse contexts. To construct the audio-only corpus, we collect both an initial pretraining subset composed of longer waveforms and a shorter-duration fine-tuning subset. This facilitates a two-stage approach, where we first train a foundational audio model and then fine-tune it on shorter, diverse data to better match deployment conditions. The pretraining data, composed of waveforms up to 12-seconds long, is predominantly human speech sourced from internal collections. These longer segments emphasize linguistic diversity, prosody, and timbral variation useful for foundational acoustic modeling. The fine-tuning data, composed of waveforms that are 5-seconds long, aims to enhance the audio model to produce audio suitable for accompanying a diverse set of video scenes. As such, we emphasize modeling sound effects, drawing public data from VGGSound~\citep{chen2020vggsound}, AudioSet~\citep{gemmeke2017audio}, and WavCaps~\cite{mei2024wavcaps}. To maintain TTS abilities and better align with the downstream goal, we additionally incorporate audio tracks extracted from our internal paired audio-video.
+
+\subsection{Audio-Video Data Preprocessing}
+
+The data processing for audio-video data is composed of four steps: (1) splitting and filtering, (2) sync detection, (3) captioning, and (4) packing. 
+
+\textbf{Splitting and filtering. } We begin by employing scene detection to isolate 121-frame clips at 24\,fps that abide by certain criteria. In particular, we ensure that clips are greater than 720x720 pixel resolution, employ the optical flow model RAFT \citep{teed2020raft} to filter out static videos and obtain motion scores, and utilize an aesthetic predictor \citep{improved-laion-aesthetic} to remove low-quality data. We furthermore use an internal face detection model to ensure an adequate mix of single-person videos, multi-person videos, and person-free videos so that our model can learn to generate videos across a wide variety of contexts without overfitting to a particular subtask. 
+
+\textbf{Sync Detection. } We adopt the widely-used SyncNet \citep{chung2016out} model, which uses a ConvNet architecture to learn a joint embedding between sound and mouth images, to filter out speech videos which lack sufficient audio-video synchronization. We adapt the model to handle video data on the scale of millions and run the model to produce scalar confidence and offset values. We then only retain clips with $\lvert \mathrm{offset} \rvert \le 3 \;\land\; \mathrm{confidence} > 1.5$ that also meet a minimum mean volume of $-60$ decibels. We have experimentally determined that even a small quantity of out-of-sync data can impede lip-sync abilities and chose these strict criteria to minimize the risk of misaligned data. 
+
+\textbf{Captioning. } We use an MLLM to provide a verbose video caption, describing visual events interleaved with audible speech enclosed in start-of-speech and end-of-speech tags \textless S\textgreater \space and \textless E\textgreater. At the end of the caption, we ask the MLLM to provide a rich audio description, which we enclose in \textless AUDCAP\textgreater \space and \textless ENDAUDCAP\textgreater \space tags. The MLLM is provided seven evenly spaced frames from the video as well as the entire audio track, and we conducted extensive experiments to ensure the captioning included all relevant visual and audio events while respecting chronology. For clips containing speech, we ask the audio description to emphasize speaker-related acoustic attributes such as age, gender, accent, pitch, prosody, emotion, and speaking rate. For non-speech clips, the audio description instead details the sound effects, background audio, or musical elements present.
+
+\textbf{Packing} To prepare our data for our model, we need to convert both modalities to bytes. Before doing so, we apply two final transformations to our data: we first remove any existing margins in the video and then resize the video frames (maintaining aspect ratio) to a fixed resolution of $518400 = 720 \times 720$ pixels so that our model receives consistent video frames. Finally, we convert video into an array of bytes, extracting frames at 24\,fps, and convert the audio to raw wave bytes. 
+
+\subsection{Pure Audio Data Preprocessing}
+
+For data lacking the visual modality, the preprocessing stage is simplified. We extract audio at two distinct durations—up to 12 seconds for our pretraining data and exactly 5.04 seconds (to match the duration of 121 frames at 24 fps). We employ the same MLLM as used in our audio-video data to obtain audio transcriptions (if the record does not contain audible speech, such as a pure sound effect, this is left blank) and audio descriptions. 
+
+\section{Method}
+
+\subsection{Architecture Overview}
+\label{subsec:architecture-overview}
+\textsc{Ovi} adopts a symmetric twin backbone design with parallel audio and video branches built on an identical diffusion transformer (DiT) architecture. The video branch is initialized from Wan2.2 5B, and an identical audio branch is trained from scratch. As such, the two backbones share the same number of transformer blocks, heads, head dimensions, and FFNs, enabling symmetry at every layer, as seen in Table~\ref{tab:ovi_transformer_config}.
+
+\begin{table}[h]
+  \centering
+  \caption{Transformer hyperparameters for the \textsc{Ovi} twin backbone.}
+  \label{tab:ovi_transformer_config}
+  \begin{tabular}{ccccccc} % 7 columns
+    \toprule
+    Model Dim & FFN Dim & Heads & Head Dim & \multicolumn{3}{c}{Blocks} \\
+    \cmidrule(lr){5-7}
+              &         &       &          & Self-Attn & Text Cross-Attn & AV Cross-Attn \\
+    \midrule
+    3072      & 14336   & 24    & 128      & 30        & 30              & 30 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Each transformer block contains paired cross-attention layers, where the audio stream attends to the video stream and the video stream reciprocally attends to the audio stream. This bidirectional mechanism allows synchronization cues to be exchanged throughout the entire network. The symmetry between the audio and video towers ensures that both modalities share the same latent dimension, eliminating the need for intermediate projection layers and avoiding unnecessary parameters or computation. Importantly, it also preserves the attention structure established during unimodal pretraining, improving training stability and efficiency. In practice, the video branch uses signals from audio to enable synchronization with speech and sound effects while the audio branch grounds speech, sound effects, and ambience in the visual context. Figure~\ref{fig:architecture} details the overall architecture and fusion design. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\linewidth]{images/figure1.jpg}
+    \caption{\textsc{Ovi} architecture. Symmetric DiT backbones for audio and video with blockwise, bidirectional cross-attention and shared T5 conditioning from a combined prompt.}
+    \label{fig:architecture}
+\end{figure}
+
+Although the audio and video backbones share the same architecture, their temporal resolutions differ: video latents span 31 frames, while audio latents form 157 tokens ($16,\text{kHz} \times 5\text{s} / 512$). To align them, we apply Rotary Positional Embeddings (RoPE) to both modalities, and, taking inspiration from \citet{cheng2025mmaudio}, scale the RoPE frequencies of the audio branch by $31/157 \approx 0.197$ to match the coarser resolution of video. This scaling ensures that audio and video tokens attend to each other in a temporally consistent way. As shown in Figure~\ref{fig:rope_scaling}, without scaling (left) the RoPE affinity matrix is diagonally misaligned, hindering synchronization. With scaling (right), the diagonals align sharply, providing clearer temporal correspondence. 
+
+\begin{figure}[h]
+  \centering
+  \begin{subfigure}{0.48\linewidth}
+    \includegraphics[width=\linewidth]{images/scale_before.png}
+    \caption{Default (unscaled) RoPE affinity.}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}{0.48\linewidth}
+    \includegraphics[width=\linewidth]{images/scale_after.png}
+    \caption{Aligned RoPE after scaling.}
+  \end{subfigure}
+  \caption{Cross-modal RoPE affinity matrices before and after scaling. Scaling aligns audio and video temporal positions, improving synchronization.}
+  \label{fig:rope_scaling}
+\end{figure}
+
+\textsc{Ovi} moreover simplifies the prompt conditioning process by utilizing a single frozen T5 encoder, applied to a combined prompt. The prompt concatenates the video caption which describes visual events interleaved with audible speech, and its T5 embedding is used independently in cross-attention with audio and video. Intuitively, details about the visual context improve the specificity and diversity of the audio, while details about the acoustic context guide facial movements and actions in the video. The single semantic context additionally simplifies training and inference and improves cross-modal alignment. 
+
+\subsection{Training Strategy}
+\label{subsec:training-strat}
+
+We train our \textsc{Ovi} in two stages: we first initialize an audio backbone using the architecture of Wan2.2 5B and train it from scratch on speech and sound effect generation, and then we train self-attention and cross-attention layers in the joint model.
+
+\subsubsection{Audio Model Training}
+\label{subsec:audio-training-strat}
+For efficiency and architectural consistency with the video branch, we operate in a compact latent space using a pretrained 1D VAE from MMAudio~\cite{cheng2025mmaudio}. Specifically, raw audio is transformed with Short-Time Fourier Transform (STFT), converted into mel-spectrograms, and then encoded into latents by this VAE. At inference, generated latents are decoded back into spectrograms and vocoded into waveforms with BigVGAN~\cite{lee2022bigvgan}. We adopt only the 16kHz encoder variant, which provides an effective trade-off between efficiency and quality. We optimize a flow matching objective on audio latents: given $\mathbf{z}_1^a \sim p_{\text{data}}^a$ and $\mathbf{z}_0^a \sim \mathcal{N}(0,\mathbf{I})$, we form the linear interpolant $\mathbf{z}^a_t=(1-t)\mathbf{z}^a_0+t\mathbf{z}^a_1$ with $t\sim\mathcal{U}[0,1]$ and train a velocity predictor $\mathbf{v}_\theta^a(\mathbf{z}^a_t,t,\mathbf{c}_{\text{text}})$ toward the target $\mathbf{z}^a_1-\mathbf{z}^a_0$,
+\begin{equation}
+\label{eq:fm_audio}
+\mathcal{L}_{\mathrm{FM}}^a=\mathbb{E}_{t,\mathbf{z}^a_1,\mathbf{z}^a_0}\!\left[\left\|\mathbf{v}_\theta^a(\mathbf{z}^a_t,t,\mathbf{c}_{\text{text}})-(\mathbf{z}^a_1-\mathbf{z}^a_0)\right\|_2^2\right].
+\end{equation}
+
+
+
+Our audio tower \textsc{Ovi-Aud} is trained in two substages:  an initial pretraining stage of up to 12-second waveforms, and a fine-tuning stage of up to 5-second waveforms. To avoid re-adaptation when transitioning to the audio-video finetuning stage and eliminate the need to maintain multiple scales for audio RoPE, we applied scaled RoPE positional embeddings to all attention layers.
+
+
+\textbf{Audio Pretraining. } The audio backbone is pretrained from scratch on hundreds of thousands of hours of primarily speech data up to 12 seconds in duration. During pretraining, we use variable-length audio to maximize coverage of diverse acoustics, providing the audio backbone with broad exposure to natural variability in duration and content. The long-form raw audio enables the model to generate consistent audio that respects speaker traits such as pitch and emotion. 
+
+\textbf{Audio Fine-tuning} We next fine-tune the pretrained audio model with padded 5.04-second waveforms to produce audio compatible with our generated video. This step ensures that the audio backbone aligns with the distribution expected in multimodal fusion training, while retaining the generalization capacity learned from large-scale diverse pretraining. At this phase, a variety of sound effects are also introduced into the training mix, enabling the \textsc{Ovi-Aud} to serve as a foundational audio model for AV generation. 
+
+\subsubsection{Audio–Video Model Training}
+\label{subsec:audio-video-fusion-fine-tuning-phase}
+
+\textbf{Fine-tuning attention layers.} We combine pretrained audio and video backbones, initializing cross-modal attention from scratch while freezing all FFNs to reduce memory, leaving 5.7B of 11B parameters trainable. By fine-tuning only unimodal self-attention and cross-attention modules (text-to-modality and modality-to-modality), we align audio and video while preserving their pretrained representations. Building on Eq.~\eqref{eq:fm_audio}, we train on paired AV latents $(\mathbf{z}_1^v,\mathbf{z}_1^a)$ with independent noises $(\mathbf{z}_0^v,\mathbf{z}_0^a)$ and a shared $t\!\sim\!\mathcal{U}[0,1]$, defining $\mathbf{z}_t^m=(1-t)\mathbf{z}_0^m+t\mathbf{z}_1^m$ for $m\!\in\!\{v,a\}$. Each backbone predicts a velocity conditioned on text and the other modality via bidirectional cross-attention, and we apply the same FM objective per modality; the total loss is a weighted sum \[ \mathcal{L}_{\text{total}}=\lambda_v\,\mathcal{L}_{\mathrm{FM}}^{v}+\lambda_a\,\mathcal{L}_{\mathrm{FM}}^{a},\quad \lambda_v=0.85,\ \lambda_a=0.15. \] Paired sampling and a shared timestep encourage the model to learn audio–visual correspondences (e.g., lip-sync, action–sound alignment) without explicit sync losses. At inference, both branches share the same $t$ schedule and are jointly integrated with a single ODE solver.
+
+
+\subsection{Implementation Details}
+The audio pretraining phase described in subsection~\ref{subsec:audio-training-strat} was conducted for 50k steps with a batch size of 2880 and a learning rate of $1\times10^{-4}$. We used the AdamW optimizer with parameters $\beta_{1} = 0.9, \beta_{2} = 0.999, \epsilon = 10^{-8}$. Upon convergence of the audio tower, denoted as \textsc{Ovi-Aud}, we proceeded with the audio-video fusion training phase as in subsection~\ref{subsec:audio-video-fusion-fine-tuning-phase}. We trained the partially frozen fusion model for 40k steps with a batch size of 768 and a learning rate of $5\times10^{-5}$, using AdamW optimizer with parameters $\beta_{1} = 0.9, \beta_{2} = 0.95, \epsilon = 10^{-8}$. All models were trained at \texttt{bf16} precision leveraging DeepSpeed \citep{rasley2020deepspeed} for efficient sharded distributed Data Parallel (DP) training. We employ the UniPC \citep{zhao2023unipc} solver as we experimentally verify that it improves stability compared to a standard Euler solver.
+
+\section{Experiments}
+
+\subsection{Cross-modal attention visualizations.} 
+We visualize A2V cross-attention maps by averaging token alignments and projecting them into pixel heatmaps, highlighting where audio attends in the visual scene. As shown in Figure~\ref{fig:attn_vis}, speech emphasizes mouths, drumming highlights drums, and animal sounds align with the source body parts, illustrating that the fusion model effectively synchronizes audio with relevant visual cues.
+
+\begin{figure*}[ht]
+  \centering
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/1.png}
+    \caption{Music instrument}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/2.png}
+    \caption{Music instrument}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/3.png}
+    \caption{Music instrument}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/4.png}
+    \caption{Bird chirping}
+  \end{subfigure}
+
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/5.png}
+    \caption{Bird chirping}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/6.png}
+    \caption{Rocket}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/7.png}
+    \caption{Animal}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/8.png}
+    \caption{Animal}
+  \end{subfigure}
+
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/9.png}
+    \caption{Speech}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/10.png}
+    \caption{Speech}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/11.png}
+    \caption{Speech}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/12.png}
+    \caption{Speech}
+  \end{subfigure}
+
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/13.png}
+    \caption{Helicopter}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/14.png}
+    \caption{Speech}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/15.png}
+    \caption{Speech}
+  \end{subfigure}
+  \begin{subfigure}{0.23\linewidth}
+    \includegraphics[width=\linewidth]{images/16.png}
+    \caption{Sports}
+  \end{subfigure}
+  \caption{A2V cross-attention visualizations. Heatmaps highlight pixels most attended by audio tokens. Brighter regions correspond to stronger attention.}
+  \label{fig:attn_vis}
+\end{figure*}
+
+\vspace{-10pt}
+
+\subsection{Compared Methods}
+Mirroring our two-stage training phase, we evaluate each stage independently. After the audio pretraining stage, we assess the audio generation capabilities of the audio tower (\textsc{Ovi-Aud}) against state-of-the-art baselines in both text-to-audio (T2A) and text-to-speech (TTS).For text-to-audio (T2A), baselines include GenAU \citep{haji2024taming}, TANGO~2 \citep{majumder2024tango}, Make-An-Audio~2 \citep{huang2023make}, AudioLDM2 \citep{liu2024audioldm}, and MMAudio.
+For text-to-speech (TTS), we evaluate against Fish Speech \citep{liao2024fish} and F5-TTS \citep{chen2024f5}, CosyVoice \citep{du2024cosyvoice}, FireRedTTS \citep{guo2024fireredtts}.
+In the second stage, we evaluate the joint audio-video generation (JAVG) capabilities of \textsc{Ovi}, comparing against JavisDiT and UniVerse-1. We also compare the video generation quality relative to the pretrained Wan2.2 video model to ensure that the JAVG ability did not come at the expense of degraded video performance.
+
+\subsection{Evaluation Metrics}
+To benchmark \textsc{Ovi}'s JAVG capabilities, we conducted a blind pairwise preference study with 50 participants. Each participant compared pairs of videos with audio generated from different models. We report the Pairwise Win Rate (PWR) between \textsc{Ovi} against competing baselines, providing a direct measure of human perceptual preference in multimodal generation in terms of quality and synchronization.
+
+Following MMAudio's T2A protocol, we evaluate \textsc{Ovi-Aud} with FD$_{\text{PANNs}}$ \citep{kong2020panns}, FD$_{\text{VGG}}$ \citep{hershey2017cnn}, Inception Score (IS) \citep{salimans2016improved}, and CLAP \citep{wu2023large}. FD$_{\text{PANNs}}$ and FD$_{\text{VGG}}$ compare distributional distances with different pretrained extractors, IS measures perceptual quality, and CLAP evaluates text–audio semantic alignment. For TTS, we report linguistic correctness using Word Error Rate (WER).
+
+
+\subsection{Results}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\linewidth]{images/ovi_vs_all_side_by_side_reordered.png}
+    \caption{Pairwise win rate (PWR) results of \textsc{Ovi} compared against baselines on Verse-Bench. Higher values indicate stronger human preference for \textsc{Ovi}.}
+    \label{fig:pwr_results}
+\end{figure}
+
+As shown in Figure~\ref{fig:pwr_results}, \textsc{Ovi} achieves a clear and consistent preference over both JavisDiT and UniVerse-1 across all three evaluation dimensions: audio quality, video quality, and audio-video synchronization, using the Verse-Bench dataset, introduced in~\cite{wang2025universe}. Notably, the margins are substantial, with participants overwhelmingly favoring \textsc{Ovi}. This indicates that our unified design and training framework does not simply maintain competitive performance, but pushes the boundaries of open-research joint audio-video generation, bringing the community significantly closer to the capabilities demonstrated by frontier models such as Veo3~\citep{veo3}. We note, however, a slight degradation in video quality relative to the Wan2.2 base model, which is expected given that our joint training relies on a narrower audio-video dataset compared to the large-scale pretraining corpus used for Wan2.2. Importantly, this trade-off is marginal and does not diminish the overall superiority of \textsc{Ovi} in joint audio-video generation.
+
+\begin{table}[ht]
+\caption{Results of audio evaluation. All T2A metrics follow the evaluation protocol of MMAudio, and baseline results are directly copied from that work. WER was computed on Seed-TTS test-en dataset\citep{anastassiou2024seed}, and baseline results are directly copied from \cite{chen2024f5}}
+\label{tab:metrics}
+\centering
+\begin{tabular}{llcccc|c}
+\toprule
+\multirow{2}{*}{Type} & \multirow{2}{*}{Model} 
+ & \multicolumn{4}{c}{T2A Metrics} & \multicolumn{1}{c}{TTS Metric} \\
+\cmidrule(lr){3-6} \cmidrule(lr){7-7}
+ &  & FD$_{\text{PANNs}}$  & FD$_{\text{VGG}}$  & IS $\uparrow$ & CLAP $\uparrow$ 
+ & WER  \\
+\midrule
+\multirow{5}{*}{T2A} 
+ & GenAU-Large     & 16.51 & \textbf{1.21} & 11.75 & 0.285 & - \\
+ & TANGO 2         & 19.77 & 2.74 & 8.45 & 0.264 & - \\
+ & Make-An-Audio 2 & 15.34 & 1.27 & 9.58 & 0.251 & - \\
+ & AudioLDM 2-L    & 32.50 & 5.11 & 8.54 & 0.212 & - \\
+ & MMAudio-L       & \textbf{15.04} & 4.03 & \textbf{12.08} & \textbf{0.348} & - \\
+\midrule
+\multirow{2}{*}{TTS} 
+ & Fish Speech     & - & - & - & - & \textbf{0.008} \\
+ & F5-TTS          & - & - & - & - & 0.018 \\
+ & CosyVoice         & - & - & - & - & 0.034 \\
+ & FireRedTTS         & - & - & - & - & 0.038 \\
+\midrule
+\multirow{1}{*}{Unified} 
+ & \textsc{Ovi-Aud} (ours) & 18.03 & 5.02 & 11.20 & 0.224 & 0.035\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:metrics}, our unified audio model, \textsc{Ovi-Aud}, capable of both T2A and TTS, achieves performance comparable to dedicated state-of-the-art models on their respective metrics. While it is expected that a unified model may not surpass specialized models optimized for a single task, attaining competitive results across both domains demonstrates that \textsc{Ovi-Aud} is sufficiently strong for its primary role as a foundation for audio-video fusion. Crucially, unified audio generation is particularly important for joint audio-video modeling, since real-world videos often contain both complex sound effects and coherent speech capabilities that specialized models are unable to support.
+
+\subsection{Ablation Study}
+
+The initial design of our audio tower (\textsc{Ovi-Aud}) incorporated both a CLAP text encoder and a T5 text encoder. The motivation was to disentangle T2A and TTS tasks by providing separate text embeddings, thereby preventing the two objectives from interfering with each other adversely. In practice, however, we observed that this separate embedding setup constrained the model's ability to generate cohesive outputs: while it could handle either sound effects or speech in isolation, it struggled to integrate them into a unified and coherent audio stream.
+
+To address this, we adopted the combined text prompt approach described in subsection~\ref{subsec:architecture-overview}, where both speech transcripts and textual audio descriptions are fused into a single cohesive T5 text embedding. This modification preserved the linguistic correctness of the model as seen from the comparable WER, while significantly improving the audio fidelity and alignment metrics (FD, IS and CLAP), as seen in Table~\ref{tab:ablation}. More importantly, the unified text embedding also streamlined joint audio-video generation, as both the audio and video towers could now condition on the same T5 text representation, simplifying cross-modal modeling and strengthening multimodal coherence.
+
+\begin{table}[ht]
+\centering
+\caption{Ablation study of audio tower design, specifically using a separate CLAP encoder for non-speech audio descriptions}
+\label{tab:ablation}
+\begin{tabular}{lcccccc}
+\toprule
+Variant & FD$_{\text{PANNs}}$  & FD$_{\text{VGG}}$  & IS $\uparrow$ & CLAP $\uparrow$ & WER \\
+\midrule
+\textsc{Ovi} with CLAP        & 20.78 & 7.13 & 8.34 & 0.190 & \textbf{0.033} \\
+\textsc{Ovi}                  & \textbf{18.03} & \textbf{5.02} & \textbf{11.20} & \textbf{0.224} & 0.035 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Limitations and Conclusion}
+
+\textbf{Limitations. }
+In its current form, \textsc{Ovi} is tuned to short (5s) 720p/24\,fps clips, which leaves minute-scale narratives, inter-shot transitions, and global story consistency out of scope. Future work could explore methods to increase duration; for example, stitching multiple 5s "chunks" together by training a chunk-wise causal audio model and pairing it with a causal video backbone that conditions on the last frame of the previous chunk. The symmetric 5B-per-branch design with dense, blockwise fusion also requires significant time per sampling step, which is exacerbated by the additional forward pass for each step due to CFG. Distillation via a framework such as DMD2 \citep{yin2024improved} could reduce the effective number of sample steps needed. On the audio side, the 16\,kHz path through a fixed 1D-VAE constrains bandwidth and spatial realism, so high-fidelity music, spatial cues, and subtle timbre can be flattened. By replacing the fixed 1D-VAE with a higher-bandwidth latent or performing bandwidth extension in post-processing, audio quality could be further improved. 
+
+\textbf{Conclusion. }  
+We introduced \textsc{Ovi}, a framework for unified audio–video generation that treats the two modalities as a single generative object. Architectural symmetry and blockwise bidirectional fusion allow timing and semantics to be learned jointly rather than via sequential pipelines, while a pretrained foundational audio tower—capable of both speech and diverse sound effects—supports general synchronization without heuristic add-ons (e.g., face masks or auxiliary sync modules). Empirically, this unified formulation is competitive and produces coherent, synchronized outputs, establishing a practical template for simple and scalable AV generation. Ultimately, our twin backbone architecture proves effective and sets a direction for future AV systems.
+
+\section*{Acknowledgements}
+We would like to thank Yi Cui, Manav Shah, and Diego De La Torre for their contributions to data preparation.
+
+
+\newpage
+\bibliography{iclr2026_conference}
+\bibliographystyle{iclr2026_conference}
+
+\end{document}

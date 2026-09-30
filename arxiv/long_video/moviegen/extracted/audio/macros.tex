@@ -1,0 +1,72 @@
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage[normalem]{ulem}
+\usepackage{float}
+\usepackage[inline]{enumitem}
+\usepackage{caption}
+\usepackage{amsfonts, amsmath, amssymb}
+\usepackage{xcolor}
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,positioning}
+\usepackage[inline]{enumitem}
+
+\usepackage{pifont}
+
+\newcommand{\boldparagraph}[1]{\noindent{\bf #1:}}
+
+\newcommand{\gcell}{\cellcolor{green!25}}
+\newcommand{\rcell}{\cellcolor{red!25}}
+\newcommand{\ycell}{\cellcolor{yellow!25}}
+\definecolor{lightblue}{rgb}{0.88, 0.96, 1}
+\definecolor{capblue}{HTML}{2962D9}
+\definecolor{capyellow}{HTML}{E07200}
+\definecolor{capteal}{HTML}{009B9B}
+\definecolor{cappink}{HTML}{C42F8F}
+
+\newcommand{\meanci}[2]{$#1_{\pm #2}$}
+
+\definecolor{av_comment}{RGB}{255, 128, 0}
+\newcommand{\colorours}{\rowcolor{lightblue}}
+    
+\usepackage[normalem]{ulem}
+\usepackage{colortbl}
+
+\newcommand{\mvga}{\OursAudio}
+
+\newif\ifdraft  %
+\drafttrue
+
+\ifdraft
+    \newcommand{\todo}[1]{\textcolor{red}{#1}}
+    
+    \newcommand{\wha}[1]{\textcolor{magenta}{#1}}
+    \newcommand{\whr}[1]{\textcolor{magenta}{\sout{#1}}}
+    \newcommand{\whc}[1]{\textcolor{magenta}{[WN: #1]}}
+    \newcommand{\mlc}[1]{\textcolor{magenta}{[ML: #1}}
+    \newcommand{\avc}[1]{\textcolor{av_comment}{[AV: #1]}}
+    \newcommand{\ava}[1]{\textcolor{av_comment}{#1}}
+    \newcommand{\avr}[1]{\textcolor{av_comment}{\sout{#1}}}
+
+    \newcommand{\avt}[1]{\textcolor{blue}{[AV: #1]}}
+    \newcommand{\atj}[1]{{\color{violet}[AT: #1]}}
+    \newcommand{\bsa}[1]{\textcolor{blue}{#1}}
+    \newcommand{\bsc}[1]{\textcolor{blue}{[BS: #1]}}
+
+    \newcommand{\hledita}[1]{\textcolor{red}{#1}}
+    \newcommand{\hleditc}[1]{\textcolor{red}{#1}}
+\else
+    \newcommand{\todo}[1]{\textcolor{red}{#1}}
+    \newcommand{\wha}[1]{#1}
+    \newcommand{\whr}[1]{}
+    \newcommand{\whc}[1]{}
+    \newcommand{\mlc}[1]{}
+    \newcommand{\avc}[1]{}
+    \newcommand{\ava}[1]{#1}
+    \newcommand{\avt}[1]{}
+    \newcommand{\atj}[1]{}
+    \newcommand{\bsc}[1]{}
+    \newcommand{\bsa}[1]{#1}
+    \newcommand{\hledita}[1]{{#1}}
+    \newcommand{\hleditc}[1]{}
+\fi

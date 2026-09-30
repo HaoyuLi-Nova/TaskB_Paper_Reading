@@ -1,0 +1,18 @@
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{figs/data_representation_figure.pdf}
+    \captionof{figure}{\textbf{Geometry and Motion representation.}
+    % We define both point maps and scene flows in the world coordinate system.
+    For a pixel $p_i$ in frame $\bm{I}_i$,
+    $\bm{X}_i$ is its corresponding 3D point.
+    As this 3D point moves,
+    we use $\bm{X}_i^d$ to represent the moved point and $\bm{V}_{i} = (\Delta x, \Delta y, \Delta z)$ to represent the motion.
+    Ideally,
+    $\bm{X}_i^d$ should align with a matching point $\bm{X}_{i+1}$ in next frame $\bm{I}_{i+1}$.
+    However, their pixel indexes are totally different ($p_i$ vs. $p_{i+1}$) and $p_{i+1}$ might even be out of view due to camera/object motion,
+    making it impossible to build one-to-one correspondence between $\bm{X}_i^d$ and $\bm{X}_{i+1}$.
+    }%
+    \label{fig:representation}
+    \vspace{-1em}
+
+\end{figure}

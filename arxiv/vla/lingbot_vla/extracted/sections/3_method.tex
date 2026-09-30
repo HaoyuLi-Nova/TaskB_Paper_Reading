@@ -1,0 +1,139 @@
+\section{Pre-training Dataset}\label{sec:method}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{figures/data/data_mask.pdf}
+    \caption{\textbf{Visualization of pre-training dataset} used by \method.}
+    \label{fig:data}
+\end{figure}
+
+
+\subsection{Data Collection}
+The pre-training dataset is built upon large-scale teleoperated data collected from 9 popular dual-arm robot embodiments, as shown in~\cref{fig:data}. We discuss these embodiments below:
+% Different mixtures of pre-training data (from the cross-embodiment sources) yield \methodname\ model with different characteristics.
+% Our dexterous manipulation datasets include 8 popular dual-arm robot configurations. The pre-training data additionally includes several thousand hours of teleoperated data from. Collecting around 20,000 hours of diverse, high-quality demonstration data across 8 heterogeneous robotic platforms demands unprecedented coordination and resources. This requires not only substantial capital investment in robot hardware, infrastructure, and maintenance but also careful curriculum design to ensure comprehensive coverage across task categories, environmental variations, manipulation skills, and robot-specific idiosyncrasies. Maintaining data quality consistency across long collection periods, multiple human demonstrators, and diverse platforms introduces significant validation and curation overhead. Furthermore, ensuring that collected data reflects real-world task distributions—rather than artificially curated scenarios—adds additional complexity.
+
+\begin{itemize}
+
+    \item\textbf{AgiBot G1.}
+    This setup has two 7-DoF arms with three RGB-D cameras. Robot data are collected via VR-based teleoperation on this setup.
+    % This setup has two 7-DoF arms, a 2-DoF waist, a 2-DoF head, and three RGB-D cameras. Robot data are collected via VR-based teleoperation on this setup.
+    
+    \item\textbf{AgileX.}
+    This setup is equipped with three cameras and two 6-DoF arms. Robot control is achieved using isomorphic arms during the data collection process.
+
+    \item\textbf{Galaxea R1Lite.}
+    This setup has two 6-DoF arms, with one stereo camera and two wrist cameras.
+    
+    \item\textbf{Galaxea R1Pro.}
+    Two 7-DoF arms, one stereo camera, and two wrist cameras are used in this setup. 
+    % Two 7-DoF arms, 4-DoF waist, one stereo camera, and two wrist cameras are used in this setup. 
+    
+    \item\textbf{Realman Rs-02.}
+    This setup uses three cameras and features a 16-dimensional configuration and action space: two 7-DoF arms and two parallel grippers.
+    % This setup uses three cameras and features a 17-dimensional configuration and action space: two 7-DoF arms, one 1-DoF waist, and two parallel grippers.
+    
+    \item\textbf{Leju KUAVO 4 Pro.}
+    A bipedal humanoid robot featuring two 7-DoF arms, two parallel grippers, one head-mounted camera, and two wrist-mounted cameras.
+    %This setup features two 7-DoF arms, two parallel grippers, one camera on the head, and two cameras on the wrists.
+    % This setup has two 7-DoF arms in configuration, with one head and two wrist cameras.
+    
+    \item\textbf{Qinglong.}
+    A humanoid robot with two 7-DoF arms and three cameras: one on the head and one on each wrist.
+    
+    \item\textbf{ARX Lift2.}
+    This setup uses three cameras and two 6-DoF arms.
+    
+    \item\textbf{Bimanual Franka.}
+    This setup uses two 7-DoF arms and two parallel grippers, forming a 16-dimensional action space, with three cameras.
+     
+\end{itemize}
+
+
+% \noindent\textbf{AgiBot G1.}
+% This setup has two 7-DoF arms, with three RGB-D cameras. Robot data are collected via VR-based teleoperation on this setup.
+
+% \noindent\textbf{AgileX.}
+% This setup is equipped with three cameras and two 6-DoF arms. Robot control is achieved using isomorphic arms during the data collection process.
+
+% \noindent\textbf{Galaxea R1Pro.}
+% Two 7-DoF arms, one stereo camera, and two wrist cameras are used in this setup. 
+
+% \noindent\textbf{Galaxea R1Lite.}
+% This setup has two 6-DoF arms, with one stereo camera and two wrist cameras.
+
+% \noindent\textbf{Realman Rs-02.}
+% This setup uses three cameras and features a 16-dimensional configuration and action space: two 7-DoF arms and two parallel grippers.
+
+% \noindent\textbf{Leju Kuavo 4 Pro.}
+% This setup has two 7-DoF arms in configuration, with two wrist cameras and one head camera.
+
+% \noindent\textbf{Qinglong.}
+% A humanoid robot with two 7-DoF arms and three cameras: one on the head and the other two on the wrists.
+
+% \noindent\textbf{ARX Lift2.}
+% This setup uses three cameras and two 6-DoF arms.
+
+% \noindent\textbf{Bimanual Franka.}
+% This setup uses two 7-DoF arms and two grippers, forming a 16-dimensional action space, with three cameras.
+
+
+
+\subsection{Data Labeling}
+To obtain precise language instructions, we perform the following annotations: 
+% 
+(1) \textit{Video Segment}.
+Videos from multiple viewpoints, captured by robots, are jointly decomposed into clips by human annotators according to predefined atomic actions. 
+Besides, to reduce the redundant information within videos, static frames at the start and end of the videos are eliminated at this stage.
+% 
+(2) \textit{Instruction Annotation}. 
+After obtaining videos containing the robots' full motion trajectories and video clips for each atomic action, we employ Qwen3-VL-235B-A22B~\cite{bai2025qwen2} for precise annotation of task and sub-task instructions, as shown in~\cref{fig:teaser}.
+
+
+
+
+\section{Model Training}
+\subsection{Architecture}
+To leverage well-trained vision-language representations, \method integrates the pre-trained VLM (\textit{i.e.}, Qwen2.5-VL~\cite{bai2025qwen2}) with an initialized action generation module called `action expert'. These components are organized via a Mixture-of-Transformers (MoT) architecture like BAGEL~\cite{deng2025emerging}, where vision-language and action modalities are processed through distinct transformer pathways, coupled by a shared self-attention mechanism for layer-wise unified sequence modeling. This MoT framework ensures that high-dimensional semantic priors from the VLM provide continuous guidance across all layers, while simultaneously mitigating cross-modal interference by maintaining modality-specific processing. The architecture of \method is illustrated in~\cref{fig:teaser}. Multi-view operational images and the related task instruction are uniformly encoded through a VLM to establish multimodal conditioning for subsequent action generation. Concurrently, the robot's proprioceptive sequences, specifically initial states and action chunks, are fed into the action expert for the prediction of action generation. We employ Flow Matching~\cite{lipman2022flow} for continuous action modeling, which facilitates fluid and smooth robotic control, ensuring high-precision execution across complex tasks and diverse robots.
+
+
+In \method, the VLM and the action expert interact through a shared self-attention mechanism, facilitating a unified layer-wise representation. Consequently, the joint modeling sequence at timestamp $t$ is formulated as the concatenation of the observation conditions $\mathbf{O}_t$ and the action chunk $\mathbf{A}_t$. 
+Specifically, the observation context is defined as:
+\begin{equation}
+    \mathbf{O}_t = [\mathbf{I}_t^1, \mathbf{I}_t^2, \mathbf{I}_t^3, \mathbf{T}_t, \mathbf{s}_t],
+\end{equation}
+which incorporates tokens from three-view operational images $\mathbf{I}_t^{1,2,3}$ of dual-arm robots, the task instruction $\mathbf{T}_t$, and the robot state $\mathbf{s}_t$. The corresponding action sequence is denoted as:
+\begin{equation}
+    \mathbf{A}_t = [\mathbf{a}_t, \mathbf{a}_{t+1}, \dots, \mathbf{a}_{t+T-1}],
+\end{equation}
+where $T$ represents the action chunk length, \textit{i.e.}, the temporal horizon of the predicted trajectory, which is set to 50 during our pre-training stage. Therefore, the training objective is to characterize the conditional distribution $p(\mathbf{A}_t | \mathbf{O}_t)$ through conditional flow matching. For a flow timestep $s \in [0, 1]$, we define a probability path through linear interpolation between the Gaussian noise $\epsilon \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ and the ground-truth action $\mathbf{A}_t$, obtaining the intermediate action $\mathbf{A}_{t, s}=s\mathbf{A}_{t}+(1-s)\epsilon$. The conditional distribution of $\mathbf{A}_{t, s}$ is formulated as:
+\begin{equation}
+    p(\mathbf{A}_{t, s} | \mathbf{A}_t) = \mathcal{N}(s\mathbf{A}_{t}, (1-s)\mathbf{I}).
+\end{equation}
+The action expert $v_\theta$ is trained to predict the conditional vector field by minimizing the Flow Matching objective:
+\begin{equation}
+    \mathcal{L}_{\text{FM}} = \mathbb{E}_{s \sim \mathcal{U}[0, 1], \mathbf{A}_t, \mathbf\epsilon} \left\| v_\theta(\mathbf{A}_{t, s}, \mathbf{O}_t, s) - (\mathbf{A}_t - \mathbf\epsilon) \right\|^2,
+\end{equation}
+where the target velocity is given by the ideal vector field $\mathbf{A}_t - \mathbf\epsilon$ derived from the linear probability path.
+
+Following $\pi_0$~\cite{pi_0}, we implement blockwise causal attention for modeling the joint sequence $[\mathbf{O}_t, \mathbf{A}_t]$. The sequence can be partitioned into three distinct functional blocks: $[\mathbf{I}_t^1, \mathbf{I}_t^2, \mathbf{I}_t^3, \mathbf{T}_t]$, $[\mathbf{s}_t]$ and $[\mathbf{a}_t, \mathbf{a}_{t+1}, \dots, \mathbf{a}_{t+T-1}]$.
+A causal mask is applied among these blocks, such that tokens in each block can only attend to themselves and those in preceding blocks. Conversely, all tokens within the same block employ bidirectional attention and can attend to each other. This configuration ensures that the action expert can leverage all available observation knowledge, while preventing information leakage from future action tokens into the current observation representations.
+
+To explicitly capture spatial awareness within manipulation environments and further enhance the robot's execution robustness, we adopt a vision distillation approach inspired by recent works~\cite{wang2025vision,huang2025mllms}. Specifically, we apply the learnable queries $[\mathbf{Q}^1_t, \mathbf{Q}^2_t,\mathbf{Q}^3_t]$ corresponding to three-view operational images. To integrate depth information, these queries are processed by VLM and then aligned with the depth tokens $[\mathbf{D}^1_t, \mathbf{D}^2_t,\mathbf{D}^3_t]$ from LingBot-Depth~\cite{lingbotdepth}. 
+We align the VLM learnable queries and LingBot-Depth tokens by minimizing the distillation loss $\mathcal{L}_{distill}$:
+\begin{align}
+\mathcal{L}_{distill} =\mathbb{E}_{\mathbf{Q}_t}\left|{ \text{Proj}(\mathbf{Q}_t)} - \mathbf{D}_t\right|,
+\label{eq::2}%(\Theta=\{\theta,\phi,\xi\}, \bm{x},\bm{I},\bm{q}_{task})
+\end{align}%
+where $\text{Proj}(\cdot)$ is a projection layer that applies cross-attention for dimensional alignment. This integration infuses geometric information into the \method model, enabling precise perception for complex manipulation tasks.
+
+\subsection{Training Efficiency Optimization}
+
+Given that action data is inherently high-frequency, establishing a highly efficient pipeline encompassing distributed training and operator optimization is imperative. Our optimization methodology is structured as follows:
+
+% \textbf{Data Layer Optimization:} ().
+
+\textbf{Distributed Strategy:} While VLA models typically possess a moderate parameter count, achieving an optimal trade-off between GPU memory occupancy and training throughput remains essential. We employ Fully Sharded Data Parallel (FSDP)—a highly efficient PyTorch implementation of the Zero Redundancy Optimizer (ZeRO)—to shard optimizer states, model parameters, and gradients, thereby minimizing memory footprint. Drawing inspiration from the Hybrid Sharded Data Parallel (HSDP) approach proposed in VeOmni~\cite{ma2025veomni}, we construct specific ``shard groups'' exclusively for the action expert modules. This strategy effectively mitigates the communication overhead associated with excessive parameter sharding. Additionally, we implement a mixed-precision policy: performing reductions in \texttt{torch.float32} to ensure numerical stability, while utilizing \texttt{torch.bfloat16} for storage and communication.
+
+\textbf{Operator-Level Optimization:} The multimodal fusion of vision, language, and action within our architecture is fundamentally a sparse attention process. To address this, we leverage FlexAttention to optimize computation. Furthermore, we apply operator fusion (via \texttt{torch.compile}) to reduce kernel launch overhead and maximize memory bandwidth utilization.
+

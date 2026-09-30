@@ -1,0 +1,134 @@
+
+
+\section{Training Procedure Details}
+
+A critical aspect of our training methodology is the \textbf{timestep-dependent sampling strategy}. The core idea behind this strategy is to provide the model with different types of training data according to the different denoising stages of the diffusion model. This optimizes learning efficiency and final generation quality, especially for the specific task of lip synchronization.
+
+\subsection*{Considerations for Early Denoising Stages and Link to Progressive Noise Initialization}
+
+The primary requirement of the lip synchronization task is to modify only the lip region to match new audio while preserving the head pose, identity features, and background environment of the input video. The early stages of a traditional diffusion process starting from pure random noise (i.e., when the noise level is very high, and $t$ approaches the total number of steps $T$) are mainly responsible for generating the macroscopic structure of the image, including pose and general identity outlines. However, for lip synchronization, the input video itself already provides this macroscopic structural information. \textbf{Since our goal is to \textit{not} change the pose and background, learning this already-given information from scratch (starting from random noise) is not only inefficient but can also introduce unnecessary variability, potentially leading to discrepancies in pose or identity between the final generated video and the original.}
+
+Therefore, during inference, we employ the \textbf{Progressive Noise Initialization} strategy. This involves directly adding a controlled level of noise (corresponding to a high starting timestep $t_{start}$, e.g., $\tau=0.92$) to the original video frames (which we refer to as "base frames") and then proceeding with the subsequent denoising steps from this $t_{start}$. This is equivalent to "skipping" the early denoising process from pure noise to $t_{start}$. \textbf{The rationale is that the base video already contains all the macroscopic structural information (pose, identity, background) that we wish to preserve. By directly noising the base video, we provide the model with an initial state that already possesses the correct pose and identity, allowing it to focus the subsequent denoising process more on the precise editing of the lip region.}
+
+\subsection*{Timestep-Dependent Sampling Strategy in Training}
+
+To enable the model during the training phase to adapt to this inference mode of "skipping early structure generation" and to effectively learn the specific knowledge required for lip synchronization, we designed the following timestep-dependent sampling strategy:
+
+\begin{itemize}
+    \item \textbf{For higher noise levels (early diffusion stages, e.g., $t \textgreater 850$):} At this stage, even when starting from random noise, the model is primarily learning to construct basic facial structures and poses. To provide the model with the most stable and relevant learning signals, we sample from \textbf{pseudo-paired data}. We specifically selected the \textbf{MEAD dataset} as our source of pseudo-paired data. The MEAD dataset, recorded under controlled laboratory conditions, offers several crucial advantages:
+    \begin{itemize}
+        \item \textit{Fixed Recording Conditions:} Multiple emotional expressions from the same subjects were captured with fixed camera positions and consistent lighting. This results in video sequences where the facial structure and identity remain constant, with variations only in lip shapes and expressions.
+        \item \textit{Natural Pseudo-Pairs:} Within the same identity, frames from different utterances form natural pseudo-pairs—they maintain nearly identical head poses and environmental conditions but differ in lip configurations.
+        \item \textit{Multi-View Capture:} The multi-view setup in MEAD further enriches our training data by providing consistent identity representations across different angles. This enables the model to learn pose-invariant facial structures more robustly during the early diffusion timesteps.
+    \end{itemize}
+    By using this carefully curated pseudo-paired data, the model, in the early (high-noise) stages, learns how to begin constructing facial features under given (or nearly given) pose and identity conditions, laying a solid foundation for subsequent lip generation. \textbf{At this point, the model needs to learn how to recover a structure from the noise that is highly consistent in pose and identity with the input condition ($V_{cd}$, the noised version of the base video), while preparing for the generation of the target lip shape (the noised version of $V_{ab}$). Therefore, a strong correspondence in pose between the input ($x_t$ from noised $V_{cd}$) and the target (noised $V_{ab}$) is critical.}
+
+    \item \textbf{For lower noise levels (middle and late diffusion stages, e.g., $t \leq 850$):} As the diffusion process enters the middle and late stages, the noise level gradually decreases. At this point, \textbf{by visualizing $x_t$ at different stages (similar to the analysis in works like VideoJAM~\cite{chefer2025videojam}), we can observe that the main contour information, facial structure, and identity features have become relatively clear.} In other words, the model has already "seen" the character's pose and general identity.
+    \begin{itemize}
+        \item \textit{Shift in Model's Learning Focus:} The primary task of the model at this stage is no longer to construct macroscopic structures but to finely sculpt the lip shape and texture details according to the audio signal, ensuring a natural blend with the rest of the face.
+        \item \textit{Rationale for Using Unpaired Data:} Since macroscopic information such as pose and identity is largely established (guaranteed by early-stage learning and/or progressive initialization at inference), the model no longer heavily relies on strict pose pairing between input and target. Therefore, we can transition to sampling from our broader and more diverse collection of \textbf{arbitrary/unpaired videos (from the YouTube dataset)}. While this data may not match any specific input video $V_{cd}$ in terms of pose, identity, or scene, it provides a vast number of lip movement samples under different speaking contents and styles. \textbf{The model at this stage learns a more generalized "audio-to-lip-shape" mapping and how to apply this mapping to an $x_t$ that already possesses basic contours, to generate lip shapes synchronized with the target audio $A_{ab}$, and to refine local details and realism.} This strategy significantly expands the diversity of training data, enhancing the model's generalization capabilities to handle various real-world lip synchronization scenarios.
+    \end{itemize}
+\end{itemize}
+
+In summary, our timestep-dependent sampling strategy, combined with progressive noise initialization at inference, allows OmniSync to efficiently focus on the core challenges of lip synchronization. By using pseudo-paired data in the early stages to stabilize structural learning and leveraging large-scale unpaired data in the middle and late stages to learn diverse lip expressions, the model ensures both identity and pose consistency in the generated videos and possesses strong lip generation and generalization capabilities.
+
+
+\section{Comparison with Portrait Animation Methods}
+
+Our OmniSync framework presents distinct advantages when compared to state-of-the-art Portrait Animation methodologies, such as EMO~\cite{tian2024emo}, EchoMimic~\cite{chen2025echomimic}, Hallo~\cite{xu2024hallo}, and Sonic~\cite{ji2024sonic}. While these models can achieve good lip synchronization and generalize across diverse visual styles, they often struggle to fully preserve the unique identity, texture, and dynamic characteristics of source \textit{video} material. This can lead to animations that, despite accurate lip sync, may appear somewhat generic or lose fine-grained subject resemblance.
+
+In contrast, OmniSync's training paradigm, formulated as $(V_{cd}, A_{ab}) \mapsto V_{ab}$, utilizes multi-frame video input ($V_{cd}$) instead of a single static image. This video input inherently encodes richer information, including subtle facial dynamics and individual speaking styles over a temporal window, beyond static texture details. Conceptually, while the input $V_{cd}$ in our framework serves a conditioning role analogous to the single image in portrait animation approaches, the crucial difference lies in the temporal dimension of $V_{cd}$, which allows for the preservation of more stylistic and identity-specific information.
+
+This architectural choice enables OmniSync to maintain strong generalization capabilities while achieving high fidelity to the source. 
+As shown in Fig.~\ref{fig:hallo}, our qualitative comparison indicates that methods such as EchoMimic~\cite{chen2025echomimic}, Hallo3~\cite{cui2024hallo3}, and Sonic~\cite{ji2024sonic} face challenges in maintaining identity, which may result in less realistic outcomes, while OmniSync continuously generates synchronized speech, better preserving the distinctive texture quality and inherent speaking style of the input video.
+This holds true even when applied to out-of-distribution subjects, such as non-human or highly stylized characters. Our model effectively learns to transfer primarily the lip movements dictated by the target audio, while retaining other visual characteristics of the source video segment. Consequently, OmniSync's outputs appear as more natural integrations with the original content.
+
+\begin{figure}
+% \vspace{-2em}
+\begin{center}
+   \includegraphics[width=1.\linewidth]{imgs/omnisync-supp-Comparison_compressed.pdf}
+\end{center}
+% \vspace{-1em}
+   \caption{\textbf{Comparison with portrait animation methods.} Visual comparison between our OmniSync framework and other approaches (EchoMimic, Hallo3, and Sonic), demonstrating our method's superior ability to preserve identity and natural speaking style while maintaining accurate lip synchronization.}
+\label{fig:hallo}
+% \vspace{-0.5em}
+\end{figure}
+
+
+\section{Lip Shape Leakage in Lip Synchronization}
+Lip shape leakage occurs when original lip movements from source videos persist in the synchronized output despite attempts to replace them with new audio-driven movements. This phenomenon commonly affects traditional lip synchronization methods that rely on masked-frame inpainting. When using explicit masks to isolate mouth regions, the boundaries between what should be modified and preserved often become ambiguous, allowing original lip shapes to "leak" into the generated content. Additionally, the relatively weak conditioning signal provided by audio compared to visual information exacerbates this problem, as models may default to preserving visual aspects of the original video rather than fully replacing them.
+
+The impact of lip shape leakage is significant for synchronization quality. Viewers perceive temporal inconsistencies where mouth movements partially match both the original video and target audio, creating unnatural motion patterns. Critical phonemes requiring distinct mouth shapes (such as bilabial or labiodental sounds) may not form correctly, reducing visual intelligibility and breaking the illusion of natural speech. As demonstrated in Fig.~\ref{fig:lip}, methods like IP-LAP and LatentSync frequently show this limitation, particularly for challenging phonemes that require distinct mouth formations.
+
+\begin{figure}
+% \vspace{-2em}
+\begin{center}
+   \includegraphics[width=1.\linewidth]{imgs/omnisync-supp-lip_leak_compressed.pdf}
+\end{center}
+% \vspace{-1em}
+   \caption{\textbf{Comparison of lip synchronization methods} showing how our approach effectively prevents lip shape leakage from the original video, while competing methods struggle with this issue (highlighted in red for IP-LAP and LatentSync).}
+\label{fig:lip}
+% \vspace{-0.5em}
+\end{figure}
+
+OmniSync addresses lip shape leakage through its mask-free training paradigm and dynamic spatiotemporal guidance mechanism. Rather than using explicit masks with hard boundaries, our diffusion-based approach directly modifies frames based on audio conditioning, allowing the model to determine appropriate modification regions dynamically. Our DS-CFG further mitigates leakage by applying stronger guidance around mouth regions, ensuring audio conditioning overcomes any tendency for original lip shapes to persist in the output. These innovations effectively eliminate lip shape leakage, enabling precise and consistent lip synchronization across diverse visual representations, including stylized characters where traditional face alignment techniques often fail.
+
+\begin{figure}
+% \vspace{-2em}
+\begin{center}
+   \includegraphics[width=1.\linewidth]{imgs/omnisync-supp-video_caption_compressed.pdf}
+\end{center}
+% \vspace{-1em}
+   \caption{\textbf{Comparison of lip synchronization without (left) and with (right) Video Description conditioning.} Text guidance produces more pronounced lip movements with clearer dental visibility across diverse subjects, as shown in the magnified mouth regions.}
+\label{fig:video}
+% \vspace{-0.5em}
+\end{figure}
+
+\section{Impact of Video Description on Lip Clarity and Movement Amplitude}
+We conducted an ablation study to evaluate the effect of video description conditioning on lip synchronization quality. As shown in Fig.~\ref{fig:video}, we compare results generated without video description (left column) to those with video description conditioning (right column). The qualitative comparison clearly demonstrates the impact of textual guidance on lip movement characteristics.
+
+During training, we labeled videos with descriptive prompts such as "A person speaking loudly with clear facial and tooth movements" to establish associations between textual descriptions and specific lip characteristics. This approach allows the model to learn correlations between descriptive language and visual speech attributes. At inference time, these text descriptions serve as an interpretable control mechanism, enabling adjustment of lip clarity and movement amplitude through prompt engineering without requiring model retraining. The examples demonstrate how this text-guided approach results in more expressive and visually distinct lip synchronization, enhancing overall perceptual quality for viewers.
+
+From the visual results, two key improvements are immediately apparent with video description conditioning. First, the lip movements exhibit greater amplitude and expressiveness, particularly evident in the middle and bottom rows where the subjects display more pronounced mouth openings. Second, there is notably improved clarity of dental structures, with teeth being more visible and defined in the right column examples. This enhancement in visual detail contributes significantly to the realism and comprehensibility of the generated speech.
+
+
+
+\section{Benchmark Construction Details}
+To comprehensively evaluate the performance of lip synchronization methods within the current AI-Generated Content (AIGC) environment, we have meticulously constructed the AIGC-LipSync Benchmark. This benchmark comprises a total of 615 video clips, all generated by leading text-to-video (T2V) or image-to-video (I2V) models. These videos primarily originate from advanced models including Kling, Dreamina, Wan~\cite{wang2025wan}, and Hunyuan~\cite{kong2024hunyuanvideo}, with all raw video materials downloaded from publicly accessible communities such as Civitai, ensuring a diverse and representative collection.
+
+\begin{figure}[h]
+% \vspace{-2em}
+\begin{center}
+   \includegraphics[width=1.\linewidth]{imgs/dataset1_compressed.pdf}
+\end{center}
+% \vspace{-1em}
+   \caption{\textbf{AIGC-LipSync Benchmark Examples (I):} Showcasing non-human characters and landscape-oriented video materials included in the benchmark. This highlights its coverage of diverse subject types and video formats, designed to test the model's lip synchronization capabilities on non-traditional visual inputs.}
+\label{fig:dataset1}
+% \vspace{-0.5em}
+\end{figure}
+
+\begin{figure}[h]
+% \vspace{-2em}
+\begin{center}
+   \includegraphics[width=1.\linewidth]{imgs/dataset2_compressed.pdf}
+\end{center}
+% \vspace{-1em}
+   \caption{\textbf{AIGC-LipSync Benchmark Examples (II):} Presenting diverse male and female character materials from the benchmark. These are used to evaluate the model's lip synchronization effectiveness and identity preservation across various human figures, particularly in the rendition of facial features and nuanced expressions.}
+\label{fig:dataset2}
+% \vspace{-0.5em}
+\end{figure}
+
+This benchmark has been specifically curated to include a variety of AI-generated content that poses significant challenges for lip synchronization. Among all data, there are approximately 450 videos featuring realistic human subjects, around 125 videos of stylized characters with distinct artistic styles, and a smaller set of approximately 40 videos depicting more challenging, atypical humanoid characters. This composition is designed to span a wide spectrum of visual representations, from photorealistic to highly abstract, thereby enabling a more rigorous test of model generalization capabilities and robustness. These video clips have an average duration of approximately 6 seconds, an average resolution of 976x1409 pixels, and an average frame rate maintained at 30.00 FPS, providing sufficient data for detailed synchronization analysis. As illustrated in Fig.~\ref{fig:dataset1} and~\ref{fig:dataset2}, representative examples from our benchmark showcase its content diversity and the inherent challenges it presents.
+
+
+\section{Ethical Considerations}
+Our OmniSync framework, while advancing the field of lip synchronization, raises important ethical considerations regarding potential misuse. As with any technology capable of manipulating facial content, there exists risk for creating misleading or deceptive media that could contribute to misinformation or deepfakes. We acknowledge this responsibility and have intentionally focused our research on improving existing video content rather than enabling impersonation or fabrication of speech.
+
+To mitigate potential harms, we recommend implementing watermarking or content provenance solutions when deploying this technology commercially. Additionally, the creation of the AIGC-LipSync Benchmark emphasizes evaluating performance on stylized characters and AI-generated content, steering applications toward creative and entertainment purposes rather than realistic human impersonation.
+
+We are committed to transparency regarding the capabilities and limitations of our approach. The technical advancements presented in OmniSync are published to advance scientific understanding and enable beneficial applications in areas such as film production, accessibility services, and educational content. We encourage the research community to continue developing detection methods for synthetically modified content alongside improvements in generation quality.
+
+
+\section{Acknowledgments}
+
+We would like to express our sincere gratitude to the vibrant community at Civitai for their generous sharing of creative content. The majority of videos in our AIGC-LipSync Benchmark were collected from this platform, showcasing the diverse and artistic AI-generated content that creators within our community continuously produce and share. Their contributions have been instrumental in enabling comprehensive evaluation of lip synchronization methods across the full spectrum of modern AI-generated visual content.

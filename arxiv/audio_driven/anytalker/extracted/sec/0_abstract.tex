@@ -1,0 +1,11 @@
+\begin{abstract}
+Recently, multi-person video generation has started to gain prominence. 
+While a few preliminary works have explored audio-driven multi-person talking video generation, they often face challenges due to the high costs of diverse multi-person data collection and the difficulty of driving multiple identities with coherent interactivity.
+To address these challenges, we propose AnyTalker, a multi-person generation framework that features an extensible multi-stream processing architecture.
+Specifically, we extend Diffusion Transformer's attention block with a novel identity-aware attention mechanism that iteratively processes identity–audio pairs, allowing arbitrary scaling of drivable identities.
+%\fixme{there should be one or two sentences describing the technical contribution/novelty}
+Besides, training multi-person generative models demands massive multi-person data.
+Our proposed training pipeline depends solely on single-person videos to learn multi-person speaking patterns and refines interactivity with only a few real multi-person clips.
+Furthermore, we contribute a targeted metric and dataset designed to evaluate the naturalness and interactivity of the generated multi-person videos.
+Extensive experiments demonstrate that AnyTalker achieves remarkable lip synchronization, visual quality, and natural interactivity, striking a favorable balance between data costs and identity scalability.
+\end{abstract}

@@ -1,0 +1,35 @@
+\section{Related Work}
+\label{sec:related-work}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\linewidth]{fig/method.pdf}
+    \caption{
+    (a) The architecture of AnyTalker, which incorporates a novel multi-stream audio processing layer, Audio-Face Cross Attention, enables the handling of multiple facial and audio inputs. 
+    (b) The training of AnyTalker is divided into two stages: the first stage uses concatenated multi-person data derived from single-person data mixed with single-person data to learn accurate lip movements; the second stage employs authentic multi-person data to enhance the interactivity in generated videos. 
+    (c) The detailed implementation of Audio-Face Cross Attention, a recursively callable structure that applies masking to the output using face masks.
+    }
+    \label{fig:method}
+\end{figure*}
+
+\subsection{Audio-driven Talking Video Generation}
+Recent key advancements~\cite{ho2020denoising, rombach2022high, ho2021classifier, zhang2023adding, peebles2023scalable} in text-to-image fields have significantly catalyzed progress in downstream applications. 
+Early efforts like EMO~\cite{tian2024emo} extend pre-trained diffusion text-to-image models~\cite{rombach2022high} to end-to-end audio-driven virtual-human video generation~\cite{jiangloopy, chen2025echomimic, xu2024hallo, yee2025synchrorama, wang2024v, nazarieh2024portraittalk, lin2025cyberhost, chen2025midas}. 
+They typically integrate modules for temporal attention~\cite{guoanimatediff}, identity control via ReferenceNet~\cite{zhu2023tryondiffusion, hu2024animate, kong2025profashion, zhang2025learning}, and audio-conditioning using pre-trained audio processing models~\cite{radford2023robust, baevski2020wav2vec, schneider2019wav2vec}, with conditional signals injected via cascaded attention layers~\cite{vaswani2017attention}. 
+Video foundation models~\cite{blattmann2023stable, yangcogvideox, kong2024hunyuanvideo, wan2025wan, Zhang_2025_CVPR} enable end-to-end, audio-driven virtual-human models~\cite{meng2025echomimicv3, cui2025hallo3, ji2025sonic, tu2025stableavatar, lin2025omnihuman, yang2025infinitetalk, gao2025wan, jiang2025omnihuman}. 
+These works largely employ audio-injection practices from earlier methods~\cite{tian2024emo, jiangloopy} and report breakthroughs in long-video generation~\cite{yang2025infinitetalk, cui2025hallo3}, full-body synthesis~\cite{lin2025omnihuman}, 
+driving non-human cases~\cite{gao2025wan, gan2025omniavatar}, synchronized lip movements~\cite{ji2025sonic}, and coherent hand movements~\cite{meng2025echomimicv3}.
+Consequently, they surpass earlier GAN-based generation methods~\cite{zhang2023sadtalker, xu2024vasa, guo2024liveportrait, zhang2024musetalk} and image diffusion-based techniques~\cite{rombach2022high, peebles2023scalable} in terms of both quality and controllability. 
+However, most methods still target single-person scenarios; in multi-person scenarios, they tend to synchronize identical motions or lip movements across all speakers, with restricted multi-person interaction.
+%This limitation has spurred the development of multi-person video generation methods.
+
+\subsection{Multi-person Video Generation} Multi-person video generation has advanced rapidly through specialized architectures, including portrait video generation~\cite{wang2025fantasyportrait, meng2025identity}, dancing video generation~\cite{xuetowards}, and talking video generation~\cite{huang2025bind, kong2025let, wang2025interacthuman}. 
+Within the audio-driven talking-head axis, Bind-your-Avatar~\cite{huang2025bind} introduces a fine-grained Embedding Router that binds ``who” with ``what they speak”. InterActHuman~\cite{wang2025interacthuman} trains a mask predictor to identify which body regions to activate, enabling targeted control. 
+MultiTalk~\cite{kong2025let} proposes Label Rotary Position Embedding~\cite{su2024roformer} to address audio–person binding. 
+All three approaches above rely on expensive data, ranging from hundreds to thousands of hours of multi-person talking data. 
+Some models~\cite{chen2025hunyuanvideo, ma2025playmate2} trained on single-person data generalize to multi-person driving through specialized controllers: HunyuanVideo-Avatar~\cite{chen2025hunyuanvideo} leverages a Face-Aware Audio Adapter to activate attention across different characters selectively, and Playmate2~\cite{ma2025playmate2} uses token-level masking within a classifier-free guidance framework to realize similar binding. 
+Despite enabling multi-person outputs, these approaches might yield fragmented interactions across distinct characters, with limited interactivity between individuals.
+
+In this work, AnyTalker explores the potential of learning multi-person speaking patterns from single-person data and designs an extensible multi-stream audio processing attention architecture, achieving a favorable balance among interactivity, identity scalability, and lip synchronization in the generated videos with low training data cost. 
+%\fixme{this paragraph ignored the scaling in the number of identities}
+

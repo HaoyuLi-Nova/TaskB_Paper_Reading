@@ -1,0 +1,113 @@
+\section{Data}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.95\textwidth]{imgs/lc_avatar_datacuration.png} 
+\vspace{-0.3cm}
+\caption{Overview of the two stage data curation pipeline.}
+\label{fig:general_data_flow}
+\end{figure*}
+
+
+
+\subsection{General Pipeline}
+
+To enable LongCat-Video-Avatar 1.5 to generate stable and controllable single-person avatar videos, we build a multi-stage general data pipeline for large-scale single-person video data. This pipeline serves as the foundation of the overall data system and supports core model capabilities, including identity preservation, audio-driven lip motion, natural facial expressions, upper-body and full-body motion, hand-object interaction, camera-motion control, and style generalization.
+
+\paragraph{Data Source Design.}
+To cover the core capabilities required by LongCat-Video-Avatar 1.5, we organize raw videos according to their functional contribution to training rather than simply mixing them by source. \textbf{(1)} Close-up face videos are used to strengthen facial modeling, especially lip motion, expression details, and identity consistency. \textbf{(2)} Interview videos typically contain stable subjects, clear speech, and explicit talking states, providing reliable audio-visual correspondence for audio-driven training. \textbf{(3)} Acted performance videos contain richer camera language, pose variation, and scene dynamics, improving generalization to natural expressions, non-template motions, and complex scenes. \textbf{(4)} Interaction videos cover object holding, pointing, manipulation, and conversational gestures, improving the naturalness of hand motion and human-object interaction. \textbf{(5)} Music videos contain singing, rhythmic motion, stage performance, and high-intensity expressions, complementing rhythm-driven and performance-oriented avatar scenarios. \textbf{(6)} Animation and stylized videos further expand the model's ability to generalize to non-photorealistic appearances and stylized character forms.
+
+Although these data sources are complementary, their distribution gaps also introduce substantial noise. Videos from different sources vary significantly in face scale, body composition, camera motion, visual quality, audio condition, language distribution, and caption granularity. Directly mixing them for training may introduce non-human subjects, multi-person ambiguity, audio-visual misalignment, low-quality frames, border or subtitle artifacts, abnormal speed changes, and mismatches between captions and sampled local clips. The primary objective of the general pipeline is to transform heterogeneous videos into structurally consistent, quality-controlled, and semantically aligned training samples, rather than simply aggregating raw data at scale.
+
+\paragraph{Unified Annotation Schema.}
+To incorporate heterogeneous videos into a unified training framework, we design a unified annotation schema that converts implicit video attributes into structured metadata. The schema covers human presence, face geometry, body composition, visual quality, audio availability, lip synchronization, speech and language, camera motion, motion speed, and semantic captions. With this schema, videos from different sources are mapped into a comparable and reusable data representation space, allowing subsequent training stages to select data based on content, quality, and conditioning attributes rather than coarse source-level rules.
+
+$\bullet$ \textbf{Offline Annotation.}
+The goal of offline annotation is to establish a unified data understanding layer. This stage processes full videos or pre-cut clips and uses visual, audio, and multimodal models to extract relatively stable content and quality attributes. Since these attributes are independent of the specific training clip sampled online, they can be precomputed and reused across different training configurations. As illustrated in the first part of Fig.~\ref{fig:general_data_flow}, most annotation modules are executed in parallel to construct reusable metadata, while audio-visual synchronization is performed after audio extraction and vocal separation.
+
+For human-centric structure annotation, we annotate face location, facial landmarks, detection confidence, person count, visible body region, and body composition. Close-up face data relies on these annotations for face localization and head-pose filtering, ensuring that the mouth region is clearly visible. Upper-body and full-body data use body composition annotations to distinguish head, half-body, and full-body samples, preventing different human scales from being mixed without control. This allows different training stages to use samples that match their target composition, improving the stability of facial detail modeling, identity consistency, and body-motion learning.
+
+For audio and lip-sync annotation, we extract raw audio, separate vocal tracks, and estimate audio-visual synchronization for talking videos. Audio annotation verifies whether a sample contains usable speech conditions, while lip-sync annotation measures the temporal consistency between vocal audio and mouth movement. Samples with large audio-visual offsets or low synchronization confidence are removed, since they corrupt the supervision between audio and lip motion and directly degrade lip-sync generation quality.
+
+For visual quality annotation, we estimate perceptual video quality and describe common artifacts such as text coverage, borders, black borders, abnormal brightness, and pixel-level degradation. This stage identifies low-resolution, heavily compressed, subtitle-heavy, black-border, white-flash, transition, and locally corrupted samples, providing a unified basis for later quality filtering. The purpose is to prevent the model from learning blurred textures, compression artifacts, or abnormal boundary patterns.
+
+For camera, motion, and temporal dynamics annotation, we identify camera type, camera motion, and motion speed. Music and acted performance videos often contain zooming, panning, tracking, shaking, rhythmic motion, or editing-induced speed changes, while interview and close-up face videos are usually more static. Explicitly annotating these attributes enables later training stages to select static-camera or natural-speed samples when needed, and also allows camera-motion information to be injected into textual conditions as a controllable signal.
+
+For semantic and temporal caption annotation, we generate multilingual and multi-granularity video descriptions, including detailed captions, summary captions, and temporal-span captions. For short videos, global captions usually describe the main content sufficiently. For acted performance and long-form videos, however, a global caption may not correspond to the local clip sampled during training. We therefore introduce temporal-span captions so that each sampled clip can be paired with a more accurate local description, reducing text-video misalignment.
+
+
+
+$\bullet$ \textbf{Online Clip-Level Validation and Condition Construction.}
+The online stage ensures that each sampled training clip satisfies quality requirements and converts offline annotations into task-specific training conditions. As illustrated in the second stage of Fig.~\ref{fig:general_data_flow}, candidate metadata are progressively filtered by audio synchronization, camera suitability, text and visual quality, duration, visual defects, motion consistency, and mask-area constraints before being used as training inputs. This staged design makes the filtering process interpretable and allows us to identify the dominant sources of data removal at each step. Offline annotations usually describe a full video or a pre-cut clip, whereas training uses a local temporal window sampled from the video. Even if the video is globally valid, the sampled window may still contain transitions, black frames, white flashes, under-exposure, over-exposure, residual borders, sudden frame jumps, or abnormal motion. The online stage therefore serves as the final clip-level quality control layer.
+
+
+For task-specific sample selection, different training objectives use different combinations of offline annotations. Close-up face training emphasizes face visibility, head pose, and lip synchronization. Upper-body and full-body training focuses more on body composition, hand visibility, and camera stability. Complex-scene and acted performance data are more based on local caption alignment, visual quality, and temporal continuity. Music and interaction data emphasize rhythmic motion, expressive motion, and natural hand-object interaction. In this way, the same general data pool can provide multiple task-oriented subsets for different training stages of LongCat-Video-Avatar 1.5.
+
+For clip-level quality validation, we perform a second-stage check on the actual sampled clip, including duration, sampling frame rate, resolution, brightness distribution, black/white pixel ratio, border artifacts, frame jumps, and motion intensity. This mechanism directly validates the temporal window that enters training. It improves filtering precision, avoids discarding an entire long video due to a few corrupted segments, and balances data quality with data utilization.
+
+For condition construction, part of the structured annotations is converted into textual conditions. The motion of the camera, the size of the shot, the type of lens and the visual style can be combined with the original caption, so the final text condition describes not only the visual content but also the shooting style and the camera behavior. This makes implicit controllable factors explicit, enabling LongCat-Video-Avatar 1.5 to learn the relationship among semantic content, human motion, and camera language.
+
+Overall, the general pipeline transforms complex heterogeneous videos into unified, interpretable, filterable, and reusable training data. Through data source design, offline annotation, online clip-level validation, and condition construction, it establishes the general-purpose data foundation for LongCat-Video-Avatar 1.5. This foundation pipeline is essential for stable avatar generation across identity preservation, lip synchronization, body motion, camera control, and style generalization. However, we observe that existing avatar generation models, including MultiTalk~\cite{kong2025let}, OmniHuman 1.5~\cite{jiang2025omnihuman} and LongCat-Video-Avatar 1.0~\cite{meituanlongcatteam2025longcatvideoavatartechnicalreport}, still show noticeable limitations in several challenging scenarios, especially multi-person interaction, silent non-speaking motion, and emotional expression. To further improve generation quality in these under-addressed settings, we design three specialized data pipelines for multi-person, silent, and emotion-specific data on top of the general data framework.
+
+
+
+\subsection{Multi-Person Data}
+We develop a multi-person data curation pipeline that transforms raw videos into structured audio-visual supervision for multi-speaker modeling. The pipeline first applies ByteTrack-based person tracking~\cite{zhang2022bytetrack} to extract person-level spatio-temporal trajectories. This track-level filtering separates dynamic human subjects from static human-like artifacts, such as portraits or posters, and enables videos to be categorized into single-person and multi-person subsets.
+
+For multi-person videos, we employ an active speaker detection (ASD) pipeline built upon established audio-visual ASD methods, including TalkNet and UniTalk~\cite{tao2021talknet,nguyen2025unitalk}. In our optimized implementation, YOLOv6~\cite{li2022yolov6} is used as an efficient real-time detection backbone. The ASD stage predicts the speaking intervals for each visible subject together with the corresponding face bounding-box trajectories.
+
+These spatio-temporal annotations provide track-level speaker activity labels, specifying the temporal speech regions associated with each visible face trajectory. We further use these labels to exclude intervals with concurrent speaker activity and retain non-overlapping single-speaker segments, thereby reducing speaker ambiguity in the training data.
+
+\subsection{Silent Data}
+We develop a silent-video curation pipeline to collect non-speaking human videos for silent avatar generation. This data is complementary to audio-driven talking data: instead of learning the correspondence between speech and lip motion, it teaches the model to preserve natural facial stillness and non-verbal motion when no speech is present. Such samples are important for suppressing unintended mouth movement and for modeling gaze shifts, head motion, posture changes, gestures, and hand-object actions in silent scenarios.
+
+The pipeline first decomposes long videos into short temporal clips, since a single video may contain both speaking and non-speaking intervals. Each clip is then analyzed independently to determine whether the visible subject is speaking. This clip-level design avoids assigning a coarse video-level silent label to content with mixed temporal states.
+
+To improve the reliability of silent-state recognition, we use a two-stage multimodal verification strategy. In the first stage, we employ \texttt{Qwen3-Omni}~\cite{xu2025qwen3} to perform an initial assessment of whether the visible subject is silent. In the second stage, we use \texttt{Qwen3-VL}~\cite{Qwen3-VL} to independently re-evaluate the same clip. A clip is retained as silent only when both models agree that the subject is not speaking. This conservative agreement rule reduces false positives caused by brief speech, ambiguous mouth motion, singing-like articulation, off-screen speech, or unstable predictions.
+
+After clip-level verification, we aggregate the decisions across the full video. Videos whose sampled temporal clips are consistently classified as non-speaking are retained as silent data, while videos containing any detected speaking interval are excluded from the silent subset. This strict aggregation strategy ensures that the resulting data provides clean supervision for non-verbal avatar motion.
+
+The curated silent subset is used to strengthen silent and prompt-driven generation. By explicitly separating non-speaking videos from audio-driven talking videos, LongCat-Video-Avatar 1.5 learns to maintain inactive mouth motion when speech is absent, while still generating natural facial micro-motion, head movement, body motion, and interaction behaviors.
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{imgs/emotion_data.png} 
+\caption{Overview of the Emotion Data Filtering and Captioning Pipeline. } 
+\label{fig:emotion_data}
+\end{figure*}
+
+\subsection{Emotion Data}
+To ensure that LongCat-Video-Avatar 1.5 can generate expressive and nuanced character motions, we develop a multi-stage curation pipeline specifically for emotional content as shown in Fig.~\ref{fig:emotion_data}. Unlike standard datasets that often focus on static facial expressions, our approach prioritizes the temporal evolution of emotion and its relationship with speech and context.  \textbf{Emotion Taxonomy and Initial Tagging.}  We first define a taxonomy of six distinct emotional categories to capture the breadth of human expression: 
+\begin{enumerate}     
+    \item {High-Arousal Emotional Expression:} High-intensity, large-amplitude states where the emotion type is clear and dominant (e.g., shouting, intense laughter).     
+    \item {Context-/Plot-Driven Reaction:} Reactions triggered by external stimuli or dialogue, often characterized by a "reaction-before-expression" sequence (e.g., pauses, gaze shifts).     
+    \item {Spontaneous Expressive Speech (Low-Arousal):} Natural, subtle emotional leakage during daily conversation, conveyed through continuous micro-expressions.     
+    \item {Non-verbal Dominant Emotion:} Information primarily conveyed through facial movement, gaze, or posture rather than speech.     
+    \item {Emotion Regulation/Suppression:} Instances where a character attempts to mask an underlying emotion, resulting in brief "micro-expression" flashes.     
+    \item {Temporal Emotion Dynamics:} Videos where the emotion evolves through clear stages or turning points (e.g., transition from neutral to frustrated). 
+\end{enumerate}  
+
+We utilize \texttt{Qwen3-Omni}~\cite{xu2025qwen3} to perform initial classification. To ensure production quality, we implement a set of \textbf{Hard Exclusion Rules}. Any video containing synthetic content, more than two subjects, identity switches, or subjects occupying a small portion of the frame is assigned a null label (0).  For valid clips, the model assigns a category based on a priority hierarchy: $6 > 5 > 4 > 2 > 1 > 3$.  
+
+\textbf{Refined Filtering with EmotiEffLib.}  Empirical observation reveals that while the LLM is highly effective at identifying high-arousal states (Category 1), it exhibits lower sensitivity toward Categories 5 and 6, often resulting in noisy samples. Furthermore, Categories 2, 3, and 4 contain a mix of expressive and near-neutral samples.  
+
+To address this, we employ the \texttt{EmotiEffLib}~\cite{savchenko2023facial} framework for frame-level emotion recognition. Our filtering logic is as follows: 
+\begin{itemize}     
+    \item {Scoring:} We compute an emotion score by averaging the confidence of the top-$N$ frames ($N=10$ or $20$) for each emotion class.     
+    \item {Neutral Bias Correction:} If "Neutral" is the top-1 predicted class, we automatically register the second-highest emotion class and its corresponding score to ensure we capture the underlying expressive signal.     
+    \item {Confidence Thresholding:} We only retain videos where the final dominant emotion class achieves a confidence score of $s > 0.7$.  
+\end{itemize}  
+
+Videos originally tagged as Category 1 by the LLM are prioritized, while those in Categories 5 and 6 that fail to show significant emotional peaks in \texttt{EmotiEffLib} are re-classified as non-emotional data.  
+
+\textbf{Context-Aware Annotation.}  The final filtered subset is processed through a specialized captioning pipeline to generate high-granularity descriptions. Unlike standard captions, our prompts require \texttt{Qwen3-Omni} to establish three levels of context: \textit{Spatial Environment}, \textit{Interpersonal Relationships}, and \textit{Plot Progression}.  
+
+The resulting descriptions follow a principle of \textbf{Objective Neutrality}, focusing on physical manifestations rather than subjective interpretations. Annotations detail the chronological evolution of movement across three dimensions: 
+\begin{itemize}     
+    \item {Facial Expressions:} Forehead wrinkles, eyebrow position, gaze direction, and blink rates.     
+    \item {Head Movements:} Displacement, tilt, rotation, and rhythmic swaying.     
+    \item {Body Movements:} Posture shifts (e.g., leaning forward/backward), shoulder shrugging, and hand gestures. 
+\end{itemize}  
+
+This structured data ensures the model learns the causal relationship between a character's environment, their internal state, and their physical response.

@@ -1,0 +1,24 @@
+\section{Study on Different Expression Templates}
+We use a hand-crafted neutral expression template for all the experiments in our main paper. Here, we provide a study on how different expression templates influence the performance of $D$-Net. To achieve this goal, 
+%It is worth noting that only the lower-half normalized face is sent to $L$-Net, so we choose neutral and smile expressions for this experiment since they have distinct lower-face emotions. 
+we interpolate the expression templates between the neutral and smile expression coefficients and evaluate the results on 10 videos from HDTF~\cite{hdtf} dataset. In Table \ref{tab:templates}, the lip-sync metrics show minor changes when we edit the expression templates, indicating that $D$-Net is robust to the expression template.
+
+\begin{table}[h]
+\centering
+% \vspace{-1em}
+\caption{Lip-Sync metrics on 10 videos from HDTF dataset using different expression templates.}
+\vspace{-1em}
+\label{tab:templates}
+\begin{tabular}{lcc}
+\toprule
+\makecell[c]{Interpolation Ratio \\ from Neutral to Smile Expression} & LSE-D  & LSE-C $\uparrow$ \\
+\hline
+ 0~(Neutral Template) & 9.027 & 4.829 \\
+ 0.2         & 9.058 & 4.798 \\
+ 0.4         & 9.092 & 4.768 \\ 
+ 0.6         & 9.084 & 4.781 \\
+ 0.8         & 9.025 & 4.834 \\
+ 1~(Smile Template)  & 8.924 & 4.929 \\
+\bottomrule 
+\end{tabular}
+\end{table}

@@ -1,0 +1,28 @@
+\begin{table}[t]
+    \centering 
+    \setlength\tabcolsep{3pt}
+    \resizebox{1.0\linewidth}{!}{%
+    \begin{tabular}{l  c c c}
+        \toprule
+        \textbf{Method} &  \textbf{Zero-Shot} & \textbf{CLIPSIM ($\uparrow$)} & \textbf{CLIP-FID ()}  \\
+        \midrule
+        GODIVA~\cite{Wu2021GODIVAGO} & \xmark & 0.2402 & - \\
+        N\"{U}WA~\cite{wu2022nwa} & \xmark & 0.2439 & 47.68 \\
+        CogVideo (Chinese)~\cite{hong2023cogvideo} & \cmark & 0.2614 & 24.78 \\
+        CogVideo (English)~\cite{hong2023cogvideo} & \cmark & 0.2631 & 23.59 \\
+        Video LDM~\cite{blattmann2023align} & \cmark & 0.2929 & - \\
+        % ModelScopeT2V~\cite{Wang2023ModelScopeTT} & \cmark & 0.2930 & 11.09 \\
+        % LaVie~\cite{wang2023lavie} & \cmark & 0.2949 & - \\
+        Make-A-Video~\cite{singer2023makeavideo} & \cmark & 0.3049 & 13.17 \\
+        % Show-1~\cite{Zhang2023Show1MP} & \cmark & \textbf{0.3072} & 13.08 \\
+        \color{gray}{PYoCo}~\cite{Ge2023PreserveYO} & \color{gray}{\cmark} & \color{gray}{-} & \color{gray}{10.21} \\
+        \midrule
+        \textbf{Ours} & \cmark & 0.2908 & \textbf{12.67} \\
+        \bottomrule
+        \vspace{-2em}
+    \end{tabular}
+    }
+    \caption{\textbf{Comperison with the state-of-the-art methods on MSR-VTT}. PYoCo \cite{Ge2023PreserveYO} sample 59,794 videos for CLIP-FID (noted in {\color{gray}{gray}}) while others only sample less than 3,000 videos.}
+    \vspace{-1.2em}
+    \label{tab:msrvtt}
+\end{table}

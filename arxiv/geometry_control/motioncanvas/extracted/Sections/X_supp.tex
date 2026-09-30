@@ -1,0 +1,159 @@
+\clearpage
+\newcommand{\nocontentsline}[3]{}
+\newcommand{\tocless}[2]{\bgroup\let\addcontentsline=\nocontentsline#1{#2}\egroup}
+
+\newcommand{\Appendix}[1]{
+  \refstepcounter{section}
+  \section*{Appendix \thesection:\hspace*{1.5ex} #1}
+  \addcontentsline{toc}{section}{Appendix \thesection}
+}
+\newcommand{\SubAppendix}[1]{\tocless\subsection{#1}}
+% \setcounter{page}{1}
+% \setcounter{section}{0}
+% \setcounter{figure}{0}
+% \setcounter{table}{0}
+\maketitlesupplementary
+\appendix
+
+
+\tableofcontents
+\addtocontents{toc}{}
+% This supplemental document contains seven sections:
+% Section \ref{sec:add_details} shows more implementation details of our MotionCanvas;
+% Section \ref{sec:ui} presents more details of user interface;
+% Section \ref{sec:transform} provides more analysis on the essentiality of camera-aware and camera-object-aware transformations; 
+% Section \ref{sec:ar} presents more details of our MotionCanvas$_\text{AR}$; 
+% Section \ref{sec:user} shows more details of user study; 
+% Section \ref{sec:add_analysis} presents additional analysis; 
+% and Section \ref{sec:limitations} shows the limitations of our method.
+
+Please check our project page \url{https://motion-canvas25.github.io/} for video results.
+% In addition to this supplementary document, \textbf{we also provided a local HTML webpage} showing video comparisons.
+
+
+
+\section{Additional Details}
+\label{sec:add_details}
+Our MotionCanvas model is trained using 16 nodes of NVIDIA H100 (80GB) GPUs (8 GPUs on each node). On a single H100 GPU, generating a 32-frame video clip at a resolution of 352×640 with 50 denoising steps takes approximately 32 seconds. During training, we exclusively optimize the DiT transformer blocks and the additional Linear/MLP layers introduced for bounding box conditioning and DCT coefficient tokenization, while keeping all other modules frozen.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=0.85\linewidth]{Graphics/supp/User_interface.pdf} % Replace with your image file
+    \caption{A sample of the designed user interface for our MotionCanvas.}
+    \label{fig:ui}
+\end{figure*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{User Interface}
+\label{sec:ui}
+We designed a sample user interface to provide flexible and interactive control over camera motion, object global and local motion, and their timing. An example of the user interface is illustrated in Fig.~\ref{fig:ui}.
+
+\textbf{Specifying Camera Motion.} To facilitate a user-friendly approach for defining camera motion trajectories, the interface allows users to combine $M$ base motion patterns with configurable parameters such as direction (positive or negative) and speed (absolute value), as demonstrated in the ``Camera Motion Control" panel in Fig.~\ref{fig:ui}. Specifically, the base motion patterns include:
+
+\begin{itemize}[left=2em]
+    \item Horizontal (Trucking) left/right
+    \item Panning left/right
+    \item Dolly in/out
+    \item Vertical (Pedestal) up/down
+    \item Tilt up/down
+    \item Roll clockwise/anti-clockwise
+    \item Zoom in/out
+    \item Orbit left/right (adjustable radius)
+    \item Circle clockwise/anti-clockwise
+    \item Static
+\end{itemize}
+
+The sign (positive or negative) and the absolute value of the number associated with each motion pattern define the corresponding camera poses relative to the zero pose at the first frame (i.e., translation and rotation vectors).
+
+\textbf{Specifying Scene-aware Object Global Motion.} To enable user control over object global motion trajectories, we provide an interactive canvas (see Fig.~\ref{fig:ui}, ``Object Global Motion Control") where users can draw starting and ending bounding boxes, as well as optional intermediate points. A smooth bounding box trajectory can be obtained by applying Catmull-Rom spline interpolation. For each bounding box, users can optionally specify a reference depth point on the image. Additionally, users can decide whether to directly use this scene-space bounding box sequence as a condition. Utilizing the scene-space bounding box is particularly more effective for creating cinematic effects such as ``follow shots" or ``dolly shots".
+
+For standard scene-aware object global motion control, the scene-space bounding boxes are assigned depth values, as described in Section~3.2 of the main paper. The bounding box sequence is then converted into screen space using the proposed Motion Signal Translation module.
+
+\textbf{Specifying scene-aware object local motion.} We also provide a dedicated canvas for controlling object local motion (see Fig.~\ref{fig:ui}, ``Object Local Motion Control"). Users can draw any number of point trajectories, which are assigned depth values as outlined in Section 3.2 of the main paper. Similar to bounding boxes, these point trajectories are transformed into screen space based on the camera motion and object global motion. The object global motion transformation takes effect only when the starting point of the trajectory lies within the object's semantic region. We then transform the object's local motion point trajectories by maintaining their relative positions with respect to the underlying bounding box.
+
+Additionally, our user interface includes a ``Preview Window" that allows users to visualize the generated videos, as well as the bounding box sequences and point trajectories in both scene space and screen space.
+
+
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\linewidth]{Graphics/supp/Transform_supp.pdf} % Replace with your image file
+    \caption{Illustration of camera-aware transformation and camera-object-aware transformation. In preview videos, dash-line bounding boxes represent the scene-space inputs, while the solid ones with the same color denote the transformed screen-space motion signals. Similarly, point trajectories with white trace indicate scene-space user motion design, while colored ones represent transformed signals. Better investigation in supplementary videos.}
+    \label{fig:transform}
+\end{figure}
+\section{Essentiality of Camera-aware and Camera-object-aware Transformations}
+\label{sec:transform}
+Drawing inspiration from classical graphics imaging techniques, we introduce a Motion Signal Translation module to convert scene-space user-defined motion intents into screen-space motion signals. This enables joint control of camera and object motions in a 3D-aware manner for image-to-video generation. The Motion Signal Translation module incorporates a hierarchical transformation framework that accounts for the intertwining nature of camera and object motions. To illustrate the effectiveness of these transformations, we provide visual comparisons highlighting both camera-aware and camera-object-aware transformations.
+
+\textbf{Camera-aware Transformation for Object Global or Local Motion.}
+First, we present the camera-aware transformation for object global motion control in Fig.~\ref{fig:transform}(top). In the preview video (last frame), the dashed-line bounding boxes represent the scene-space inputs specified by the user, while the solid bounding boxes of the same color denote the corresponding transformed screen-space motion signals.
+
+In this example, people are running forward on the road as controlled by the user’s input (bounding boxes). When a trucking-left camera motion is applied, all the people should naturally move to the right on the screen. Using our camera-aware transformation, the screen-space object bounding boxes are correctly calibrated, ensuring that the resulting animation appears accurate and more natural (refer to the supplementary webpage: ``Additional Analysis -- Essentiality of Camera-aware and Camera-object-aware Transformations").
+
+A similar conclusion holds for the camera-aware transformation applied to object local motion, as shown in Fig.~\ref{fig:transform}(middle).
+
+\textbf{Camera-object-aware Transformation for Object Local Motion.}
+Camera-object-aware transformation implies that translating scene-space point trajectory specifying the object local motion to screen-space signals must take into account both the camera motion and object global motion.  For example, as illustrated in Fig.~\ref{fig:transform}(bottom), the trajectory of an object’s local motion, such as ``putting down hands" must account for both the body’s movement and the camera’s pedestal-up motion. As demonstrated in ``Additional Analysis -- Essentiality of Camera-aware and Camera-object-aware Transformations", our transformation produces a life-like and accurate video, whereas the variant without these transformations results in unnatural and incorrect motion.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{Graphics/supp/AR_recomputation.pdf} % Replace with your image file
+    \caption{Illustration of the recomputation process for input motion conditions in our MotionCanvas$_\text{AR}$ during inference.}
+    \label{fig:back_trace}
+\end{figure}
+
+\section{More Details of MotionCanvas$_\text{AR}$}
+\label{sec:ar}
+To enhance support for long video generation and address motion discontinuities, we introduce a 16-frame conditioned 64-frame MotionCanvas$_\text{AR}$, designed to generate videos in an auto-regressive manner. This model builds on our 32-frame motion-conditioned I2V model (single-frame-conditioned) and is fine-tuned for an additional 120K iterations, while retaining the same training configurations.
+
+To further refine the input motion signals and better align them with the training setup, we recompute the screen-space motion signals by integrating the user’s motion intent with back-traced motions, as illustrated in Fig.~\ref{fig:back_trace}. This method ensures smoother, more consistent motion generation throughout the video.
+
+
+\section{User Study}
+\label{sec:user}
+The designed user study interface is shown in Figure~\ref{fig:user_study_screen_shot}. We collect 15 representative image cases from the Internet and design various motion controls. We then generate the video clips results by executing the official code~\cite{wu2025draganything,niu2025mofa}. For the user study, we use these video results produced by shuffled methods based on the same set of input conditions. In addition, we standardize all the produced results by encoding FPS$=$8 for 14 generated frames, yielding $\sim$2-second videos for each method. This process ensures a fair comparison.
+%% TODO: describe how we convert into points and into those methods
+
+The user study is expected to be completed with 7--15 minutes (15 cases $\times$ 3 sub-questions $\times$ 10--20 seconds for each judgement). To remove the impact of random selection, we filter out those comparison results completed within three minutes. For each participant, the user study interface shows 15 groups of video comparisons, and the participant is instructed to evaluate the videos for three times, \ie, answering the following questions respectively: (i) ``Which one shows the best motion adherence?"; (ii) ``Which one has the best motion/dynamic quality?"; (iii) ``which one shows the best frame fidelity?". Finally, we received 35 valid responses from the participants.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=1.0\linewidth]{Graphics/supp/camera_motion_icons.pdf} % Replace with your image file
+    \caption{Legend of camera motions used in the main paper.}
+    \label{fig:legend}
+\end{figure}
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Graphics/supp/user_study_supp_figure_whole.pdf} % Replace with your image file
+    \caption{Designed user study interface. Each participant is required to evaluate 15 video comparisons and respond to three corresponding sub-questions for each comparison. Only one video is shown here due to the page limit.}
+    \label{fig:user_study_screen_shot}
+\end{figure*}
+
+\section{Additional Analysis}
+\label{sec:add_analysis}
+\subsection{Effect of Point Track Density on Camera Motion Control}
+
+We investigate the effect of point track density on camera motion control by specifying orbit right camera motion with different numbers of 2D point tracks. The visual comparison result is shown in the supplementary webpage `Additional Analysis -- Effect of Point Track Density on Camera Motion Control'. As can be seen, the motion is underspecified with significant ambiguity when providing low-density tracks. Hence, the generated camera motion does not follow the control and tends to be trucking left. By providing higher-density tracks, the generated motion can better adhere to the orbit camera motion.
+
+
+\subsection{Effect of Text Prompt}
+We use simple text descriptions throughout all experiments. To further investigate the effect of text prompts on our MotionCanvas, we show the visual comparison of gradually more detailed text prompts in the supplementary webpage `Additional Analysis-- Effect of Text Prompt.'. It demonstrate that text prompt does not have a significant effect on the camera motion control. However, it can generate diverse dynamics like `raining' and `turning around'.
+
+
+\section{Limitations and Future Work}
+\label{sec:limitations}
+
+
+Our work introduces a novel framework for enhancing I2V with holistic motion controls, enabling cinematic shot design from a single image. While this paper made substantial progress on toward this important application, challenges remain, opening up opportunities for future research. 
+
+First, our use of a video diffusion model (VDM) for the video synthesis module, while enabling high-quality video generation, results in relatively slow inference times (approximately 35 seconds for a 2-second video). This computational cost, typical of modern VDMs, currently limits real-time applications. Exploring alternative, more efficient generative models is a promising direction for future work. 
+
+Second, our current method approximates object local motion by assuming each object lies on a frontal parallel depth plane. Although effective for most natural scenes as the depth variation within the object are typically small compared to object's distance to the camera, this pseudo-3D approximation may not be suitable for extreme close-up or macro shots where depth variations within the object are significant. In future work, it will be interesting to investigate integrating more explicit 3D formulation for handling such scenarios. 
+
+Finally, our system currently does not explicitly constrain the harmonization between motion design and textual prompts. On one hand, this offers the flexibility for users to leverage both control modalities jointly to explore creative variations. On the other hand, this leaves the possibility of conflicting motion signals between the modalities. For example, in Fig. 8 (top row) in the main paper, while the text prompt indicates the cat to be waiting instead of moving, when motion design explicitly control the cat to moves forward in the later part of the videos (note that such global object control was used when generated those results but was not illustrated in the figure to avoid cluttered visualization), such motion control overrides the ones hinted in the textual prompts. Explicit motion-aware prompt harmonization can be a fruitful research direction to extend our work.  
+
+\section{Camera Motion Legend}
+\label{sec:legend}
+The legend of camera motions used in the main paper is presented in Fig.~\ref{fig:legend}.

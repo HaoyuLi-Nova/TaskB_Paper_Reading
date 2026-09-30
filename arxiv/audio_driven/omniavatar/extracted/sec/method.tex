@@ -1,0 +1,114 @@
+\section{OmniAvatar}
+
+
+OmniAvatar aims to create talking avatar videos with the input of a single reference image, audio, and a prompt, while featuring adaptive and natural body animations. The overview of OmniAvatar is illustrated in Fig.~\ref{fig:framework}. To capture audio features at multiple levels,  we introduce a multi-hierarchical audio embedding strategy which maintains pixel-wise alignment between the audio and video (Sec 3.2). Additionally, to retain the powerful capabilities of the foundation model while incorporating audio as new conditions, we apply LoRA-based training to layers of the DiT model (Sec 3.3). To maintain consistency and temporal continuity in long video generation, we leverage frame overlapping and reference image embedding strategy (Sec 3.4).
+
+
+\subsection{Preliminaries}
+\noindent\textbf{Diffusion Models.}
+We employ a latent diffusion model (LDM)~\cite{rombach2022high} for efficient video generation, which learns to reverse a diffusion process upon the latent space, progressively transforming noise into data. The process begins with latents $z$ of data (e.g., images, videos) being corrupted by Gaussian $\epsilon$ noise over $t$ steps, $z_t = \sqrt{\alpha_t}z + \sqrt{1-\alpha_t}\epsilon$, where $\alpha_t$ represents the noise scheduler. The model $\epsilon_\theta$ is trained to reverse this noise diffusion process by 
+$$
+    \mathcal{L} = \mathbb{E}_{t, z_t, c, \epsilon \sim \mathcal{N}(0, 1)} \left[ \| \epsilon_\theta(z_t, t, c) - \epsilon \|^2_2 \right],
+$$ where $c$ denotes the conditions. In essence, the model learns to denoise the noisy data step by step to recover the original sample. Diffusion models have demonstrated impressive performance in generating high-quality samples in various domains, including image and video synthesis. Specially, the latent $z$ can be encoded from VAE~\cite{kingma2013auto} encoder and be decoded back to the raw data with VAE decoder.
+
+
+\noindent\textbf{Diffusion Transformers.}
+Diffusion Transformers (DiT)~\cite{peebles2023scalable} extend traditional diffusion models by utilizing transformer architecture~\cite{vaswani2017attention} to model the denoising process. The DiT architecture replaces traditional convolutional layers with self-attention mechanisms, allowing it to learn more complex dependencies in the data, which is particularly useful when handling high-dimensional video or long sequences. Specifically, we adopt Wan2.1~\cite{wan2025wan} as the foundational model. By employing a transformer-based denoising network with full-attention in the latent space, DiT improves the model's capacity to generate high-fidelity and consistent video sequences over long periods, an essential property in avatar video generation.
+
+\noindent\textbf{Low-Rank Adaptation.}
+Low-Rank Adaptation (LoRA)~\cite{hu2022lora} improves the efficiency of fine-tuning large models by introducing low-rank decomposition into weight matrices, reducing the number of trainable parameters while retaining the model’s adaptability. This is especially effective for adapting pre-trained models, without requiring full retraining. LoRA achieves this by updating the weight matrices with low-rank approximations during training
+$$
+W' = W + \Delta W, \quad \Delta W = A B,
+$$
+where $W$ is the original weight matrix, and $\Delta W$ is the low-rank update, with $A$ and $B$ being the low-rank matrices. This allows the model to efficiently adapt to new tasks, while maintaining high-quality output and low training computational cost.
+
+
+
+\subsection{Audio Embedding Strategy}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{figs/audio_pack.pdf}
+    \vspace{-0.1in}
+    \caption{\textbf{Design of Audio Pack.} To align the audio features to the latent space, audio pack rearranges the padded audio, and then map into audio latent by a linear layer.}
+    \vspace{-0.1in}
+    \label{fig:audio_pack}
+\end{figure}
+
+Most existing methods~\cite{cui2024hallo3,wang2025fantasytalking,chen2025hunyuanvideoavatar,meng2024echomimicv2} typically rely on cross-attention mechanisms to introduce audio features, where the audio information is conditioned on visual features through attention layers. While this approach can lead to good results, it introduces additional computational overhead and tends to overly focus on the relationship between the audio and facial features. In contrast, we propose a pixel-wise audio embedding strategy, where audio features are directly incorporated into the model’s latent space at pixel level. By embedding audio features with pixel-wised fusion, we naturally align lip movements with the audio. And by ensuring the audio information is evenly distributed across the entire video pixels, model results in more holistic and natural body movements in response to the audio.
+
+Given an audio sequence of length $T$, we use Wav2Vec2~\cite{baevski2020wav2vec} for audio feature extraction. Each video, with a length $T$, is compressed into $\frac{T+3}{4}$ latent frames using a pretrained 3D VAE, where the factor of 4 is the time compression ratio of the VAE. To ensure temporal alignment between the audio features and the compressed video latent, we follow the compression pattern of the VAE. First, we pad the audio feature sequence $a$ before the initial frame to match the time length $T+3$. Then, the audio features are grouped into pieces with a compression rate of 4, matching the VAE latent space compression rate, and are subsequently mapped to the latent space $z_a$ with audio pack module. Audio pack compresses the rearranged audio with linear mapping, as shown in Fig.~\ref{fig:audio_pack}. 
+
+To integrate the audio features into the video latent space, we project the audio latent into a space that can be aligned with the video latent. Then, the audio latent is embedded into the video latent at pixel level:
+$$
+z_a = \text{Pack}(a); z'^i_t = z^i_t +\mathcal{P}^i_a(z_a)
+$$ 
+where $z^i_t$ is the latent vector of $i$ DiT block corresponding to the video at time step $t$. $\mathcal{P}_a$ denotes the audio projection operation and $\text{Pack}$ refers to the audio compression function. 
+
+By embedding pixel-wise audio features into the video latent space, the generated human motions are adaptively guided by the audio input. To ensure the model effectively learns and retains audio features in deep networks, we employ a multi-hierarchical audio embedding approach that integrates audio embeddings at different stages within the DiT blocks. To prevent the audio features from excessively influencing the latent features, we apply audio embeddings only to the layers between the second and the middle layers of the model. Additionally, the weights for these layers are not shared, allowing the model to maintain separate learning paths for different levels of audio integration.
+
+
+
+% This method avoids the computational burden of cross-attention mechanisms and ensures that the spatial-temporal information from both the audio and video domains is efficiently shared. Furthermore, the uniform distribution of audio features across the latent space enables the model to generate more globally consistent movements. This avoids the over-emphasis on specific regions, such as the face, and allows for more holistic control of the avatar’s body motions, contributing to more natural and lifelike behavior.
+
+
+
+
+\subsection{LoRA-based DiT Optimization}
+Previous methods for audio-conditioned diffusion models typically follow one of two strategies: either training the full model~\cite{lin2025omnihuman,chen2025hunyuanvideoavatar} or fine-tuning only specific layers~\cite{cui2024hallo3, wang2025fantasytalking}. When performing full training, we notice that updating all layers leads to degradation in the capability of the model to generate coherent and high-quality video sequences. Specifically, the model generates unrealistic or static content more easily, while struggling to capture fine details. This occurs because the model overfits to the human speech datasets, leading to poor generalization and difficulty in controlling the video generation. On the other hand, freezing the DiT model and only fine-tuning the layers responsible for processing the audio features results in poor alignment between audio and video. The lip-sync performance is compromised because the model struggles to accurately map audio features to realistic facial movements.
+
+To overcome these challenges, we propose a balanced fine-tuning strategy based on LoRA. Instead of fine-tuning all layers or just updating the audio-related layers, we use LoRA strategy to adapt the model efficiently. LoRA introduces low-rank matrices into the weight updates of the attention and feed-forward (FFN) layers, allowing the model to learn audio-conditioned behavior without altering the underlying model's capacity. %We apply low-rank updates to the weight matrices of the DiT block’s attention layers and FFN layers
+
+\subsection{Long Video Generation}
+
+Generating long, continuous videos is crucial for audio-driven avatar video generation. The ability to generate extended videos, without compromising the visual quality or temporal consistency, presents a significant challenge. To address this, we employ reference image embedding strategy to preserve the identity and frame overlapping for temporal consistency. Algo.~\ref{algo:infer} shows the inference pipeline for long video generation.
+
+\begin{algorithm}
+\caption{Long Video Inference}
+\KwIn{Audio latents $z_a$ with length $l$ , Pretrained model, Inference length $s$, Overlap length $f$, First frame latents $z_{\text{ref}}$}
+\KwOut{Denoised video latents $z_0$}
+\SetKwFunction{FMain}{LongVideoInference}
+\SetKwProg{Fn}{Function}{:}{}
+\Fn{\FMain{$a$, $l$, $s$, $f$, $z_{\text{ref}}$}}{
+    % 先把长度pad成正好
+    \(N, l_{\text{pad}} = \text{FindLoopN}(l,s)\)           \tcp*{get loop times}
+    
+    \(z_a \leftarrow \text{Zeros}(1) + z_a + \text{Zeros}(l_{\text{pad}})\)\tcp*{pad input}
+    
+    \(z_T \leftarrow z_{\text{ref}} + \text{Noise}(l + l_{\text{pad}})\);
+    
+    \(l = l + l_{\text{pad}} + 1;n = 0\);
+    
+    \For{$i = 1, \dots, N$}{
+
+        \If{$i = 0$}{   
+        \tcp{use first frame as prefix}
+            \( f_i = 0 \);
+            \( z_{\text{prefix}} = z_{\text{ref}}\);
+        }
+        \Else{        
+        \tcp{use previous suffix}
+            \(f_i = f \);
+            \(z_T \leftarrow z_{\text{prefix}} + z_T\);
+            }
+        \(n = n - f_i\); \tcp*{overlap}
+        
+        \( z_0^{[n, n+s]} = \text{Model}(z_a^{[n, n+s]}, z_T^{[0, s]}, z_{\text{ref}}) \); 
+        
+        \(z_T = z_T^{[s, l]}\);
+        \(z_{\text{prefix}} = z_0^{[n+s-f, n+s]}\);
+        
+        \(n = n + s\); \tcp*{move to the next clip}
+        }
+    \Return{Denoised latent $z_0$}
+}
+\label{algo:infer}
+\end{algorithm}
+
+\noindent\textbf{Identity Preservation.}
+To preserve the identity throughout the video generation process, we utilize reference image embedding strategy, which introduce a reference frame that serves as a fixed guidance of identity. Specifically, we extract the latent representation of the reference frame and repeat it to match the length of the video. This repeated reference latent is then concatenated with the video latent at each time step, ensuring that the avatar's appearance remains consistent across all frames. By using this reference frame, we effectively anchor the identity of the avatar, ensuring its visual characteristics remain consistent throughout the video sequence.
+
+\noindent\textbf{Temporal Consistency.}
+Maintaining temporal consistency is crucial for creating long, continuous videos with smoothing frame transitions. To achieve seamless video continuity, we use a latent overlapping strategy. We train the model with a combination of single-frame and multi-frame prefix latents. During inference, the first batch of frames is generated using the reference frame as both the prefix latent and identity guidance. For subsequent batches, the last frames from the previous batch serve as the prefix latents, while the reference frame remains fixed to guide identity. This overlap ensures smooth transitions between video segments, preserving temporal continuity and preventing abrupt changes in motion or appearance.
+
+

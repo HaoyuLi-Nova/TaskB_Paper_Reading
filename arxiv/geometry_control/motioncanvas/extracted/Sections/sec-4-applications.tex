@@ -1,0 +1,57 @@
+\section{Applications}
+\label{sec-4-applications}
+
+\MOCA allows for flexible controls of both camera and object motion in a scene-aware manner. This enables our main application of cinematic shot design framework, allowing users to interactively manage key motion aspects of a shot. 
+Additionally, the flexibility of our motion representations makes it possible to naturally apply our framework on a variety of simple video-based editing tasks.
+%, including motion transfer and video-to-video transforms.
+%such as localized edit propagation (e.g., adding, removing, or replacing elements) and global appearance transform (e.g., style modifications).
+
+
+\subsection{Shot Design with Joint Camera and Object Control}
+
+% Our shot design pipeline begins with an input image, where users specify 3D camera motion and object motion, and align them to a timeline. 
+% These user-defined intentions are transformed into screen-space conditioning signals, which are input into the video generation model. 
+As illustrated in Fig.~\ref{fig:app-shot-design}, our framework enables precise and independent control of object and camera motion in a scene-aware manner, allowing for the design of highly dynamic and visually compelling shots while closely following the provided motion design. 
+
+In Fig.~\ref{fig:app-shot-design}, it is worth noting that in both examples, the results in each column follow the same camera motion while the object motions change according to the corresponding specified object controls. By placing the bounding box in a scene-aware manner, users can achieve various scene-space effects. For example, this makes it possible to induce the car in the bottom example to stay still (first row) or move forward (second row) and backward (third row) on the road. Importantly, such scene-anchored motion is preserved while the camera motion changes independently. 
+This highlights the importance of scene-aware object motion controls.
+
+
+\textbf{Long Videos with Complex Trajectories.}
+To generate extended videos featuring complex camera and object motions, our framework employs a ``specification-generation'' loop. This approach allows users to define motion signals for each segment and subsequently generate video chunks in an auto-regressive manner. Inspired by animation workflows~\cite{xing2024tooncrafter,tang2025generativeaicelanimationsurvey}, \MOCA combines keyframing and interpolation to create intricate motion paths. Specifically, users can set keyframes for object and camera motions, then the system interpolates between these keyframes to produce smooth and coherent trajectories. 
+
+
+
+As demonstrated in Fig.~\ref{fig:app-shot-design-longvid}, our method can generate long videos with complex sequences of camera motion controls. We show two video results for each input image, resulting from the same camera controls (note that almost identical camera motions are generated for those two) while intentionally controlling different object motions.
+
+\input{Figures/fig-app-shot-design-local-motion}
+\subsection{Object Local Motion Control}
+
+\MOCA also enables controlling object local motion to potentially support drag-based editing and generation. 
+Users can define local object motions by directly specifying drag-based trajectories within the object's own coordinates. These point trajectories are then transformed to the appropriate screen-space point trajectories for conditioning the video generation model, taking into account both the camera and the object global motion. 
+As illustrated in Fig.~\ref{fig:app-shot-design-local-motion}, our method can generate diverse and fine-grained local motions, making it possible to generate different variations of object movements (\eg, the different ways the arms of the baby move).
+
+In addition, thanks to our dedicated motion translation module that accounts for the coordination between local motion and camera motion, as well as object global motion,
+consistent object local motion control can be achieved with different camera and object dynamics (Fig.~\ref{fig:app-shot-design-local-motion} (bottom)). 
+This opens the possibility of incorporating local object motion control into the shot design framework described above.
+%Our framework extends previous drag-based editing and generation approaches by incorporating local object motion control in a 3D-aware manner, surpassing the capabilities of prior works~\cite{pan2023drag,niu2025mofa}. While traditional drag-based methods permit manipulation of object trajectories in 2D space, our approach supports both drag-based and 3D-aware local object motion control, enabling users to create more sophisticated and spatially consistent motions.
+
+
+\input{Figures/fig-additional-apps}
+\subsection{Additional Applications: Simple Video-based Editing}
+
+\textbf{Motion Transfer.}
+Our method can be adapted to perform motion transfer from a source video to an input image that shares a structural similarity with the initial frame. By leveraging the versatile screen-space conditioning representation, our framework effectively captures and transfers both object and camera motions, even for cases that involve 3D transform, without the need for explicit 3D camera pose extraction. As shown in Fig.~\ref{fig:additional-apps}, the rotating movement of the apple can be transferred to rotate the lion's head. 
+
+
+
+\textbf{Video Editing.}
+The concept of motion transfer can be extended to facilitate video editing, where the input image is derived from the first frame through image editing~\cite{brooks2023instructpix2pix}. Utilizing the versatile screen-space conditioning representation, our method propagates extracted object and camera motions to the derived image, ensuring consistent and realistic dynamics, similar to~\cite{liu2024generative}. Fig.~\ref{fig:additional-apps} shows two examples where the edits performed on the initial frame are propagated using the motion signals extracted from the original video, resulting in a fully edited video.
+% 
+
+%%%%%% Figure: Evaluation -- Camera Control %%%%%%%
+\input{Figures/fig-eval-camera-control}
+%%%%%%%%%%%%%%%
+%%%%%%%%%%% Figure: Evaluation -- Object Motion Control %%%%%%%%%%%%
+\input{Figures/fig-eval-object-control}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,791 @@
+ \documentclass[letterpaper]{article} % DO NOT CHANGE THIS
+% \usepackage[submission]{aaai2027}  % DO NOT CHANGE THIS
+\usepackage{aaai2027} 
+\nocopyright
+% The serif, sans-serif, and monospaced fonts are loaded automatically by
+% aaai2027.sty (newtxtext, helvet, courier). DO NOT add \usepackage{times},
+% \usepackage{helvet}, \usepackage{courier}, or any other font package.
+\usepackage[hyphens]{url}  % DO NOT CHANGE THIS
+\usepackage{graphicx} % DO NOT CHANGE THIS
+\urlstyle{rm} % DO NOT CHANGE THIS
+\def\UrlFont{\rm}  % DO NOT CHANGE THIS
+\usepackage{natbib}  % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\usepackage{caption} % DO NOT CHANGE THIS AND DO NOT ADD ANY OPTIONS TO IT
+\frenchspacing  % DO NOT CHANGE THIS
+%
+% These are recommended to typeset algorithms but not required. See the subsubsection on algorithms. Remove them if you don't have algorithms in your paper.
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{xcolor}
+\newcommand{\yzc}[1]{\textcolor{red}{#1}}
+%
+% These are recommended to typeset listings but not required. See the subsubsection on listing. Remove this block if you don't have listings in your paper.
+\usepackage{newfloat}
+\usepackage{listings}
+\DeclareCaptionStyle{ruled}{labelfont=normalfont,labelsep=colon,strut=off} % DO NOT CHANGE THIS
+\lstset{%
+	basicstyle={\footnotesize\ttfamily},% footnotesize acceptable for monospace
+	numbers=left,numberstyle=\footnotesize,xleftmargin=2em,% show line numbers, remove this entire line if you don't want the numbers.
+	aboveskip=0pt,belowskip=0pt,%
+	showstringspaces=false,tabsize=2,breaklines=true}
+\floatstyle{ruled}
+\newfloat{listing}{tb}{lst}{}
+\floatname{listing}{Listing}
+
+%
+% Recommended for better-looking tables
+\usepackage{booktabs}
+
+%
+% Add By Us
+\usepackage{multirow}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\newcommand{\TODO}[1]{\textcolor{red}{\textbf{TODO:} #1}}
+
+%
+% Keep the \pdfinfo as shown here. There's no need
+% for you to add the /Title and /Author tags.
+\pdfinfo{
+/TemplateVersion (2027.1)
+}
+
+% DISALLOWED PACKAGES
+% \usepackage{authblk} -- This package is specifically forbidden
+% \usepackage{balance} -- This package is specifically forbidden
+% \usepackage{CJK} -- This package is specifically forbidden
+% \usepackage{float} -- This package is specifically forbidden
+% \usepackage{flushend} -- This package is specifically forbidden
+% \usepackage{fullpage} -- This package is specifically forbidden
+% \usepackage{geometry} -- This package is specifically forbidden
+% \usepackage{hyperref} -- This package is specifically forbidden
+% \usepackage{navigator} -- This package is specifically forbidden
+% (or any other package that embeds links such as navigator or hyperref)
+% \usepackage{indentfirst} -- This package is specifically forbidden
+% \usepackage{layout} -- This package is specifically forbidden
+% \usepackage{multicol} -- This package is specifically forbidden
+% \usepackage{nameref} -- This package is specifically forbidden
+% \usepackage{savetrees} -- This package is specifically forbidden
+% \usepackage{setspace} -- This package is specifically forbidden
+% \usepackage{stfloats} -- This package is specifically forbidden
+% \usepackage{tabu} -- This package is specifically forbidden
+% \usepackage{titlesec} -- This package is specifically forbidden
+% \usepackage{tocbibind} -- This package is specifically forbidden
+% \usepackage{ulem} -- This package is specifically forbidden
+% \usepackage{wrapfig} -- This package is specifically forbidden
+% DISALLOWED COMMANDS
+% \nocopyright -- Your paper will not be published if you use this command
+% \addtolength -- This command may not be used
+% \balance -- This command may not be used
+% \baselinestretch -- Your paper will not be published if you use this command
+% \clearpage -- No page breaks of any kind may be used for the final version of your paper
+% \columnsep -- This command may not be used
+% \newpage -- No page breaks of any kind may be used for the final version of your paper
+% \pagebreak -- No page breaks of any kind may be used for the final version of your paper
+% \pagestyle -- This command may not be used
+% \tiny -- This is not an acceptable font size.
+% \vspace{- -- No negative value may be used in proximity of a caption, figure, table, section, subsection, subsubsection, or reference
+% \vskip{- -- No negative value may be used to alter spacing above or below a caption, figure, table, section, subsection, subsubsection, or reference
+
+\setcounter{secnumdepth}{0} %May be changed to 1 or 2 if section numbers are desired.
+
+% The file aaai2027.sty is the style file for AAAI Press
+% proceedings, working notes, and technical reports.
+%
+
+% Title
+
+% Your title must be in mixed case, not sentence case.
+% That means all verbs (including short verbs like be, is, using,and go),
+% nouns, adverbs, adjectives should be capitalized, including both words in hyphenated terms, while
+% articles, conjunctions, and prepositions are lower case unless they
+% directly follow a colon or long dash
+\title{QuerySplat: Decoupling Geometry and Appearance Representations \\in 3DGS Prediction}
+% \author{
+%     %Authors
+%     % All authors must be in the same font size and format.
+%     Written by AAAI Press Staff\textsuperscript{\rm 1}\thanks{With help from the AAAI Publications Committee.}\\
+%     AAAI Style Contributions by Peter Patel Schneider,
+%     Sunil Issar,\\
+%     J. Scott Penberthy,
+%     George Ferguson,
+%     Hans Guesgen,
+%     Francisco Cruz\equalcontrib\corresponding,
+%     Marc Pujol-Gonzalez\equalcontrib\corresponding
+% }
+% \affiliations{
+%     %Afiliations
+%     \textsuperscript{\rm 1}Association for the Advancement of Artificial Intelligence\\
+%     % If you have multiple authors and multiple affiliations
+%     % use superscripts in text and roman font to identify them.
+%     % For example,
+
+%     % Sunil Issar\textsuperscript{\rm 2},
+%     % J. Scott Penberthy\textsuperscript{\rm 3},
+%     % George Ferguson\textsuperscript{\rm 4}\corresponding,
+%     % Hans Guesgen\textsuperscript{\rm 5}
+%     % Note that the comma should be placed after the superscript
+
+%     1101 Pennsylvania Ave, NW Suite 300\\
+%     Washington, DC 20004 USA\\
+%     % email address must be in roman text type, not monospace or sans serif
+%     proceedings-questions@aaai.org
+% %
+% % See more examples next
+% }
+\author{
+    Yinglong Li\textsuperscript{\rm 1,2}\equalcontrib,
+    % \thanks{Work done during an internship at InSpatio Research.},
+    Donghui Shen\textsuperscript{\rm 2}\equalcontrib,
+    Xiaoyu Zhang\textsuperscript{\rm 2},
+    Zhichao Ye\textsuperscript{\rm 2},\\
+    Hongyu Wu\textsuperscript{\rm 1}\corresponding,
+    Aimin Hao\textsuperscript{\rm 1},
+    Guofeng Zhang\textsuperscript{\rm 2,3}\corresponding,
+    Haomin Liu\textsuperscript{\rm 2}
+}
+\affiliations{
+    \textsuperscript{\rm 1}
+    State Key Laboratory of Virtual Reality Technology and Systems,
+    Beihang University\\
+    \textsuperscript{\rm 2}
+    InSpatio Research \quad
+    \textsuperscript{\rm 3}
+    State Key Lab of CAD\&CG,
+    Zhejiang University
+}
+
+
+%Example, Single Author, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
+\iffalse
+\title{My Publication Title --- Single Author}
+\author {
+    Author Name
+}
+\affiliations{
+    Affiliation\\
+    Affiliation Line 2\\
+    name@example.com
+}
+\fi
+
+\iffalse
+%Example, Multiple Authors, ->> remove \iffalse,\fi and place them surrounding AAAI title to use it
+\title{My Publication Title --- Multiple Authors}
+\author {
+    % Authors
+    First Author Name\textsuperscript{\rm 1,\rm 2}\equalcontrib,
+    Second Author Name\textsuperscript{\rm 2}\equalcontrib,
+    Third Author Name\textsuperscript{\rm 1}\corresponding
+}
+\affiliations {
+    % Affiliations
+    \textsuperscript{\rm 1}Affiliation 1\\
+    \textsuperscript{\rm 2}Affiliation 2\\
+    firstAuthor@affiliation1.com, secondAuthor@affilation2.com, thirdAuthor@affiliation1.com
+}
+\fi
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+While feed-forward 3D Gaussian Splatting (3DGS) enables efficient 3D reconstruction, achieving high-fidelity rendering remains challenging. Existing pixel-aligned approaches suffer from spatial inflexibility and massive structural redundancy, whereas query-based methods lack 3D priors and entangle geometry with appearance, yielding blurry, pose-dependent results. To overcome these deficiencies, we propose \textbf{QuerySplat}, a feed-forward 3DGS framework driven by geometric priors and explicit appearance decoupling. Specifically, we design a dual-branch query-based decoder: the geometry branch leverages a pretrained Vision Geometric Model for spatial understanding, which intrinsically endows QuerySplat with pose-free modeling capabilities, while the appearance branch recovers high-frequency details through a dedicated pathway separated from geometric attribute regression. Extensive experiments demonstrate that QuerySplat mitigates the blurry rendering issues of early query-based models and consistently outperforms pixel-aligned approaches in rendering fidelity. On the challenging DL3DV benchmark, it achieves state-of-the-art novel view synthesis performance, with average PSNR gains of 2.30 dB and 1.04 dB over the best pose-free and pose-required baselines, respectively. Project Page: \textcolor{blue}{\url{https://inspatio.github.io/querysplat}}.
+
+% achieving state-of-the-art novel view synthesis performance on the large scale DL3DV benchmark.
+\end{abstract}
+
+% Uncomment the following to link to your code, datasets, an extended version or similar.
+% You must keep this block between (not within) the abstract and the main body of the paper.
+% Make sure that you do not de-anonymize yourself with these links.
+% \begin{links}
+%     \link{Code}{https://aaai.org/example/code}
+%     \link{Datasets}{https://aaai.org/example/datasets}
+%     \link{Extended version}{https://aaai.org/example/extended-version}
+% \end{links}
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.88\textwidth]{Figures/teaser.pdf}
+    \caption{\textbf{QuerySplat overview.} Given uncalibrated images with varying view counts, QuerySplat reconstructs clean and high-fidelity 3D Gaussian scenes in a pose-free, feed-forward, and non-pixel-aligned manner. Compared with prior methods, it produces substantially more coherent scene structure while supporting in-the-wild inputs within seconds.}
+    \label{fig:teaser}
+\end{figure*}
+
+
+
+\section{Introduction}
+Recently, Feed-Forward Reconstruction (FFR) of 3D Gaussian Splatting (3DGS) \cite{jiang2025anysplat,ye2025yonosplat,ren2026tokengs,mescheder2025sharp} has emerged as a prominent research direction. By predicting parameters in a single pass, FFR preserves rapid inference while circumventing tedious per-scene optimization and dense multi-view captures, opening new possibilities for flexible 3D content creation.
+
+Mainstream feed-forward methods primarily adopt a pixel-aligned generation paradigm, binding Gaussian primitives to camera rays. Although this design offers a simple image-to-Gaussian interface, strictly binding Gaussian primitives to the 2D observation space severely restricts their spatial degrees of freedom. Consequently, they are highly susceptible to depth errors and camera pose perturbations. Furthermore, multi-view pixel conflicts frequently accumulate into geometric shifts and ghosting artifacts, limiting the capacity to learn stable 3D structures. 
+
+To overcome these constraints, query-based methods like TokenGS~\cite{ren2026tokengs} utilize learnable queries to decode Gaussians in continuous space. This spatial decoupling unbinds the primitive count from input resolutions, eliminates structural redundancy, and enables flexible allocation to complex regions. However, two critical limitations persist. First, existing methods entangle all Gaussian attributes within a unified query representation, ignoring their distinct modeling requirements: geometric attributes rely on global spatial reasoning, whereas appearance attributes depend on local high-frequency textures. Forcing them together creates a fundamental mismatch, where appearance variations disrupt geometric learning, causing over-smoothed renderings. Second, relying solely on 2D photometric supervision to learn structures from scratch leaves these models without explicit 3D priors. Lacking a canonical coordinate system, they remain rigidly dependent on exact camera poses, hindering unposed, in-the-wild applicability.
+
+Based on these observations, we propose QuerySplat, an attribute-decoupled, high-fidelity FFR 3DGS framework. At its core is an attribute-aware dual-query decoder. The geometry branch leverages dedicated queries to predict spatial attributes, while the appearance branch focuses solely on high-frequency details. This dual-branch decoupling in both feature and query spaces allows each attribute to independently aggregate essential information, achieving well-defined geometry alongside rich textures.
+
+To provide robust spatial support, we introduce a pretrained Vision Geometric Model (VGM) as a universal prior. It injects stable 3D structural features and establishes a canonical coordinate system, fundamentally enabling pose-free reconstruction. Additionally, we leverage VGM-predicted depth to formulate a transient early-stage regularization strategy. Combined with an opacity-floor constraint, this regularization stabilizes Gaussian initialization while preserving the queries' flexibility to freely reorganize under later image-space supervision.
+
+% Extensive experiments demonstrate that QuerySplat achieves state-of-the-art novel view synthesis performance on the large-scale and challenging DL3DV benchmark, comprehensively outperforming existing FFR 3DGS methods. The generated scenes exhibit superior geometric coherence, sharper object boundaries, and richer texture details, validating the immense value of the attribute-decoupled query mechanism.
+
+Extensive experiments demonstrate that QuerySplat achieves state-of-the-art novel view synthesis performance on the large-scale and challenging DL3DV benchmark, consistently outperforming existing methods. The generated scenes exhibit superior geometric coherence, sharper object boundaries, and richer texture details, validating the effectiveness of the attribute-decoupled query mechanism.
+
+The main contributions are summarized as follows:
+% \begin{itemize}
+%     \item We propose \textbf{QuerySplat}, an attribute-aware dual-query framework. By designing dedicated query and feature pathways for different Gaussian attributes, it enables the harmonious joint modeling of well-defined 3D structures and high-frequency appearances.
+
+%     \item We introduce a frozen VGM as an explicit spatial prior. This provides stable multi-view geometric understanding for FFR 3DGS, mitigating the uncertainty of learning 3D structures from scratch and facilitating pose-free scene reconstruction.
+
+%     \item QuerySplat achieves state-of-the-art performance on the DL3DV benchmark. It demonstrates significant improvements in both rendering quality and underlying geometric organization, validating the effectiveness of the attribute-decoupled query paradigm in FFR 3DGS.
+% \end{itemize}
+\begin{itemize}
+    \item We propose \textbf{QuerySplat}, an attribute-aware dual-query framework. By designing dedicated query and feature pathways for different Gaussian attributes, it enables the harmonious joint modeling of well-defined 3D structures and high-frequency appearances.
+
+    % \item We introduce a geometry branch equipped with a pretrain VGM that leverages early-stage geometric alignment to provide stable multi-view geometric guidance for non-pixel-aligned feed-forward 3DGS geometry prediction, reducing the uncertainty of learning 3D structures from scratch and facilitating pose-free scene reconstruction.
+    \item We introduce a VGM-guided geometry branch that leverages early-stage regularization to stabilize non-pixel-aligned 3DGS geometry prediction, reducing learning uncertainty and enabling pose-free scene reconstruction.
+
+    \item Extensive experiments demonstrate that QuerySplat achieves consistent improvements in both visual fidelity and geometric organization, validating the effectiveness of the attribute-decoupled query paradigm for addressing the challenges of non-pixel-aligned feed-forward 3DGS.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Related Work}
+% \subsection{3D Gaussian Splatting}
+% 3D Gaussian Splatting (3DGS)~\cite{kerbl20233dgs} has emerged as a popular 3D scene representation, offering high-fidelity rendering and real-time inference. However, traditional 3DGS \cite{yu2024gof, chen2024pgsr} requires time-consuming per-scene optimization from scratch. To address this, Feed-Forward Reconstruction (FFR) methods have been proposed to infer 3D scenes directly from sparse input images in a single forward pass. Early approaches, such as Splatter Image \cite{szymanowicz2024splatterimage}, pixelSplat \cite{charatan2024pixelsplat}, and MVSplat \cite{chen2024mvsplat}, pioneered end-to-end 3DGS prediction from single or sparse views. Subsequently, to tackle generalization bottlenecks in complex scenarios, recent advancements have explored diverse directions. For instance, DepthSplat \cite{xu2025depthsplat} and AnySplat \cite{jiang2025anysplat} incorporate explicit geometric priors to enhance cross-dataset generalizability; YoNoSplat \cite{ye2025yonosplat} and SPFSplat \cite{huang2025spfsplat} focus on pose-free formulations to handle unknown or noisy camera parameters; while SplatWeaver \cite{wan2026splatweaver} introduces sophisticated feature fusion strategies to resolve multi-view inconsistencies. Despite these advancements in efficiency, current mainstream formulations strictly anchor Gaussian primitives to camera rays. This pixel-aligned paradigm fundamentally restricts spatial degrees of freedom, rendering them vulnerable to noisy camera poses and limiting their capacity to represent complex geometries.
+
+
+\subsection{3D Gaussian Splatting}
+3D Gaussian Splatting (3DGS)~\cite{kerbl20233dgs} offers high-fidelity real-time rendering but requires time-consuming per-scene optimization~\cite{yu2024gof, chen2024pgsr}. To address this, Feed-Forward Reconstruction (FFR) methods~\cite{szymanowicz2024splatterimage, charatan2024pixelsplat, chen2024mvsplat, li2026tokensplat, xu2024freesplatter, gupta2026GenWildSplat, moreau2025offthegrid, wang2026trisplat} have been proposed to infer scenes directly from sparse views in a single pass. Recent advancements further improve generalizability using explicit geometric priors~\cite{xu2025depthsplat, jiang2025anysplat}, pose-free formulations~\cite{ye2025yonosplat, huang2025spfsplat}, or adaptive primitive allocation~\cite{wan2026splatweaver}. Despite these efficiency gains, mainstream FFR models strictly anchor Gaussian primitives to camera rays. This pixel-aligned paradigm fundamentally restricts spatial degrees of freedom, rendering models vulnerable to noisy camera poses and limiting their capacity to represent complex geometries.
+
+% \subsection{Query-based 3D Scene Representation}
+% To overcome the spatial constraints inherent in traditional pixel-wise or voxel-wise representations, query-based methods have been widely explored. Inspired by the success of DETR \cite{carion2020detr} in 2D vision, researchers began utilizing sets of learnable implicit queries to aggregate spatial information. This paradigm has been extensively validated in 3D perception tasks, such as multi-view 3D object detection (e.g., DETR3D \cite{wang2022detr3d}) and 3D instance segmentation (e.g., Mask3D \cite{schult2023mask3d}). Subsequently, this mechanism has been extended to 3D scene representation and reconstruction, with representative works like VoxFormer \cite{li2023voxformer} and LRM \cite{hong2024lrm} employing learnable queries to construct voxel and triplane representations, respectively. Recently, TokenGS \cite{ren2026tokengs} introduced this paradigm to FFR 3DGS by utlizing learnable queries to aggregate multi-view features and completely breaking free from pixel-aligned constraints. Although this query-based design successfully releases spatial degrees of freedom, the joint learning of complex geometry and fine-grained textures from blind queries leads to severe entanglement. This optimization bottleneck often results in over-smoothed, blurry renderings and a rigid dependency on exact camera poses.
+
+\subsection{Query-based 3D Scene Representation}
+To overcome pixel-aligned constraints, query-based methods utilize learnable tokens to aggregate spatial information. Originating in 2D vision~\cite{carion2020detr}, this paradigm has successfully extended to 3D perception~\cite{wang2022detr3d, schult2023mask3d} and scene reconstruction via voxel~\cite{li2023voxformer} or triplane~\cite{hong2024lrm} representations. Recently, TokenGS~\cite{ren2026tokengs} introduced this mechanism to FFR 3DGS, completely breaking free from 2D pixel grids. However, while releasing spatial degrees of freedom, learning both complex geometry and fine-grained textures jointly from unified queries causes severe attribute entanglement. This optimization bottleneck degrades rendering quality—yielding over-smoothed, blurry results—and maintains a rigid dependency on exact camera poses.
+
+% \subsection{Vision Geometric Models}
+% Recently, Vision Geometric Models (VGMs) pretrained on massive datasets have demonstrated remarkable multi-view geometric cognitive abilities. This paradigm was pioneered by models like DUSt3R \cite{wang2024dust3r} and MASt3R \cite{leroy2024mast3r}, which established a robust framework for pose-free point-map regression. The trajectory reached a significant milestone with VGGT \cite{wang2025vggt}, catalyzing a new wave of highly performant successors, including Pi3 \cite{wang2025pi3}, DA3 \cite{lin2025da3}, and VGGT-$\Omega$~\cite{wang2026vggtomega}, which further scale up architectural capacity and geometric precision. Building upon these foundational models, recent system-level extensions strive to scale VGM-based reconstruction to large, unbounded environments. To achieve this, methods like ZipMap \cite{jin2026zipmap} and Scal3R \cite{xie2026scal3r} integrate test-time training (TTT) mechanisms to maintain global consistency across long sequences. Alternatively, LingBot-Map \cite{chen2026lingbot-map} pursues a purely feed-forward streaming paradigm to efficiently process large-scale scenes without the overhead of post-optimization. Despite their rapid development, the integration of VGMs into downstream 3D generation pipelines remains relatively shallow.
+
+\subsection{Vision Geometric Models}
+Vision Geometric Models (VGMs) pretrained on massive datasets have demonstrated strong multi-view spatial reasoning capabilities. Pioneered by DUSt3R~\cite{wang2024dust3r} and MASt3R~\cite{leroy2024mast3r} for pose-free point-map regression, this paradigm recently advanced through highly performant architectures like VGGT~\cite{wang2025vggt}, Pi3~\cite{wang2025pi3}, DA3~\cite{lin2025da3}, and VGGT-$\Omega$~\cite{wang2026vggtomega}. To scale these foundational models to large environments, methods like ZipMap~\cite{jin2026zipmap} and Scal3R~\cite{xie2026scal3r} integrate test-time training (TTT) for global consistency, whereas LingBot-Map~\cite{chen2026lingbot-map} pursues a purely feed-forward streaming paradigm without post-optimization overhead. Despite these rapid architectural and system-level advancements, the integration of VGMs into downstream 3D generation pipelines remains relatively shallow.
+
+
+
+
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.95\textwidth]{Figures/Overview.pdf}
+    % \caption{\textbf{Method Overview.} A pretrained Vision Geometric Model (VGM) encodes geometry-aware memory and defines cameras. Geometry queries decode spatial Gaussian parameters from VGM features, while appearance queries read RGB/Pl\"ucker appearance memory to predict opacity and SH colors. The assembled Gaussians are trained by differentiable splatting in the VGM-defined coordinate system.}
+    \caption{\textbf{Method Overview.} A Vision Geometric Model (VGM) encodes geometry-aware memory and defines cameras. Geometry queries decode spatial Gaussian parameters from VGM features, while appearance queries read RGB/Pl\"ucker memory to predict the others. The resulting Gaussians are supervised by differentiable splatting in the VGM-defined coordinate system.}
+    \label{fig:method_overview}
+\end{figure*}
+
+
+
+
+
+
+\section{Method}
+\label{sec:method}
+
+% Given a sparse set of input images, our goal is to predict a renderable 3D Gaussian representation in a single feed-forward pass. The core of our design is a \emph{Vision Geometric Model (VGM)-native} reconstruction pipeline: the front-end encoder, the canonical coordinate frame, the ray conditioning, and the training cameras are all defined by a frozen VGM. In our setting, we instantiate the VGM with VGGT-$\Omega$~\cite{wang2026vggtomega}, while the formulation remains compatible with other multi-view geometry foundation models that provide geometry-aware features and camera estimates.
+
+Given a set of input images, our goal is to predict a renderable 3D Gaussian representation in a single feed-forward pass. The core of QuerySplat is an attribute-aware dual-branch, dual-query decoder that explicitly decouples geometry and appearance modeling. Building upon this design, we introduce a pretrained Vision Geometric Model (VGM) to provide geometry-aware features, camera estimates, and a consistent coordinate system. 
+% In our implementation, we instantiate the VGM with VGGT-$\Omega$~\cite{wang2026vggtomega}, while the formulation remains compatible with other multi-view vision geometric models.
+
+
+Formally, given input views $\mathcal{I}_{\mathrm{in}}=\{I_i\}_{i=1}^{N}$, the network predicts a Gaussian set
+\begin{equation}
+    \mathcal{G}
+    =
+    F_{\theta}(\mathcal{I}_{\mathrm{in}})
+    =
+    \{g_k\}_{k=1}^{K},
+    \ \ 
+    g_k
+    =
+    (\mathbf{r}_k,\mathbf{p}_k,\mathbf{s}_k,\alpha_k,\mathbf{c}_k),
+\end{equation}
+where $\mathbf{r}$, $\mathbf{p}$, $\mathbf{s}$, $\alpha$, and $\mathbf{c}$ denote the rotation quaternion, center, anisotropic scale, opacity, and spherical-harmonic coefficients, respectively. Instead of producing pixel-aligned primitives, the model employs learnable Gaussian queries as scene-level slots. Each query is decoded into a group of Gaussian primitives, which are supervised through differentiable rendering under VGM-predicted cameras. An overview of the framework is provided in Figure~\ref{fig:method_overview}.
+
+
+\subsection{Pretrained VGM Features}
+\label{sec:frozen_vgm}
+
+A VGM is a large-scale pretrained multi-view model that can infer geometry-aware features, camera poses, intrinsics, and optionally dense depth. For the concrete VGGT-$\Omega$~\cite{wang2026vggtomega} instantiation, each input view is represented by a camera token, register/scene tokens, and dense patch tokens. We use them to construct geometric features $\mathbf{F}_{\mathrm{geo}}$, where patch tokens are extracted from four intermediate layers and fused with a lightweight learnable layer mixer~\cite{cao2026vggtdet}, while the others are taken only from the final layer.
+
+The VGM is frozen throughout training. This is important because large-scale VGMs already encode strong multi-view geometry priors; jointly finetuning them with the Gaussian generator may damage their camera and geometry consistency. Freezing the VGM preserves this prior and cleanly separates the roles of the two parts: the VGM performs generic geometric reasoning, while the trainable decoder learns to translate $\mathbf{F}_{\mathrm{geo}}$ into the geometry of Gaussian primitives.
+
+% \subsection{VGM-native Coordinate System}
+\subsection{Self-Calibrated Coordinate System}
+\label{sec:vgm_native_coords}
+
+% The scene coordinate system is also defined by the VGM. We first run an input-only pass on $\mathcal{I}_{\mathrm{in}}$ to obtain the camera frame where Gaussian centers are decoded. For rendering supervision, we run an all-view pass on the union of input and supervision views. Since two forward passes may differ by a similarity gauge, we align the all-view cameras to the input-only frame using an $\mathrm{Sim}(3)$ similarity alignment estimated from the shared input views. This keeps $\mathbf{F}_{\mathrm{geo}}$, Pl\"ucker rays, Gaussian centers, and supervision cameras in a consistent coordinate frame. It also reduces reliance on external camera annotations, enabling training on heterogeneous or RGB-only image collections. 
+% The scene coordinate system is also inherited from the VGM. We first process only the input views to extract the geometry features $\mathbf{F}_{\mathrm{geo}}$ and establish the coordinate frame used by the geometry decoder. This input-only pass is independent of the subsequent all-view pass, with no feature exchange between them, thereby preventing supervision-view information from leaking into the reconstruction inputs. For rendering supervision, we separately process the union of input and supervision views to obtain their camera estimates. Because the two passes may adopt different similarity gauges, we align the all-view cameras to the input-only frame through a $\mathrm{Sim}(3)$ transformation estimated from the shared input views. This alignment places $\mathbf{F}_{\mathrm{geo}}$, Pl\"ucker rays, Gaussian centers, and supervision cameras in a common coordinate system. It also reduces reliance on external camera annotations, enabling training on heterogeneous or RGB-only image collections.
+
+By deriving cameras and scene coordinates from the VGM, our pipeline reduces reliance on external camera annotations and supports training on heterogeneous or RGB-only image collections. We first process only the input views to extract $\mathbf{F}_{\mathrm{geo}}$ and define the coordinate frame for geometry decoding. For rendering supervision, we separately process the union of input and supervision views to estimate their cameras, without sharing features between the two passes. Crucially, we maintain strict isolation between these two passes with no feature exchange, explicitly preventing any target-view information leakage into the reconstruction pipeline. Since the resulting frames may differ by a similarity gauge, we align the all-view cameras to the input-only frame using a $\mathrm{Sim}(3)$ transformation estimated from the shared input views. This places $\mathbf{F}_{\mathrm{geo}}$, Pl\"ucker rays, Gaussian centers, and supervision cameras in a common coordinate system.
+
+\subsection{Decoupled Queries}
+\label{sec:decoupled_queries}
+
+Our decoder separates the question of \emph{where} Gaussians should be placed from the question of \emph{what} they should look like. The motivation is simple. Geometry Features are strong at camera-consistent layout and scene-level structure, but they are not optimized to preserve all high-frequency information. Appearance features retain local texture and ray information, but injecting them too early into the geometry stream can let appearance gradients disturb stable Gaussian placement. Thus, we keep geometry decoding spatially driven and defer appearance modeling to a separate branch.
+
+\paragraph{Geometry Queries.}
+A set of learnable Geometry Queries $\mathbf{Q}_{\mathrm{geo}}$ attends to $\mathbf{F}_{\mathrm{geo}}$ through transformer decoder blocks. Each block contains cross-attention to Geometry Features, self-attention among queries, and an MLP update. The decoded tokens are
+\begin{equation}
+    \mathbf{Z}_{\mathrm{geo}}=D_{\mathrm{geo}}(\mathbf{Q}_{\mathrm{geo}},\mathbf{F}_{\mathrm{geo}}),
+\end{equation}
+which are mapped by a geometry head to Gaussian centers, scales, and rotations. Because the queries are not tied to pixels, each query behaves like a latent scene slot that can collect evidence from multiple views and feature locations before being expanded into Gaussian primitives.
+
+\paragraph{Appearance Queries.}
+For appearance, we construct Appearance Features $\mathbf{F}_{\mathrm{app}}$ from RGB patch embeddings and Pl\"ucker ray embeddings. The rays are computed using the input cameras predicted by the input-only VGM pass, so the appearance stream remains in the same VGM-native frame as the geometry stream. The appearance decoder takes the geometry tokens $\mathbf{Z}_{\mathrm{geo}}$ as its base query state, augments them with learnable Appearance Queries $\mathbf{Q}_{\mathrm{app}}$, and attends to $\mathbf{F}_{\mathrm{app}}$. The decoded tokens are
+\begin{equation}
+    \mathbf{Z}_{\mathrm{app}}
+    =
+    D_{\mathrm{app}}(\mathbf{Z}_{\mathrm{geo}},\mathbf{Q}_{\mathrm{app}},\mathbf{F}_{\mathrm{app}}),
+\end{equation}
+which are mapped to Gaussian opacities and SH colors. 
+% In a small-scale pilot experiment, detaching $\mathbf{Z}_{\mathrm{geo}}$ resulted in worse reconstruction quality. We therefore retain gradients through $\mathbf{Z}_{\mathrm{geo}}$, enabling limited cross-branch interaction while preserving the architectural separation between geometry and appearance prediction. 
+Finally, we assemble both into the full Gaussian set $\mathcal{G}$.
+
+
+
+
+
+\subsection{Loss Functions}
+\label{sec:objectives}
+
+The predicted Gaussians are rendered by differentiable Gaussian splatting under the aligned supervision cameras. We train the model with
+\begin{equation}
+\label{eq:full_loss}
+    \mathcal{L}
+    =
+    \mathcal{L}_{\mathrm{photo}}
+    +
+    \lambda_{\mathrm{vis}}\mathcal{L}_{\mathrm{vis}}
+    +
+    \beta_{\mathrm{cd}}(t)\mathcal{L}_{\mathrm{cd}}
+    +
+    \beta_{\alpha}(t)\mathcal{L}_{\alpha},
+\end{equation}
+where $\beta_{\mathrm{cd}}(t)$ and $\beta_{\alpha}(t)$ are stage-dependent schedules used only for early training regularization.
+
+\noindent\textbf{Photometric reconstruction.}
+This is the main rendering signal. We combine pixel-level, structural, and perceptual reconstruction terms:
+\begin{equation}
+    \mathcal{L}_{\mathrm{photo}}
+    =
+    \mathcal{L}_{1}
+    +
+    \lambda_{\mathrm{ssim}}\mathcal{L}_{\mathrm{ssim}}
+    +
+    \lambda_{\mathrm{lpips}}\mathcal{L}_{\mathrm{lpips}} .
+\end{equation}
+The L1 term enforces pixel accuracy, SSIM stabilizes local structure, and LPIPS improves perceptual texture quality.
+
+\noindent\textbf{Visibility regularization.}
+Following TokenGS~\cite{ren2026tokengs}, we penalize Gaussian centers that fall outside all relevant camera frusta or behind cameras, preventing latent queries from producing floating Gaussians that receive little rendering gradient. In our setting, we evaluate it on the relevant VGM-predicted cameras, including input and supervision views when available.
+
+\noindent\textbf{Early-stage regularization.}
+% At the beginning of base training, we introduce two temporary regularizers to stabilize Gaussian initialization. First, VGM-predicted depth is back-projected into a pseudo point cloud $\mathcal{P}$, and the predicted Gaussian centers $\mathcal{G}_{\mu}$ are regularized by a bidirectional Chamfer distance:
+At the beginning of base training, we introduce two temporary regularizers to stabilize Gaussian initialization. First, the depth predicted by the input-only VGM pass is back-projected into a pseudo point cloud $\mathcal{P}$, and the predicted Gaussian centers $\mathcal{G}_{p}$ are regularized by a bidirectional Chamfer distance:
+\begin{equation}
+    \mathcal{L}_{\mathrm{cd}}
+    =
+    d_{\mathrm{CD}}(\mathcal{G}_{p},\mathcal{P}).
+\end{equation}
+Second, we use an opacity-floor regularizer to prevent Gaussians from becoming transparent too early:
+\begin{equation}
+    \mathcal{L}_{\alpha}
+    =
+    \mathbb{E}_{\alpha\in\mathcal{A}}
+    \left[
+    \max\left(
+    0,
+    \log \alpha_{\min}
+    -
+    \log(\max(\alpha,\epsilon))
+    \right)
+    \right],
+\end{equation}
+where $\mathcal{A}$ denotes the predicted Gaussian opacities, $\alpha_{\min}$ is the minimum opacity floor, and $\epsilon$ is a small constant for numerical stability. Both terms serve only as transient initialization priors and are gradually removed. We find that enforcing them throughout training destabilizes optimization, since the rendering-optimal Gaussian configuration generally departs from the depth-derived point cloud and requires both positions and opacities to be freely reorganized under image-space supervision.
+
+% \subsection{Loss-rank Filtering}
+% \label{sec:loss_filter}
+
+% Random input/supervision sampling occasionally produces imperfect agreement between the coordinate frames predicted by the input-only and all-view VGM passes. Although the $\mathrm{Sim}(3)$ alignment largely reduces this mismatch, the two frames are not guaranteed to be identical, which appears as a heavy tail in per-scene reconstruction loss. To reduce the influence of such outliers, we introduce a loss-rank filter in the middle stage of training. The filter maintains a rolling history window $\mathcal{H}$ of recent per-scene losses. For a new loss $\ell$, it keeps the sample only if it lies below a chosen historical quantile:
+% \begin{equation}
+%     \mathcal{L}_{\mathrm{filtered}}
+%     =
+%     \mathbf{1}\!\left[
+%     \ell\leq \operatorname{Quantile}(\mathcal{H},\tau)
+%     \right]\ell .
+% \end{equation}
+% Samples above the threshold do not contribute gradients for that update. The rolling window keeps adapting as training improves, so the filter suppresses occasional bad alignment, bad sampling, or corrupted supervision without permanently discarding hard examples.
+
+% \subsection{Scalability}
+% \label{sec:scalability}
+
+% Our method supports modular scaling along several axes. A stronger geometry backbone can provide more reliable features and camera estimates, a larger decoder can strengthen the feature-to-Gaussian mapping, and more Geometry/Appearance Queries can increase the capacity of the output Gaussian set. The decoupled design also allows the Appearance branch to operate at a higher feature resolution, preserving finer texture details without changing the geometry decoding stream.
+
+% We can further scale query capacity progressively. Newly added queries are initialized from pretrained ones with small perturbations,
+% e.g., $\mathbf{q}^{\mathrm{new}}_i=\mathbf{q}^{\mathrm{old}}_{i\bmod N_{\mathrm{old}}}+\boldsymbol{\epsilon}$,
+% so the enlarged model inherits stable reconstruction behavior while gaining more latent scene slots.
+
+% 这部分内容移动到implementation details中简短说明即可
+% \subsection{Progressive Query Expansion}
+% \label{sec:progressive_query_expansion}
+
+% To increase the output capacity without training a large query set from scratch, we progressively expand the query banks during finetuning. When increasing the number of queries from $N_{\mathrm{old}}$ to $N_{\mathrm{new}}$, each newly added query is initialized from a pretrained query with a small random perturbation:
+% \begin{equation}
+%     \mathbf{q}^{\mathrm{new}}_i
+%     =
+%     \mathbf{q}^{\mathrm{old}}_{i \bmod N_{\mathrm{old}}}
+%     +
+%     \boldsymbol{\epsilon}_i,
+%     \qquad
+%     i \geq N_{\mathrm{old}},
+% \end{equation}
+% where $\boldsymbol{\epsilon}_i$ denotes a small random noise term. This initialization preserves the reconstruction behavior of the pretrained model while introducing additional latent slots for representing scene details. We apply this strategy to both the geometry and appearance query banks.
+
+
+
+
+
+
+
+\begin{table*}[!t]
+  \centering
+  \fontsize{9pt}{10pt}\selectfont
+  \setlength{\tabcolsep}{2.5pt}
+  \begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lc*{9}{c}@{}}
+    \toprule
+    \multirow{2}{*}{Method} & \multirow{2}{*}{Pose-free} & \multicolumn{3}{c}{2 views} & \multicolumn{3}{c}{4 views} & \multicolumn{3}{c}{12 views} \\
+    \cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}
+    & & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    DepthSplat~\shortcite{xu2025depthsplat} & $\times$ & \underline{20.5357} & 0.6721 & \underline{0.2592} & 22.9079 & \underline{0.7683} & \underline{0.1853} & 21.6785 & 0.7549 & \underline{0.2050} \\
+    TokenGS~\shortcite{ren2026tokengs} & $\times$ & 20.4258 & \underline{0.6736} & 0.3783 & \underline{23.2704} & 0.7565 & 0.3026 & 21.8094 & 0.6960 & 0.3696 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\times$ & 19.8356 & 0.6296 & 0.2909 & 22.8488 & 0.7469 & 0.1987 & \underline{22.7326} & \underline{0.7608} & \textbf{0.1958} \\
+    \midrule
+    AnySplat~\shortcite{jiang2025anysplat} & $\checkmark$ & 14.0742 & 0.4447 & 0.4475 & 17.3938 & 0.5483 & 0.3418 & 19.6253 & 0.6334 & 0.2989 \\
+    NoPoSplat~\shortcite{ye2025noposplat} & $\checkmark$ & 19.0650 & 0.5997 & 0.3164 & -- & -- & -- & -- & -- & -- \\
+    SPFSplat~\shortcite{huang2025spfsplat} & $\checkmark$ & 19.1163 & 0.5874 & 0.3046 & -- & -- & -- & -- & -- & -- \\
+    SplatWeaver~\shortcite{wan2026splatweaver} & $\checkmark$ & 15.6953 & 0.4991 & 0.3666 & 19.2413 & 0.6294 & 0.2715 & 20.4047 & 0.6683 & 0.2515 \\
+    YoNoSplat~\shortcite{ye2025yonosplat} & $\checkmark$ & 19.1675 & 0.5908 & 0.3081 & 21.9644 & 0.6983 & 0.2167 & 21.6323 & 0.6953 & 0.2184 \\
+    \textbf{Ours} & $\checkmark$ & \textbf{21.3888} & \textbf{0.6990} & \textbf{0.2585} & \textbf{24.5765} & \textbf{0.8002} & \textbf{0.1843} & \textbf{23.7005} & \textbf{0.7685} & 0.2297 \\
+    \midrule
+    \textbf{Ours} + TTO-20 & $\checkmark$ & 22.0094 & 0.7168 & 0.2478 & 26.2524 & 0.8304 & 0.1591 & 27.0003 & 0.8472 & 0.1667 \\
+    \textbf{Ours} + TTO-50 & $\checkmark$ & 21.9437 & 0.7149 & 0.2463 & 26.3779 & 0.8321 & 0.1537 & 27.7199 & 0.8615 & 0.1464 \\
+    \bottomrule
+  \end{tabular*}
+  \caption{Interpolation results averaged over the large, medium, and small splits. Higher PSNR/SSIM and lower LPIPS are better. \textbf{Bold} and \underline{underlined} values indicate the best and second-best results, respectively; TTO variants are excluded from this comparison. See Appendix A for complete results for each view setting and split.}
+  \label{tab:main-interpolation}
+\end{table*}
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/qualitative_comp.pdf}
+    \caption{\textbf{Qualitative comparison.} QuerySplat preserves finer textures and sharper object boundaries, producing more faithful and visually detailed renderings than prior methods.}
+    \label{fig:qualitative_comparison}
+\end{figure*}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/in_the_wild.pdf}
+    % \caption{\textbf{In-the-wild qualitative comparison.} Each row shows a casually captured unposed image set and the corresponding 3DGS reconstructions. QuerySplat produces cleaner scene structure and sharper appearance than competing pose-free methods.}
+    \caption{\textbf{In-the-wild qualitative comparison.} Each row compares 3DGS reconstructions from casually captured unposed images. QuerySplat yields cleaner geometry and sharper details than competing pose-free methods.}
+    \label{fig:in_the_wild_comparison}
+\end{figure}
+
+
+
+
+
+\subsection{Optional Test-Time Optimization}
+\label{sec:tto}
+
+The main method is feed-forward, but it also supports lightweight test-time optimization (TTO). During TTO, we keep the learned queries, decoders, and output heads fixed, and optimize the extracted features with rendering losses on input views. This feature-space adaptation refines the scene representation while keeping it constrained by the pretrained query-to-Gaussian reconstruction model, providing a simple trade-off between runtime and reconstruction fidelity.
+
+
+
+
+
+
+
+\section{Experiments}
+\label{sec:experiments}
+
+
+\subsection{Implementation Details}
+\label{sec:imple_details}
+
+We use pretrained VGGT-$\Omega$~\cite{wang2026vggtomega} as the VGM encoder, with $N_{\mathrm{geo}}=12$ and $N_{\mathrm{app}}=6$. Each query token predicts 64 Gaussian primitives. We train exclusively on DL3DV~\cite{ling2024dl3dv} using $512 \times 512$ center-cropped images. Training consists of a base and a progressive finetuning stage. Base training optimizes 1,024 queries across 4 random input views for 300K iterations with a learning rate of $10^{-4}$. The Chamfer distance and opacity regularizers are annealed to zero over the first 20K iterations. LPIPS is introduced after 100K iterations and gradually increased to $\lambda_{\mathrm{lpips}}=0.05$. During finetuning, we progressively double the number of queries to 8,192 (Newly added queries are initialized from pretrained ones with small perturbations $\mathbf{q}^{\mathrm{new}}_i=\mathbf{q}^{\mathrm{old}}_{i\bmod N_{\mathrm{old}}}+\boldsymbol{\xi}$), training each expansion for 30K iterations with a learning rate of $10^{-5}$ and randomly sampled 2--12 input views. Both stages use the AdamW~\cite{loshchilov2019adamw} optimizer, a global batch size of 64, and a 5\% linear warm-up followed by cosine decay. We set $\lambda_{\mathrm{ssim}}=0.2$ and $\lambda_{\mathrm{vis}}=1.0$. Training is conducted in BF16 on 64 NVIDIA A800 GPUs, with one sample per GPU. Complete training details and hyperparameter settings are provided in Appendix~E.
+
+
+
+
+
+
+
+
+
+\subsection{Comparisons}
+\label{sec:comparisons}
+
+%有点啰嗦 pose和无pose的说明不清晰
+%大家都是这么比的吗？ 
+% We compare QuerySplat with representative feed-forward 3DGS reconstruction methods under both posed and pose-free settings. The posed baselines include DepthSplat~\shortcite{xu2025depthsplat}, TokenGS~\shortcite{ren2026tokengs}, and the posed variant of YoNoSplat~\shortcite{ye2025yonosplat}, while the pose-free baselines include AnySplat~\shortcite{jiang2025anysplat}, NoPoSplat~\shortcite{ye2025noposplat}, SPFSplat~\shortcite{huang2025spfsplat}, SplatWeaver~\shortcite{wan2026splatweaver}, and the pose-free variant of YoNoSplat~\shortcite{ye2025yonosplat}. 
+We compare QuerySplat with recent posed and pose-free feed-forward 3DGS methods, whose full list is provided in Table~\ref{tab:main-interpolation}.
+For all baseline methods, we use the official implementations and released model weights. We construct evaluation cases from DL3DV-Evaluation~\cite{ling2024dl3dv} (independent of DL3DV-10K). For 2-, 4-, and 12-view settings, cases are divided into small, medium, and large splits according to the image interval, with 300 cases randomly sampled for each split. We evaluate on input, interpolation, and extrapolation views using PSNR, SSIM, and LPIPS. 
+% To ensure fair comparison across methods, we resize all input images so that the shorter side is 256 pixels while preserving the aspect ratio, infer at each method's native resolution, and then resize the outputs back to the original resolution for metric computation. 
+For fair comparison, inputs are resized to a shorter side of 256 pixels while preserving the aspect ratio. Following inference at each method's native resolution, the rendered outputs are resized back to the original resolution for metric computation. To strictly prevent target-view leakage, all pose-free baselines use the all-view pass solely for camera estimation and $\mathrm{Sim}(3)$ alignment, whereas posed methods receive input poses.
+% For all pose-free methods, features from the all-view pass never enter the reconstruction decoder; this pass is used solely to estimate cameras for $\mathrm{Sim}(3)$ alignment and rendering. We follow this protocol uniformly for all pose-free baselines, whereas posed methods receive the input poses required by their original formulations.
+Table~\ref{tab:main-interpolation} reports interpolation results averaged over the three splits, with complete results provided in Appendix~A. We additionally report QuerySplat with 20 and 50 steps of test-time optimization to demonstrate the optional gains from feature-space adaptation; these variants are excluded from the comparison ranking. Without TTO, QuerySplat consistently outperforms existing methods and achieves the strongest overall performance across different input-view settings.
+
+
+% %体现精细纹理
+% Beyond the quantitative results, Figure~\ref{fig:qualitative_comparison} shows that QuerySplat preserves fine textures and object boundaries, achieving visual sharpness comparable to pixel-aligned methods while avoiding the blurry outputs of previous query-based approaches. 
+% %体现结构良好
+% Figure~\ref{fig:teaser} (top) further demonstrates that the predicted Gaussian scenes are cleaner and more structurally coherent, with fewer floating and distorted primitives, while even reducing floating artifacts inherited from the geometry backbone. More fundamentally, QuerySplat advances prior query-based reconstruction by preserving their clean and flexible scene representation while substantially improving both geometric organization  and texture fidelity. Geometry-aware decoding produces more coherent Gaussian structures, and the dedicated appearance branch recovers fine details that earlier query-based methods tend to smooth out. As a result, QuerySplat closes the long-standing quality gap between query-based and pixel-aligned paradigms, achieving comparable visual sharpness without sacrificing the structural advantages of non-pixel-aligned reconstruction.
+
+Beyond the quantitative results, Figure~\ref{fig:qualitative_comparison} shows that QuerySplat preserves fine textures and object boundaries, achieving visual sharpness comparable to pixel-aligned methods while avoiding the blurry outputs of previous query-based approaches. Figure~\ref{fig:in_the_wild_comparison} also demonstrates cleaner structures and sharper details than competing pose-free methods on casually captured inputs. More fundamentally, QuerySplat advances prior query-based reconstruction by preserving its clean and flexible scene representation while substantially improving both geometric organization and texture fidelity. Geometry-aware decoding produces more coherent Gaussian structures, and the dedicated appearance branch recovers fine details that earlier query-based methods tend to smooth out. As a result, QuerySplat closes the quality gap between query-based and pixel-aligned paradigms, achieving comparable visual sharpness without sacrificing the structural advantages of non-pixel-aligned reconstruction.
+
+
+
+
+
+
+
+\subsection{Ablation Studies}
+\label{sec:ablation}
+
+Due to the prohibitive computational cost of fully training all model variants, ablation models are trained only in the base stage for 150K iterations and evaluated on 4-view interpolation averaged over the large, medium, and small splits.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Figures/ablation_structure_lyl.pdf}
+    \caption{\textbf{Feature aggregation variants.} Illustration of (a) our dual-branch design, (b) one-branch feature fusion, and (c) geometry-only prediction without appearance features.}
+    \label{fig:ablation_structure}
+\end{figure}
+
+\begin{table}[!t]
+  \centering
+  \fontsize{9pt}{10pt}\selectfont
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{l|ccc}
+    \toprule
+    Method & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    \textbf{Ours} & \textbf{22.8963} & \textbf{0.7381} & \textbf{0.2682} \\
+    \textbf{Ours} (One-branch Query) & \underline{20.9161} & \underline{0.6593} & \underline{0.3440} \\
+    \textbf{Ours} (w/o Appearance) & 18.6447 & 0.5782 & 0.4254 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Feature aggregation ablation at 4-view interpolation, with early-stage regularization enabled.}
+  \label{tab:ablation-appearance}
+\end{table}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/attention_map.pdf}
+    % \caption{\textbf{Query attention visualization.} Geometry and appearance attention maps for one query are shown in (a) and (b), with its decoded Gaussians projected onto the image in (c).}
+    \caption{\textbf{Query attention visualization.} Panels (a) and (b) show geometry and appearance attention for one query, while (c) shows its decoded Gaussians projected onto the image.}
+    \label{fig:attention_map}
+\end{figure}
+
+%表~\ref{tab:ablation-appearance} 验证了属性特定双分支设计的有效性。移除外观分支特征会导致明显的性能下降，而将外观信息直接融合至几何分支——一种现有前馈式 3DGS 方法中常用的特征融合方式——仍然明显逊于我们的双分支设计。这表明，性能提升的关键并不仅在于引入额外的高频外观信息，而在于根据不同 Gaussian 属性的建模需求选择合适的信息聚合方式。具体而言，几何重建需要聚合更大范围的跨视角结构信息，而外观建模则依赖局部、高频的视觉细节。图~\ref{fig:attention_map} 进一步展示了这一差异：几何分支关注更广泛的场景结构区域，而外观分支则聚焦于与预测 Gaussian 相关的局部纹理信息。
+%QuerySplat 正是通过独立的几何与外观分支，使两类属性能够分别获取匹配其需求的特征表示，从而实现了xxxx。
+% \paragraph{High-frequency appearance injection.}
+% Table~\ref{tab:ablation-appearance} shows that removing appearance features causes a large performance drop, while directly adding them to the geometry stream---a common fusion strategy in feed-forward 3DGS reconstruction---remains clearly inferior to our dual-branch design. This indicates that the key is not only providing high-frequency cues, but controlling where they enter the reconstruction process. Our design first establishes geometry-aware scene queries and then injects local, ray-conditioned appearance information, avoiding premature interference with spatial organization. Figure~\ref{fig:attention_map} supports this interpretation: the geometry branch aggregates broader structural evidence, whereas the appearance branch focuses on regions associated with the decoded Gaussians.
+% \paragraph{Attribute-aware feature aggregation.}
+% Figure~\ref{fig:ablation_structure} illustrates the three architectural variants evaluated in Table~\ref{tab:ablation-appearance}. The results highlight that the benefit of our dual-branch design goes beyond simply introducing appearance features. Removing the appearance stream substantially degrades reconstruction quality, while directly merging appearance features into the geometry stream also performs markedly worse. The key is therefore to let different Gaussian attributes gather the evidence relevant to their prediction. Spatial parameters must integrate broad, cross-view context to establish a coherent scene layout, whereas opacity and color depend more strongly on localized texture and viewing-direction cues. The attention patterns in Figure~\ref{fig:attention_map} are consistent with this behavior: geometry queries draw on wider structural regions, while the appearance branch concentrates on local evidence around the predicted Gaussians. By separating these two aggregation processes, QuerySplat preserves stable scene organization while recovering substantially finer appearance details.
+% \paragraph{Attribute-aware feature aggregation.}
+% Figure~\ref{fig:ablation_structure} illustrates the 3 architectural variants evaluated in Table~\ref{tab:ablation-appearance}, with matched layer and parameter counts. The results show that the benefit of our dual-branch design does not come merely from adding appearance features. Removing the appearance stream substantially degrades reconstruction quality, while directly merging appearance features into the geometry stream also performs worse. Instead, different Gaussian attributes should gather evidence suited to their prediction. Spatial parameters require broad cross-view context to establish a coherent scene layout, whereas opacity and color rely more on local texture and viewing-direction cues. The attention patterns in Figure~\ref{fig:attention_map} support this behavior: geometry queries attend to broader structural regions, while the appearance branch focuses on local evidence around the predicted Gaussians. Separating these aggregation processes preserves stable scene organization while recovering finer appearance details.
+
+\paragraph{Attribute-aware feature aggregation.}
+Figure~\ref{fig:ablation_structure} illustrates the three variants evaluated in Table~\ref{tab:ablation-appearance}, with matched layer and parameter counts. The results show that the benefit of our dual-branch design does not come from adding appearance features. Removing the appearance stream degrades reconstruction quality, while merging appearance features into the geometry stream performs worse. Instead, different Gaussian attributes should gather evidence suited to their prediction. Spatial parameters require broad cross-view context to establish a coherent scene layout, whereas the others rely on local texture and viewing-direction cues. The attention patterns in Figure~\ref{fig:attention_map} support this behavior: geometry queries attend to broader structural regions, while the appearance branch focuses on local evidence around the predicted Gaussians. Separating these aggregation processes preserves stable scene organization while recovering finer appearance details.
+
+% \paragraph{Attribute-aware feature aggregation.}
+% Figure~\ref{fig:ablation_structure} illustrates the three architectural variants evaluated in Table~\ref{tab:ablation-appearance}. The results highlight that the benefit of our dual-branch design in Figure~\ref{fig:ablation_structure}(a) goes beyond simply introducing additional appearance features. Removing the appearance stream, as shown in Figure~\ref{fig:ablation_structure}(c), substantially degrades reconstruction quality, while directly merging appearance features into the geometry stream in Figure~\ref{fig:ablation_structure}(b)---a common strategy for injecting high-frequency texture cues in pixel-aligned methods such as AnySplat~\shortcite{jiang2025anysplat}, YoNoSplat~\shortcite{ye2025yonosplat}, and SplatWeaver~\shortcite{wan2026splatweaver}---also performs markedly worse. The key is therefore to let different Gaussian attributes gather the evidence most relevant to their prediction. Spatial parameters must integrate broad, cross-view context to establish a coherent scene layout, whereas opacity and color depend more strongly on localized texture and viewing-direction cues. The attention patterns in Figure~\ref{fig:attention_map} are consistent with this behavior: geometry queries draw on wider structural regions, while the appearance branch concentrates on local evidence around the predicted Gaussians. By separating these two aggregation processes, QuerySplat preserves stable scene organization while recovering substantially finer appearance details.
+
+% \begin{table}[t]
+%   \centering
+%   \begin{tabular}{lcc|ccc}
+%     \toprule
+%     Method & CD & Alpha & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+%     \midrule
+%     \textbf{Ours} & $\checkmark$ & $\checkmark$ & \underline{22.8963} & \textbf{0.7381} & \textbf{0.2682} \\
+%     \textbf{Ours} & $\checkmark$ &  & \textbf{22.8970} & \underline{0.7377} & \underline{0.2701} \\
+%     \textbf{Ours} &  & $\checkmark$ & 22.4047 & 0.7130 & 0.3000 \\
+%     \textbf{Ours} &  &  & 22.6090 & 0.7228 & 0.2877 \\
+%     \bottomrule
+%   \end{tabular}
+%   \caption{CD and Alpha ablation of Ours at 4-view interpolation, averaged over the large, medium, and small splits.}
+%   \label{tab:ablation-regularization}
+% \end{table}
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=\linewidth]{Figures/alpha_distribution.pdf}
+%     \caption{\textbf{Effect of early-stage regularization.} Compared with TokenGS and our variant without CD/Alpha guidance, the full model produces a cleaner Gaussian structure and a healthier opacity distribution. Red boxes highlight regions containing large concentrations of redundant and ineffective Gaussians.}
+%     \label{fig:alpha_distribution}
+% \end{figure}
+
+% % underlying Gaussian representation-》 几何结构？
+% \paragraph{Early-stage geometric guidance.}
+% Table~\ref{tab:ablation-regularization} shows that Chamfer guidance provides the main quantitative gain by anchoring unconstrained queries to a plausible spatial layout during early optimization. The opacity regularizer has little effect on rendering metrics, but we find that it improves the final opacity distribution of the reconstructed Gaussians. Consistently, Figure~\ref{fig:alpha_distribution} shows that our full model produces a cleaner Gaussian structure and a more balanced opacity profile than TokenGS~\cite{ren2026tokengs} and the variant without CD/Alpha guidance. 
+% % These results indicate that the two regularizers improve not only rendering accuracy, but also the quality of the underlying Gaussian representation.
+% These results indicate that the two regularizers improve not only rendering accuracy, but also the geometric structure of the reconstructed Gaussian scene.
+\begin{table}[!t]
+  \centering
+  \fontsize{9pt}{10pt}\selectfont
+  \begin{tabular}{lc|ccc}
+    \toprule
+    Method & Early Reg. & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    \textbf{Ours} & $\checkmark$ & \textbf{22.8963} & \textbf{0.7381} & \textbf{0.2682} \\
+    \textbf{Ours} & $\times$ & 22.6090 & 0.7228 & 0.2877 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Ablation of early-stage regularization at 4-view interpolation.}
+  \label{tab:ablation-regularization}
+\end{table}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/alpha_distribution.pdf}
+    \caption{\textbf{Effect of early-stage regularization.} Compared with TokenGS and our variant without early-stage regularization, our model produces a cleaner Gaussian structure and a healthier opacity distribution. Red boxes highlight regions with concentrations of redundant and ineffective Gaussians.}
+    \label{fig:alpha_distribution}
+\end{figure}
+
+\paragraph{Early-stage regularization.}
+Table~\ref{tab:ablation-regularization} shows that early-stage regularization improves reconstruction quality by guiding unconstrained queries toward a plausible spatial and opacity configuration at the beginning of training. Consistently, Figure~\ref{fig:alpha_distribution} shows that the full model produces a cleaner Gaussian structure and a more balanced opacity profile than TokenGS~\cite{ren2026tokengs} and the variant without early-stage regularization. These results indicate that such transient guidance benefits both rendering quality and the geometric organization of the reconstructed Gaussian scene.
+
+
+
+\begin{table}[!t]
+  \centering
+  {
+  \fontsize{9pt}{10pt}\selectfont
+  \setlength{\tabcolsep}{5pt}
+  \begin{tabular}{l|ccc}
+    \toprule
+    Method & PSNR $\uparrow$ & SSIM $\uparrow$ & LPIPS $\downarrow$ \\
+    \midrule
+    \textbf{Ours} (VGGT-$\Omega$) & \underline{22.8963} & \underline{0.7381} & \textbf{0.2682} \\
+    \textbf{Ours} (VGGT) & \textbf{23.0723} & \textbf{0.7388} & \underline{0.2749} \\
+    \bottomrule
+  \end{tabular}
+  }
+  \caption{VGM-backbone ablation at 4-view interpolation.}
+  \label{tab:ablation-vgm-backbone}
+\end{table}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/pointcloud.pdf}
+    \caption{\textbf{Geometric comparison.}
+    Left: point cloud obtained by back-projecting the depth predicted by VGGT-$\Omega$.
+    Right: centers of the 3D Gaussians predicted by QuerySplat.}
+    \label{fig:vgm_pointcloud_comparison}
+\end{figure}
+
+%表~\ref{tab:ablation-vgm-backbone} 表明，将默认 VGM 编码器替换为 VGGT~\cite{wang2025vggt} 后，QuerySplat 仍保持相近的重建性能，验证了所提出框架对于不同视觉几何模型的适应能力。该结果说明，QuerySplat 的性能提升并非依赖于某一特定 VGM，而是来源于 VGM 提供的通用几何先验。通过将几何感知特征和一致的空间信息作为输入，QuerySplat 能够有效利用不同 VGM 的三维理解能力，而无需修改查询解码器结构。
+% \paragraph{VGM backbone.}
+% Table~\ref{tab:ablation-vgm-backbone} shows that replacing the default encoder with VGGT~\cite{wang2025vggt} yields comparable performance, confirming that the proposed reconstruction pipeline generalizes across different VGM backbones. This indicates that QuerySplat benefits from a reusable geometric interface rather than a model-specific design: geometry-aware features and mutually consistent camera estimates can be directly incorporated without modifying the query decoder.
+\paragraph{VGM backbone.}
+Table~\ref{tab:ablation-vgm-backbone} examines whether the proposed decoder is tied to the particular geometric encoder used in the main model. Replacing the default backbone with VGGT~\cite{wang2025vggt} yields comparable quality without changing the decoder or training objective. This suggests that the effectiveness of QuerySplat primarily comes from how geometric priors are consumed, rather than from a model-specific feature representation. 
+% In particular, the geometry branch provides a common interface that translates geometry-aware features and spatially consistent camera information into Gaussian scene queries, allowing different VGMs to be incorporated without architectural changes.
+
+Beyond backbone compatibility, the learned query decoder also mitigates geometric artifacts inherited from the VGM. As shown in Figure~\ref{fig:vgm_pointcloud_comparison}, although the point cloud back-projected from VGGT-$\Omega$ depth contains noticeable floaters and noisy structures, the Gaussian centers predicted by QuerySplat exhibit a cleaner and more coherent spatial organization. This suggests that the decoder effectively reorganizes the VGM geometry prior under rendering supervision, rather than directly reproducing its raw predictions.
+
+
+
+
+
+
+
+
+
+\subsection{Applications}
+\label{sec:applications}
+
+%QuerySplat 是一个无需姿态先验（pose-free） 的 3D 估计器，支持任意数量的随意捕获图像作为输入。如图~\ref{fig:in_the_wild} 所示，无论输入是一张还是多张稀疏的真实世界图像，它都能重建出干净且细节丰富的 3D 高斯场景，使灵活、便捷的日常 3D 捕获成为可能。
+\paragraph{In-the-Wild Reconstruction.}
+QuerySplat supports casually captured image sets with arbitrary view counts. As shown in Figure~\ref{fig:teaser}, it reconstructs clean and detailed 3D Gaussian scenes from one or multiple real-world images, enabling flexible everyday 3D capture.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/fix.pdf}
+    \caption{\textbf{3D scene repair.} Left: the manually corrupted Gaussian scene. Right: the reconstruction produced by QuerySplat after rendering the corrupted scene to video and applying video restoration.}
+    \label{fig:scene_repair}
+\end{figure}
+
+%借助 QuerySplat 强大的几何预测能力，修复后的 2D 内容能够被稳定地提升至 3D 空间，而不会产生结构畸变或漂浮伪影。
+% \paragraph{3D Scene Repair.}
+% QuerySplat can bridge 2D generative editing and explicit 3D scene reconstruction. We manually remove a region from an existing Gaussian scene and render the edited scene along a camera trajectory. Artifixer~\cite{de2026artifixer} repairs the missing content in the rendered video, after which QuerySplat reconstructs the repaired frames into a new renderable Gaussian scene. As shown in Figure~\ref{fig:scene_repair}, the repaired content is successfully lifted back into 3D, enabling video restoration methods to be incorporated into a practical 3D scene editing pipeline.
+\paragraph{3D Scene Repair.}
+QuerySplat provides a rapid solution for 3D scene repair. We manually remove a region from an existing Gaussian scene and render the edited scene along a camera trajectory. Artifixer~\cite{de2026artifixer} repairs the missing content in the rendered video, after which QuerySplat reconstructs the restored frames into a new renderable Gaussian scene. As shown in Figure~\ref{fig:scene_repair}, the geometric prediction capability of QuerySplat enables the repaired 2D content to be lifted back into 3D with coherent structure and fewer floating artifacts, providing a practical way to integrate video restoration into 3D scene editing.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=0.9\linewidth]{Figures/ai_generated.pdf}
+    \caption{\textbf{3D reconstruction from T2V-generated views.} QuerySplat reconstructs a 3DGS scene from multi-view frames generated by a text-to-video model. The background is removed from the displayed 3DGS for visualization.}
+    \label{fig:ai_generated}
+\end{figure}
+
+%\paragraph{基于T2V生成的单图到3D重建。}
+% QuerySplat 能够借助文本到视频（T2V）模型生成多视角观测，从而从单张输入图像重建出完整的 3D 高斯场景。具体而言，我们首先将单张图像输入 T2V 模型，合成一组具有一致性的多视图图像，随后将其送入无需姿态先验的 QuerySplat 估计器，生成连贯且可渲染的 3DGS 表示。如图~\ref{fig:ai_generated} 所示，即使仅以一张真实图像为输入，该流程也能生成结构清晰且合理的 3D 场景，充分展现了 QuerySplat 超越多视图重建的强大泛化能力。
+% \paragraph{AI-Generated Image Reconstruction.}
+% QuerySplat can reconstruct 3D Gaussian scenes directly from AI-generated multi-view images without any task-specific processing. As shown in Figure~\ref{fig:ai_generated}, the method converts generated image sets into coherent and renderable 3DGS representations.
+\paragraph{3D Reconstruction from T2V-Generated Views.}
+We further evaluate QuerySplat on multi-view frames generated by a text-to-video model. These frames are directly used as unposed observations without any task-specific adaptation. As shown in Figure~\ref{fig:ai_generated}, QuerySplat reconstructs the generated visual content into a plausible and renderable 3D Gaussian scene. This result demonstrates that the proposed framework can operate not only on captured images, but also on synthetic multi-view content, providing a direct path from generative video outputs to explicit 3D scene representations.
+
+
+
+
+
+
+
+
+\section{Conclusion}
+
+We presented QuerySplat, a pose-free feed-forward 3DGS framework built around a dual-branch query decoder that separates geometric organization from high-frequency appearance modeling. The geometry branch establishes coherent scene structure, while the appearance branch restores fine visual details without sacrificing spatial flexibility. We instantiate the geometry branch with a VGM backbone to provide geometry-aware features and a self-consistent coordinate system, although the overall framework is not tied to a specific backbone. Progressive query scaling further increases representation capacity within the same reconstruction formulation. Extensive experiments show that QuerySplat produces cleaner Gaussian structures and sharper renderings, achieving state-of-the-art overall performance against both posed and pose-free baselines. Its compatibility with different geometric backbones and diverse applications further demonstrates the generality of the proposed framework.
+
+
+
+
+
+
+
+\bibliography{aaai2027}
+
+% Check whether the conference requires a reproducibility checklist to be included in the paper.
+% If so, you can uncomment the following line and ajust the path to include it.
+% \input{ReproducibilityChecklist.tex}
+
+
+% 仅用于本地预览，提交主论文时注释掉
+\def\AppendixIncluded{}
+\input{appendix}
+
+
+\end{document}

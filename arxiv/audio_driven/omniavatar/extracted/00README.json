@@ -1,0 +1,20 @@
+{
+   "stamp" : true,
+   "sources" : [
+      {
+         "usage" : "toplevel",
+         "filename" : "Formatting-Instructions-LaTeX-2026.tex"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "aaai2026.bib"
+      },
+      {
+         "usage" : "ignore",
+         "filename" : "aaai2026.bst"
+      }
+   ],
+   "process" : {
+      "compiler" : "pdflatex"
+   }
+}

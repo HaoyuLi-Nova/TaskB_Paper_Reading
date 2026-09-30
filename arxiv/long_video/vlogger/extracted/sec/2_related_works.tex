@@ -1,0 +1,41 @@
+\section{Related Works}
+\label{sec:related}
+
+
+\noindent\textbf{Text-to-Video Generation}.
+Distinct from conventional unconditional and class-conditional video generation \cite{Wang2020ImaGINatorCS, Wang2019G3ANDA, Wang2021InMoDeGANIM, Chen2020LongTermVP, Clark2019AdversarialVG, Brooks2022GeneratingLV, Yu2022GeneratingVW, Skorokhodov2021StyleGANVAC, Tian2021AGI, Bhagat2020DisentanglingMF, Xie2019MotionBasedGM, Yan2021VideoGPTVG, Ge2022LongVG}, 
+T2V generation focuses on automatically converting textual descriptions into videos. 
+This is a challenging task,
+as it involves understanding text semantics and translating it into video content.
+This often requires 
+powerful cross-modal algorithms \cite{radford2021learning}, 
+large computing resources \cite{Hestness2017DeepLS, Chollet2019OnTM}, 
+and extensive video data \cite{schuhmann2022laion5b, bain2021frozen, Wang2023LAVIEHV, Wang2022InternVideoGV, Xue2021AdvancingHV, Schuhmann2021LAION400MOD}.
+Based on the success of diffusion models in the Text-to-Image (T2I) generation \cite{Nichol2021GLIDETP, rombach2022highResolution, Ramesh2022HierarchicalTI, saharia2022imagen, Balaji2022eDiffITD, Kusupati2022MatryoshkaRL, Dai2023EmuEI, BetkerImprovingIG},
+a series of such works have been recently transferred to T2V generation \cite{singer2023makeavideo, Ho2022ImagenVH, blattmann2023align, Wang2023LAVIEHV, Ge2023PreserveYO, Zhang2023Show1MP, Wang2023VideoFactorySA, Wang2023ModelScopeTT}. 
+%%%%%%%%%%%%%%%%%%%%
+However,
+whether trained from scratch \cite{Ho2022ImagenVH, singer2023makeavideo} or finetuned from T2I model \cite{blattmann2023align, Ge2023PreserveYO, Wang2023LAVIEHV, Wang2023ModelScopeTT, Zhang2023Show1MP, Wang2023VideoFactorySA}, 
+most of these approaches mainly work on generating short videos with few seconds from simple descriptions.
+In contrast,
+our Vlogger can generate a minute-long vlog with complex stories.
+
+
+
+\noindent\textbf{Long Video Generation}.
+The generation of long videos predominantly relies on parallel \cite{Yin2023NUWAXLDO} or autoregressive \cite{villegas2023phenaki} structures.
+However,
+these early works still face challenges for vlog generation.
+On the one hand,
+the parallel manner can relax spatial-temporal content incoherence problems by coarse-to-fine generation.
+However, this approach necessitates extensive and laborious training on large, well-annotated long video datasets \cite{Yin2023NUWAXLDO}.
+On the other hand,
+the autoregressive manner can relax heavy data requirements for training long videos,
+by applying short video generation models iteratively with sliding windows.
+However,
+this solution often suffers from noticeable shot change and long-term incoherence \cite{villegas2023phenaki, chen2023seine, he2023latent, Qiu2023FreeNoiseTL, Wang2023GenLVideoMT}
+which becomes problematic when generating vlogs encompassing complex narratives and multiple scenes. 
+It is worth mentioning that the community has gradually realized that delegating higher-order reasoning tasks to LLM is of great help to visual tasks \cite{Wu2023VisualCT, gupta2023visual, Li2023VideoChatCV, Zhang2023ControllableTG, Liu2023VisualIT, Zhu2023MiniGPT4EV, Huang2023FreeBloomZT, BetkerImprovingIG}.
+Our Vlogger introduces LLM to the field of long video generation,
+and effectively addresses the problems of training burden and content incoherence in the previous methods,
+by distinct cooperation of top-down planning and bottom-up shooting.

@@ -1,0 +1,236 @@
+\vspace{-4mm}
+\section{Model Overview} \label{sec:method}
+\vspace{-1mm}
+We propose an effective method for video generation and related tasks from different input signals by leveraging large language models.
+%
+Our model consists of three components: (1) modality-specific tokenizers, (2) a language model backbone~(\Cref{fig:vffm_schematic}), and (3) a super-resolution module~(\Cref{fig:sr_diagram}).
+%
+The tokenizers map input data -- \ie image pixels, video frames, and audio waveforms -- into discrete tokens in a \emph{unified} vocabulary.
+%
+The visual and audio tokens are flattened into a sequence of integers.
+%
+Next, the LLM accepts these tokens as input along with text embeddings, and is responsible for generative multi-task and multimodal modeling. 
+%
+As illustrated in \Cref{fig:vffm_schematic}, \modelname{} conditions on text embeddings, visual tokens, and audio tokens, and autoregressively predicts visual and audio tokens.
+%
+Subsequently, the super-resolution module increases the resolution of the video outputs while refining visual details for higher quality.
+% In the following, we discuss design specifics
+% which allow our  LLM to generate across video and audio modalities.
+
+%-------------------------------------------------------------------------
+\vspace{-3mm}
+\subsection{Tokenization}
+\label{sec:tokenization}
+\vspace{-2mm}
+
+We employ the MAGVIT-v2~\cite{yu2023language} tokenizer for joint image and video tokenization, and the  SoundStream~\cite{zeghidour2021soundstream} tokenizer for audio. 
+%
+Visual and audio vocabularies are concatenated into a unified vocabulary. 
+%The unified vocabulary is constructed as follow: the initial 256 codes are reserved for special tokens and task prompts. Subsequently, the next 262,144 codes are allocated for image and video tokenization. This is followed by 4,096 audio codes.
+The text modality is represented by embeddings. 
+%for its better performance compared with training with text tokens from scratch. 
+
+\vspace{-4mm}
+\paragraph{Image and video tokenizer.}
+Visual tokenizers are key to generating high-quality video content, often determining the upper limit of achievable video generation quality~\cite{yu2023language}.
+%
+Among existing tokenizers~\cite{esser2020taming,villegas2022phenaki,yu2023magvit,yu2023spae}, we choose the MAGVIT-v2~\cite{yu2023language} tokenizer due to its performance in visual quality and high compression capabilities, which effectively reduce the sequence length required by the LLM, thereby facilitating more efficient and effective learning.
+%
+%In particular, it represents both images and videos as a sequence of discrete tokens in a unified large vocabulary.
+%
+Specifically, a video clip is encoded and quantized into an
+integer sequence integers, with a decoder mapping back to  pixel space. MAGVIT-v2 tokenizes 17-frame 2.125-second 128$\times$128 resolution videos sampled at 8 fps to produce a latent shape of $(5, 16, 16)$, which is then flattened into 1280 tokens, with a vocabulary size of $2^{18}$. % = 262,144
+%To facilitate the generation of short-form content for mobile, 
+We also tokenize videos into portrait aspect ratio at 128$\times$224 resolution, producing a latent shape of $(5, 28, 16)$, or 2240 tokens.
+
+\vspace{-1mm}
+We enforce causal temporal dependency, which facilitates the generation of longer videos. 
+%
+To jointly represent images and videos, we encode the initial frame of a video or a static image into tokens with a consistent shape of $(1, 16, 16)$.
+%which can be used to represent a static image. 
+%And then, every 4-frame chunks are encoded into (1,16,16) tokens. These tokens are concatenated on the first (temporal) dimension.
+We use the COMMIT~\cite{yu2023magvit} encoding scheme to tokenize the inpainting and outpainting tasks. 
+%In simple terms, COMMIT encoding processes the input condition video and the target video differently to avoid information leakage during tokenization. The former involves tokenization of the conditional video with pixel masks applied, while the latter uses tokenization on the entire unmasked video.
+
+
+\vspace{-4mm}
+\paragraph{Audio tokenizer.} We tokenize audio clips with a pretrained SoundStream~\cite{zeghidour2021soundstream} tokenizer.
+%
+We embed 2.125 seconds of audio to produce 106 latent frames with a residual vector quantizer (RVQ) of four levels.
+%
+Two possible choices exist for predicting the audio tokens with the RVQ representation: 1) sequentially predicting the entire audio clip from a lower to a higher RVQ level, or 2) simultaneously predicting all RVQ levels for a single audio token. Our results suggest that the former method demonstrates a slight advantage over the latter approach.
+Finally, each RVQ level has a disjoint vocabulary with each level containing 1,024 codes.
+%
+This results in a combined audio vocabulary size of 4,096 codes.
+
+\vspace{-4mm}
+\paragraph{Text embedding as input.}
+%A strong text encoding is important for text-to-video generation. 
+Pretrained text representations, in general, outperform training our model by learning text tokens from scratch.
+%
+We use pretrained language embeddings from a frozen T5 XL encoder~\cite{raffel2020exploring}. 
+%
+For tasks with text guidance, such as text-to-video, T5 XL embeddings are projected into the transformer's embedding space with a linear layer.
+
+% at our model scale so the model can allocate more capacity to generating and understanding vision and audio modalities.
+
+% Therefore, instead of inputting text tokens into the model directly, we first input the tokens into a frozen pretrained T5 XL~\cite{raffel2020exploring} encoder to produce a sequence of text embeddings.
+
+
+%-------------------------------------------------------------------------
+\vspace{-3mm}
+\subsection{Language Model Backbone}
+\vspace{-2mm}
+After converting the image, video, and audio modalities into discrete tokens within a shared vocabulary, we can directly leverage a language model to generate videos and audios in the token space.
+%
+We use a prefix language model with a decoder-only architecture as the backbone.
+%
+By constructing different patterns of input tokens to output tokens during training, we can control the tasks the model is able to perform as explained in \Cref{sec:modeling}.
+% As discussed in \Cref{sec:tokenization}, we use a shared multimodal vocabulary to represent the generation of all modalities as a language modeling problem.
+% This produces a total vocabulary size of approximately 300,000.
+
+
+\vspace{-3mm}
+\subsection{Super-Resolution} \label{sec:superresolution}
+\vspace{-2mm}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/sr_diagram.pdf}
+\caption{\textbf{Custom transformer architecture for video super-resolution.}}
+\label{fig:sr_diagram}
+\vspace{-6mm}
+\end{figure}
+
+Generating high-resolution (HR) videos autoregressively entails heavy computational costs due to the increase in sequence length.
+%
+To illustrate this with an example, the video tokenizer of \Cref{sec:tokenization} operating on a $17\times896\times512$ video produces a sequence of $35,840$ tokens, making autoregressive sampling highly impractical.
+%
+Aiming at efficient and high-quality generative video upsampling, we develop a custom spatial super-resolution (SR) non-autoregressive video transformer~\citep{yu2023magvit} to operate in token space on top of the language model output.
+%
+To mitigate the computational requirements of the very long sequences involved, and in particular the quadratic memory of the self-attention layers, our design incorporates windowed local attention~\citep{gupta2022maskvit}.
+%
+Specifically, our SR transformer is composed of blocks of three transformer layers, each of which performs self-attention in a local window aligned with one of three axes~\citep{tu2022maxvit}: \emph{spatial vertical}, \emph{spatial horizontal} and \emph{temporal}.
+%
+The cross-attention layers attend to the low-resolution (LR) token sequence and are also divided into local windows, isomorphic to those of the self-attention layers.
+%
+All blocks also include cross-attention to T5 XL text embeddings. See~\Cref{fig:sr_diagram} for a schematic representation of the custom transformer architecture.
+
+To account for the larger vocabulary size, we follow~\cite{yu2023language}, and train the SR transformer using token factorization with $k=2$ factors, which converts a $262,144$-way classification problem into two $512$-way classification problems. 
+%
+The LR token sequences are obtained by tokenizing bicubic-downsampled versions of the ground truth videos and applying noise augmentation~\citep{ho2022imagen} in the discrete latent space, to mitigate the distribution mismatch between real and generated videos.
+%
+Specifically, we randomly resample the value of a random subset of the LR tokens and independently drop the LR condition and text embeddings for 10\% of the training samples. During inference, we use non-autoregressive sampling \citep{chang2022maskgit,yu2023magvit} with classifier-free guidance independently on both the LR condition and the text embeddings \citep{brooks2023instructpix2pix}.
+%
+We use a cascade of two $2\times$ stages to generate videos of $896\times512$ resolution from the $224\times128$ base output of \modelname{}.
+%
+More implementaiton details can be found in the appendix. 
+
+%---------------------------------
+\vspace{-2mm}
+\section{LLM Pretraining for Generation} 
+\label{sec:modeling}
+\vspace{-1mm}
+
+% \modelname{} acquires generative video modeling by training with a mixture of multimodal objectives.
+% The objectives can work together so that individual tasks can be \textit{chained} (see~\Cref{sec:capabilities}), suggesting a zero-shot capability that goes beyond any individual task.
+
+% \vspace{-1mm}
+\subsection{Task Prompt Design}
+\label{sec:task_prompt_design}
+\vspace{-2mm}
+
+We design a pretraining task mixture, each with a defined prefix input and output. The model conditions on the prefix, applying the loss solely to the output.
+%
+\Cref{fig:vffm_schematic} shows a typical input-output sequence layout.
+%
+For each task, the input sequence may include three types of values: text embeddings (T5), visual tokens (MAGVIT-v2), and audio tokens (SoundStream). 
+%
+The model outputs two types of tokens: visual and audio tokens. To facilitate training, \modelname{} employs \emph{special tokens}, as listed in Appendix \Cref{tab:special_tokens}. 
+%
+In the following, we describe key designs for the task prompts.
+
+\vspace{-4mm}
+\paragraph{Pretraining tasks.}
+We consider the following tasks. \emph{Unconditioned video generation}: Generate video frames without conditioning on an input. \emph{Text-to-video (T2V)}: Generate video from a text prompt. \emph{Video future prediction (FP)}: Given an input video of variable length, predict future frames. \emph{Image-to-video (I2V)}: Given the first frame of a video as an input image, predict the future frames. \emph{Video inpainting/outpainting (Painting)}: Given a masked video, predict the video with the masked contents filled in. \emph{Video stylization}: Given text, optical flow, and depth, predict the video frames (\Cref{sec:task_prompt_design}). \emph{Audio-to-video}: Given an input audio waveform, predict the corresponding video. \emph{Video-to-audio}: Given an input video, predict the corresponding audio waveform.
+\emph{Audio-video continuation} (AVCont) given an input frame and its audio, predict the rest of the video and audio. In principle, the model can generate text, but we have not explicitly evaluated this ability.
+
+
+% , with or without the first frame from a video
+
+To indicate the type of task, we condition on the \texttt{<task>} token, which has a unique value for each unique output.
+%
+We note that not all input variations need a new \texttt{<task>}; the model adapts to different context signals for identical outputs. 
+%
+For instance, text-to-video, image-to-video, and unconditioned video generation share the same \texttt{<task>}.
+%
+If a modality is absent in a task, related input/output tokens and special tokens are excluded, shortening the sequence.
+
+\vspace{-3mm}
+\paragraph{Representing an image as a video.}
+% In the input sequence, we leave out the end-of-sequence token (\texttt{<eos>}) in the text-to-image pretraining task so the model keeps generating more video tokens at inference time.
+% This setting causes the model not to distinguish between video or image data, further facilitating information sharing between the two modalities.
+% This results in higher quality initial frames being predicted, which reduces the errors and artifacts in future frames.
+In text-to-image pretraining, we omit the \texttt{<eos>} and \texttt{<eov\_o>} tokens from the input sequence, enabling continuous token generation for inference of longer videos.
+%
+This approach blurs the boundary between video and image generation tasks, enhancing cross-modality information sharing. 
+%
+This design leads to the prediction of higher-quality initial frames and reduces errors and artifacts in subsequent frames.
+
+\vspace{-3mm}
+\paragraph{Video token format.} 
+We generate video tokens at two resolutions, 128$\times$128 and 128$\times$224, each available in two lengths: 17 frames and 41 frames, both encoded at 8 frames per second. 
+%
+Special conditioning tokens are used to signal the desired resolutions and durations for video generation.
+%We combine the two resolutions and two video lengths, which leads to a total of 4 combinations.
+Images are a special case of a 1-frame video, which we tokenize at 128$\times$128 resolution.
+% To be able to switch between different resolutions and duration, we use special conditioning tokens that indicate what format of video should be generated.
+
+\vspace{-3mm}
+\paragraph{Video stylization.} For video stylization, we adopt a method motivated  by~\cite{zhang2023adding,chen2023control,esser2023structure}, predicting videos from text, optical flow, and depth signals. The training task for stylization is to reconstruct the ground truth video from the given optical flow, depth, and text information, but
+during inference, we apply optical flow and depth estimation on an input video but then vary the text prompt to generate a new style, \eg ``cartoon.''
+%
+%MH: what does this mean "on a subset of steps"?
+% On a subset of steps, we also condition the first video frame. 
+%
+Similar to~\cite{esser2023structure}, text dictates the output 
+``content'' or appearance, while optical flow and depth guide its ``structure.''
+
+% To perform video stylization, we follow an approach inspired by~\cite{zhang2023adding,chen2023control,esser2023structure} to predict videos from the combination of text, optical flow, and depth signals. On a subset of steps, we also condition on the first video frame. As described in~\cite{esser2023structure}, the text will generally define the ``content" or appearance of the output and the optical flow and depth control the ``structure." In contrast to the diffusion-based approaches that usually use external cross-attention networks~\cite{zhang2023adding} or latent blending~\cite{meng2021sdedit} for stylization, our approach is more closely related to machine translation using large language models in that we only need to provide the structure and text as a prefix to a language model. 
+
+% To perform the task, we estimate optical flow from RAFT~\cite{sun2022disentangling} and produce monocular depth maps from MIDAS~\cite{ranftl2020midas}, and then normalize and concatenate on the channel dimension. This conveniently produces the same number of channels as the RGB ground truth and so can be tokenized in the same fashion as RGB videos with the MAGVIT-v2 tokenizer without retraining the tokenizer. The task of stylization is to reconstruct the ground truth video from the given optical flow, depth, and text information.
+% During inference, we apply optical flow and depth estimation on an input video but then vary the text prompt to generate a new style, \eg ``cartoon''.
+
+
+% The video-to-video tasks use the COMMIT encoding~\cite{yu2023magvit} to obtain the tokens for the tasks such as inpainting and outpainting.
+% Text is encoded as T5 XL embeddings~\cite{raffel2020exploring} and are inserted into reserved sequence positions right after the \texttt{<bot\_i>} token as shown in \Cref{fig:vffm_schematic}.
+
+\vspace{-2mm}
+\subsection{Training Strategy} 
+\label{sec:training}
+\vspace{-2mm}
+% We train on image-text pairs and video with or without text or audio.
+% Both text and sound are noisy and may not match the visual content.
+% The model is trained on approximately 2 trillion tokens across all modalities.
+
+For multi-task training, we use the Alternating Gradient Descent (AGD) method~\cite{akbari2023alternating} to train videos of varying lengths. 
+%
+%MH: not sure what this means. need to revise 
+We design the tasks in the AGD format resulting in a near 0\% padding ratio, lower than that of the packing approach~\cite{raffel2020exploring}. 
+%
+This is accomplished by grouping tasks by sequence length and alternately sampling one group at each iteration.
+%
+%MH: not sure what this menas
+Since sequence lengths are fixed and vary significantly across tasks, \eg, first frame and long video generation, we achieve efficient training with minimal padding.
+
+We find that sampling from image and video datasets uniformly across time can lead to suboptimal results, as training on images can enhance the model's understanding of objects but does not capture any motions that are represented in video data.
+%
+Thus, we devise a two-stage pretraining strategy, where we augment our sampling weights to sample  image data 90\% of the time and video data 10\% of the time for the first 25\% iterations of training.
+%
+We then switch to training on video 90\% and image 10\% for the remaining iterations. 
+
+We fine-tune our pretrained model for enhanced performance on specific tasks or for new task adaptation, such as text-to-video and image-to-video tasks, using a data subset of higher quality. These videos are sourced from broad internal sources with millions of videos that contain simpler clips, and are not manually tailored or selected. This results in improved generation quality, consistent with \citet{zhou2023lima}, and addresses decoding collapse issues, characterized by repetitive token predictions. 
+%
+Such fine-tuning not only diversifies outputs but also allows for a higher classifier-free guidance scale~\cite{ho2022classifier}, boosting overall quality. 
+%Additionally, we adapt the model for video-to-audio generation.
+% After pretraining, we can fine-tune the pretrained model to either improve its performance on specific tasks or to enable it to undertake new tasks, \ie, task adaption. For example, we finetune the model on both text-to-video and image-to-video tasks using a high-quality data subset. We observe improved generation quality which aligns with findings from \cite{zhou2023lima}. Furthermore, we note that the fine-tuned model mitigates the issue of decoding collapse, characterized by the degradation of predictions into repetitive tokens. This improvement not only enhances the model's output diversity but also enables increasing the Classifier-Free Guidance~\cite{ho2022classifier} scale, leading to an overall enhancement in quality. In addition, we also finetune the pretrained model to perform video-to-audio generation.

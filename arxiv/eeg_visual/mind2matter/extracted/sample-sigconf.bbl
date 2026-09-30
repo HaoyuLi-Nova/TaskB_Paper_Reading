@@ -1,0 +1,537 @@
+%%% -*-BibTeX-*-
+%%% Do NOT edit. File created by BibTeX with style
+%%% ACM-Reference-Format-Journals [18-Jan-2012].
+
+\begin{thebibliography}{65}
+
+%%% ====================================================================
+%%% NOTE TO THE USER: you can override these defaults by providing
+%%% customized versions of any of these macros before the \bibliography
+%%% command.  Each of them MUST provide its own final punctuation,
+%%% except for \shownote{} and \showURL{}.  The latter two
+%%% do not use final punctuation, in order to avoid confusing it with
+%%% the Web address.
+%%%
+%%% To suppress output of a particular field, define its macro to expand
+%%% to an empty string, or better, \unskip, like this:
+%%%
+%%% \newcommand{\showURL}[1]{\unskip}   % LaTeX syntax
+%%%
+%%% \def \showURL #1{\unskip}           % plain TeX syntax
+%%%
+%%% ====================================================================
+
+\ifx \showCODEN    \undefined \def \showCODEN     #1{\unskip}     \fi
+\ifx \showISBNx    \undefined \def \showISBNx     #1{\unskip}     \fi
+\ifx \showISBNxiii \undefined \def \showISBNxiii  #1{\unskip}     \fi
+\ifx \showISSN     \undefined \def \showISSN      #1{\unskip}     \fi
+\ifx \showLCCN     \undefined \def \showLCCN      #1{\unskip}     \fi
+\ifx \shownote     \undefined \def \shownote      #1{#1}          \fi
+\ifx \showarticletitle \undefined \def \showarticletitle #1{#1}   \fi
+\ifx \showURL      \undefined \def \showURL       {\relax}        \fi
+% The following commands are used for tagged output and should be
+% invisible to TeX
+\providecommand\bibfield[2]{#2}
+\providecommand\bibinfo[2]{#2}
+\providecommand\natexlab[1]{#1}
+\providecommand\showeprint[2][]{arXiv:#2}
+
+\bibitem[Amrani et~al\mbox{.}(2024)]%
+        {amrani2024deep}
+\bibfield{author}{\bibinfo{person}{Hamza Amrani}, \bibinfo{person}{Daniela Micucci}, {and} \bibinfo{person}{Paolo Napoletano}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Deep Representation Learning for Open Vocabulary Electroencephalography-to-Text Decoding}.
+\newblock \bibinfo{journal}{\emph{IEEE Journal of Biomedical and Health Informatics}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Bai et~al\mbox{.}(2023)]%
+        {bai2023dreamdiffusion}
+\bibfield{author}{\bibinfo{person}{Yunpeng Bai}, \bibinfo{person}{Xintao Wang}, \bibinfo{person}{Yan-pei Cao}, \bibinfo{person}{Yixiao Ge}, \bibinfo{person}{Chun Yuan}, {and} \bibinfo{person}{Ying Shan}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Dreamdiffusion: Generating high-quality images from brain eeg signals}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2306.16934}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Biswal et~al\mbox{.}(2019)]%
+        {biswal2019eegtotext}
+\bibfield{author}{\bibinfo{person}{Siddharth Biswal}, \bibinfo{person}{Cao Xiao}, \bibinfo{person}{M~Brandon Westover}, {and} \bibinfo{person}{Jimeng Sun}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Eegtotext: learning to write medical reports from eeg recordings}. In \bibinfo{booktitle}{\emph{Machine learning for healthcare conference}}. PMLR, \bibinfo{pages}{513--531}.
+\newblock
+
+
+\bibitem[Borton et~al\mbox{.}(2013)]%
+        {borton2013personalized}
+\bibfield{author}{\bibinfo{person}{David Borton}, \bibinfo{person}{Silvestro Micera}, \bibinfo{person}{Jos{\'e} del~R Mill{\'a}n}, {and} \bibinfo{person}{Gr{\'e}goire Courtine}.} \bibinfo{year}{2013}\natexlab{}.
+\newblock \showarticletitle{Personalized neuroprosthetics}.
+\newblock \bibinfo{journal}{\emph{Science translational medicine}} \bibinfo{volume}{5}, \bibinfo{number}{210} (\bibinfo{year}{2013}), \bibinfo{pages}{210rv2--210rv2}.
+\newblock
+
+
+\bibitem[Brody et~al\mbox{.}(2021)]%
+        {brody2021attentive}
+\bibfield{author}{\bibinfo{person}{Shaked Brody}, \bibinfo{person}{Uri Alon}, {and} \bibinfo{person}{Eran Yahav}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{How attentive are graph attention networks?}
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2105.14491}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Brumberg et~al\mbox{.}(2018)]%
+        {brumberg2018brain}
+\bibfield{author}{\bibinfo{person}{Jonathan~S Brumberg}, \bibinfo{person}{Kevin~M Pitt}, \bibinfo{person}{Alana Mantie-Kozlowski}, {and} \bibinfo{person}{Jeremy~D Burnison}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Brain--computer interfaces for augmentative and alternative communication: A tutorial}.
+\newblock \bibinfo{journal}{\emph{American journal of speech-language pathology}} \bibinfo{volume}{27}, \bibinfo{number}{1} (\bibinfo{year}{2018}), \bibinfo{pages}{1--12}.
+\newblock
+
+
+\bibitem[Cai et~al\mbox{.}(2025)]%
+        {cai2025bayesian}
+\bibfield{author}{\bibinfo{person}{Chengkun Cai}, \bibinfo{person}{Haoliang Liu}, \bibinfo{person}{Xu Zhao}, \bibinfo{person}{Zhongyu Jiang}, \bibinfo{person}{Tianfang Zhang}, \bibinfo{person}{Zongkai Wu}, \bibinfo{person}{Jenq-Neng Hwang}, \bibinfo{person}{Serge Belongie}, {and} \bibinfo{person}{Lei Li}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Bayesian optimization for controlled image editing via llms}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2502.18116}} (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2025)]%
+        {chen2025decoding}
+\bibfield{author}{\bibinfo{person}{Qiupu Chen}, \bibinfo{person}{Yimou Wang}, \bibinfo{person}{Fenmei Wang}, \bibinfo{person}{Duolin Sun}, {and} \bibinfo{person}{Qiankun Li}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Decoding text from electroencephalography signals: A novel Hierarchical Gated Recurrent Unit with Masked Residual Attention Mechanism}.
+\newblock \bibinfo{journal}{\emph{Engineering Applications of Artificial Intelligence}}  \bibinfo{volume}{139} (\bibinfo{year}{2025}), \bibinfo{pages}{109615}.
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2024b)]%
+        {chen2024scalinggaussian}
+\bibfield{author}{\bibinfo{person}{Shen Chen}, \bibinfo{person}{Jiale Zhou}, \bibinfo{person}{Zhongyu Jiang}, \bibinfo{person}{Tianfang Zhang}, \bibinfo{person}{Zongkai Wu}, \bibinfo{person}{Jenq-Neng Hwang}, {and} \bibinfo{person}{Lei Li}.} \bibinfo{year}{2024}\natexlab{b}.
+\newblock \showarticletitle{ScalingGaussian: Enhancing 3D Content Creation with Generative Gaussian Splatting}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2407.19035}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2023a)]%
+        {chen2023control3d}
+\bibfield{author}{\bibinfo{person}{Yang Chen}, \bibinfo{person}{Yingwei Pan}, \bibinfo{person}{Yehao Li}, \bibinfo{person}{Ting Yao}, {and} \bibinfo{person}{Tao Mei}.} \bibinfo{year}{2023}\natexlab{a}.
+\newblock \showarticletitle{Control3d: Towards controllable text-to-3d generation}. In \bibinfo{booktitle}{\emph{Proceedings of the 31st ACM International Conference on Multimedia}}. \bibinfo{pages}{1148--1156}.
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2023b)]%
+        {chen2023seeing}
+\bibfield{author}{\bibinfo{person}{Zijiao Chen}, \bibinfo{person}{Jiaxin Qing}, \bibinfo{person}{Tiange Xiang}, \bibinfo{person}{Wan~Lin Yue}, {and} \bibinfo{person}{Juan~Helen Zhou}.} \bibinfo{year}{2023}\natexlab{b}.
+\newblock \showarticletitle{Seeing beyond the brain: Conditional diffusion model with sparse masked modeling for vision decoding}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}}. \bibinfo{pages}{22710--22720}.
+\newblock
+
+
+\bibitem[Chen et~al\mbox{.}(2024a)]%
+        {chen2024text}
+\bibfield{author}{\bibinfo{person}{Zilong Chen}, \bibinfo{person}{Feng Wang}, \bibinfo{person}{Yikai Wang}, {and} \bibinfo{person}{Huaping Liu}.} \bibinfo{year}{2024}\natexlab{a}.
+\newblock \showarticletitle{Text-to-3d using gaussian splatting}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}}. \bibinfo{pages}{21401--21412}.
+\newblock
+
+
+\bibitem[Dosher and Lu(1998)]%
+        {dosher1998perceptual}
+\bibfield{author}{\bibinfo{person}{Barbara~Anne Dosher} {and} \bibinfo{person}{Zhong-Lin Lu}.} \bibinfo{year}{1998}\natexlab{}.
+\newblock \showarticletitle{Perceptual learning reflects external noise filtering and internal noise reduction through channel reweighting}.
+\newblock \bibinfo{journal}{\emph{Proceedings of the National Academy of Sciences}} \bibinfo{volume}{95}, \bibinfo{number}{23} (\bibinfo{year}{1998}), \bibinfo{pages}{13988--13993}.
+\newblock
+
+
+\bibitem[Fan et~al\mbox{.}(2017)]%
+        {fan2017point}
+\bibfield{author}{\bibinfo{person}{Haoqiang Fan}, \bibinfo{person}{Hao Su}, {and} \bibinfo{person}{Leonidas~J Guibas}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{A point set generation network for 3d object reconstruction from a single image}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE conference on computer vision and pattern recognition}}. \bibinfo{pages}{605--613}.
+\newblock
+
+
+\bibitem[Feng et~al\mbox{.}(2023)]%
+        {feng2023aligning}
+\bibfield{author}{\bibinfo{person}{Xiachong Feng}, \bibinfo{person}{Xiaocheng Feng}, \bibinfo{person}{Bing Qin}, {and} \bibinfo{person}{Ting Liu}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Aligning semantic in brain and language: A curriculum contrastive method for electroencephalography-to-text generation}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Neural Systems and Rehabilitation Engineering}}  \bibinfo{volume}{31} (\bibinfo{year}{2023}), \bibinfo{pages}{3874--3883}.
+\newblock
+
+
+\bibitem[Gao et~al\mbox{.}(2024b)]%
+        {gao2024graphdreamer}
+\bibfield{author}{\bibinfo{person}{Gege Gao}, \bibinfo{person}{Weiyang Liu}, \bibinfo{person}{Anpei Chen}, \bibinfo{person}{Andreas Geiger}, {and} \bibinfo{person}{Bernhard Sch{\"o}lkopf}.} \bibinfo{year}{2024}\natexlab{b}.
+\newblock \showarticletitle{Graphdreamer: Compositional 3d scene synthesis from scene graphs}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}}. \bibinfo{pages}{21295--21304}.
+\newblock
+
+
+\bibitem[Gao et~al\mbox{.}(2025)]%
+        {gao2025mind3dadvancingfmribased3d}
+\bibfield{author}{\bibinfo{person}{Jianxiong Gao}, \bibinfo{person}{Yanwei Fu}, \bibinfo{person}{Yuqian Fu}, \bibinfo{person}{Yun Wang}, \bibinfo{person}{Xuelin Qian}, {and} \bibinfo{person}{Jianfeng Feng}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \bibinfo{title}{MinD-3D++: Advancing fMRI-Based 3D Reconstruction with High-Quality Textured Mesh Generation and a Comprehensive Dataset}.
+\newblock
+\showeprint[arxiv]{2409.11315}~[cs.CV]
+\urldef\tempurl%
+\url{https://arxiv.org/abs/2409.11315}
+\showURL{%
+\tempurl}
+
+
+\bibitem[Gao et~al\mbox{.}(2024a)]%
+        {gao2024mind}
+\bibfield{author}{\bibinfo{person}{Jianxiong Gao}, \bibinfo{person}{Yuqian Fu}, \bibinfo{person}{Yun Wang}, \bibinfo{person}{Xuelin Qian}, \bibinfo{person}{Jianfeng Feng}, {and} \bibinfo{person}{Yanwei Fu}.} \bibinfo{year}{2024}\natexlab{a}.
+\newblock \showarticletitle{Mind-3d: Reconstruct high-quality 3d objects in human brain}. In \bibinfo{booktitle}{\emph{European Conference on Computer Vision}}. Springer, \bibinfo{pages}{312--329}.
+\newblock
+
+
+\bibitem[Guan et~al\mbox{.}(2025)]%
+        {guan2025learning}
+\bibfield{author}{\bibinfo{person}{Yunchuan Guan}, \bibinfo{person}{Yu Liu}, \bibinfo{person}{Ke Zhou}, \bibinfo{person}{Zhiqi Shen}, \bibinfo{person}{Serge Belongie}, \bibinfo{person}{Jenq-Neng Hwang}, {and} \bibinfo{person}{Lei Li}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{Learning to Learn Weight Generation via Trajectory Diffusion}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2502.01117}} (\bibinfo{year}{2025}).
+\newblock
+
+
+\bibitem[Hebb(2005)]%
+        {hebb2005organization}
+\bibfield{author}{\bibinfo{person}{Donald~Olding Hebb}.} \bibinfo{year}{2005}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{The organization of behavior: A neuropsychological theory}}.
+\newblock \bibinfo{publisher}{Psychology press}.
+\newblock
+
+
+\bibitem[Heckenlively and Arden(2006)]%
+        {heckenlively2006principles}
+\bibfield{author}{\bibinfo{person}{John~R Heckenlively} {and} \bibinfo{person}{Geoffrey~B Arden}.} \bibinfo{year}{2006}\natexlab{}.
+\newblock \bibinfo{booktitle}{\emph{Principles and practice of clinical electrophysiology of vision}}.
+\newblock \bibinfo{publisher}{MIT press}.
+\newblock
+
+
+\bibitem[Horikawa and Kamitani(2017)]%
+        {horikawa2017generic}
+\bibfield{author}{\bibinfo{person}{Tomoyasu Horikawa} {and} \bibinfo{person}{Yukiyasu Kamitani}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Generic decoding of seen and imagined objects using hierarchical visual features}.
+\newblock \bibinfo{journal}{\emph{Nature communications}} \bibinfo{volume}{8}, \bibinfo{number}{1} (\bibinfo{year}{2017}), \bibinfo{pages}{15037}.
+\newblock
+
+
+\bibitem[Ikegawa et~al\mbox{.}(2024)]%
+        {ikegawa2024text}
+\bibfield{author}{\bibinfo{person}{Yuya Ikegawa}, \bibinfo{person}{Ryohei Fukuma}, \bibinfo{person}{Hidenori Sugano}, \bibinfo{person}{Satoru Oshino}, \bibinfo{person}{Naoki Tani}, \bibinfo{person}{Kentaro Tamura}, \bibinfo{person}{Yasushi Iimura}, \bibinfo{person}{Hiroharu Suzuki}, \bibinfo{person}{Shota Yamamoto}, \bibinfo{person}{Yuya Fujita}, {et~al\mbox{.}}} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Text and image generation from intracranial electroencephalography using an embedding space for text and images}.
+\newblock \bibinfo{journal}{\emph{Journal of Neural Engineering}} \bibinfo{volume}{21}, \bibinfo{number}{3} (\bibinfo{year}{2024}), \bibinfo{pages}{036019}.
+\newblock
+
+
+\bibitem[Jain et~al\mbox{.}(2022)]%
+        {jain2022zero}
+\bibfield{author}{\bibinfo{person}{Ajay Jain}, \bibinfo{person}{Ben Mildenhall}, \bibinfo{person}{Jonathan~T Barron}, \bibinfo{person}{Pieter Abbeel}, {and} \bibinfo{person}{Ben Poole}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Zero-shot text-guided object generation with dream fields}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}}. \bibinfo{pages}{867--876}.
+\newblock
+
+
+\bibitem[Kavasidis et~al\mbox{.}(2017)]%
+        {kavasidis2017brain2image}
+\bibfield{author}{\bibinfo{person}{Isaak Kavasidis}, \bibinfo{person}{Simone Palazzo}, \bibinfo{person}{Concetto Spampinato}, \bibinfo{person}{Daniela Giordano}, {and} \bibinfo{person}{Mubarak Shah}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Brain2image: Converting brain signals into images}. In \bibinfo{booktitle}{\emph{Proceedings of the 25th ACM international conference on Multimedia}}. \bibinfo{pages}{1809--1817}.
+\newblock
+
+
+\bibitem[Kerbl et~al\mbox{.}(2023)]%
+        {kerbl20233d}
+\bibfield{author}{\bibinfo{person}{Bernhard Kerbl}, \bibinfo{person}{Georgios Kopanas}, \bibinfo{person}{Thomas Leimk{\"u}hler}, {and} \bibinfo{person}{George Drettakis}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{3d gaussian splatting for real-time radiance field rendering.}
+\newblock \bibinfo{journal}{\emph{ACM Trans. Graph.}} \bibinfo{volume}{42}, \bibinfo{number}{4} (\bibinfo{year}{2023}), \bibinfo{pages}{139--1}.
+\newblock
+
+
+\bibitem[Lan et~al\mbox{.}(2023)]%
+        {lan2023seeing}
+\bibfield{author}{\bibinfo{person}{Yu-Ting Lan}, \bibinfo{person}{Kan Ren}, \bibinfo{person}{Yansen Wang}, \bibinfo{person}{Wei-Long Zheng}, \bibinfo{person}{Dongsheng Li}, \bibinfo{person}{Bao-Liang Lu}, {and} \bibinfo{person}{Lili Qiu}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Seeing through the brain: image reconstruction of visual perception from human brain signals}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2308.02510}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Li(2024)]%
+        {li2024cpseg}
+\bibfield{author}{\bibinfo{person}{Lei Li}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Cpseg: Finer-grained image semantic segmentation via chain-of-thought language prompting}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision}}. \bibinfo{pages}{513--522}.
+\newblock
+
+
+\bibitem[Li and Liang(2021)]%
+        {li2021prefix}
+\bibfield{author}{\bibinfo{person}{Xiang~Lisa Li} {and} \bibinfo{person}{Percy Liang}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Prefix-tuning: Optimizing continuous prompts for generation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2101.00190}} (\bibinfo{year}{2021}).
+\newblock
+
+
+\bibitem[Liang et~al\mbox{.}(2024)]%
+        {liang2024luciddreamer}
+\bibfield{author}{\bibinfo{person}{Yixun Liang}, \bibinfo{person}{Xin Yang}, \bibinfo{person}{Jiantao Lin}, \bibinfo{person}{Haodong Li}, \bibinfo{person}{Xiaogang Xu}, {and} \bibinfo{person}{Yingcong Chen}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Luciddreamer: Towards high-fidelity text-to-3d generation via interval score matching}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}}. \bibinfo{pages}{6517--6526}.
+\newblock
+
+
+\bibitem[Lin et~al\mbox{.}(2023)]%
+        {lin2023magic3d}
+\bibfield{author}{\bibinfo{person}{Chen-Hsuan Lin}, \bibinfo{person}{Jun Gao}, \bibinfo{person}{Luming Tang}, \bibinfo{person}{Towaki Takikawa}, \bibinfo{person}{Xiaohui Zeng}, \bibinfo{person}{Xun Huang}, \bibinfo{person}{Karsten Kreis}, \bibinfo{person}{Sanja Fidler}, \bibinfo{person}{Ming-Yu Liu}, {and} \bibinfo{person}{Tsung-Yi Lin}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Magic3d: High-resolution text-to-3d content creation}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF conference on computer vision and pattern recognition}}. \bibinfo{pages}{300--309}.
+\newblock
+
+
+\bibitem[Lin(2004)]%
+        {lin2004rouge}
+\bibfield{author}{\bibinfo{person}{Chin-Yew Lin}.} \bibinfo{year}{2004}\natexlab{}.
+\newblock \showarticletitle{Rouge: A package for automatic evaluation of summaries}. In \bibinfo{booktitle}{\emph{Text summarization branches out}}. \bibinfo{pages}{74--81}.
+\newblock
+
+
+\bibitem[Ling and Jacobs(2007)]%
+        {ling2007shape}
+\bibfield{author}{\bibinfo{person}{Haibin Ling} {and} \bibinfo{person}{David~W Jacobs}.} \bibinfo{year}{2007}\natexlab{}.
+\newblock \showarticletitle{Shape classification using the inner-distance}.
+\newblock \bibinfo{journal}{\emph{IEEE transactions on pattern analysis and machine intelligence}} \bibinfo{volume}{29}, \bibinfo{number}{2} (\bibinfo{year}{2007}), \bibinfo{pages}{286--299}.
+\newblock
+
+
+\bibitem[Liu et~al\mbox{.}(2024b)]%
+        {liu2024eeg2text}
+\bibfield{author}{\bibinfo{person}{Hanwen Liu}, \bibinfo{person}{Daniel Hajialigol}, \bibinfo{person}{Benny Antony}, \bibinfo{person}{Aiguo Han}, {and} \bibinfo{person}{Xuan Wang}.} \bibinfo{year}{2024}\natexlab{b}.
+\newblock \showarticletitle{EEG2Text: Open Vocabulary EEG-to-Text Translation with Multi-View Transformer}. In \bibinfo{booktitle}{\emph{2024 IEEE International Conference on Big Data (BigData)}}. IEEE, \bibinfo{pages}{1824--1833}.
+\newblock
+
+
+\bibitem[Liu et~al\mbox{.}(2024a)]%
+        {liu2024graph}
+\bibfield{author}{\bibinfo{person}{Libin Liu}, \bibinfo{person}{Shen Chen}, \bibinfo{person}{Sen Jia}, \bibinfo{person}{Jingzhe Shi}, \bibinfo{person}{Zhongyu Jiang}, \bibinfo{person}{Can Jin}, \bibinfo{person}{Wu Zongkai}, \bibinfo{person}{Jenq-Neng Hwang}, {and} \bibinfo{person}{Lei Li}.} \bibinfo{year}{2024}\natexlab{a}.
+\newblock \showarticletitle{Graph Canvas for Controllable 3D Scene Generation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2412.00091}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Liu et~al\mbox{.}(2023)]%
+        {liu2023zero}
+\bibfield{author}{\bibinfo{person}{Ruoshi Liu}, \bibinfo{person}{Rundi Wu}, \bibinfo{person}{Basile Van~Hoorick}, \bibinfo{person}{Pavel Tokmakov}, \bibinfo{person}{Sergey Zakharov}, {and} \bibinfo{person}{Carl Vondrick}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Zero-1-to-3: Zero-shot one image to 3d object}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF international conference on computer vision}}. \bibinfo{pages}{9298--9309}.
+\newblock
+
+
+\bibitem[Mildenhall et~al\mbox{.}(2021)]%
+        {mildenhall2021nerf}
+\bibfield{author}{\bibinfo{person}{Ben Mildenhall}, \bibinfo{person}{Pratul~P Srinivasan}, \bibinfo{person}{Matthew Tancik}, \bibinfo{person}{Jonathan~T Barron}, \bibinfo{person}{Ravi Ramamoorthi}, {and} \bibinfo{person}{Ren Ng}.} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Nerf: Representing scenes as neural radiance fields for view synthesis}.
+\newblock \bibinfo{journal}{\emph{Commun. ACM}} \bibinfo{volume}{65}, \bibinfo{number}{1} (\bibinfo{year}{2021}), \bibinfo{pages}{99--106}.
+\newblock
+
+
+\bibitem[Mishra et~al\mbox{.}(2024)]%
+        {mishra2024thought2text}
+\bibfield{author}{\bibinfo{person}{Abhijit Mishra}, \bibinfo{person}{Shreya Shukla}, \bibinfo{person}{Jose Torres}, \bibinfo{person}{Jacek Gwizdka}, {and} \bibinfo{person}{Shounak Roychowdhury}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Thought2Text: Text Generation from EEG Signal using Large Language Models (LLMs)}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2410.07507}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Mishra et~al\mbox{.}(2023)]%
+        {mishra2023neurogan}
+\bibfield{author}{\bibinfo{person}{Rahul Mishra}, \bibinfo{person}{Krishan Sharma}, \bibinfo{person}{Ranjeet~Ranjan Jha}, {and} \bibinfo{person}{Arnav Bhavsar}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{NeuroGAN: image reconstruction from EEG signals via an attention-based GAN}.
+\newblock \bibinfo{journal}{\emph{Neural Computing and Applications}} \bibinfo{volume}{35}, \bibinfo{number}{12} (\bibinfo{year}{2023}), \bibinfo{pages}{9181--9192}.
+\newblock
+
+
+\bibitem[Mohammad~Khalid et~al\mbox{.}(2022)]%
+        {mohammad2022clip}
+\bibfield{author}{\bibinfo{person}{Nasir Mohammad~Khalid}, \bibinfo{person}{Tianhao Xie}, \bibinfo{person}{Eugene Belilovsky}, {and} \bibinfo{person}{Tiberiu Popa}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Clip-mesh: Generating textured meshes from text using pretrained image-text models}. In \bibinfo{booktitle}{\emph{SIGGRAPH Asia 2022 conference papers}}. \bibinfo{pages}{1--8}.
+\newblock
+
+
+\bibitem[Naselaris et~al\mbox{.}(2009)]%
+        {naselaris2009bayesian}
+\bibfield{author}{\bibinfo{person}{Thomas Naselaris}, \bibinfo{person}{Ryan~J Prenger}, \bibinfo{person}{Kendrick~N Kay}, \bibinfo{person}{Michael Oliver}, {and} \bibinfo{person}{Jack~L Gallant}.} \bibinfo{year}{2009}\natexlab{}.
+\newblock \showarticletitle{Bayesian reconstruction of natural images from human brain activity}.
+\newblock \bibinfo{journal}{\emph{Neuron}} \bibinfo{volume}{63}, \bibinfo{number}{6} (\bibinfo{year}{2009}), \bibinfo{pages}{902--915}.
+\newblock
+
+
+\bibitem[Nishino et~al\mbox{.}(2001)]%
+        {nishino20013d}
+\bibfield{author}{\bibinfo{person}{Hiroaki Nishino}, \bibinfo{person}{Hideyuki Takagi}, \bibinfo{person}{Sung-Bae Cho}, {and} \bibinfo{person}{Kouichi Utsumiya}.} \bibinfo{year}{2001}\natexlab{}.
+\newblock \showarticletitle{A 3D modeling system for creative design}. In \bibinfo{booktitle}{\emph{Proceedings 15th international conference on information networking}}. IEEE, \bibinfo{pages}{479--486}.
+\newblock
+
+
+\bibitem[Oord et~al\mbox{.}(2018)]%
+        {oord2018representation}
+\bibfield{author}{\bibinfo{person}{Aaron van~den Oord}, \bibinfo{person}{Yazhe Li}, {and} \bibinfo{person}{Oriol Vinyals}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{Representation learning with contrastive predictive coding}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1807.03748}} (\bibinfo{year}{2018}).
+\newblock
+
+
+\bibitem[Pan et~al\mbox{.}(2024)]%
+        {pan2024reconstructing}
+\bibfield{author}{\bibinfo{person}{Hongguang Pan}, \bibinfo{person}{Zhuoyi Li}, \bibinfo{person}{Yunpeng Fu}, \bibinfo{person}{Xuebin Qin}, {and} \bibinfo{person}{Jianchen Hu}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Reconstructing visual stimulus representation from EEG signals based on deep visual representation model}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Human-Machine Systems}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Pandarinath et~al\mbox{.}(2017)]%
+        {pandarinath2017high}
+\bibfield{author}{\bibinfo{person}{Chethan Pandarinath}, \bibinfo{person}{Paul Nuyujukian}, \bibinfo{person}{Christine~H Blabe}, \bibinfo{person}{Brittany~L Sorice}, \bibinfo{person}{Jad Saab}, \bibinfo{person}{Francis~R Willett}, \bibinfo{person}{Leigh~R Hochberg}, \bibinfo{person}{Krishna~V Shenoy}, {and} \bibinfo{person}{Jaimie~M Henderson}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{High performance communication by people with paralysis using an intracortical brain-computer interface}.
+\newblock \bibinfo{journal}{\emph{elife}}  \bibinfo{volume}{6} (\bibinfo{year}{2017}), \bibinfo{pages}{e18554}.
+\newblock
+
+
+\bibitem[Papineni et~al\mbox{.}(2002)]%
+        {papineni2002bleu}
+\bibfield{author}{\bibinfo{person}{Kishore Papineni}, \bibinfo{person}{Salim Roukos}, \bibinfo{person}{Todd Ward}, {and} \bibinfo{person}{Wei-Jing Zhu}.} \bibinfo{year}{2002}\natexlab{}.
+\newblock \showarticletitle{Bleu: a method for automatic evaluation of machine translation}. In \bibinfo{booktitle}{\emph{Proceedings of the 40th annual meeting of the Association for Computational Linguistics}}. \bibinfo{pages}{311--318}.
+\newblock
+
+
+\bibitem[Poole et~al\mbox{.}(2022)]%
+        {poole2022dreamfusion}
+\bibfield{author}{\bibinfo{person}{Ben Poole}, \bibinfo{person}{Ajay Jain}, \bibinfo{person}{Jonathan~T Barron}, {and} \bibinfo{person}{Ben Mildenhall}.} \bibinfo{year}{2022}\natexlab{}.
+\newblock \showarticletitle{Dreamfusion: Text-to-3d using 2d diffusion}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2209.14988}} (\bibinfo{year}{2022}).
+\newblock
+
+
+\bibitem[Radford et~al\mbox{.}(2021)]%
+        {radford2021learning}
+\bibfield{author}{\bibinfo{person}{Alec Radford}, \bibinfo{person}{Jong~Wook Kim}, \bibinfo{person}{Chris Hallacy}, \bibinfo{person}{Aditya Ramesh}, \bibinfo{person}{Gabriel Goh}, \bibinfo{person}{Sandhini Agarwal}, \bibinfo{person}{Girish Sastry}, \bibinfo{person}{Amanda Askell}, \bibinfo{person}{Pamela Mishkin}, \bibinfo{person}{Jack Clark}, {et~al\mbox{.}}} \bibinfo{year}{2021}\natexlab{}.
+\newblock \showarticletitle{Learning transferable visual models from natural language supervision}. In \bibinfo{booktitle}{\emph{International conference on machine learning}}. PmLR, \bibinfo{pages}{8748--8763}.
+\newblock
+
+
+\bibitem[Russakovsky et~al\mbox{.}(2015)]%
+        {russakovsky2015imagenet}
+\bibfield{author}{\bibinfo{person}{Olga Russakovsky}, \bibinfo{person}{Jia Deng}, \bibinfo{person}{Hao Su}, \bibinfo{person}{Jonathan Krause}, \bibinfo{person}{Sanjeev Satheesh}, \bibinfo{person}{Sean Ma}, \bibinfo{person}{Zhiheng Huang}, \bibinfo{person}{Andrej Karpathy}, \bibinfo{person}{Aditya Khosla}, \bibinfo{person}{Michael Bernstein}, {et~al\mbox{.}}} \bibinfo{year}{2015}\natexlab{}.
+\newblock \showarticletitle{Imagenet large scale visual recognition challenge}.
+\newblock \bibinfo{journal}{\emph{International journal of computer vision}}  \bibinfo{volume}{115} (\bibinfo{year}{2015}), \bibinfo{pages}{211--252}.
+\newblock
+
+
+\bibitem[Scotti et~al\mbox{.}(2023)]%
+        {scotti2023reconstructing}
+\bibfield{author}{\bibinfo{person}{Paul Scotti}, \bibinfo{person}{Atmadeep Banerjee}, \bibinfo{person}{Jimmie Goode}, \bibinfo{person}{Stepan Shabalin}, \bibinfo{person}{Alex Nguyen}, \bibinfo{person}{Aidan Dempster}, \bibinfo{person}{Nathalie Verlinde}, \bibinfo{person}{Elad Yundler}, \bibinfo{person}{David Weisberg}, \bibinfo{person}{Kenneth Norman}, {et~al\mbox{.}}} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Reconstructing the mind's eye: fmri-to-image with contrastive learning and diffusion priors}.
+\newblock \bibinfo{journal}{\emph{Advances in Neural Information Processing Systems}}  \bibinfo{volume}{36} (\bibinfo{year}{2023}), \bibinfo{pages}{24705--24728}.
+\newblock
+
+
+\bibitem[Shi et~al\mbox{.}(2023)]%
+        {shi2023mvdream}
+\bibfield{author}{\bibinfo{person}{Yichun Shi}, \bibinfo{person}{Peng Wang}, \bibinfo{person}{Jianglong Ye}, \bibinfo{person}{Mai Long}, \bibinfo{person}{Kejie Li}, {and} \bibinfo{person}{Xiao Yang}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Mvdream: Multi-view diffusion for 3d generation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2308.16512}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Singh et~al\mbox{.}(2024)]%
+        {singh2024learning}
+\bibfield{author}{\bibinfo{person}{Prajwal Singh}, \bibinfo{person}{Dwip Dalal}, \bibinfo{person}{Gautam Vashishtha}, \bibinfo{person}{Krishna Miyapuram}, {and} \bibinfo{person}{Shanmuganathan Raman}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Learning robust deep visual representations from eeg brain recordings}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision}}. \bibinfo{pages}{7553--7562}.
+\newblock
+
+
+\bibitem[Slater and Sanchez-Vives(2016)]%
+        {slater2016enhancing}
+\bibfield{author}{\bibinfo{person}{Mel Slater} {and} \bibinfo{person}{Maria~V Sanchez-Vives}.} \bibinfo{year}{2016}\natexlab{}.
+\newblock \showarticletitle{Enhancing our lives with immersive virtual reality}.
+\newblock \bibinfo{journal}{\emph{Frontiers in Robotics and AI}}  \bibinfo{volume}{3} (\bibinfo{year}{2016}), \bibinfo{pages}{74}.
+\newblock
+
+
+\bibitem[Spampinato et~al\mbox{.}(2017)]%
+        {spampinato2017deep}
+\bibfield{author}{\bibinfo{person}{Concetto Spampinato}, \bibinfo{person}{Simone Palazzo}, \bibinfo{person}{Isaak Kavasidis}, \bibinfo{person}{Daniela Giordano}, \bibinfo{person}{Nasim Souly}, {and} \bibinfo{person}{Mubarak Shah}.} \bibinfo{year}{2017}\natexlab{}.
+\newblock \showarticletitle{Deep learning human mind for automated visual classification}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE conference on computer vision and pattern recognition}}. \bibinfo{pages}{6809--6817}.
+\newblock
+
+
+\bibitem[Srivastava et~al\mbox{.}(2020)]%
+        {srivastava2020think2type}
+\bibfield{author}{\bibinfo{person}{Aditya Srivastava}, \bibinfo{person}{Tanvi Shinde}, \bibinfo{person}{Sameer~Ahmed Ansari}, {and} \bibinfo{person}{Mr~Prashant Kanade}.} \bibinfo{year}{2020}\natexlab{}.
+\newblock \showarticletitle{Think2Type: thoughts to text using EEG waves}.
+\newblock \bibinfo{journal}{\emph{International Journal of Engineering Research \& Technology (IJERT)}} \bibinfo{volume}{9}, \bibinfo{number}{06} (\bibinfo{year}{2020}), \bibinfo{pages}{2278--018}.
+\newblock
+
+
+\bibitem[Takagi and Nishimoto(2023)]%
+        {takagi2023high}
+\bibfield{author}{\bibinfo{person}{Yu Takagi} {and} \bibinfo{person}{Shinji Nishimoto}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{High-resolution image reconstruction with latent diffusion models from human brain activity}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}}. \bibinfo{pages}{14453--14463}.
+\newblock
+
+
+\bibitem[Tang et~al\mbox{.}(2023)]%
+        {tang2023dreamgaussian}
+\bibfield{author}{\bibinfo{person}{Jiaxiang Tang}, \bibinfo{person}{Jiawei Ren}, \bibinfo{person}{Hang Zhou}, \bibinfo{person}{Ziwei Liu}, {and} \bibinfo{person}{Gang Zeng}.} \bibinfo{year}{2023}\natexlab{}.
+\newblock \showarticletitle{Dreamgaussian: Generative gaussian splatting for efficient 3d content creation}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2309.16653}} (\bibinfo{year}{2023}).
+\newblock
+
+
+\bibitem[Tao et~al\mbox{.}(2025)]%
+        {tao2025see}
+\bibfield{author}{\bibinfo{person}{Yitian Tao}, \bibinfo{person}{Yan Liang}, \bibinfo{person}{Luoyu Wang}, \bibinfo{person}{Yongqing Li}, \bibinfo{person}{Qing Yang}, {and} \bibinfo{person}{Han Zhang}.} \bibinfo{year}{2025}\natexlab{}.
+\newblock \showarticletitle{See: Semantically aligned eeg-to-text translation}. In \bibinfo{booktitle}{\emph{ICASSP 2025-2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}}. IEEE, \bibinfo{pages}{1--5}.
+\newblock
+
+
+\bibitem[Wu et~al\mbox{.}(2024)]%
+        {wu2024consistent3d}
+\bibfield{author}{\bibinfo{person}{Zike Wu}, \bibinfo{person}{Pan Zhou}, \bibinfo{person}{Xuanyu Yi}, \bibinfo{person}{Xiaoding Yuan}, {and} \bibinfo{person}{Hanwang Zhang}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Consistent3d: Towards consistent high-fidelity text-to-3d generation with deterministic sampling prior}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition}}. \bibinfo{pages}{9892--9902}.
+\newblock
+
+
+\bibitem[Xia et~al\mbox{.}(2024)]%
+        {xia2024dream}
+\bibfield{author}{\bibinfo{person}{Weihao Xia}, \bibinfo{person}{Raoul De~Charette}, \bibinfo{person}{Cengiz Oztireli}, {and} \bibinfo{person}{Jing-Hao Xue}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{Dream: Visual decoding from reversing human visual system}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE/CVF Winter Conference on Applications of Computer Vision}}. \bibinfo{pages}{8226--8235}.
+\newblock
+
+
+\bibitem[Yan et~al\mbox{.}(2024)]%
+        {yan20243dsceneeditor}
+\bibfield{author}{\bibinfo{person}{Ziyang Yan}, \bibinfo{person}{Lei Li}, \bibinfo{person}{Yihua Shao}, \bibinfo{person}{Siyu Chen}, \bibinfo{person}{Zongkai Wu}, \bibinfo{person}{Jenq-Neng Hwang}, \bibinfo{person}{Hao Zhao}, {and} \bibinfo{person}{Fabio Remondino}.} \bibinfo{year}{2024}\natexlab{}.
+\newblock \showarticletitle{3dsceneeditor: Controllable 3d scene editing with gaussian splatting}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:2412.01583}} (\bibinfo{year}{2024}).
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2024a)]%
+        {zhang2024gaussiancube}
+\bibfield{author}{\bibinfo{person}{Bowen Zhang}, \bibinfo{person}{Yiji Cheng}, \bibinfo{person}{Jiaolong Yang}, \bibinfo{person}{Chunyu Wang}, \bibinfo{person}{Feng Zhao}, \bibinfo{person}{Yansong Tang}, \bibinfo{person}{Dong Chen}, {and} \bibinfo{person}{Baining Guo}.} \bibinfo{year}{2024}\natexlab{a}.
+\newblock \showarticletitle{Gaussiancube: Structuring gaussian splatting using optimal transport for 3d generative modeling}.
+\newblock \bibinfo{journal}{\emph{arXiv e-prints}} (\bibinfo{year}{2024}), \bibinfo{pages}{arXiv--2403}.
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2024b)]%
+        {zhang2024text2nerf}
+\bibfield{author}{\bibinfo{person}{Jingbo Zhang}, \bibinfo{person}{Xiaoyu Li}, \bibinfo{person}{Ziyu Wan}, \bibinfo{person}{Can Wang}, {and} \bibinfo{person}{Jing Liao}.} \bibinfo{year}{2024}\natexlab{b}.
+\newblock \showarticletitle{Text2nerf: Text-driven 3d scene generation with neural radiance fields}.
+\newblock \bibinfo{journal}{\emph{IEEE Transactions on Visualization and Computer Graphics}} \bibinfo{volume}{30}, \bibinfo{number}{12} (\bibinfo{year}{2024}), \bibinfo{pages}{7749--7762}.
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2018)]%
+        {zhang2018unreasonable}
+\bibfield{author}{\bibinfo{person}{Richard Zhang}, \bibinfo{person}{Phillip Isola}, \bibinfo{person}{Alexei~A Efros}, \bibinfo{person}{Eli Shechtman}, {and} \bibinfo{person}{Oliver Wang}.} \bibinfo{year}{2018}\natexlab{}.
+\newblock \showarticletitle{The unreasonable effectiveness of deep features as a perceptual metric}. In \bibinfo{booktitle}{\emph{Proceedings of the IEEE conference on computer vision and pattern recognition}}. \bibinfo{pages}{586--595}.
+\newblock
+
+
+\bibitem[Zhang et~al\mbox{.}(2019)]%
+        {zhang2019bertscore}
+\bibfield{author}{\bibinfo{person}{Tianyi Zhang}, \bibinfo{person}{Varsha Kishore}, \bibinfo{person}{Felix Wu}, \bibinfo{person}{Kilian~Q Weinberger}, {and} \bibinfo{person}{Yoav Artzi}.} \bibinfo{year}{2019}\natexlab{}.
+\newblock \showarticletitle{Bertscore: Evaluating text generation with bert}.
+\newblock \bibinfo{journal}{\emph{arXiv preprint arXiv:1904.09675}} (\bibinfo{year}{2019}).
+\newblock
+
+
+\end{thebibliography}

@@ -1,0 +1,113 @@
+\section{Hyper-Parameters}
+\begin{table}[hbtp]
+    \centering
+    \begin{tabular}{l|c|l}
+         Symbol & Value & Description \\\hline
+         $t_x, w_x, h_x, c_x$ & $11, 128, 128, 3$ & Video dimensions \\
+         $t_p, w_p, h_p, c_p$ & $2, 8, 8, 3$ & Patches dimensions (all frames except the first one) \\
+         $t_z, w_z, h_z$ & $6, 16, 16$ & Video tokens dimension (before linear projection) \\
+         $h_z$ & 512 & Hidden size in the transformer layer \\
+         $d_z$ & 32 & Embedding dimension (after linear projection) \\
+         $-$ & 4 & Number of layers for spatial transformer \\
+         $-$ & 4 & Number of layers for temporal transformer \\
+         $-$ & 2048 & MLP size \\
+         $|E|$ & 8192 & Codebook size \\ 
+         \hline
+         - & AdamW &  Optimizer \\
+         $\beta_1$ & 0.9 & first moment of gradient \\
+         $\beta_2$ & 0.99 & second moment of gradient \\
+         - & 1e-4 & Learning rate \\ 
+         - & 1e-4 & Weight decay \\ 
+         - & Cosine decay & Learning rate scheduler \\ 
+         - & 1M & Target number of training steps for learning rate scheduler \\
+         - & 100K & Warmup steps \\
+         - & 10 & Gradient clipping magnitude \\
+         - & 1028 & Batch size \\
+         
+    \end{tabular}
+    \caption{Hyperparamters used for \cvivit architecture and optimizer.}
+    \label{tab:hparams_cvivit}
+\end{table}
+
+\begin{table}[hbtp]
+    \centering
+    \begin{tabular}{l|c|l}
+         Symbol & Value & Description \\\hline
+         $|\bz|$ & 1536 & Sequence Length \\
+         - & 24 & Number of layer \\
+         - & 2048 & Embedding dimension \\
+         - & 8192 & MLP dimension \\
+         - & 32 & Number of heads \\
+         \hline
+         - & AdamW &  Optimizer \\
+         $\beta_1$ & 0.9 & first moment of gradient \\
+         $\beta_2$ & 0.99 & second moment of gradient \\
+         - & 1e-4 & Learning rate \\ 
+         - & 1e-4 & Weight decay \\ 
+         - & Cosine decay & Learning rate scheduler \\ 
+         - & 4M & Target number of training steps for learning rate scheduler \\
+         - & 10K & Warmup steps \\
+         - & 10 & Gradient clipping magnitude \\
+         - & 512 & Batch size \\
+    \end{tabular}
+    \caption{Hyperparamters used for MaskGIT architecture and optimizer.}
+    \label{tab:hparams_maskgit}
+\end{table}
+
+\section{Details of Experiments}
+
+\subsection{Video Quantization}
+\label{app:sec:vid_quant}
+\subsubsection{Network architecture}
+All encoder-decoder baselines have approximately $50\text{M}$ parameters.
+The Convolutional baseline encoder architecture consists of $5$ convolutional blocks with channel multipliers of $[1, 1, 2, 2, 4]$, $2$ residual layers and $128$ hidden units per block, and embedding dimension of 256.
+The ViT baseline encoder architecture consists of an image patchification step over non-overlapping $8\times8$ spatial patches which are linearly transformed into image tokens.
+Next, we follow with $8$ transformer layers with $512$ hidden units, $8$ attention heads, $2048$ mlp units, and embedding dimension of $32$.
+\cvivit encoder architecture patches the first frame to non-overlapping $8\times8$ patches, and then the rest of the frames to non-overlapping $2\times8\times8$ spatio-temporal patches which are linearly transformed into video embeddings.
+Next, \cvivit encoder architecture consists of $4$ spatial and $4$ temporal transformer layers with $512$ hidden units, $8$ attention heads, $2048$ mlp hidden units, and embedding dimension of $32$.
+The decoder architecture for all models is the same as the encoder but in reverse to put the latent embeddings back to image space.
+The VQ objective is trained with commitment loss of $\beta=0.25$ and codebook size of $8192$.
+The discriminator architecture is the StyleGAN \cite{stylegan} discriminator with blur resample, and channel multiplier of $1$.
+
+
+\subsubsection{Training}
+We train all encoder-decoder baselines and with StyleGAN~\citep{stylegan} discriminators with a batch size of $128$ using Adam optimizer~\cite{adam} with $\beta_1=0.9$ and $\beta_2=0.99$. We use a linear learning rate warmup to a peak value of $1 \times 10^{-4}$ over $100,000$ steps and then decaying over the remaining $900,000$ steps with a cosine schedule, and use a decoupled weight decay \cite{adamw} of $1 \times 10^{-4}$ for the encoder-decoder and discriminator. To capture longer time horizons during training and better evaluate temporal coherence, we downsample the MiT dataset from 25 FPS to 6 FPS and evaluate on videos of 10 frames at spatial resolution of $128\times128$.
+
+\subsection{Image conditional video generation}
+\label{app:sec:vid_bair}
+
+
+\subsubsection{BAIR Robot Push \cvivit architecture} \label{app:sec:bair}
+We use a similar setup as in Section \ref{app:sec:vid_quant}, but the video tokenization step is done over $4\times4$ spatial patches on the first image and $2\times4\times4$ spatio-temporal patches in the rest of the video. The spatial encoder consists of 8 layers and the temporal encoder consists of 6 layers.
+
+\subsubsection{Kinetics-600 \cvivit architecture}
+We use a similar setup as in Section \ref{app:sec:bair}, but both the spatial encoder and temporal encoder consist of 8 layers.
+
+\subsubsection{MaskGIT architecture}
+To perform video prediction in latent space in the BAIR Robot Push and Kinetics-600 datasets, we use an unconditional transformer architecture consisting of $24$ layers, $768$ hidden
+units, $16$ attention heads, dropout and attention dropout rate of $0.1$, $3072$ mlp hidden units.
+
+\subsubsection{Training and Inference}
+As described in Table~\ref{tab:hparams_maskgit}, we train \cvivit with the same optimizer setup as in Sec~\ref{app:sec:vid_quant}, but we do not downsample the FPS of any of the datasets in this section for fair comparison with the video prediction baselines. We train MaskGIT on the video tokens extracted using \cvivit in an unconditional setting, that is, we do not assume frames or text inputs to be given. During training, we use the Adam \cite{adam} optimizer with $\beta_1=0.9$ and $\beta_2=0.99$. We use a linear learning rate warmup up to a peak value of $1\times10^{-4}$ over $10,000$ steps, and constant learning rate schedule for ${~\sim}2M$ steps. At inference time, we initialize MaskGIT given a number of input frames, and predict the rest of the frames depending on the dataset on which we evaluate.
+
+\subsection{Text conditional video generation}
+\label{app:sec:text2vid}
+
+\subsubsection{Architecture}
+In our text conditional video generation, we use the same \cvivit architecture and training described in Section \ref{app:sec:vid_quant}.
+To train MaskGIT, we include a text conditioning in the form of T5X embeddings \cite{roberts2022scaling} which are used as input through the use of cross attention with the video tokens. 
+We reduce the number of parameters of our base model for fairness in the quantitative comparisons against NUWA. The MaskGIT architecture used against NUWA consists of $20$ transformer layers with $1536$ hidden units, $24$ attention heads, and $6144$ MLP hidden units, resulting in $0.9\text{B}$ parameters similar to NUWA. For the main experiments in this paper, we use a larger architecture that consists of consists of $24$ transformer layers with $2048$ hidden units, $32$ attention heads, and $8192$ mlp hidden units, resulting in $1.8\text{B}$ parameters.
+
+\subsubsection{Training and inference}
+For all our text-conditional video generation, we use the training parameters Table~\ref{tab:hparams_maskgit}.
+
+\subsubsection{Inference parameters against NUWA}
+We use $\lambda=0.1$, $12$ MaskGIT iterations, and temperature of $4.0$. 
+
+\subsubsection{Inference parameters for ablation of image and video data for training.}
+We use $\lambda=6$, $24$ MaskGIT iterations, and temperature of $4.0$. 
+
+\subsubsection{Inference parameters for all videos in the paper.}
+We use $\lambda=12$, $48$ MaskGIT iterations, and temperature of $8.0$. 
+
+\input{figures/story2}

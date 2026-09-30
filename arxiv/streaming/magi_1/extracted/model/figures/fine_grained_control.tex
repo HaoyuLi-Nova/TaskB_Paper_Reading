@@ -1,0 +1,23 @@
+
+\begin{figure}[h]
+    \centering
+    \begin{minipage}{1.0\textwidth}
+    \begin{subfigure}[b]{1.0\textwidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{model/figures/cfg_guidance/fgc_a.pdf}
+        \caption{w{\!/}o Fine-Grained Control}
+        \label{fig:fgc_a}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{1.0\textwidth}
+        \centering
+        \includegraphics[width=1.0\textwidth]{model/figures/cfg_guidance/fgc_b.pdf}
+        \caption{w{\!/} Fine-Grained Control}
+        \label{fig:fgc_b}
+    \end{subfigure}
+    \end{minipage}
+    \caption{(a) When the generation length exceeds $5$ seconds, severe artifacts emerge and intensify over time. (b) By adjusting the guidance strength (\emph{i.e.}, \(w_{\text{prev}}=1.0\) and \(w_{\text{text}}=0.0\) when \(t > 0.3\)), there are no serious artifacts in the entire generation.}
+    \label{fig:fine_grained_control}
+\end{figure}
+
+

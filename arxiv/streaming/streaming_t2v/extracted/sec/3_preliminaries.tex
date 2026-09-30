@@ -1,0 +1,49 @@
+\section{Preliminaries}
+\label{ssec:preliminary}
+
+\noindent\textbf{Diffusion Models.}
+Our text-to-video model, which we term \textbf{\textit{StreamingT2V}}, is a diffusion model that operates in the latent space of the VQ-GAN \cite{VQ_GAN_paper,VQ_VAE_paper} autoencoder $\mathcal{D}(\mathcal{E}(\cdot))$, where $\mathcal{E}$ and $\mathcal{D}$ are the corresponding encoder and decoder, respectively. 
+Given a video $\mathcal{V} \in \mathbb{R}^{F \times H \times W \times 3}$, composed of $F$ frames with spatial resolution $H \times W$, its \textit{latent code} $x_{0} \in \mathbb{R}^{F \times h \times w \times c}$ is obtained through frame-wise application of the encoder. More precisely, by identifying each tensor $x \in \mathbb{R}^{F \times \hat{h} \times \hat{w} \times \hat{c}}$ as a sequence $(x^{f})_{f=1}^{F}$ with $x^{f} \in \mathbb{R}^{ \hat{h} \times \hat{w} \times \hat{c}}$, we  obtain the latent code via $x_{0}^{f} := \mathcal{E}(\mathcal{V}^{f})$, for all $f = 1,\ldots,F$. The diffusion forward process gradually adds Gaussian noise $\epsilon \sim \mathcal{N}(0,I)$ to the signal $x_0$:
+\begin{equation}
+    q(x_t|x_{t-1}) = \mathcal{N}(x_t; \sqrt{1-\beta_t}x_{t-1}, \beta_t I), \;
+    t = 1,\ldots,T
+    \label{eqn:forward-diffusion}
+\end{equation}
+where $q(x_t|x_{t-1})$ is the conditional density of $x_t$ given $x_{t-1}$, and $\{\beta_t\}_{t=1}^{T}$ are hyperparameters.  A high value for $T$ is chosen such that the forward process completely destroys the initial signal $x_0$ resulting in $x_T \sim \mathcal{N}(0,I)$.
+The goal of a diffusion model is then to learn a backward process
+\begin{equation}
+    p_\theta(x_{t-1}|x_t) = \mathcal{N}(x_{t-1};\mu_\theta(x_t,t),\Sigma_\theta(x_t,t))
+    \label{eqn:diffusion-backward-process}
+\end{equation}
+for $t=T,\ldots,1$ (see DDPM \cite{DDPM_paper}), 
+which allows to generate a valid signal $x_0$ from standard Gaussian noise $x_T$. 
+Once $x_{0}$ is obtained from $x_{T}$, the generated video is obtained by applying the decoder frame-wise: $  \widetilde{\mathbf{V}}^{f} := \mathcal{D}(x_{0}^{f})$, for all $f =1,\ldots, F$.
+Yet, instead of learning a predictor for mean and variance in \eqrefcustom{eqn:diffusion-backward-process}, we  learn a model $\epsilon_{\theta}(x_t,t)$ to predict the Gaussian noise $\epsilon$ that was used to form $x_t$ from input signal $x_0$ (a  common reparametrization \cite{DDPM_paper}).
+
+For text-guided video generation, we use a neural network with learnable weights $\theta$ as noise predictor $\epsilon_{\theta}(x_t,t,\tau)$ that is conditioned on the textual prompt $\tau$.
+%To guide the video generation by a textual prompt $\tau$, we use a noise predictor $\epsilon_{\theta}(x_t,t,\tau)$ that is conditioned on $\tau$.
+%We model $\epsilon_{\theta}(x_t,t,\tau)$ as a neural network with learnable weights $\theta$ and 
+We train it on the denoising task:
+\begin{equation}
+    \min_{\theta} \mathbb{E}_{t,(x_{0} ,\tau) \sim p_{data},\epsilon \sim \mathcal{N}(0,I)} ||\epsilon - \epsilon_{\theta}(x_t,t,\tau)||_{2}^{2},
+\end{equation}
+using the data distribution $p_{data}$. 
+To simplify notation, we will denote by $x_t^{r:s} := (x_{t}^{j})_{j = r}^{s}$ the latent sequence of $x_{t}$ from frame $r$ to frame $s$, for all $r,t,s \in \mathbb{N}$.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=1\linewidth]{figures/t2v-v9.jpg}
+    \caption{
+       Method overview: StreamingT2V enhances a video diffusion model (VDM) with the conditional attention module (CAM) for short-term memory,  and with the appearance preservation module (APM) for long-term memory. CAM conditions a VDM on the preceding chunk using a frame encoder $\mathcal{E}_{\mathrm{cond}}$.  CAM's attentional mechanism enables smooth transitions between chunks \textit{and} high motion. APM extracts 
+       high-level image features from an anchor frame and injects them into the text cross-attentions of the VDM, preserving object/scene features during the autoregression.
+       %from an anchor frame high-level image features and injects it to the text cross-attentions of the VDM. APM helps to  preserve object/scene features across the autogressive video generation.
+    }
+    \label{fig:pipeline}
+\end{figure*}
+
+\noindent\textbf{Text-To-Video Models.}
+Text-to-video models \cite{girdhar2023emu,make-a-video,Modelscope,imagen_video,AlignYourLatents} typically expand pre-trained text-to-image models \cite{stable_diff,Dalle2_paper} by adding new layers that operate on the temporal axis. 
+Modelscope (MS) \cite{Modelscope} follows this approach by extending the UNet-like \cite{UNet_paper} architecture of Stable Diffusion \cite{stable_diff} with temporal convolutional and attentional layers.
+It was trained in a large-scale setup to generate videos with 3 FPS@256x256 and 16 frames.  
+% The quadratic growth in memory and compute of the temporal attention layers (as used in recent text-to-video models) together with very high training costs limits current text-to-video models in generating long sequences.
+% In this paper, we demonstrate our StreamingT2V method by taking MS as a basis and turn it into an autoregressive model suitable for long video generation with high motion dynamics and consistency. 

@@ -1,0 +1,114 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+\usepackage[numbers,sort&compress]{natbib}
+
+\usepackage{iccv}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{soul}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{pifont}
+\usepackage{amsfonts}
+\usepackage{bbm}
+\usepackage{soul}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{array,makecell}
+\usepackage{enumitem}
+
+
+\usepackage{hyperref}
+
+\usepackage{xr-hyper}
+\hypersetup{
+    pagebackref=true,
+    breaklinks=true,
+    letterpaper=true,
+    bookmarks=false,
+    colorlinks=true, %
+    linktoc=all,     %
+}
+\usepackage[numbers,sort&compress]{natbib}
+
+\iccvfinalcopy %
+
+\def\httilde{\mbox{\tt\raisebox{-.5ex}{\symbol{126}}}}
+
+\ificcvfinal\pagestyle{empty}\fi
+
+\begin{document}
+
+\title{\ours : Audio Conditioned Diffusion Models for Lip-Synchronization}
+
+
+
+\author{Soumik Mukhopadhyay$^1$\\
+{\tt\small soumik@umd.edu}
+\and
+Saksham Suri$^1$\\
+{\tt\small sakshams@cs.umd.edu}
+\and
+Ravi Teja Gadde$^2$\\
+{\tt\small rtg267@nyu.edu}
+\and
+Abhinav Shrivastava$^1$\\
+{\tt\small abhinav@cs.umd.edu}
+\and
+$^1$University of Maryland, College Park\\
+\and 
+$^2$New York University
+}
+
+
+\ificcvfinal\thispagestyle{empty}\fi
+
+\ificcvfinal\pagestyle{empty}\fi
+
+\newcommand{\methodname}{Diff2Lip}
+\newcommand{\ours}{\methodname}
+
+
+
+
+
+
+
+
+
+
+
+
+\maketitle
+\input{0_abstract}
+
+\input{1_intro}
+
+\input{2_related_work}
+
+\input{3_method}
+
+
+
+\input{4_experiments}
+
+
+\input{5_discussion}
+
+
+
+
+
+
+
+{\small
+\bibliographystyle{ieee_fullname}
+\bibliography{egbib}
+}
+
+\clearpage
+\appendix
+\input{6_supp}
+\end{document}
